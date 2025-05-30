@@ -1,0 +1,112 @@
+erDiagram
+    mst_plant {
+        varchar plant_code PK
+        varchar description
+        char status
+    }
+    
+    mst_location {
+        varchar location_code PK
+        varchar description
+        varchar plant_code FK
+        char status
+    }
+    
+    mst_unit {
+        varchar unit_code PK
+        varchar name
+        char status
+    }
+    
+    mst_user {
+        varchar user_id PK
+        varchar username
+        varchar full_name
+        char status
+    }
+    
+    asset_master {
+        varchar asset_no PK
+        varchar description
+        varchar plant_code FK
+        varchar location_code FK
+        varchar serial_no UK
+        varchar inventory_no UK
+        decimal quantity
+        varchar unit_code FK
+        char status
+        varchar created_by FK
+        datetime created_at
+        date deactivated_at
+    }
+    
+    %% Future Extension Tables
+    asset_detail_technical {
+        varchar asset_no FK
+        text specs
+        varchar manufacturer
+        varchar model_no
+    }
+    
+    asset_detail_financial {
+        varchar asset_no FK
+        decimal acquisition_cost
+        decimal current_value
+        decimal depreciation_rate
+        date purchased_at
+    }
+    
+    asset_detail_maintenance {
+        varchar asset_no FK
+        date last_maintained_at
+        date next_maintenance_at
+        varchar type
+        varchar contractor
+    }
+    
+    asset_detail_operation {
+        varchar asset_no FK
+        varchar status
+        decimal operating_hours
+        varchar operator_id FK
+    }
+    
+    asset_status_history {
+        int history_id PK
+        varchar asset_no FK
+        varchar old_status
+        varchar new_status
+        datetime changed_at
+        varchar changed_by FK
+        text remarks
+    }
+    
+    asset_movement_history {
+        int movement_id PK
+        varchar asset_no FK
+        varchar from_location_code FK
+        varchar to_location_code FK
+        datetime moved_at
+        varchar moved_by FK
+        text reason
+    }
+    
+    %% Current Relationships (Phase 1 Active)
+    mst_plant ||--o{ mst_location : "contains"
+    mst_plant ||--o{ asset_master : "owns"
+    mst_location ||--o{ asset_master : "houses"
+    mst_unit ||--o{ asset_master : "measures"
+    mst_user ||--o{ asset_master : "creates"
+    
+    %% Future Extension Relationships
+    asset_master ||--o{ asset_detail_technical : "has_technical"
+    asset_master ||--o{ asset_detail_financial : "has_financial"
+    asset_master ||--o{ asset_detail_maintenance : "has_maintenance"
+    asset_master ||--o{ asset_detail_operation : "has_operation"
+    asset_master ||--o{ asset_status_history : "tracks_status"
+    asset_master ||--o{ asset_movement_history : "tracks_movement"
+    mst_user ||--o{ asset_detail_operation : "operates"
+    mst_user ||--o{ asset_status_history : "changes_status"
+    mst_user ||--o{ asset_movement_history : "moves"
+    mst_location ||--o{ asset_movement_history : "from"
+    mst_location ||--o{ asset_movement_history : "to"
