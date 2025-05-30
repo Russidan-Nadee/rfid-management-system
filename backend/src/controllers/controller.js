@@ -574,6 +574,26 @@ const assetController = {
          const statusCode = error.message.includes('not found') ? 404 : 500;
          return sendResponse(res, statusCode, false, error.message);
       }
+   },
+
+   async getAssetStatusHistory(req, res) {
+      try {
+         const { asset_no } = req.params;
+         const { page = 1, limit = 50 } = req.query;
+
+         // Verify asset exists
+         await assetService.getAssetByNo(asset_no);
+
+         const history = await assetService.getAssetStatusHistory(asset_no);
+         const paginatedHistory = applyPagination(history, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), history.length);
+
+         return sendResponse(res, 200, true, 'Asset status history retrieved successfully', paginatedHistory, meta);
+      } catch (error) {
+         console.error('Get asset status history error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
    }
 };
 

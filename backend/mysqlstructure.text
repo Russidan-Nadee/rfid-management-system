@@ -2,27 +2,23 @@ erDiagram
     mst_plant {
         varchar plant_code PK
         varchar description
-        char status
     }
     
     mst_location {
         varchar location_code PK
         varchar description
         varchar plant_code FK
-        char status
     }
     
     mst_unit {
         varchar unit_code PK
         varchar name
-        char status
     }
     
     mst_user {
         varchar user_id PK
         varchar username
         varchar full_name
-        char status
     }
     
     asset_master {

@@ -371,15 +371,62 @@ class AssetService extends BaseService {
             throw new Error('Invalid status. Must be C, A, or I');
          }
 
+         // Get current asset
+         const currentAsset = await this.getAssetByNo(assetNo);
+         const oldStatus = currentAsset.status;
+
          const updateData = { status };
 
          if (status === 'I') {
             updateData.deactivated_at = new Date();
          }
 
-         return await this.model.updateAssetStatus(assetNo, updateData);
+         // Begin transaction
+         const connection = await this.model.pool.getConnection();
+
+         try {
+            await connection.beginTransaction();
+
+            // Update asset status
+            const updateQuery = `
+            UPDATE asset_master 
+            SET ${Object.keys(updateData).map(key => `${key} = ?`).join(', ')}
+            WHERE asset_no = ?
+         `;
+            const updateParams = [...Object.values(updateData), assetNo];
+            await connection.execute(updateQuery, updateParams);
+
+            // Insert status history
+            const historyQuery = `
+            INSERT INTO asset_status_history (
+               asset_no, old_status, new_status, 
+               changed_at, changed_by, remarks
+            ) VALUES (?, ?, ?, NOW(), ?, ?)
+         `;
+            await connection.execute(historyQuery, [
+               assetNo, oldStatus, status, updatedBy, remarks
+            ]);
+
+            await connection.commit();
+            return await this.getAssetWithDetails(assetNo);
+
+         } catch (error) {
+            await connection.rollback();
+            throw error;
+         } finally {
+            connection.release();
+         }
+
       } catch (error) {
          throw new Error(`Error updating asset status: ${error.message}`);
+      }
+   }
+
+   async getAssetStatusHistory(assetNo) {
+      try {
+         return await this.model.getAssetStatusHistory(assetNo);
+      } catch (error) {
+         throw new Error(`Error fetching asset status history: ${error.message}`);
       }
    }
 }

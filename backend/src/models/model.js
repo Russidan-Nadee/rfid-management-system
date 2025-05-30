@@ -330,6 +330,19 @@ class AssetModel extends BaseModel {
       await this.executeQuery(query, params);
       return this.getAssetWithDetails(assetNo);
    }
+
+   async getAssetStatusHistory(assetNo) {
+      const query = `
+         SELECT 
+            h.*,
+            u.full_name as changed_by_name
+         FROM asset_status_history h
+         LEFT JOIN mst_user u ON h.changed_by = u.user_id
+         WHERE h.asset_no = ?
+         ORDER BY h.changed_at DESC
+      `;
+      return this.executeQuery(query, [assetNo]);
+   }
 }
 
 module.exports = {

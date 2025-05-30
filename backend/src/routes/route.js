@@ -58,6 +58,7 @@ router.get('/users/username/:username', generalRateLimit, userValidators.getUser
 router.post('/assets', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
 router.put('/assets/:asset_no', generalRateLimit, assetValidators.updateAsset, assetController.updateAsset);
 router.patch('/assets/:asset_no/status', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
+router.get('/assets/:asset_no/status/history', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetStatusHistory);
 router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets); router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
 router.get('/assets/stats', generalRateLimit, assetController.getAssetStats);
 router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetStatsByPlant);
