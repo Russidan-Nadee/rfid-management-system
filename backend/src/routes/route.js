@@ -55,12 +55,15 @@ router.get('/users/:user_id', generalRateLimit, userValidators.getUserById, user
 router.get('/users/username/:username', generalRateLimit, userValidators.getUserByUsername, userController.getUserByUsername);
 
 // Asset Routes
-router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets);
-router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
+router.post('/assets', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
+router.put('/assets/:asset_no', generalRateLimit, assetValidators.updateAsset, assetController.updateAsset);
+router.patch('/assets/:asset_no/status', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
+router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets); router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
 router.get('/assets/stats', generalRateLimit, assetController.getAssetStats);
 router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetStatsByPlant);
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
 router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
+
 
 // Asset filtering routes
 router.get('/plants/:plant_code/assets', generalRateLimit, assetValidators.getAssetsByPlant, assetController.getAssetsByPlant);

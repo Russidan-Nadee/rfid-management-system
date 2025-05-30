@@ -1,3 +1,4 @@
+// Path: backend/src/services/service.js
 const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../models/model');
 
 class BaseService {
@@ -251,11 +252,13 @@ class AssetService extends BaseService {
       try {
          const totalAssets = await this.model.count();
          const activeAssets = await this.model.count({ status: 'A' });
-         const inactiveAssets = totalAssets - activeAssets;
+         const createdAssets = await this.model.count({ status: 'C' });
+         const inactiveAssets = totalAssets - activeAssets - createdAssets;
 
          return {
             total: totalAssets,
             active: activeAssets,
+            created: createdAssets,
             inactive: inactiveAssets
          };
       } catch (error) {
@@ -271,7 +274,7 @@ class AssetService extends BaseService {
                     p.description as plant_description,
                     COUNT(a.asset_no) as asset_count
                 FROM mst_plant p
-                LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status = 'A'
+                LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status IN ('A', 'C')
                 WHERE p.status = 'A'
                 GROUP BY p.plant_code, p.description
                 ORDER BY p.plant_code
@@ -293,7 +296,7 @@ class AssetService extends BaseService {
                     COUNT(a.asset_no) as asset_count
                 FROM mst_location l
                 LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-                LEFT JOIN asset_master a ON l.location_code = a.location_code AND a.status = 'A'
+                LEFT JOIN asset_master a ON l.location_code = a.location_code AND a.status IN ('A', 'C')
                 WHERE l.status = 'A'
                 GROUP BY l.location_code, l.description, l.plant_code, p.description
                 ORDER BY l.location_code
@@ -301,6 +304,82 @@ class AssetService extends BaseService {
          return await this.model.executeQuery(query);
       } catch (error) {
          throw new Error(`Error fetching asset statistics by location: ${error.message}`);
+      }
+   }
+
+   async createAsset(assetData) {
+      try {
+         return await this.model.createAsset(assetData);
+      } catch (error) {
+         throw new Error(`Error creating asset: ${error.message}`);
+      }
+   }
+
+   async checkAssetExists(assetNo) {
+      try {
+         const asset = await this.model.getAssetByNo(assetNo);
+         return !!asset;
+      } catch (error) {
+         return false;
+      }
+   }
+
+   async checkSerialExists(serialNo) {
+      try {
+         return await this.model.checkSerialExists(serialNo);
+      } catch (error) {
+         return false;
+      }
+   }
+
+   async checkInventoryExists(inventoryNo) {
+      try {
+         return await this.model.checkInventoryExists(inventoryNo);
+      } catch (error) {
+         return false;
+      }
+   }
+
+   async updateAsset(assetNo, updateData) {
+      try {
+         const existingAsset = await this.getAssetByNo(assetNo);
+
+         if (updateData.serial_no && updateData.serial_no !== existingAsset.serial_no) {
+            const serialExists = await this.checkSerialExists(updateData.serial_no);
+            if (serialExists) {
+               throw new Error('Serial number already exists');
+            }
+         }
+
+         if (updateData.inventory_no && updateData.inventory_no !== existingAsset.inventory_no) {
+            const inventoryExists = await this.checkInventoryExists(updateData.inventory_no);
+            if (inventoryExists) {
+               throw new Error('Inventory number already exists');
+            }
+         }
+
+         return await this.model.updateAsset(assetNo, updateData);
+      } catch (error) {
+         throw new Error(`Error updating asset: ${error.message}`);
+      }
+   }
+
+   async updateAssetStatus(assetNo, status, updatedBy, remarks = null) {
+      try {
+         const validStatuses = ['C', 'A', 'I'];
+         if (!validStatuses.includes(status)) {
+            throw new Error('Invalid status. Must be C, A, or I');
+         }
+
+         const updateData = { status };
+
+         if (status === 'I') {
+            updateData.deactivated_at = new Date();
+         }
+
+         return await this.model.updateAssetStatus(assetNo, updateData);
+      } catch (error) {
+         throw new Error(`Error updating asset status: ${error.message}`);
       }
    }
 }

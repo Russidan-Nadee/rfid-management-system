@@ -1,3 +1,4 @@
+// Path: backend/src/models/model.js
 const mysql = require('mysql2/promise');
 
 // Database connection configuration
@@ -264,6 +265,70 @@ class AssetModel extends BaseModel {
       query += ` ORDER BY a.asset_no`;
 
       return this.executeQuery(query, params);
+   }
+
+   // New methods for creating assets
+   async createAsset(assetData) {
+      const query = `
+         INSERT INTO asset_master (
+            asset_no, description, plant_code, location_code,
+            serial_no, inventory_no, quantity, unit_code,
+            status, created_by, created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      const params = [
+         assetData.asset_no,
+         assetData.description,
+         assetData.plant_code,
+         assetData.location_code,
+         assetData.serial_no,
+         assetData.inventory_no,
+         assetData.quantity,
+         assetData.unit_code,
+         assetData.status,
+         assetData.created_by,
+         assetData.created_at
+      ];
+
+      await this.executeQuery(query, params);
+      return this.getAssetWithDetails(assetData.asset_no);
+   }
+
+   async checkSerialExists(serialNo) {
+      const query = `SELECT asset_no FROM asset_master WHERE serial_no = ?`;
+      const result = await this.executeQuery(query, [serialNo]);
+      return result.length > 0;
+   }
+
+   async checkInventoryExists(inventoryNo) {
+      const query = `SELECT asset_no FROM asset_master WHERE inventory_no = ?`;
+      const result = await this.executeQuery(query, [inventoryNo]);
+      return result.length > 0;
+   }
+
+   // New methods for updating assets
+   async updateAsset(assetNo, updateData) {
+      const setClause = Object.keys(updateData)
+         .map(key => `${key} = ?`)
+         .join(', ');
+
+      const query = `UPDATE asset_master SET ${setClause} WHERE asset_no = ?`;
+      const params = [...Object.values(updateData), assetNo];
+
+      await this.executeQuery(query, params);
+      return this.getAssetWithDetails(assetNo);
+   }
+
+   async updateAssetStatus(assetNo, updateData) {
+      const setClause = Object.keys(updateData)
+         .map(key => `${key} = ?`)
+         .join(', ');
+
+      const query = `UPDATE asset_master SET ${setClause} WHERE asset_no = ?`;
+      const params = [...Object.values(updateData), assetNo];
+
+      await this.executeQuery(query, params);
+      return this.getAssetWithDetails(assetNo);
    }
 }
 

@@ -322,7 +322,7 @@ const userController = {
    }
 };
 
-// Asset Controller
+
 const assetController = {
    async getAssets(req, res) {
       try {
@@ -456,6 +456,123 @@ const assetController = {
       } catch (error) {
          console.error('Get asset stats by location error:', error);
          return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   async createAsset(req, res) {
+      try {
+         const {
+            asset_no,
+            description,
+            plant_code,
+            location_code,
+            serial_no,
+            inventory_no,
+            quantity = 1,
+            unit_code,
+            created_by
+         } = req.body;
+
+         // Check if asset_no already exists
+         const existingAsset = await assetService.checkAssetExists(asset_no);
+         if (existingAsset) {
+            return sendResponse(res, 409, false, 'Asset number already exists');
+         }
+
+         // Check if serial_no is unique (if provided)
+         if (serial_no) {
+            const existingSerial = await assetService.checkSerialExists(serial_no);
+            if (existingSerial) {
+               return sendResponse(res, 409, false, 'Serial number already exists');
+            }
+         }
+
+         // Check if inventory_no is unique (if provided)
+         if (inventory_no) {
+            const existingInventory = await assetService.checkInventoryExists(inventory_no);
+            if (existingInventory) {
+               return sendResponse(res, 409, false, 'Inventory number already exists');
+            }
+         }
+
+         // Validate foreign keys exist
+         await Promise.all([
+            plantService.getPlantByCode(plant_code),
+            locationService.getLocationByCode(location_code),
+            unitService.getUnitByCode(unit_code),
+            userService.getUserById(created_by)
+         ]);
+
+         // Create new asset
+         const newAsset = await assetService.createAsset({
+            asset_no,
+            description,
+            plant_code,
+            location_code,
+            serial_no,
+            inventory_no,
+            quantity,
+            unit_code,
+            status: 'C',
+            created_by,
+            created_at: new Date()
+         });
+
+         return sendResponse(res, 201, true, 'Asset created successfully', newAsset);
+      } catch (error) {
+         console.error('Create asset error:', error);
+         const statusCode = error.message.includes('not found') ? 400 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
+   async updateAsset(req, res) {
+      try {
+         const { asset_no } = req.params;
+         const updateData = req.body;
+
+         // Remove fields that shouldn't be updated
+         delete updateData.asset_no;
+         delete updateData.created_by;
+         delete updateData.created_at;
+
+         // Validate foreign keys if provided
+         const validations = [];
+         if (updateData.plant_code) {
+            validations.push(plantService.getPlantByCode(updateData.plant_code));
+         }
+         if (updateData.location_code) {
+            validations.push(locationService.getLocationByCode(updateData.location_code));
+         }
+         if (updateData.unit_code) {
+            validations.push(unitService.getUnitByCode(updateData.unit_code));
+         }
+
+         await Promise.all(validations);
+
+         // Update asset
+         const updatedAsset = await assetService.updateAsset(asset_no, updateData);
+
+         return sendResponse(res, 200, true, 'Asset updated successfully', updatedAsset);
+      } catch (error) {
+         console.error('Update asset error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
+   async updateAssetStatus(req, res) {
+      try {
+         const { asset_no } = req.params;
+         const { status, updated_by, remarks } = req.body;
+
+         const updatedAsset = await assetService.updateAssetStatus(asset_no, status, updated_by, remarks);
+
+         return sendResponse(res, 200, true, 'Asset status updated successfully', updatedAsset);
+      } catch (error) {
+         console.error('Update asset status error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
       }
    }
 };
