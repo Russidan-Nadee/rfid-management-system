@@ -23,9 +23,11 @@ const {
 
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
+const authRoutes = require('./authRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
+router.use('/auth', authRoutes);
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes

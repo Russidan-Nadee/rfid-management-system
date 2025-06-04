@@ -41,6 +41,17 @@ app.get('/health', (req, res) => {
 app.use('/api/v1', routes);
 
 // Error handling middleware
+app.use((err, req, res, next) => {
+   if (err.name === 'UnauthorizedError') {
+      return res.status(401).json({
+         success: false,
+         message: 'Invalid token',
+         timestamp: new Date().toISOString()
+      });
+   }
+   next(err);
+});
+
 app.use(notFoundHandler);
 app.use(errorHandler);
 
