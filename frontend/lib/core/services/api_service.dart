@@ -1,0 +1,269 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import '../constants/api_constants.dart';
+import '../models/api_response.dart';
+import '../errors/exceptions.dart';
+import 'storage_service.dart';
+
+class ApiService {
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService() => _instance;
+  ApiService._internal();
+
+  final StorageService _storage = StorageService();
+  final http.Client _client = http.Client();
+
+  // Request headers
+  Future<Map<String, String>> _getHeaders({bool requiresAuth = true}) async {
+    final headers = Map<String, String>.from(ApiConstants.defaultHeaders);
+
+    if (requiresAuth) {
+      final token = await _storage.getAuthToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    return headers;
+  }
+
+  // Error handling
+  AppException _handleError(http.Response response) {
+    try {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final message = body['message'] ?? 'Unknown error occurred';
+
+      switch (response.statusCode) {
+        case 400:
+          final errors = body['errors'] as List<dynamic>?;
+          if (errors != null) {
+            final errorMessages = errors
+                .map((e) => e['message']?.toString() ?? '')
+                .where((msg) => msg.isNotEmpty)
+                .toList();
+            return ValidationException(errorMessages);
+          }
+          return ValidationException([message]);
+        case 401:
+          return UnauthorizedException();
+        case 403:
+          return ForbiddenException();
+        case 404:
+          return NotFoundException(message);
+        case 429:
+          return ApiException('Too many requests', response.statusCode);
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          return ServerException();
+        default:
+          return createExceptionFromStatusCode(response.statusCode, message);
+      }
+    } catch (e) {
+      return createExceptionFromStatusCode(
+        response.statusCode,
+        'HTTP ${response.statusCode}: ${response.reasonPhrase}',
+      );
+    }
+  }
+
+  // Network error handling
+  AppException _handleNetworkError(dynamic error) {
+    if (error is SocketException) {
+      return NoInternetException();
+    } else if (error is HttpException) {
+      return NetworkException(error.message);
+    } else if (error.toString().contains('timeout')) {
+      return ConnectionTimeoutException();
+    } else {
+      return NetworkException('Network error: $error');
+    }
+  }
+
+  // Make HTTP request
+  Future<ApiResponse<T>> _makeRequest<T>(
+    String method,
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    try {
+      // Build URL
+      var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      if (queryParams != null && queryParams.isNotEmpty) {
+        uri = uri.replace(queryParameters: queryParams);
+      }
+
+      // Get headers
+      final headers = await _getHeaders(requiresAuth: requiresAuth);
+
+      // Make request
+      late http.Response response;
+
+      switch (method.toLowerCase()) {
+        case 'get':
+          response = await _client
+              .get(uri, headers: headers)
+              .timeout(ApiConstants.timeout);
+          break;
+        case 'post':
+          response = await _client
+              .post(
+                uri,
+                headers: headers,
+                body: body != null ? jsonEncode(body) : null,
+              )
+              .timeout(ApiConstants.timeout);
+          break;
+        case 'put':
+          response = await _client
+              .put(
+                uri,
+                headers: headers,
+                body: body != null ? jsonEncode(body) : null,
+              )
+              .timeout(ApiConstants.timeout);
+          break;
+        case 'patch':
+          response = await _client
+              .patch(
+                uri,
+                headers: headers,
+                body: body != null ? jsonEncode(body) : null,
+              )
+              .timeout(ApiConstants.timeout);
+          break;
+        case 'delete':
+          response = await _client
+              .delete(uri, headers: headers)
+              .timeout(ApiConstants.timeout);
+          break;
+        default:
+          throw ApiException('Unsupported HTTP method: $method', 400);
+      }
+
+      // Handle response
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseBody = response.body.isEmpty
+            ? '{"success": true, "message": "Success", "timestamp": "${DateTime.now().toIso8601String()}"}'
+            : response.body;
+
+        final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
+        return ApiResponse.fromJson(jsonResponse, fromJson);
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      if (e is AppException) {
+        rethrow;
+      } else {
+        throw _handleNetworkError(e);
+      }
+    }
+  }
+
+  // GET request
+  Future<ApiResponse<T>> get<T>(
+    String endpoint, {
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    return _makeRequest<T>(
+      'GET',
+      endpoint,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+      fromJson: fromJson,
+    );
+  }
+
+  // POST request
+  Future<ApiResponse<T>> post<T>(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    return _makeRequest<T>(
+      'POST',
+      endpoint,
+      body: body,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+      fromJson: fromJson,
+    );
+  }
+
+  // PUT request
+  Future<ApiResponse<T>> put<T>(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    return _makeRequest<T>(
+      'PUT',
+      endpoint,
+      body: body,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+      fromJson: fromJson,
+    );
+  }
+
+  // PATCH request
+  Future<ApiResponse<T>> patch<T>(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    return _makeRequest<T>(
+      'PATCH',
+      endpoint,
+      body: body,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+      fromJson: fromJson,
+    );
+  }
+
+  // DELETE request
+  Future<ApiResponse<T>> delete<T>(
+    String endpoint, {
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+    T Function(dynamic)? fromJson,
+  }) async {
+    return _makeRequest<T>(
+      'DELETE',
+      endpoint,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+      fromJson: fromJson,
+    );
+  }
+
+  // Authentication helpers
+  Future<bool> isAuthenticated() async {
+    final token = await _storage.getAuthToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<void> clearAuthToken() async {
+    await _storage.clearAuthData();
+  }
+
+  // Dispose resources
+  void dispose() {
+    _client.close();
+  }
+}

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/app_theme.dart';
+import 'package:frontend/core/constants/app_theme.dart';
 import 'package:frontend/presentation/root_layout.dart';
 
 class MyApp extends StatelessWidget {

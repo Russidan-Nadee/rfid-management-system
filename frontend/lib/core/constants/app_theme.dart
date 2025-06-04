@@ -1,6 +1,6 @@
 // lib/core/styles/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/core/app_colors.dart';
+import 'package:frontend/core/constants/app_colors.dart';
 
 final ThemeData appTheme = ThemeData(
   scaffoldBackgroundColor: AppColors.background,
