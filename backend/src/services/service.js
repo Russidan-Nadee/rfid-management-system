@@ -429,6 +429,55 @@ class AssetService extends BaseService {
          throw new Error(`Error fetching asset status history: ${error.message}`);
       }
    }
+   async logAssetScan(assetNo, scannedBy, locationCode, ipAddress, userAgent) {
+      try {
+         const query = `
+            INSERT INTO asset_scan_log (
+               asset_no, scanned_by, location_code, 
+               ip_address, user_agent, scanned_at
+            ) VALUES (?, ?, ?, ?, ?, NOW())
+         `;
+
+         await this.model.executeQuery(query, [assetNo, scannedBy, locationCode, ipAddress, userAgent]);
+         return { success: true };
+      } catch (error) {
+         throw new Error(`Error logging asset scan: ${error.message}`);
+      }
+   }
+
+   async getMockScanAssets(count = 7) {
+      try {
+         const query = `
+            SELECT 
+               a.asset_no,
+               a.description,
+               a.serial_no,
+               a.inventory_no,
+               a.quantity,
+               u.name as unit_name,
+               usr.full_name as created_by_name,
+               a.created_at,
+               a.status,
+               CASE 
+                  WHEN RAND() < 0.1 THEN 'Unknown'
+                  WHEN RAND() < 0.2 THEN 'Checked'
+                  ELSE 'Available'
+               END as scan_status
+            FROM asset_master a
+            LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
+            LEFT JOIN mst_user usr ON a.created_by = usr.user_id
+            WHERE a.status = 'A'
+            ORDER BY RAND()
+            LIMIT ?
+         `;
+
+         return await this.model.executeQuery(query, [count]);
+      } catch (error) {
+         throw new Error(`Error getting mock scan assets: ${error.message}`);
+      }
+   }
+
+
 }
 
 module.exports = {

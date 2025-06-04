@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../layouts/root_layout.dart';
 import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../widgets/login_form.dart';
 

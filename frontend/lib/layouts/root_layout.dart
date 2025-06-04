@@ -1,6 +1,7 @@
 // lib/presentation/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/presentation/dashboard_page.dart';
+import '../features/scan/presentation/pages/scan_page.dart';
 
 class RootLayout extends StatefulWidget {
   const RootLayout({super.key});
@@ -16,7 +17,7 @@ class _RootLayoutState extends State<RootLayout> {
   final List<Widget> _pages = const [
     DashboardPage(),
     // SearchPage(),
-    // ScanPage(),
+    ScanPage(),
     // ReportPage(),
     // ExportPage(),
   ];

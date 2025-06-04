@@ -8,7 +8,8 @@ const {
    unitController,
    userController,
    assetController,
-   dashboardController
+   dashboardController,
+   scanController
 } = require('../controllers/controller');
 
 // Import validators
@@ -23,6 +24,7 @@ const {
 
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
+const { authenticateToken } = require('../middlewares/authMiddleware');
 const authRoutes = require('./authRoutes');
 
 // Apply database connection check to all routes
@@ -61,12 +63,16 @@ router.post('/assets', generalRateLimit, assetValidators.createAsset, assetContr
 router.put('/assets/:asset_no', generalRateLimit, assetValidators.updateAsset, assetController.updateAsset);
 router.patch('/assets/:asset_no/status', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
 router.get('/assets/:asset_no/status/history', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetStatusHistory);
-router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets); router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
+router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets);
+router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
 router.get('/assets/stats', generalRateLimit, assetController.getAssetStats);
 router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetStatsByPlant);
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
 router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
 
+// Scan Routes
+router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
+router.post('/scan/mock', generalRateLimit, authenticateToken, scanController.mockRfidScan);
 
 // Asset filtering routes
 router.get('/plants/:plant_code/assets', generalRateLimit, assetValidators.getAssetsByPlant, assetController.getAssetsByPlant);
@@ -112,6 +118,10 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/assets/stats/by-plant': 'Get asset statistics by plant',
             'GET /api/v1/assets/stats/by-location': 'Get asset statistics by location',
             'GET /api/v1/assets/:asset_no': 'Get asset by number with details'
+         },
+         scan: {
+            'POST /api/v1/scan/log': 'Log asset scan',
+            'POST /api/v1/scan/mock': 'Mock RFID scan (returns random assets)'
          }
       },
       queryParameters: {

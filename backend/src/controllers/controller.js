@@ -597,11 +597,49 @@ const assetController = {
    }
 };
 
+const scanController = {
+   async logAssetScan(req, res) {
+      try {
+         const { asset_no } = req.body;
+         const { userId } = req.user;
+         const ipAddress = req.ip || req.connection.remoteAddress;
+         const userAgent = req.get('User-Agent');
+
+         const asset = await assetService.getAssetByNo(asset_no);
+         const scanResult = await assetService.logAssetScan(
+            asset_no, userId, asset.location_code, ipAddress, userAgent
+         );
+
+         return sendResponse(res, 201, true, 'Asset scan logged successfully', scanResult);
+      } catch (error) {
+         console.error('Log asset scan error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
+   async mockRfidScan(req, res) {
+      try {
+         const { count = 7 } = req.body;
+         const mockAssets = await assetService.getMockScanAssets(count);
+
+         return sendResponse(res, 200, true, 'Mock RFID scan completed', {
+            scanned_items: mockAssets,
+            count: mockAssets.length
+         });
+      } catch (error) {
+         console.error('Mock RFID scan error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   }
+};
+
 module.exports = {
    plantController,
    locationController,
    unitController,
    userController,
    assetController,
-   dashboardController
+   dashboardController,
+   scanController
 };

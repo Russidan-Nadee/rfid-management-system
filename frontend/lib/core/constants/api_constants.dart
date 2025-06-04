@@ -35,6 +35,10 @@ class ApiConstants {
   static const String assetsByPlant = '$assets/stats/by-plant';
   static const String assetsByLocation = '$assets/stats/by-location';
 
+  // Scan Endpoints - เพิ่มตรงนี้
+  static const String scanLog = '/scan/log';
+  static const String scanMock = '/scan/mock';
+
   // Asset Actions
   static String assetDetail(String assetNo) => '$assets/$assetNo';
   static String assetStatusHistory(String assetNo) =>

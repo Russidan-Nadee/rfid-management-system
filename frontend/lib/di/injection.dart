@@ -1,13 +1,9 @@
-// Path: frontend/lib/core/di/injection.dart
-import 'package:frontend/core/services/api_service.dart';
-import 'package:frontend/core/services/storage_service.dart';
+// Path: frontend/lib/di/injection.dart
 import 'package:get_it/get_it.dart';
-import '../../features/auth/data/datasources/auth_remote_datasource.dart';
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
-import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/auth/domain/usecases/login_usecase.dart';
-import '../../features/auth/domain/usecases/logout_usecase.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../core/services/api_service.dart';
+import '../core/services/storage_service.dart';
+import 'auth_injection.dart';
+import 'scan_injection.dart';
 
 // Global GetIt instance
 final getIt = GetIt.instance;
@@ -21,50 +17,9 @@ Future<void> configureDependencies() async {
   // Initialize storage service
   await getIt<StorageService>().init();
 
-  // Auth Feature Dependencies
-  _configureAuthDependencies();
-}
-
-/// Configure Auth feature dependencies
-void _configureAuthDependencies() {
-  // Data Layer
-  getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(getIt<ApiService>()),
-  );
-
-  getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-      remoteDataSource: getIt<AuthRemoteDataSource>(),
-      storageService: getIt<StorageService>(),
-    ),
-  );
-
-  // Domain Layer - Use Cases
-  getIt.registerLazySingleton<LoginUseCase>(
-    () => LoginUseCase(getIt<AuthRepository>()),
-  );
-
-  getIt.registerLazySingleton<LogoutUseCase>(
-    () => LogoutUseCase(getIt<AuthRepository>()),
-  );
-
-  // Presentation Layer - Blocs (Factory - new instance each time)
-  getIt.registerFactory<AuthBloc>(
-    () => AuthBloc(
-      loginUseCase: getIt<LoginUseCase>(),
-      logoutUseCase: getIt<LogoutUseCase>(),
-      authRepository: getIt<AuthRepository>(),
-    ),
-  );
-}
-
-/// Configure additional features (call this when adding new features)
-void _configureDashboardDependencies() {
-  // TODO: Add dashboard dependencies when implementing dashboard feature
-}
-
-void _configureAssetDependencies() {
-  // TODO: Add asset management dependencies when implementing asset feature
+  // Configure feature dependencies
+  configureAuthDependencies();
+  configureScanDependencies();
 }
 
 /// Reset all dependencies (useful for testing)
@@ -77,10 +32,13 @@ void debugDependencies() {
   print('=== Registered Dependencies ===');
   print('StorageService: ${getIt.isRegistered<StorageService>()}');
   print('ApiService: ${getIt.isRegistered<ApiService>()}');
-  print('AuthRepository: ${getIt.isRegistered<AuthRepository>()}');
-  print('LoginUseCase: ${getIt.isRegistered<LoginUseCase>()}');
-  print('LogoutUseCase: ${getIt.isRegistered<LogoutUseCase>()}');
-  print('AuthBloc: ${getIt.isRegistered<AuthBloc>()}');
+
+  // Auth Dependencies
+  debugAuthDependencies();
+
+  // Scan Dependencies
+  debugScanDependencies();
+
   print('==============================');
 }
 

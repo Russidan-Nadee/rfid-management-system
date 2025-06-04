@@ -1,6 +1,5 @@
 // Path: frontend/lib/features/auth/data/datasources/auth_remote_datasource.dart
 import '../../../../core/constants/api_constants.dart';
-import '../../../../core/models/api_response.dart';
 import '../../../../core/services/api_service.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
