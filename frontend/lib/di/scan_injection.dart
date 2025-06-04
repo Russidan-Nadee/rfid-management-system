@@ -3,6 +3,7 @@ import '../features/scan/data/datasources/mock_rfid_datasource.dart';
 import '../features/scan/data/repositories/scan_repository_impl.dart';
 import '../features/scan/domain/repositories/scan_repository.dart';
 import '../features/scan/domain/usecases/get_asset_details_usecase.dart';
+import '../features/scan/presentation/bloc/scan_bloc.dart';
 import 'injection.dart';
 
 /// Configure Scan feature dependencies
@@ -22,6 +23,14 @@ void configureScanDependencies() {
   getIt.registerLazySingleton<GetAssetDetailsUseCase>(
     () => GetAssetDetailsUseCase(getIt<ScanRepository>()),
   );
+
+  // BLoCs (Factory - new instance each time)
+  getIt.registerFactory<ScanBloc>(
+    () => ScanBloc(
+      scanRepository: getIt<ScanRepository>(),
+      getAssetDetailsUseCase: getIt<GetAssetDetailsUseCase>(),
+    ),
+  );
 }
 
 /// Debug Scan dependencies
@@ -32,4 +41,5 @@ void debugScanDependencies() {
   print(
     'GetAssetDetailsUseCase: ${getIt.isRegistered<GetAssetDetailsUseCase>()}',
   );
+  print('ScanBloc: ${getIt.isRegistered<ScanBloc>()}');
 }

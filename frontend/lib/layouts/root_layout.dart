@@ -1,4 +1,4 @@
-// lib/presentation/layouts/root_layout.dart
+// Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/presentation/dashboard_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
@@ -14,12 +14,13 @@ class _RootLayoutState extends State<RootLayout> {
   int _currentIndex = 0;
   bool _isRailExtended = true;
 
+  // เพิ่ม placeholder pages ให้ครบ 5 หน้า
   final List<Widget> _pages = const [
     DashboardPage(),
-    // SearchPage(),
+    _PlaceholderPage(title: 'Search', icon: Icons.search),
     ScanPage(),
-    // ReportPage(),
-    // ExportPage(),
+    _PlaceholderPage(title: 'Report', icon: Icons.bar_chart),
+    _PlaceholderPage(title: 'Export', icon: Icons.upload),
   ];
 
   @override
@@ -118,6 +119,56 @@ class _RootLayoutState extends State<RootLayout> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+// Placeholder widget สำหรับหน้าที่ยังไม่ได้ implement
+class _PlaceholderPage extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _PlaceholderPage({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1F2937),
+        elevation: 1,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4F46E5).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: const Color(0xFF4F46E5), size: 50),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '$title Feature',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Coming Soon',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
