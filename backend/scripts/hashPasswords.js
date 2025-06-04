@@ -23,10 +23,10 @@ async function hashExistingPasswords() {
       console.log('📋 Fetching users with plain text passwords...');
       const [users] = await connection.execute(
          'SELECT user_id, username, password FROM mst_user WHERE password = ?',
-         ['1234']
+         ['password123']
       );
 
-      console.log(`👥 Found ${users.length} users with password '1234'`);
+      console.log(`👥 Found ${users.length} users with password 'password123'`);
 
       if (users.length === 0) {
          console.log('✅ No users need password hashing');
@@ -35,7 +35,7 @@ async function hashExistingPasswords() {
 
       // Hash password for each user
       const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash('1234', saltRounds);
+      const hashedPassword = await bcrypt.hash('password123', saltRounds);
 
       console.log('🔐 Hashing passwords...');
       console.log(`🔑 New hash: ${hashedPassword}`);
@@ -43,14 +43,14 @@ async function hashExistingPasswords() {
       // Update all users at once
       const [result] = await connection.execute(
          'UPDATE mst_user SET password = ? WHERE password = ?',
-         [hashedPassword, '1234']
+         [hashedPassword, 'password123']
       );
 
       console.log(`✅ Updated ${result.affectedRows} user passwords`);
 
       // Verify the update
       console.log('🔍 Verifying hash...');
-      const isValid = await bcrypt.compare('1234', hashedPassword);
+      const isValid = await bcrypt.compare('password123', hashedPassword);
       console.log(`✅ Hash verification: ${isValid ? 'SUCCESS' : 'FAILED'}`);
 
       // Show updated users
@@ -60,7 +60,7 @@ async function hashExistingPasswords() {
       });
 
       console.log('\n🎉 Password hashing completed successfully!');
-      console.log('💡 Users can now login with password: 1234');
+      console.log('💡 Users can now login with password: password123');
 
    } catch (error) {
       console.error('❌ Error hashing passwords:', error.message);
@@ -96,13 +96,13 @@ If you prefer to run SQL directly:
 1. Generate hash in Node.js console:
    
    const bcrypt = require('bcrypt');
-   bcrypt.hash('1234', 12).then(hash => console.log(hash));
+   bcrypt.hash('password123', 12).then(hash => console.log(hash));
 
 2. Copy the hash and run SQL:
    
    UPDATE mst_user 
    SET password = '$2b$12$[your_generated_hash_here]' 
-   WHERE password = '1234';
+   WHERE password = 'password123';
 
 3. Verify with:
    

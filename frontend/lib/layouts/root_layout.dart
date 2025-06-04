@@ -11,6 +11,8 @@ class RootLayout extends StatefulWidget {
 
 class _RootLayoutState extends State<RootLayout> {
   int _currentIndex = 0;
+  bool _isRailExtended = true;
+
   final List<Widget> _pages = const [
     DashboardPage(),
     // SearchPage(),
@@ -33,7 +35,7 @@ class _RootLayoutState extends State<RootLayout> {
               selectedIndex: _currentIndex,
               onDestinationSelected: (index) =>
                   setState(() => _currentIndex = index),
-              labelType: NavigationRailLabelType.all,
+              extended: _isRailExtended,
               destinations: const [
                 NavigationRailDestination(
                   icon: Icon(Icons.dashboard),
@@ -61,6 +63,20 @@ class _RootLayoutState extends State<RootLayout> {
               unselectedIconTheme: const IconThemeData(color: Colors.grey),
               indicatorColor: indicatorColor,
               backgroundColor: Colors.white,
+              leading: FloatingActionButton(
+                mini: true,
+                onPressed: () {
+                  setState(() {
+                    _isRailExtended = !_isRailExtended;
+                  });
+                },
+                child: Icon(
+                  _isRailExtended ? Icons.menu_open : Icons.menu,
+                  color: primaryColor,
+                ),
+                backgroundColor: Colors.white,
+                elevation: 0,
+              ),
             ),
           Expanded(
             child: Navigator(
@@ -73,6 +89,7 @@ class _RootLayoutState extends State<RootLayout> {
       bottomNavigationBar: isWideScreen
           ? null
           : BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
               currentIndex: _currentIndex,
               onTap: (index) => setState(() => _currentIndex = index),
               selectedItemColor: primaryColor,
