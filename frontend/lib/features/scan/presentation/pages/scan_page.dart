@@ -20,8 +20,24 @@ class ScanPage extends StatelessWidget {
   }
 }
 
-class ScanPageView extends StatelessWidget {
+class ScanPageView extends StatefulWidget {
   const ScanPageView({super.key});
+
+  @override
+  State<ScanPageView> createState() => _ScanPageViewState();
+}
+
+class _ScanPageViewState extends State<ScanPageView> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto scan after widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ScanBloc>().add(const StartScan());
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,15 +61,10 @@ class ScanPageView extends StatelessWidget {
               if (state is ScanSuccess && state.scannedItems.isNotEmpty) {
                 return IconButton(
                   onPressed: () {
-                    context.read<ScanBloc>().add(
-                      const StartScan(),
-                    ); // ← เปลี่ยนเป็น StartScan
+                    context.read<ScanBloc>().add(const StartScan());
                   },
-                  icon: Icon(
-                    Icons.refresh, // ← เปลี่ยนเป็น refresh icon
-                    color: theme.colorScheme.primary,
-                  ),
-                  tooltip: 'Scan Again', // ← เปลี่ยน tooltip
+                  icon: Icon(Icons.refresh, color: theme.colorScheme.primary),
+                  tooltip: 'Scan Again',
                 );
               }
               return const SizedBox.shrink();
@@ -75,9 +86,7 @@ class ScanPageView extends StatelessWidget {
         },
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
-            if (state is ScanInitial) {
-              return _buildInitialView(context, theme);
-            } else if (state is ScanLoading) {
+            if (state is ScanLoading || state is ScanInitial) {
               return _buildLoadingView(theme);
             } else if (state is ScanSuccess) {
               return ScanListView(
@@ -90,114 +99,9 @@ class ScanPageView extends StatelessWidget {
               return _buildErrorView(context, state.message, theme);
             }
 
-            return _buildInitialView(context, theme);
+            return _buildLoadingView(theme);
           },
         ),
-      ),
-      // ลบ FloatingActionButton ออก
-    );
-  }
-
-  Widget _buildInitialView(BuildContext context, ThemeData theme) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'RFID Scanner Ready',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onBackground,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Description
-          Text(
-            'Tap the scan button below\nto start scanning RFID tags',
-            style: TextStyle(
-              fontSize: 16,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
-            ),
-            textAlign: TextAlign.center,
-          ),
-
-          const SizedBox(height: 48),
-
-          // Large Scan Button
-          GestureDetector(
-            onTap: () {
-              context.read<ScanBloc>().add(const StartScan());
-            },
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
-                    spreadRadius: 0,
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.qr_code_scanner,
-                color: Colors.white,
-                size: 60,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Instructions
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.colorScheme.primary.withOpacity(0.3),
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.info_outline, color: theme.colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Instructions',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '1. Ensure RFID reader is connected\n'
-                  '2. Position tags within scanning range\n'
-                  '3. Tap the scan button above\n'
-                  '4. Review scanned items',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.colorScheme.onBackground.withOpacity(0.8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -278,13 +182,16 @@ class ScanPageView extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          Text(
-            message,
-            style: TextStyle(
-              fontSize: 16,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              message,
+              style: TextStyle(
+                fontSize: 16,
+                color: theme.colorScheme.onBackground.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
 
           const SizedBox(height: 32),

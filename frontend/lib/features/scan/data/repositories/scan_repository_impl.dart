@@ -61,4 +61,18 @@ class ScanRepositoryImpl implements ScanRepository {
       throw Exception('Failed to update asset status: $e');
     }
   }
+
+  @override
+  Future<void> logAssetScan(String assetNo, String scannedBy) async {
+    try {
+      await apiService.post<void>(
+        ApiConstants.scanLog,
+        body: {'asset_no': assetNo},
+        requiresAuth: true,
+      );
+    } catch (e) {
+      // Silent fail - ไม่ throw error เพื่อไม่ให้กระทบ scan process
+      print('Failed to log asset scan: $e');
+    }
+  }
 }

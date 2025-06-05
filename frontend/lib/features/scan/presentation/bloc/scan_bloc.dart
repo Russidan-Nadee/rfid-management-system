@@ -25,6 +25,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<RefreshScanResults>(_onRefreshScanResults);
     on<UpdateAssetStatus>(_onUpdateAssetStatus);
     on<MarkAssetChecked>(_onMarkAssetChecked);
+    on<LogAssetScanned>(_onLogAssetScanned);
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<ScanState> emit) async {
@@ -41,14 +42,21 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         try {
           final item = await getAssetDetailsUseCase.execute(assetNo);
           scannedItems.add(item);
+
+          // เพิ่มส่วนนี้ - Log การแสกน
+          try {
+            final userId = await getCurrentUserUseCase.execute();
+            add(LogAssetScanned(assetNo: assetNo, scannedBy: userId));
+          } catch (e) {
+            print('Failed to get current user for logging: $e');
+          }
         } catch (e) {
-          // Only catch specific 404 errors for unknown items
+          // คืน existing error handling เดิม
           if (e.toString().contains('Asset not found') ||
               e.toString().contains('404') ||
               e.toString().contains('not found')) {
             scannedItems.add(ScannedItemEntity.unknown(assetNo));
           } else {
-            // Re-throw other errors (parsing, network, etc.)
             print('Unexpected error for asset $assetNo: $e');
             scannedItems.add(ScannedItemEntity.unknown(assetNo));
           }
@@ -105,7 +113,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         event.updatedBy,
       );
 
-      // Update the asset in current scan results if exists
+      // Always update the scan results if they exist
       if (state is ScanSuccess) {
         final currentState = state as ScanSuccess;
         final updatedItems = currentState.scannedItems.map((item) {
@@ -116,11 +124,24 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         }).toList();
 
         emit(ScanSuccess(scannedItems: updatedItems));
-      } else {
-        emit(AssetStatusUpdated(updatedAsset: updatedAsset));
       }
+
+      // Always emit AssetStatusUpdated for AssetDetailPage
+      emit(AssetStatusUpdated(updatedAsset: updatedAsset));
     } catch (e) {
       emit(AssetStatusUpdateError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onLogAssetScanned(
+    LogAssetScanned event,
+    Emitter<ScanState> emit,
+  ) async {
+    try {
+      await scanRepository.logAssetScan(event.assetNo, event.scannedBy);
+    } catch (e) {
+      // Silent fail - ไม่ emit error state เพื่อไม่กระทบ scan process
+      print('Failed to log asset scan: $e');
     }
   }
 }

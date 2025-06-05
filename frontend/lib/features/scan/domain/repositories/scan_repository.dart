@@ -9,4 +9,5 @@ abstract class ScanRepository {
     String assetNo,
     AssetStatusUpdateRequest request,
   );
+  Future<void> logAssetScan(String assetNo, String scannedBy);
 }

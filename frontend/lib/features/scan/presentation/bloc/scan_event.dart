@@ -38,3 +38,13 @@ class MarkAssetChecked extends ScanEvent {
   @override
   List<Object?> get props => [assetNo];
 }
+
+class LogAssetScanned extends ScanEvent {
+  final String assetNo;
+  final String scannedBy;
+
+  const LogAssetScanned({required this.assetNo, required this.scannedBy});
+
+  @override
+  List<Object?> get props => [assetNo, scannedBy];
+}

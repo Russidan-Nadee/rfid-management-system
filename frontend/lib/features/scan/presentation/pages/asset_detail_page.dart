@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
-import '../../../../di/injection.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -10,13 +9,18 @@ import '../bloc/scan_state.dart';
 
 class AssetDetailPage extends StatelessWidget {
   final ScannedItemEntity item;
+  final ScanBloc scanBloc;
 
-  const AssetDetailPage({super.key, required this.item});
+  const AssetDetailPage({
+    super.key,
+    required this.item,
+    required this.scanBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<ScanBloc>(),
+    return BlocProvider.value(
+      value: scanBloc,
       child: AssetDetailView(item: item),
     );
   }
@@ -42,7 +46,13 @@ class AssetDetailView extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Asset Details'),
+          title: Text(
+            'Asset Detail',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: theme.colorScheme.onSurface,
           elevation: 1,

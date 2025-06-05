@@ -1,5 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/asset_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../pages/asset_detail_page.dart';
 import '../pages/unknown_item_detail_page.dart';
@@ -116,8 +118,11 @@ class AssetCard extends StatelessWidget {
         ),
       );
     } else {
+      final scanBloc = context.read<ScanBloc>();
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => AssetDetailPage(item: item)),
+        MaterialPageRoute(
+          builder: (context) => AssetDetailPage(item: item, scanBloc: scanBloc),
+        ),
       );
     }
   }

@@ -11,7 +11,7 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 0;
+  int _currentIndex = 2;
   bool _isRailExtended = true;
 
   @override

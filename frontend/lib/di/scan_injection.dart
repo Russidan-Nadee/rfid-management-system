@@ -11,82 +11,39 @@ import 'injection.dart';
 
 /// Configure Scan feature dependencies
 void configureScanDependencies() {
-  print('=== Configuring Scan Dependencies ===');
-
-  // เช็คว่า ApiService มีหรือไม่
-  print('ApiService registered: ${getIt.isRegistered<ApiService>()}');
-
   // Data Sources
-  if (!getIt.isRegistered<MockRfidDataSource>()) {
-    getIt.registerLazySingleton<MockRfidDataSource>(() {
-      print('Creating MockRfidDataSource');
-      return MockRfidDataSource();
-    });
-  }
+  getIt.registerLazySingleton<MockRfidDataSource>(() => MockRfidDataSource());
 
   // Repositories
-  if (!getIt.isRegistered<ScanRepository>()) {
-    getIt.registerLazySingleton<ScanRepository>(() {
-      print('Creating ScanRepository');
-      final apiService = getIt<ApiService>();
-      final mockRfidDataSource = getIt<MockRfidDataSource>();
-      print('ApiService: $apiService');
-      print('MockRfidDataSource: $mockRfidDataSource');
-
-      return ScanRepositoryImpl(
-        apiService: apiService,
-        mockRfidDataSource: mockRfidDataSource,
-      );
-    });
-  }
+  getIt.registerLazySingleton<ScanRepository>(() {
+    return ScanRepositoryImpl(
+      apiService: getIt<ApiService>(),
+      mockRfidDataSource: getIt<MockRfidDataSource>(),
+    );
+  });
 
   // Use Cases
-  if (!getIt.isRegistered<GetAssetDetailsUseCase>()) {
-    getIt.registerLazySingleton<GetAssetDetailsUseCase>(() {
-      print('Creating GetAssetDetailsUseCase');
-      return GetAssetDetailsUseCase(getIt<ScanRepository>());
-    });
-  }
+  getIt.registerLazySingleton<GetAssetDetailsUseCase>(
+    () => GetAssetDetailsUseCase(getIt<ScanRepository>()),
+  );
 
-  if (!getIt.isRegistered<UpdateAssetStatusUseCase>()) {
-    getIt.registerLazySingleton<UpdateAssetStatusUseCase>(() {
-      print('Creating UpdateAssetStatusUseCase');
-      final repository = getIt<ScanRepository>();
-      print('Repository for UseCase: $repository');
-      return UpdateAssetStatusUseCase(repository);
-    });
-  }
+  getIt.registerLazySingleton<UpdateAssetStatusUseCase>(
+    () => UpdateAssetStatusUseCase(getIt<ScanRepository>()),
+  );
 
-  if (!getIt.isRegistered<GetCurrentUserUseCase>()) {
-    getIt.registerLazySingleton<GetCurrentUserUseCase>(() {
-      print('Creating GetCurrentUserUseCase');
-      return GetCurrentUserUseCase(getIt());
-    });
-  }
+  getIt.registerLazySingleton<GetCurrentUserUseCase>(
+    () => GetCurrentUserUseCase(getIt()),
+  );
 
   // BLoCs (Factory - new instance each time)
-  if (!getIt.isRegistered<ScanBloc>()) {
-    getIt.registerFactory<ScanBloc>(() {
-      print('Creating ScanBloc');
-      return ScanBloc(
-        scanRepository: getIt<ScanRepository>(),
-        getAssetDetailsUseCase: getIt<GetAssetDetailsUseCase>(),
-        updateAssetStatusUseCase: getIt<UpdateAssetStatusUseCase>(),
-        getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
-      );
-    });
-  }
-
-  print('=== Scan Dependencies Configured ===');
-
-  // Test dependencies
-  print('Testing dependencies...');
-  try {
-    final testUseCase = getIt<UpdateAssetStatusUseCase>();
-    print('UpdateAssetStatusUseCase resolved: $testUseCase');
-  } catch (e) {
-    print('Failed to resolve UpdateAssetStatusUseCase: $e');
-  }
+  getIt.registerFactory<ScanBloc>(() {
+    return ScanBloc(
+      scanRepository: getIt<ScanRepository>(),
+      getAssetDetailsUseCase: getIt<GetAssetDetailsUseCase>(),
+      updateAssetStatusUseCase: getIt<UpdateAssetStatusUseCase>(),
+      getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
+    );
+  });
 }
 
 /// Debug Scan dependencies
