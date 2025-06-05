@@ -105,31 +105,51 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     UpdateAssetStatus event,
     Emitter<ScanState> emit,
   ) async {
+    print('BLoC: _onUpdateAssetStatus called for ${event.assetNo}');
+
+    // เก็บ previous scan results ไว้ก่อน
+    List<ScannedItemEntity>? previousScannedItems;
+    if (state is ScanSuccess) {
+      previousScannedItems = (state as ScanSuccess).scannedItems;
+      print('BLoC: Found ${previousScannedItems?.length} previous items');
+    }
+
     emit(AssetStatusUpdating(assetNo: event.assetNo));
+    print('BLoC: Emitted AssetStatusUpdating');
 
     try {
+      print('BLoC: Calling markAsChecked...');
       final updatedAsset = await updateAssetStatusUseCase.markAsChecked(
         event.assetNo,
         event.updatedBy,
       );
+      print(
+        'BLoC: markAsChecked completed, updated asset: ${updatedAsset.assetNo}, status: ${updatedAsset.status}',
+      );
 
-      // Always update the scan results if they exist
-      if (state is ScanSuccess) {
-        final currentState = state as ScanSuccess;
-        final updatedItems = currentState.scannedItems.map((item) {
+      // อัพเดต scan results ถ้ามี previous items
+      if (previousScannedItems != null) {
+        final updatedItems = previousScannedItems.map((item) {
           if (item.assetNo == event.assetNo) {
             return updatedAsset;
           }
           return item;
         }).toList();
 
+        // Emit เฉพาะ ScanSuccess สำหรับ ScanPage
         emit(ScanSuccess(scannedItems: updatedItems));
+        print('BLoC: Emitted ScanSuccess with updated items - Final state');
+      }
+    } catch (e) {
+      print('BLoC: Error in _onUpdateAssetStatus: $e');
+
+      // ถ้า error ให้กลับไป previous state
+      if (previousScannedItems != null) {
+        emit(ScanSuccess(scannedItems: previousScannedItems));
       }
 
-      // Always emit AssetStatusUpdated for AssetDetailPage
-      emit(AssetStatusUpdated(updatedAsset: updatedAsset));
-    } catch (e) {
       emit(AssetStatusUpdateError(message: e.toString()));
+      print('BLoC: Emitted AssetStatusUpdateError');
     }
   }
 

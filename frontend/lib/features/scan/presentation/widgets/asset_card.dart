@@ -132,7 +132,7 @@ class AssetCard extends StatelessWidget {
       case 'A':
         return theme.colorScheme.primary;
       case 'C':
-        return Colors.blue;
+        return Colors.deepPurple;
       case 'I':
         return Colors.grey;
       case 'UNKNOWN':
@@ -147,7 +147,7 @@ class AssetCard extends StatelessWidget {
       case 'A':
         return Icons.check_circle_outline;
       case 'C':
-        return Icons.pending_outlined;
+        return Icons.task_alt;
       case 'I':
         return Icons.disabled_by_default_outlined;
       case 'UNKNOWN':
@@ -162,7 +162,7 @@ class AssetCard extends StatelessWidget {
       case 'A':
         return 'Active';
       case 'C':
-        return 'Created';
+        return 'Checked';
       case 'I':
         return 'Inactive';
       case 'UNKNOWN':

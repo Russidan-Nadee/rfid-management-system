@@ -31,9 +31,11 @@ class _ScanPageViewState extends State<ScanPageView> {
   @override
   void initState() {
     super.initState();
+    print('ScanPage: initState called');
     // Auto scan after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        print('ScanPage: Starting scan...');
         context.read<ScanBloc>().add(const StartScan());
       }
     });
@@ -61,6 +63,7 @@ class _ScanPageViewState extends State<ScanPageView> {
               if (state is ScanSuccess && state.scannedItems.isNotEmpty) {
                 return IconButton(
                   onPressed: () {
+                    print('ScanPage: Refresh button pressed');
                     context.read<ScanBloc>().add(const StartScan());
                   },
                   icon: Icon(Icons.refresh, color: theme.colorScheme.primary),
@@ -75,9 +78,15 @@ class _ScanPageViewState extends State<ScanPageView> {
       backgroundColor: theme.colorScheme.background,
       body: BlocListener<ScanBloc, ScanState>(
         listener: (context, state) {
+          print('ScanPage: State changed to ${state.runtimeType}');
+
           if (state is ScanError) {
+            print('ScanPage: Error occurred - ${state.message}');
             Helpers.showError(context, state.message);
           } else if (state is ScanSuccess) {
+            print(
+              'ScanPage: Scan success - ${state.scannedItems.length} items',
+            );
             Helpers.showSuccess(
               context,
               'Scanned ${state.scannedItems.length} items',
@@ -86,19 +95,35 @@ class _ScanPageViewState extends State<ScanPageView> {
         },
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
+            print('ScanPage: Building UI for state ${state.runtimeType}');
+
             if (state is ScanLoading || state is ScanInitial) {
+              print('ScanPage: Showing loading view');
               return _buildLoadingView(theme);
             } else if (state is ScanSuccess) {
+              print(
+                'ScanPage: Showing scan results, items count = ${state.scannedItems.length}',
+              );
+              print(
+                'ScanPage: Items status: ${state.scannedItems.map((e) => '${e.assetNo}:${e.status}').join(', ')}',
+              );
+
               return ScanListView(
                 scannedItems: state.scannedItems,
                 onRefresh: () {
+                  print('ScanPage: Pull to refresh triggered');
                   context.read<ScanBloc>().add(const RefreshScanResults());
                 },
               );
             } else if (state is ScanError) {
+              print('ScanPage: Showing error view: ${state.message}');
               return _buildErrorView(context, state.message, theme);
+            } else if (state is AssetStatusUpdating) {
+              print('ScanPage: Asset updating - showing loading');
+              return _buildLoadingView(theme);
             }
 
+            print('ScanPage: Unknown state - fallback to loading: $state');
             return _buildLoadingView(theme);
           },
         ),
@@ -198,6 +223,7 @@ class _ScanPageViewState extends State<ScanPageView> {
 
           ElevatedButton.icon(
             onPressed: () {
+              print('ScanPage: Try Again button pressed');
               context.read<ScanBloc>().add(const StartScan());
             },
             icon: const Icon(Icons.refresh),

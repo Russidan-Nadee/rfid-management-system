@@ -37,10 +37,26 @@ class AssetDetailView extends StatelessWidget {
 
     return BlocListener<ScanBloc, ScanState>(
       listener: (context, state) {
-        if (state is AssetStatusUpdated) {
-          Helpers.showSuccess(context, 'Asset marked as checked successfully');
-          Navigator.of(context).pop(state.updatedAsset);
+        // ตรวจสอบว่า asset ถูก update แล้วหรือยัง
+        if (state is ScanSuccess) {
+          final updatedItem = state.scannedItems.firstWhere(
+            (item) => item.assetNo == item.assetNo,
+            orElse: () => item,
+          );
+
+          // ถ้า status เปลี่ยนจาก A เป็น C แสดงว่า update สำเร็จ
+          if (item.status.toUpperCase() == 'A' &&
+              updatedItem.status.toUpperCase() == 'C') {
+            // แสดง success message
+            Helpers.showSuccess(
+              context,
+              'Asset marked as checked successfully',
+            );
+            // Pop กลับไปหน้า scan list
+            Navigator.of(context).pop(updatedItem);
+          }
         } else if (state is AssetStatusUpdateError) {
+          // แสดง error message
           Helpers.showError(context, state.message);
         }
       },

@@ -19,18 +19,26 @@ class ScanListView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    print('ScanListView: Building with ${scannedItems.length} items');
+    print('ScanListView: isLoading = $isLoading');
+
     if (isLoading) {
+      print('ScanListView: Showing loading indicator');
       return Center(
         child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
 
     if (scannedItems.isEmpty) {
+      print('ScanListView: Showing empty state');
       return _buildEmptyState(theme);
     }
 
+    print('ScanListView: Showing list with ${scannedItems.length} items');
+
     return RefreshIndicator(
       onRefresh: () async {
+        print('ScanListView: Pull to refresh triggered');
         onRefresh?.call();
       },
       color: theme.colorScheme.primary,
@@ -45,6 +53,9 @@ class ScanListView extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: scannedItems.length,
               itemBuilder: (context, index) {
+                print(
+                  'ScanListView: Building card $index for asset ${scannedItems[index].assetNo}',
+                );
                 return AssetCard(item: scannedItems[index]);
               },
             ),
@@ -57,17 +68,21 @@ class ScanListView extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     final totalItems = scannedItems.length;
     final activeItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'a')
+        .where((item) => item.status.toUpperCase() == 'A')
         .length;
-    final createdItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'c')
+    final checkedItems = scannedItems
+        .where((item) => item.status.toUpperCase() == 'C')
         .length;
     final inactiveItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'i')
+        .where((item) => item.status.toUpperCase() == 'I')
         .length;
     final unknownItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'unknown')
+        .where((item) => item.status.toUpperCase() == 'UNKNOWN')
         .length;
+
+    print(
+      'ScanListView: Header stats - Total: $totalItems, Active: $activeItems, Checked: $checkedItems, Inactive: $inactiveItems, Unknown: $unknownItems',
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -109,8 +124,8 @@ class ScanListView extends StatelessWidget {
                   activeItems,
                   theme.colorScheme.primary,
                 ),
-              if (createdItems > 0)
-                _buildStatusChip(theme, 'Created', createdItems, Colors.blue),
+              if (checkedItems > 0)
+                _buildStatusChip(theme, 'Checked', checkedItems, Colors.green),
               if (inactiveItems > 0)
                 _buildStatusChip(theme, 'Inactive', inactiveItems, Colors.grey),
               if (unknownItems > 0)
