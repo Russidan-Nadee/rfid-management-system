@@ -307,6 +307,22 @@ class AssetService extends BaseService {
       }
    }
 
+   async getAssetNumbers(limit = 5) {
+      try {
+         const query = `
+         SELECT asset_no 
+         FROM asset_master 
+         WHERE status = 'A' 
+         ORDER BY RAND()
+         LIMIT ${parseInt(limit)}
+      `;
+         const result = await this.model.executeQuery(query);
+         return result.map(row => row.asset_no);
+      } catch (error) {
+         throw new Error(`Error fetching asset numbers: ${error.message}`);
+      }
+   }
+
    async createAsset(assetData) {
       try {
          return await this.model.createAsset(assetData);
@@ -429,6 +445,7 @@ class AssetService extends BaseService {
          throw new Error(`Error fetching asset status history: ${error.message}`);
       }
    }
+
    async logAssetScan(assetNo, scannedBy, locationCode, ipAddress, userAgent) {
       try {
          const query = `
@@ -476,10 +493,7 @@ class AssetService extends BaseService {
          throw new Error(`Error getting mock scan assets: ${error.message}`);
       }
    }
-
-
 }
-
 module.exports = {
    PlantService,
    LocationService,

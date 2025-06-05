@@ -32,10 +32,11 @@ class ApiConstants {
   static const String assets = '/assets';
   static const String assetSearch = '$assets/search';
   static const String assetStats = '$assets/stats';
+  static const String assetNumbers = '$assets/numbers';
   static const String assetsByPlant = '$assets/stats/by-plant';
   static const String assetsByLocation = '$assets/stats/by-location';
 
-  // Scan Endpoints - เพิ่มตรงนี้
+  // Scan Endpoints
   static const String scanLog = '/scan/log';
   static const String scanMock = '/scan/mock';
 

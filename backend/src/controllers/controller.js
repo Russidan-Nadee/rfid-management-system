@@ -459,6 +459,19 @@ const assetController = {
       }
    },
 
+   async getAssetNumbers(req, res) {
+      try {
+         const { limit = 5 } = req.query;
+         const assets = await assetService.getAssetNumbers(parseInt(limit));
+         return sendResponse(res, 200, true, 'Asset numbers retrieved successfully', {
+            asset_numbers: assets
+         });
+      } catch (error) {
+         console.error('Get asset numbers error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
    async createAsset(req, res) {
       try {
          const {
