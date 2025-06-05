@@ -66,6 +66,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<String?> getCurrentUserId() async {
+    try {
+      final user = await getCurrentUser();
+      return user?.userId;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Future<bool> isAuthenticated() async {
     final token = await storageService.getAuthToken();
     return token != null && token.isNotEmpty;

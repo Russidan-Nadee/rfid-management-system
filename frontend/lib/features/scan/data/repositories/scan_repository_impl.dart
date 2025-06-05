@@ -4,6 +4,7 @@ import '../../../../core/services/api_service.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../models/scanned_item_model.dart';
+import '../models/asset_status_update_model.dart';
 import '../datasources/mock_rfid_datasource.dart';
 
 class ScanRepositoryImpl implements ScanRepository {
@@ -36,5 +37,28 @@ class ScanRepositoryImpl implements ScanRepository {
   @override
   Future<List<String>> generateMockAssetNumbers() async {
     return mockRfidDataSource.generateAssetNumbers();
+  }
+
+  @override
+  Future<AssetStatusUpdateResponse> updateAssetStatus(
+    String assetNo,
+    AssetStatusUpdateRequest request,
+  ) async {
+    try {
+      final response = await apiService.patch<Map<String, dynamic>>(
+        '${ApiConstants.assets}/$assetNo/status',
+        body: request.toJson(),
+        fromJson: (json) => json,
+      );
+
+      return AssetStatusUpdateResponse.fromJson({
+        'success': response.success,
+        'message': response.message,
+        'data': response.data,
+        'timestamp': response.timestamp.toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to update asset status: $e');
+    }
   }
 }

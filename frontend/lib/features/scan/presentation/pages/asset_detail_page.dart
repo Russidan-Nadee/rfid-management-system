@@ -1,7 +1,12 @@
 // Path: frontend/lib/features/scan/presentation/pages/asset_detail_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../di/injection.dart';
 import '../../domain/entities/scanned_item_entity.dart';
+import '../bloc/scan_bloc.dart';
+import '../bloc/scan_event.dart';
+import '../bloc/scan_state.dart';
 
 class AssetDetailPage extends StatelessWidget {
   final ScannedItemEntity item;
@@ -10,86 +15,163 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => getIt<ScanBloc>(),
+      child: AssetDetailView(item: item),
+    );
+  }
+}
+
+class AssetDetailView extends StatelessWidget {
+  final ScannedItemEntity item;
+
+  const AssetDetailView({super.key, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Asset Details'),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
-        elevation: 1,
-      ),
-      backgroundColor: theme.colorScheme.background,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Status Card
-            _buildStatusCard(theme),
+    return BlocListener<ScanBloc, ScanState>(
+      listener: (context, state) {
+        if (state is AssetStatusUpdated) {
+          Helpers.showSuccess(context, 'Asset marked as checked successfully');
+          Navigator.of(context).pop(state.updatedAsset);
+        } else if (state is AssetStatusUpdateError) {
+          Helpers.showError(context, state.message);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Asset Details'),
+          backgroundColor: theme.colorScheme.surface,
+          foregroundColor: theme.colorScheme.onSurface,
+          elevation: 1,
+        ),
+        backgroundColor: theme.colorScheme.background,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Status Card
+              _buildStatusCard(theme),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Basic Information
-            _buildSectionCard(
-              theme: theme,
-              title: 'Basic Information',
-              icon: Icons.inventory_2_outlined,
-              children: [
-                _buildDetailRow(theme, 'Asset Number', item.assetNo),
-                _buildDetailRow(theme, 'Description', item.description ?? '-'),
-                _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
-                _buildDetailRow(
-                  theme,
-                  'Inventory Number',
-                  item.inventoryNo ?? '-',
-                ),
-              ],
-            ),
+              // Basic Information
+              _buildSectionCard(
+                theme: theme,
+                title: 'Basic Information',
+                icon: Icons.inventory_2_outlined,
+                children: [
+                  _buildDetailRow(theme, 'Asset Number', item.assetNo),
+                  _buildDetailRow(
+                    theme,
+                    'Description',
+                    item.description ?? '-',
+                  ),
+                  _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
+                  _buildDetailRow(
+                    theme,
+                    'Inventory Number',
+                    item.inventoryNo ?? '-',
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Quantity Information
-            _buildSectionCard(
-              theme: theme,
-              title: 'Quantity Information',
-              icon: Icons.straighten,
-              children: [
-                _buildDetailRow(
-                  theme,
-                  'Quantity',
-                  item.quantity != null ? '${item.quantity}' : '-',
-                ),
-                _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
-              ],
-            ),
+              // Quantity Information
+              _buildSectionCard(
+                theme: theme,
+                title: 'Quantity Information',
+                icon: Icons.straighten,
+                children: [
+                  _buildDetailRow(
+                    theme,
+                    'Quantity',
+                    item.quantity != null ? '${item.quantity}' : '-',
+                  ),
+                  _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
+                ],
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Creation Information
-            _buildSectionCard(
-              theme: theme,
-              title: 'Creation Information',
-              icon: Icons.person_outline,
-              children: [
-                _buildDetailRow(
-                  theme,
-                  'Created By',
-                  item.createdByName ?? 'Unknown User',
-                ),
-                _buildDetailRow(
-                  theme,
-                  'Created Date',
-                  item.createdAt != null
-                      ? Helpers.formatDateTime(item.createdAt)
-                      : '-',
-                ),
-              ],
-            ),
-          ],
+              // Creation Information
+              _buildSectionCard(
+                theme: theme,
+                title: 'Creation Information',
+                icon: Icons.person_outline,
+                children: [
+                  _buildDetailRow(
+                    theme,
+                    'Created By',
+                    item.createdByName ?? 'Unknown User',
+                  ),
+                  _buildDetailRow(
+                    theme,
+                    'Created Date',
+                    item.createdAt != null
+                        ? Helpers.formatDateTime(item.createdAt)
+                        : '-',
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Action Button (แสดงเฉพาะเมื่อ status = 'A')
+              if (item.status.toUpperCase() == 'A')
+                _buildActionButton(context, theme),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildActionButton(BuildContext context, ThemeData theme) {
+    return BlocBuilder<ScanBloc, ScanState>(
+      builder: (context, state) {
+        final isLoading =
+            state is AssetStatusUpdating && state.assetNo == item.assetNo;
+
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: isLoading ? null : () => _markAsChecked(context),
+            icon: isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  )
+                : const Icon(Icons.check_circle_outline),
+            label: Text(
+              isLoading ? 'Marking as Checked...' : 'Mark as Checked',
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _markAsChecked(BuildContext context) {
+    context.read<ScanBloc>().add(MarkAssetChecked(assetNo: item.assetNo));
   }
 
   Widget _buildStatusCard(ThemeData theme) {
@@ -225,7 +307,7 @@ class AssetDetailPage extends StatelessWidget {
       case 'A':
         return theme.colorScheme.primary;
       case 'C':
-        return Colors.blue;
+        return Colors.green;
       case 'I':
         return Colors.grey;
       case 'UNKNOWN':
@@ -238,9 +320,9 @@ class AssetDetailPage extends StatelessWidget {
   IconData _getStatusIcon(String status) {
     switch (status.toUpperCase()) {
       case 'A':
-        return Icons.check_circle;
+        return Icons.padding_rounded;
       case 'C':
-        return Icons.pending;
+        return Icons.check_circle;
       case 'I':
         return Icons.disabled_by_default;
       case 'UNKNOWN':
@@ -255,7 +337,7 @@ class AssetDetailPage extends StatelessWidget {
       case 'A':
         return 'Active';
       case 'C':
-        return 'Created';
+        return 'Checked';
       case 'I':
         return 'Inactive';
       case 'UNKNOWN':

@@ -44,3 +44,30 @@ class ScanError extends ScanState {
     return 'ScanError(message: $message)';
   }
 }
+
+class AssetStatusUpdating extends ScanState {
+  final String assetNo;
+
+  const AssetStatusUpdating({required this.assetNo});
+
+  @override
+  List<Object?> get props => [assetNo];
+}
+
+class AssetStatusUpdated extends ScanState {
+  final ScannedItemEntity updatedAsset;
+
+  const AssetStatusUpdated({required this.updatedAsset});
+
+  @override
+  List<Object?> get props => [updatedAsset];
+}
+
+class AssetStatusUpdateError extends ScanState {
+  final String message;
+
+  const AssetStatusUpdateError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

@@ -5,6 +5,7 @@ abstract class AuthRepository {
   Future<AuthResult> login(String username, String password);
   Future<void> logout();
   Future<UserEntity?> getCurrentUser();
+  Future<String?> getCurrentUserId();
   Future<bool> isAuthenticated();
   Future<bool> refreshToken();
   Future<void> changePassword(String currentPassword, String newPassword);
