@@ -4,6 +4,7 @@ import '../core/services/api_service.dart';
 import '../core/services/storage_service.dart';
 import 'auth_injection.dart';
 import 'scan_injection.dart';
+import 'settings_injection.dart';
 
 // Global GetIt instance
 final getIt = GetIt.instance;
@@ -20,6 +21,12 @@ Future<void> configureDependencies() async {
   // Configure feature dependencies
   configureAuthDependencies();
   configureScanDependencies();
+  configureSettingsDependencies(); // เพิ่มบรรทัดนี้
+
+  // Debug dependencies in development
+  if (const bool.fromEnvironment('dart.vm.product') == false) {
+    debugDependencies();
+  }
 }
 
 /// Reset all dependencies (useful for testing)
@@ -38,6 +45,9 @@ void debugDependencies() {
 
   // Scan Dependencies
   debugScanDependencies();
+
+  // Settings Dependencies
+  debugSettingsDependencies(); // เพิ่มบรรทัดนี้
 
   print('==============================');
 }

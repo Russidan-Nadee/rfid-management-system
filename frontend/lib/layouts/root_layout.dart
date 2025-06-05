@@ -1,6 +1,7 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/presentation/dashboard_page.dart';
+import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
 
 class RootLayout extends StatefulWidget {
@@ -24,13 +25,12 @@ class _RootLayoutState extends State<RootLayout> {
     super.dispose();
   }
 
-  // เพิ่ม placeholder pages ให้ครบ 5 หน้า
   List<Widget> get _pages => [
     const DashboardPage(),
     const _PlaceholderPage(title: 'Search', icon: Icons.search),
     const ScanPage(),
-    const _PlaceholderPage(title: 'Report', icon: Icons.bar_chart),
     const _PlaceholderPage(title: 'Export', icon: Icons.upload),
+    const SettingsPage(),
   ];
 
   void _onNavTap(int index) {
@@ -64,12 +64,12 @@ class _RootLayoutState extends State<RootLayout> {
                   label: Text('Scan'),
                 ),
                 NavigationRailDestination(
-                  icon: Icon(Icons.bar_chart),
-                  label: Text('Report'),
-                ),
-                NavigationRailDestination(
                   icon: Icon(Icons.upload),
                   label: Text('Export'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.settings),
+                  label: Text('Settings'),
                 ),
               ],
               selectedIconTheme: IconThemeData(
@@ -127,12 +127,12 @@ class _RootLayoutState extends State<RootLayout> {
                   label: 'Scan',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.bar_chart),
-                  label: 'Report',
-                ),
-                BottomNavigationBarItem(
                   icon: Icon(Icons.upload),
                   label: 'Export',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings),
+                  label: 'Settings',
                 ),
               ],
             ),
