@@ -8,11 +8,6 @@ class GetAssetDetailsUseCase {
   GetAssetDetailsUseCase(this.repository);
 
   Future<ScannedItemEntity> execute(String assetNo) async {
-    try {
-      return await repository.getAssetDetails(assetNo);
-    } catch (e) {
-      // If asset not found, return unknown item
-      return ScannedItemEntity.unknown(assetNo);
-    }
+    return await repository.getAssetDetails(assetNo);
   }
 }

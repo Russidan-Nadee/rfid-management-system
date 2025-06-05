@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 class UnknownItemDetailPage extends StatelessWidget {
   final String assetNo;
 
-  const UnknownItemDetailPage({
-    super.key,
-    required this.assetNo,
-  });
+  const UnknownItemDetailPage({super.key, required this.assetNo});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('รายการไม่ทราบ'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
+        title: const Text('Unknown Item'),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 1,
       ),
+      backgroundColor: theme.colorScheme.background,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -31,6 +31,10 @@ class UnknownItemDetailPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.red.withOpacity(0.3),
+                    width: 2,
+                  ),
                 ),
                 child: const Icon(
                   Icons.help_outline,
@@ -42,12 +46,12 @@ class UnknownItemDetailPage extends StatelessWidget {
               const SizedBox(height: 32),
 
               // Title
-              const Text(
+              Text(
                 'Unknown Item',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1F2937),
+                  color: theme.colorScheme.onBackground,
                 ),
               ),
 
@@ -55,11 +59,14 @@ class UnknownItemDetailPage extends StatelessWidget {
 
               // Asset Number
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: theme.colorScheme.outline),
                 ),
                 child: Column(
                   children: [
@@ -67,17 +74,17 @@ class UnknownItemDetailPage extends StatelessWidget {
                       'Asset Number',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       assetNo,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937),
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -88,10 +95,10 @@ class UnknownItemDetailPage extends StatelessWidget {
 
               // Description
               Text(
-                'รายการนี้ไม่พบในระบบฐานข้อมูล\nกรุณาตรวจสอบหรือติดต่อผู้ดูแลระบบ',
+                'This item was not found in the database.\nPlease check or contact system administrator.',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: theme.colorScheme.onBackground.withOpacity(0.7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -106,16 +113,17 @@ class UnknownItemDetailPage extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back),
-                    label: const Text('ย้อนกลับ'),
+                    label: const Text('Go Back'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[600],
-                      foregroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.surface,
+                      foregroundColor: theme.colorScheme.onSurface,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: theme.colorScheme.outline),
                       ),
                     ),
                   ),
@@ -123,10 +131,10 @@ class UnknownItemDetailPage extends StatelessWidget {
                   // Report Issue Button
                   ElevatedButton.icon(
                     onPressed: () {
-                      _showReportDialog(context);
+                      _showReportDialog(context, theme);
                     },
                     icon: const Icon(Icons.report_problem),
-                    label: const Text('รายงานปัญหา'),
+                    label: const Text('Report Issue'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
@@ -148,19 +156,27 @@ class UnknownItemDetailPage extends StatelessWidget {
     );
   }
 
-  void _showReportDialog(BuildContext context) {
+  void _showReportDialog(BuildContext context, ThemeData theme) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('รายงานปัญหา'),
+          backgroundColor: theme.colorScheme.surface,
+          title: Text(
+            'Report Issue',
+            style: TextStyle(color: theme.colorScheme.onSurface),
+          ),
           content: Text(
-            'รายการ $assetNo ไม่พบในระบบ\n\nกรุณาติดต่อผู้ดูแลระบบเพื่อตรวจสอบและแก้ไขปัญหา',
+            'Item $assetNo was not found in the system.\n\nPlease contact the system administrator to check and resolve this issue.',
+            style: TextStyle(color: theme.colorScheme.onSurface),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('ตกลง'),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
+              ),
+              child: const Text('OK'),
             ),
           ],
         );

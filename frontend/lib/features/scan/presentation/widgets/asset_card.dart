@@ -11,10 +11,13 @@ class AssetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: theme.colorScheme.surface,
       child: InkWell(
         onTap: () => _navigateToDetail(context),
         borderRadius: BorderRadius.circular(12),
@@ -27,12 +30,12 @@ class AssetCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _getStatusColor(item.status).withOpacity(0.1),
+                  color: _getStatusColor(item.status, theme).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   _getStatusIcon(item.status),
-                  color: _getStatusColor(item.status),
+                  color: _getStatusColor(item.status, theme),
                   size: 24,
                 ),
               ),
@@ -47,54 +50,57 @@ class AssetCard extends StatelessWidget {
                     // Title
                     Text(
                       item.displayName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937),
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
 
                     const SizedBox(height: 4),
 
-                    // Subtitle
-                    if (!item.isUnknown && item.serialNo != null) ...[
-                      Text(
-                        'Serial: ${item.serialNo}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    // Asset Number
+                    Text(
+                      'Asset No: ${item.assetNo}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
-                    ] else if (item.isUnknown) ...[
-                      Text(
-                        'Asset No: ${item.assetNo}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Status
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(item.status, theme),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _getStatusLabel(item.status),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _getStatusColor(item.status, theme),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
 
-              // Status Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(item.status),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  _getStatusLabel(item.status),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
               // Arrow
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: Colors.grey[400]),
+              Icon(
+                Icons.chevron_right,
+                color: theme.colorScheme.onSurface.withOpacity(0.4),
+              ),
             ],
           ),
         ),
@@ -116,13 +122,15 @@ class AssetCard extends StatelessWidget {
     }
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-        return Colors.green;
-      case 'checked':
+  Color _getStatusColor(String status, ThemeData theme) {
+    switch (status.toUpperCase()) {
+      case 'A':
+        return theme.colorScheme.primary;
+      case 'C':
         return Colors.blue;
-      case 'unknown':
+      case 'I':
+        return Colors.grey;
+      case 'UNKNOWN':
         return Colors.red;
       default:
         return Colors.grey;
@@ -130,12 +138,14 @@ class AssetCard extends StatelessWidget {
   }
 
   IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
+    switch (status.toUpperCase()) {
+      case 'A':
         return Icons.check_circle_outline;
-      case 'checked':
-        return Icons.verified_outlined;
-      case 'unknown':
+      case 'C':
+        return Icons.pending_outlined;
+      case 'I':
+        return Icons.disabled_by_default_outlined;
+      case 'UNKNOWN':
         return Icons.help_outline;
       default:
         return Icons.inventory_2_outlined;
@@ -143,12 +153,14 @@ class AssetCard extends StatelessWidget {
   }
 
   String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-        return 'Available';
-      case 'checked':
-        return 'Checked';
-      case 'unknown':
+    switch (status.toUpperCase()) {
+      case 'A':
+        return 'Active';
+      case 'C':
+        return 'Created';
+      case 'I':
+        return 'Inactive';
+      case 'UNKNOWN':
         return 'Unknown';
       default:
         return status;

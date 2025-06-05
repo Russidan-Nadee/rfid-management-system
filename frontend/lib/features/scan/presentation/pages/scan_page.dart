@@ -25,11 +25,19 @@ class ScanPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RFID Scan'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
+        title: Text(
+          'RFID Scan',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.primary,
         elevation: 1,
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
@@ -37,10 +45,15 @@ class ScanPageView extends StatelessWidget {
               if (state is ScanSuccess && state.scannedItems.isNotEmpty) {
                 return IconButton(
                   onPressed: () {
-                    context.read<ScanBloc>().add(const ClearScanResults());
+                    context.read<ScanBloc>().add(
+                      const StartScan(),
+                    ); // ← เปลี่ยนเป็น StartScan
                   },
-                  icon: const Icon(Icons.clear_all),
-                  tooltip: 'Clear Results',
+                  icon: Icon(
+                    Icons.refresh, // ← เปลี่ยนเป็น refresh icon
+                    color: theme.colorScheme.primary,
+                  ),
+                  tooltip: 'Scan Again', // ← เปลี่ยน tooltip
                 );
               }
               return const SizedBox.shrink();
@@ -48,6 +61,7 @@ class ScanPageView extends StatelessWidget {
           ),
         ],
       ),
+      backgroundColor: theme.colorScheme.background,
       body: BlocListener<ScanBloc, ScanState>(
         listener: (context, state) {
           if (state is ScanError) {
@@ -62,9 +76,9 @@ class ScanPageView extends StatelessWidget {
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
             if (state is ScanInitial) {
-              return _buildInitialView(context);
+              return _buildInitialView(context, theme);
             } else if (state is ScanLoading) {
-              return _buildLoadingView();
+              return _buildLoadingView(theme);
             } else if (state is ScanSuccess) {
               return ScanListView(
                 scannedItems: state.scannedItems,
@@ -73,71 +87,28 @@ class ScanPageView extends StatelessWidget {
                 },
               );
             } else if (state is ScanError) {
-              return _buildErrorView(context, state.message);
+              return _buildErrorView(context, state.message, theme);
             }
 
-            return _buildInitialView(context);
+            return _buildInitialView(context, theme);
           },
         ),
       ),
-      floatingActionButton: BlocBuilder<ScanBloc, ScanState>(
-        builder: (context, state) {
-          final isLoading = state is ScanLoading;
-
-          return FloatingActionButton.extended(
-            onPressed: isLoading
-                ? null
-                : () {
-                    context.read<ScanBloc>().add(const StartScan());
-                  },
-            backgroundColor: const Color(0xFF4F46E5),
-            foregroundColor: Colors.white,
-            icon: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.qr_code_scanner),
-            label: Text(isLoading ? 'Scanning...' : 'Start Scan'),
-          );
-        },
-      ),
+      // ลบ FloatingActionButton ออก
     );
   }
 
-  Widget _buildInitialView(BuildContext context) {
+  Widget _buildInitialView(BuildContext context, ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Scan Icon
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.qr_code_scanner,
-              color: Color(0xFF4F46E5),
-              size: 60,
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Title
-          const Text(
+          Text(
             'RFID Scanner Ready',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: theme.colorScheme.onBackground,
             ),
           ),
 
@@ -145,45 +116,83 @@ class ScanPageView extends StatelessWidget {
 
           // Description
           Text(
-            'Tap the scan button to start scanning\nRFID tags in the area',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            'Tap the scan button below\nto start scanning RFID tags',
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
 
           const SizedBox(height: 48),
+
+          // Large Scan Button
+          GestureDetector(
+            onTap: () {
+              context.read<ScanBloc>().add(const StartScan());
+            },
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                    spreadRadius: 0,
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.qr_code_scanner,
+                color: Colors.white,
+                size: 60,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 32),
 
           // Instructions
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 32),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: theme.colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              border: Border.all(
+                color: theme.colorScheme.primary.withOpacity(0.3),
+              ),
             ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue[700]),
+                    Icon(Icons.info_outline, color: theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
                       'Instructions',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.blue[700],
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   '1. Ensure RFID reader is connected\n'
                   '2. Position tags within scanning range\n'
-                  '3. Tap scan button to begin\n'
+                  '3. Tap the scan button above\n'
                   '4. Review scanned items',
-                  style: TextStyle(fontSize: 14),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: theme.colorScheme.onBackground.withOpacity(0.8),
+                  ),
                 ),
               ],
             ),
@@ -193,7 +202,7 @@ class ScanPageView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingView() {
+  Widget _buildLoadingView(ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -203,23 +212,23 @@ class ScanPageView extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: const Color(0xFF4F46E5).withOpacity(0.1),
+              color: theme.colorScheme.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const CircularProgressIndicator(
-              color: Color(0xFF4F46E5),
+            child: CircularProgressIndicator(
+              color: theme.colorScheme.primary,
               strokeWidth: 3,
             ),
           ),
 
           const SizedBox(height: 32),
 
-          const Text(
+          Text(
             'Scanning RFID Tags...',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
+              color: theme.colorScheme.onBackground,
             ),
           ),
 
@@ -227,14 +236,21 @@ class ScanPageView extends StatelessWidget {
 
           Text(
             'Please wait while we scan for assets',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorView(BuildContext context, String message) {
+  Widget _buildErrorView(
+    BuildContext context,
+    String message,
+    ThemeData theme,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -251,12 +267,12 @@ class ScanPageView extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          const Text(
+          Text(
             'Scan Failed',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1F2937),
+              color: theme.colorScheme.onBackground,
             ),
           ),
 
@@ -264,7 +280,10 @@ class ScanPageView extends StatelessWidget {
 
           Text(
             message,
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 16,
+              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
 
@@ -277,8 +296,8 @@ class ScanPageView extends StatelessWidget {
             icon: const Icon(Icons.refresh),
             label: const Text('Try Again'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              foregroundColor: Colors.white,
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),

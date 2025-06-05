@@ -205,22 +205,24 @@ class AssetModel extends BaseModel {
 
    async getAssetWithDetails(assetNo) {
       const query = `
-            SELECT 
-                a.*,
-                p.description as plant_description,
-                l.description as location_description,
-                u.name as unit_name,
-                usr.full_name as created_by_name
-            FROM asset_master a
-            LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-            LEFT JOIN mst_location l ON a.location_code = l.location_code
-            LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-            LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-            WHERE a.asset_no = ?
-        `;
+      SELECT 
+         a.*,
+         p.description as plant_description,
+         l.description as location_description,
+         u.name as unit_name,
+         usr.full_name as created_by_name
+      FROM asset_master a
+      LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
+      LEFT JOIN mst_location l ON a.location_code = l.location_code
+      LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
+      LEFT JOIN mst_user usr ON a.created_by = usr.user_id
+      WHERE a.asset_no = ?
+   `;
       const results = await this.executeQuery(query, [assetNo]);
+      console.log('Asset query result:', results[0]);
       return results[0] || null;
    }
+
 
    async searchAssets(searchTerm, filters = {}) {
       let query = `

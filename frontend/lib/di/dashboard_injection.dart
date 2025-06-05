@@ -1,5 +1,4 @@
 // Path: frontend/lib/di/dashboard_injection.dart
-import 'injection.dart';
 
 /// Configure Dashboard feature dependencies
 void configureDashboardDependencies() {

@@ -17,22 +17,27 @@ class ScanListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(color: theme.colorScheme.primary),
+      );
     }
 
     if (scannedItems.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(theme);
     }
 
     return RefreshIndicator(
       onRefresh: () async {
         onRefresh?.call();
       },
+      color: theme.colorScheme.primary,
       child: Column(
         children: [
           // Header
-          _buildHeader(),
+          _buildHeader(theme),
 
           // List
           Expanded(
@@ -49,13 +54,16 @@ class ScanListView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ThemeData theme) {
     final totalItems = scannedItems.length;
-    final availableItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'available')
+    final activeItems = scannedItems
+        .where((item) => item.status.toLowerCase() == 'a')
         .length;
-    final checkedItems = scannedItems
-        .where((item) => item.status.toLowerCase() == 'checked')
+    final createdItems = scannedItems
+        .where((item) => item.status.toLowerCase() == 'c')
+        .length;
+    final inactiveItems = scannedItems
+        .where((item) => item.status.toLowerCase() == 'i')
         .length;
     final unknownItems = scannedItems
         .where((item) => item.status.toLowerCase() == 'unknown')
@@ -64,22 +72,24 @@ class ScanListView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.qr_code_scanner, color: Color(0xFF4F46E5)),
+              Icon(Icons.qr_code_scanner, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                'หลกาสสถานแท RFID ($totalItems)',
-                style: const TextStyle(
+                'RFID Scan Results ($totalItems)',
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF1F2937),
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
@@ -88,13 +98,23 @@ class ScanListView extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Status Summary
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _buildStatusChip('Available', availableItems, Colors.green),
-              const SizedBox(width: 8),
-              _buildStatusChip('Checked', checkedItems, Colors.blue),
-              const SizedBox(width: 8),
-              _buildStatusChip('Unknown', unknownItems, Colors.red),
+              if (activeItems > 0)
+                _buildStatusChip(
+                  theme,
+                  'Active',
+                  activeItems,
+                  theme.colorScheme.primary,
+                ),
+              if (createdItems > 0)
+                _buildStatusChip(theme, 'Created', createdItems, Colors.blue),
+              if (inactiveItems > 0)
+                _buildStatusChip(theme, 'Inactive', inactiveItems, Colors.grey),
+              if (unknownItems > 0)
+                _buildStatusChip(theme, 'Unknown', unknownItems, Colors.red),
             ],
           ),
         ],
@@ -102,7 +122,12 @@ class ScanListView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip(String label, int count, Color color) {
+  Widget _buildStatusChip(
+    ThemeData theme,
+    String label,
+    int count,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -121,12 +146,24 @@ class ScanListView extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.qr_code_scanner, size: 64, color: Colors.grey[400]),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.qr_code_scanner,
+              size: 40,
+              color: theme.colorScheme.primary.withOpacity(0.6),
+            ),
+          ),
 
           const SizedBox(height: 16),
 
@@ -135,7 +172,7 @@ class ScanListView extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: theme.colorScheme.onBackground.withOpacity(0.7),
             ),
           ),
 
@@ -143,7 +180,10 @@ class ScanListView extends StatelessWidget {
 
           Text(
             'Tap the scan button to start scanning RFID tags',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.colorScheme.onBackground.withOpacity(0.5),
+            ),
             textAlign: TextAlign.center,
           ),
         ],

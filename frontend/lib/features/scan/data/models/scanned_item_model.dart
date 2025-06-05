@@ -21,9 +21,9 @@ class ScannedItemModel extends ScannedItemEntity {
       description: json['description'],
       serialNo: json['serial_no'],
       inventoryNo: json['inventory_no'],
-      quantity: json['quantity']?.toDouble(),
+      quantity: _parseQuantity(json['quantity']),
       unitName: json['unit_name'],
-      createdByName: json['created_by_name'],
+      createdByName: json['created_by_name'] ?? 'Unknown User',
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'])
           : null,
@@ -38,6 +38,14 @@ class ScannedItemModel extends ScannedItemEntity {
       status: 'Unknown',
       isUnknown: true,
     );
+  }
+
+  static double? _parseQuantity(dynamic quantity) {
+    if (quantity == null) return null;
+    if (quantity is double) return quantity;
+    if (quantity is int) return quantity.toDouble();
+    if (quantity is String) return double.tryParse(quantity);
+    return null;
   }
 
   Map<String, dynamic> toJson() {

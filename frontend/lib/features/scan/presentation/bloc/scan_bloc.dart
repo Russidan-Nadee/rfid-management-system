@@ -32,8 +32,16 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           final item = await getAssetDetailsUseCase.execute(assetNo);
           scannedItems.add(item);
         } catch (e) {
-          // If asset not found, add as unknown item
-          scannedItems.add(ScannedItemEntity.unknown(assetNo));
+          // Only catch specific 404 errors for unknown items
+          if (e.toString().contains('Asset not found') ||
+              e.toString().contains('404') ||
+              e.toString().contains('not found')) {
+            scannedItems.add(ScannedItemEntity.unknown(assetNo));
+          } else {
+            // Re-throw other errors (parsing, network, etc.)
+            print('Unexpected error for asset $assetNo: $e');
+            scannedItems.add(ScannedItemEntity.unknown(assetNo));
+          }
         }
       }
 

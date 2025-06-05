@@ -10,32 +10,40 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('รายละเอียดครุภัณฑ์'),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
+        title: const Text('Asset Details'),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
         elevation: 1,
       ),
+      backgroundColor: theme.colorScheme.background,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
-            _buildStatusCard(),
+            _buildStatusCard(theme),
 
             const SizedBox(height: 16),
 
             // Basic Information
             _buildSectionCard(
-              title: 'ข้อมูลพื้นฐาน',
+              theme: theme,
+              title: 'Basic Information',
               icon: Icons.inventory_2_outlined,
               children: [
-                _buildDetailRow('Asset Number', item.assetNo),
-                _buildDetailRow('Description', item.description ?? '-'),
-                _buildDetailRow('Serial Number', item.serialNo ?? '-'),
-                _buildDetailRow('Inventory Number', item.inventoryNo ?? '-'),
+                _buildDetailRow(theme, 'Asset Number', item.assetNo),
+                _buildDetailRow(theme, 'Description', item.description ?? '-'),
+                _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
+                _buildDetailRow(
+                  theme,
+                  'Inventory Number',
+                  item.inventoryNo ?? '-',
+                ),
               ],
             ),
 
@@ -43,14 +51,16 @@ class AssetDetailPage extends StatelessWidget {
 
             // Quantity Information
             _buildSectionCard(
-              title: 'ข้อมูลจำนวน',
+              theme: theme,
+              title: 'Quantity Information',
               icon: Icons.straighten,
               children: [
                 _buildDetailRow(
+                  theme,
                   'Quantity',
                   item.quantity != null ? '${item.quantity}' : '-',
                 ),
-                _buildDetailRow('Unit', item.unitName ?? '-'),
+                _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
               ],
             ),
 
@@ -58,11 +68,17 @@ class AssetDetailPage extends StatelessWidget {
 
             // Creation Information
             _buildSectionCard(
-              title: 'ข้อมูลการสร้าง',
+              theme: theme,
+              title: 'Creation Information',
               icon: Icons.person_outline,
               children: [
-                _buildDetailRow('Created By', item.createdByName ?? '-'),
                 _buildDetailRow(
+                  theme,
+                  'Created By',
+                  item.createdByName ?? 'Unknown User',
+                ),
+                _buildDetailRow(
+                  theme,
                   'Created Date',
                   item.createdAt != null
                       ? Helpers.formatDateTime(item.createdAt)
@@ -76,18 +92,19 @@ class AssetDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(ThemeData theme) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: theme.colorScheme.surface,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              _getStatusColor(item.status),
-              _getStatusColor(item.status).withOpacity(0.8),
+              _getStatusColor(item.status, theme),
+              _getStatusColor(item.status, theme).withOpacity(0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
@@ -131,6 +148,7 @@ class AssetDetailPage extends StatelessWidget {
   }
 
   Widget _buildSectionCard({
+    required ThemeData theme,
     required String title,
     required IconData icon,
     required List<Widget> children,
@@ -138,6 +156,7 @@ class AssetDetailPage extends StatelessWidget {
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -145,14 +164,14 @@ class AssetDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: const Color(0xFF4F46E5), size: 20),
+                Icon(icon, color: theme.colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1F2937),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -167,7 +186,7 @@ class AssetDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(ThemeData theme, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -179,7 +198,7 @@ class AssetDetailPage extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -190,7 +209,10 @@ class AssetDetailPage extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF1F2937)),
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -198,26 +220,30 @@ class AssetDetailPage extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-        return Colors.green;
-      case 'checked':
+  Color _getStatusColor(String status, ThemeData theme) {
+    switch (status.toUpperCase()) {
+      case 'A':
+        return theme.colorScheme.primary;
+      case 'C':
         return Colors.blue;
-      case 'unknown':
+      case 'I':
+        return Colors.grey;
+      case 'UNKNOWN':
         return Colors.red;
       default:
-        return Colors.grey;
+        return theme.colorScheme.primary;
     }
   }
 
   IconData _getStatusIcon(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
+    switch (status.toUpperCase()) {
+      case 'A':
         return Icons.check_circle;
-      case 'checked':
-        return Icons.verified;
-      case 'unknown':
+      case 'C':
+        return Icons.pending;
+      case 'I':
+        return Icons.disabled_by_default;
+      case 'UNKNOWN':
         return Icons.help;
       default:
         return Icons.inventory_2;
@@ -225,12 +251,14 @@ class AssetDetailPage extends StatelessWidget {
   }
 
   String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-        return 'Available';
-      case 'checked':
-        return 'Checked';
-      case 'unknown':
+    switch (status.toUpperCase()) {
+      case 'A':
+        return 'Active';
+      case 'C':
+        return 'Created';
+      case 'I':
+        return 'Inactive';
+      case 'UNKNOWN':
         return 'Unknown';
       default:
         return status;
