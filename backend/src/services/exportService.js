@@ -268,7 +268,7 @@ class ExportService {
     * @private
     */
    async _generateExportFile(exportJob, data) {
-      const config = JSON.parse(exportJob.export_config);
+      const config = exportJob.export_config;
       const format = config.format || 'xlsx';
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

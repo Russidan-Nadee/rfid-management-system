@@ -1,5 +1,4 @@
 // Path: frontend/lib/features/settings/domain/usecases/update_settings_usecase.dart
-import '../entities/settings_entity.dart';
 import '../repositories/settings_repository.dart';
 
 class UpdateSettingsUseCase {
