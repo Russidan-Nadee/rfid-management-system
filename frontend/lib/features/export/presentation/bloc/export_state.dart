@@ -2,6 +2,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/export_job_entity.dart';
 import '../../domain/entities/export_config_entity.dart';
+import '../../domain/repositories/export_repository.dart';
 
 abstract class ExportState extends Equatable {
   const ExportState();
@@ -407,33 +408,6 @@ class ExportHistoryMeta {
   @override
   String toString() =>
       'ExportHistoryMeta(page: $currentPage/$totalPages, total: $totalItems)';
-}
-
-class ExportStatsEntity {
-  final int totalExports;
-  final int pendingExports;
-  final int completedExports;
-  final int failedExports;
-  final int totalFilesSize;
-  final DateTime? lastExportDate;
-
-  const ExportStatsEntity({
-    required this.totalExports,
-    required this.pendingExports,
-    required this.completedExports,
-    required this.failedExports,
-    required this.totalFilesSize,
-    this.lastExportDate,
-  });
-
-  bool get hasAnyExports => totalExports > 0;
-  bool get hasPendingExports => pendingExports > 0;
-  double get successRate =>
-      totalExports > 0 ? completedExports / totalExports : 0.0;
-
-  @override
-  String toString() =>
-      'ExportStatsEntity(total: $totalExports, pending: $pendingExports)';
 }
 
 enum ExportErrorType {

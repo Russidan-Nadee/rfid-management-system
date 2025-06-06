@@ -13,6 +13,7 @@ class ExportHistoryList extends StatefulWidget {
   final bool showHeader;
   final bool enableSelection;
   final VoidCallback? onSelectionChanged;
+  final List<ExportJobEntity>? customExports;
 
   const ExportHistoryList({
     super.key,
@@ -21,6 +22,7 @@ class ExportHistoryList extends StatefulWidget {
     this.showHeader = false,
     this.enableSelection = false,
     this.onSelectionChanged,
+    this.customExports,
   });
 
   @override
@@ -345,7 +347,7 @@ class _ExportHistoryListState extends State<ExportHistoryList> {
         _buildDetailChip(
           theme,
           Icons.access_time,
-          Helpers.formatRelativeTime(export.createdAt),
+          Helpers.formatTimeAgo(export.createdAt),
         ),
       ],
     );
@@ -616,7 +618,7 @@ class _ExportHistoryListState extends State<ExportHistoryList> {
     } else if (export.isFailed) {
       return export.errorMessage ?? 'Export failed';
     }
-    return 'Created ${Helpers.formatRelativeTime(export.createdAt)}';
+    return 'Created ${Helpers.formatTimeAgo(export.createdAt)}';
   }
 
   void _handleExportTap(ExportJobEntity export, ExportHistoryLoaded state) {
