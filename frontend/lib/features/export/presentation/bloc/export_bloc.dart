@@ -8,7 +8,7 @@ import '../../domain/usecases/get_export_status_usecase.dart';
 import '../../domain/usecases/download_export_usecase.dart';
 import '../../domain/repositories/export_repository.dart';
 import 'export_event.dart';
-import 'export_state.dart';
+import 'export_state.dart' hide ExportErrorType, ExportStatsEntity;
 
 class ExportBloc extends Bloc<ExportEvent, ExportState> {
   final CreateExportJobUseCase createExportJobUseCase;

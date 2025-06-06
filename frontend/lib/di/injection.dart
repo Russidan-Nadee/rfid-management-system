@@ -5,6 +5,7 @@ import '../core/services/storage_service.dart';
 import 'auth_injection.dart';
 import 'scan_injection.dart';
 import 'settings_injection.dart';
+import 'export_injection.dart';
 
 // Global GetIt instance
 final getIt = GetIt.instance;
@@ -21,7 +22,8 @@ Future<void> configureDependencies() async {
   // Configure feature dependencies
   configureAuthDependencies();
   configureScanDependencies();
-  configureSettingsDependencies(); // เพิ่มบรรทัดนี้
+  configureSettingsDependencies();
+  configureExportDependencies();
 
   // Debug dependencies in development
   if (const bool.fromEnvironment('dart.vm.product') == false) {
@@ -36,10 +38,6 @@ void resetDependencies() {
 
 /// Check if dependencies are registered (for debugging)
 void debugDependencies() {
-  print('=== Registered Dependencies ===');
-  print('StorageService: ${getIt.isRegistered<StorageService>()}');
-  print('ApiService: ${getIt.isRegistered<ApiService>()}');
-
   // Auth Dependencies
   debugAuthDependencies();
 
@@ -47,9 +45,10 @@ void debugDependencies() {
   debugScanDependencies();
 
   // Settings Dependencies
-  debugSettingsDependencies(); // เพิ่มบรรทัดนี้
+  debugSettingsDependencies();
 
-  print('==============================');
+  // Export Dependencies
+  debugExportDependencies(); // เพิ่มบรรทัดนี้
 }
 
 /// Dispose resources when app is closed

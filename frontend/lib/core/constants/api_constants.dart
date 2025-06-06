@@ -1,3 +1,4 @@
+// Path: frontend/lib/core/constants/api_constants.dart
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConstants {
@@ -46,6 +47,13 @@ class ApiConstants {
   static const String assetsByPlant = '$assets/stats/by-plant';
   static const String assetsByLocation = '$assets/stats/by-location';
 
+  // Export Endpoints (NEW)
+  static const String exportBase = '/export';
+  static const String exportJobs = '$exportBase/jobs';
+  static const String exportHistory = '$exportBase/history';
+  static const String exportStats = '$exportBase/stats';
+  static const String exportCleanup = '$exportBase/cleanup';
+
   // Scan Endpoints
   static const String scanLog = '/scan/log';
   static const String scanMock = '/scan/mock';
@@ -60,4 +68,11 @@ class ApiConstants {
       '$locations/$locationCode/assets';
   static String plantLocations(String plantCode) =>
       '$plants/$plantCode/locations';
+
+  // Export Actions (NEW)
+  static String exportJobStatus(int exportId) => '$exportJobs/$exportId';
+  static String exportDownload(int exportId) =>
+      '$exportBase/download/$exportId';
+  static String exportJobCancel(int exportId) => '$exportJobs/$exportId';
+  static String exportJobDelete(int exportId) => '$exportJobs/$exportId';
 }
