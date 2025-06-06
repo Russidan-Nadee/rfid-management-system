@@ -439,6 +439,6 @@ class ValidationResult {
   }
 
   factory ValidationResult.invalid(String errorMessage) {
-    return const ValidationResult._(false, errorMessage);
+    return ValidationResult._(false, errorMessage);
   }
 }

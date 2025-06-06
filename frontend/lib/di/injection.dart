@@ -39,7 +39,6 @@ void resetDependencies() {
 /// Check if dependencies are registered (for debugging)
 void debugDependencies() {
   // Auth Dependencies
-  debugAuthDependencies();
 
   // Scan Dependencies
   debugScanDependencies();

@@ -88,18 +88,7 @@ class ExportConfigModel extends ExportConfigEntity {
     );
   }
 
-  /// Copy with new values
-  ExportConfigModel copyWith({
-    String? format,
-    ExportFiltersModel? filters,
-    List<String>? columns,
-  }) {
-    return ExportConfigModel(
-      format: format ?? this.format,
-      filters: filters ?? this.filters,
-      columns: columns ?? this.columns,
-    );
-  }
+  // Removed copyWith() - using parent's copyWith from ExportConfigEntity
 
   @override
   String toString() {
@@ -172,13 +161,23 @@ class ExportFiltersModel extends ExportFiltersEntity {
     if (!newPlantCodes.contains(plantCode)) {
       newPlantCodes.add(plantCode);
     }
-    return copyWith(plantCodes: newPlantCodes);
+    return ExportFiltersModel(
+      plantCodes: newPlantCodes,
+      locationCodes: locationCodes,
+      status: status,
+      dateRange: dateRange,
+    );
   }
 
   ExportFiltersModel removePlantCode(String plantCode) {
     final newPlantCodes = List<String>.from(plantCodes ?? []);
     newPlantCodes.remove(plantCode);
-    return copyWith(plantCodes: newPlantCodes.isEmpty ? null : newPlantCodes);
+    return ExportFiltersModel(
+      plantCodes: newPlantCodes.isEmpty ? null : newPlantCodes,
+      locationCodes: locationCodes,
+      status: status,
+      dateRange: dateRange,
+    );
   }
 
   ExportFiltersModel addLocationCode(String locationCode) {
@@ -186,14 +185,22 @@ class ExportFiltersModel extends ExportFiltersEntity {
     if (!newLocationCodes.contains(locationCode)) {
       newLocationCodes.add(locationCode);
     }
-    return copyWith(locationCodes: newLocationCodes);
+    return ExportFiltersModel(
+      plantCodes: plantCodes,
+      locationCodes: newLocationCodes,
+      status: status,
+      dateRange: dateRange,
+    );
   }
 
   ExportFiltersModel removeLocationCode(String locationCode) {
     final newLocationCodes = List<String>.from(locationCodes ?? []);
     newLocationCodes.remove(locationCode);
-    return copyWith(
+    return ExportFiltersModel(
+      plantCodes: plantCodes,
       locationCodes: newLocationCodes.isEmpty ? null : newLocationCodes,
+      status: status,
+      dateRange: dateRange,
     );
   }
 
@@ -204,31 +211,26 @@ class ExportFiltersModel extends ExportFiltersEntity {
     } else {
       newStatus.add(statusCode);
     }
-    return copyWith(status: newStatus.isEmpty ? null : newStatus);
+    return ExportFiltersModel(
+      plantCodes: plantCodes,
+      locationCodes: locationCodes,
+      status: newStatus.isEmpty ? null : newStatus,
+      dateRange: dateRange,
+    );
   }
 
   ExportFiltersModel setDateRange(DateRangeEntity? dateRange) {
-    return copyWith(
+    return ExportFiltersModel(
+      plantCodes: plantCodes,
+      locationCodes: locationCodes,
+      status: status,
       dateRange: dateRange != null
           ? DateRangeModel.fromEntity(dateRange)
           : null,
     );
   }
 
-  /// Copy with new values
-  ExportFiltersModel copyWith({
-    List<String>? plantCodes,
-    List<String>? locationCodes,
-    List<String>? status,
-    DateRangeModel? dateRange,
-  }) {
-    return ExportFiltersModel(
-      plantCodes: plantCodes ?? this.plantCodes,
-      locationCodes: locationCodes ?? this.locationCodes,
-      status: status ?? this.status,
-      dateRange: dateRange ?? this.dateRange,
-    );
-  }
+  // Removed copyWith() - using parent's copyWith from ExportFiltersEntity
 
   @override
   String toString() {

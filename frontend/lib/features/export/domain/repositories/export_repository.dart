@@ -83,43 +83,18 @@ class ExportResult<T> {
   final bool success;
   final T? data;
   final String? errorMessage;
-  final ExportErrorType? errorType;
 
-  const ExportResult._({
-    required this.success,
-    this.data,
-    this.errorMessage,
-    this.errorType,
-  });
+  const ExportResult._({required this.success, this.data, this.errorMessage});
 
   factory ExportResult.success(T data) {
     return ExportResult._(success: true, data: data);
   }
 
-  factory ExportResult.failure({
-    required String message,
-    ExportErrorType? errorType,
-  }) {
-    return ExportResult._(
-      success: false,
-      errorMessage: message,
-      errorType: errorType,
-    );
+  factory ExportResult.failure({required String message}) {
+    return ExportResult._(success: false, errorMessage: message);
   }
 
   bool get hasData => data != null;
-  bool get isNetworkError => errorType == ExportErrorType.network;
-  bool get isServerError => errorType == ExportErrorType.server;
-  bool get isValidationError => errorType == ExportErrorType.validation;
-}
-
-enum ExportErrorType {
-  network,
-  server,
-  validation,
-  fileSystem,
-  permission,
-  unknown,
 }
 
 /// Export job creation parameters

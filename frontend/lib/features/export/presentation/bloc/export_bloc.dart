@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/export_job_entity.dart';
 import '../../domain/entities/export_config_entity.dart';
+import '../../domain/repositories/export_repository.dart';
 import '../../domain/usecases/create_export_job_usecase.dart';
 import '../../domain/usecases/get_export_status_usecase.dart';
 import '../../domain/usecases/download_export_usecase.dart';
-import '../../domain/repositories/export_repository.dart';
 import 'export_event.dart';
-import 'export_state.dart' hide ExportErrorType, ExportStatsEntity;
+import 'export_state.dart';
 
 class ExportBloc extends Bloc<ExportEvent, ExportState> {
   final CreateExportJobUseCase createExportJobUseCase;
@@ -240,7 +240,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     await _pollingSubscription?.cancel();
     _pollingSubscription = null;
 
-    emit(const ExportPollingStopped(exportId: 0, reason: 'Polling stopped'));
+    emit(ExportPollingStopped(exportId: 0, reason: 'Polling stopped'));
   }
 
   // Export History Event Handlers
@@ -249,7 +249,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     Emitter<ExportState> emit,
   ) async {
     if (event.refresh || _exportHistory.isEmpty) {
-      emit(const ExportLoading(message: 'Loading export history...'));
+      emit(ExportLoading(message: 'Loading export history...'));
     }
 
     try {
@@ -296,7 +296,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     RefreshExportHistory event,
     Emitter<ExportState> emit,
   ) async {
-    add(const LoadExportHistory(refresh: true));
+    add(LoadExportHistory(refresh: true));
   }
 
   // Download Event Handlers
@@ -350,7 +350,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     ShareExportRequested event,
     Emitter<ExportState> emit,
   ) async {
-    emit(const ExportLoading(message: 'Preparing to share...'));
+    emit(ExportLoading(message: 'Preparing to share...'));
 
     try {
       final result = await downloadExportUseCase.shareExport(event.exportId);
@@ -382,7 +382,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
   ) async {
     if (event.exportIds.isEmpty) {
       emit(
-        const ExportError(
+        ExportError(
           message: 'No exports selected for download',
           errorType: ExportErrorType.validation,
         ),
@@ -430,7 +430,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     CancelExportRequested event,
     Emitter<ExportState> emit,
   ) async {
-    emit(const ExportLoading(message: 'Cancelling export...'));
+    emit(ExportLoading(message: 'Cancelling export...'));
 
     try {
       final success = await exportRepository.cancelExportJob(event.exportId);
@@ -447,10 +447,10 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         add(const StopPollingExportStatus());
 
         // Refresh history
-        add(const RefreshExportHistory());
+        add(RefreshExportHistory());
       } else {
         emit(
-          const ExportError(
+          ExportError(
             message: 'Failed to cancel export',
             errorType: ExportErrorType.unknown,
           ),
@@ -471,7 +471,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     DeleteExportRequested event,
     Emitter<ExportState> emit,
   ) async {
-    emit(const ExportLoading(message: 'Deleting export...'));
+    emit(ExportLoading(message: 'Deleting export...'));
 
     try {
       final success = await exportRepository.deleteExportJob(event.exportId);
@@ -488,10 +488,10 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         _selectedExportIds.remove(event.exportId);
 
         // Refresh history
-        add(const RefreshExportHistory());
+        add(RefreshExportHistory());
       } else {
         emit(
-          const ExportError(
+          ExportError(
             message: 'Failed to delete export',
             errorType: ExportErrorType.unknown,
           ),
@@ -514,7 +514,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
   ) async {
     if (event.exportIds.isEmpty) return;
 
-    emit(const ExportLoading(message: 'Deleting selected exports...'));
+    emit(ExportLoading(message: 'Deleting selected exports...'));
 
     int deletedCount = 0;
     final errors = <String>[];
@@ -536,7 +536,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     emit(MultipleExportsDeleted(deletedCount: deletedCount, errors: errors));
 
     // Refresh history
-    add(const RefreshExportHistory());
+    add(RefreshExportHistory());
   }
 
   // Configuration Event Handlers
@@ -584,9 +584,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     ClearAllFilters event,
     Emitter<ExportState> emit,
   ) async {
-    _currentConfig = _currentConfig.copyWith(
-      filters: const ExportFiltersEntity(),
-    );
+    _currentConfig = _currentConfig.copyWith(filters: ExportFiltersEntity());
     emit(
       ExportConfigUpdated(
         exportType: _currentExportType,
@@ -600,8 +598,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     AddPlantFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final plantCodes = List<String>.from(currentFilters.plantCodes ?? []);
 
     if (!plantCodes.contains(event.plantCode)) {
@@ -622,8 +619,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     RemovePlantFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final plantCodes = List<String>.from(currentFilters.plantCodes ?? []);
 
     plantCodes.remove(event.plantCode);
@@ -644,8 +640,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     AddLocationFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final locationCodes = List<String>.from(currentFilters.locationCodes ?? []);
 
     if (!locationCodes.contains(event.locationCode)) {
@@ -668,8 +663,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     RemoveLocationFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final locationCodes = List<String>.from(currentFilters.locationCodes ?? []);
 
     locationCodes.remove(event.locationCode);
@@ -690,8 +684,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     UpdateDateRangeFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final updatedFilters = currentFilters.copyWith(dateRange: event.dateRange);
     _currentConfig = _currentConfig.copyWith(filters: updatedFilters);
 
@@ -707,8 +700,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     ToggleStatusFilter event,
     Emitter<ExportState> emit,
   ) async {
-    final currentFilters =
-        _currentConfig.filters ?? const ExportFiltersEntity();
+    final currentFilters = _currentConfig.filters ?? ExportFiltersEntity();
     final status = List<String>.from(currentFilters.status ?? []);
 
     if (status.contains(event.status)) {
@@ -736,7 +728,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     Emitter<ExportState> emit,
   ) async {
     if (_stats == null) {
-      emit(const ExportLoading(message: 'Loading statistics...'));
+      emit(ExportLoading(message: 'Loading statistics...'));
     }
 
     try {
@@ -758,7 +750,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     Emitter<ExportState> emit,
   ) async {
     _stats = null;
-    add(const LoadExportStats());
+    add(LoadExportStats());
   }
 
   // Cleanup Event Handlers
@@ -766,7 +758,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     CleanupExpiredFilesRequested event,
     Emitter<ExportState> emit,
   ) async {
-    emit(const ExportLoading(message: 'Cleaning up expired files...'));
+    emit(ExportLoading(message: 'Cleaning up expired files...'));
 
     try {
       final deletedCount = await exportRepository.cleanupExpiredFiles();
@@ -778,8 +770,8 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       );
 
       // Refresh stats and history
-      add(const RefreshExportStats());
-      add(const RefreshExportHistory());
+      add(RefreshExportStats());
+      add(RefreshExportHistory());
     } catch (e) {
       emit(
         ExportError(
@@ -799,7 +791,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     await _pollingSubscription?.cancel();
     _pollingSubscription = null;
     _selectedExportIds.clear();
-    emit(const ExportInitial());
+    emit(ExportInitial());
   }
 
   Future<void> _onClearExportError(
@@ -807,7 +799,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     Emitter<ExportState> emit,
   ) async {
     if (state is ExportError) {
-      emit(const ExportInitial());
+      emit(ExportInitial());
     }
   }
 
@@ -899,7 +891,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       case QuickExportType.recentScans:
         return ExportConfigEntity.recentScans();
       case QuickExportType.monthlyReport:
-        return const ExportConfigEntity(
+        return ExportConfigEntity(
           format: 'xlsx',
           filters: ExportFiltersEntity(
             dateRange: DateRangeEntity(
@@ -920,7 +912,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       case 'scan_logs':
         return ExportConfigEntity.recentScans();
       case 'status_history':
-        return const ExportConfigEntity(
+        return ExportConfigEntity(
           format: 'xlsx',
           filters: ExportFiltersEntity(
             dateRange: DateRangeEntity(

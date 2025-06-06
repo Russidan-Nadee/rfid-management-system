@@ -1,9 +1,8 @@
 // Path: frontend/lib/features/export/data/repositories/export_repository_impl.dart
 import '../../domain/entities/export_job_entity.dart';
 import '../../domain/entities/export_config_entity.dart';
-import '../../domain/repositories/export_repository.dart';
+import '../../domain/repositories/export_repository.dart' hide ExportErrorType;
 import '../datasources/export_remote_datasource.dart';
-import '../models/export_job_model.dart';
 import '../models/export_config_model.dart';
 
 class ExportRepositoryImpl implements ExportRepository {

@@ -41,10 +41,3 @@ void configureAuthDependencies() {
 }
 
 /// Debug Auth dependencies
-void debugAuthDependencies() {
-  print('--- Auth Dependencies ---');
-  print('AuthRepository: ${getIt.isRegistered<AuthRepository>()}');
-  print('LoginUseCase: ${getIt.isRegistered<LoginUseCase>()}');
-  print('LogoutUseCase: ${getIt.isRegistered<LogoutUseCase>()}');
-  print('AuthBloc: ${getIt.isRegistered<AuthBloc>()}');
-}
