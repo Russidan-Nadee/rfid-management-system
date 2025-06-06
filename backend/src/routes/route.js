@@ -12,6 +12,10 @@ const {
    scanController
 } = require('../controllers/controller');
 
+// Import export controller
+const ExportController = require('../controllers/exportController');
+const exportController = new ExportController();
+
 // Import validators
 const {
    plantValidators,
@@ -21,6 +25,17 @@ const {
    assetValidators,
    statsValidators
 } = require('../validators/validator');
+
+// Import export validators
+const {
+   createExportValidator,
+   getExportJobValidator,
+   downloadExportValidator,
+   getExportHistoryValidator,
+   cancelExportValidator,
+   validateExportConfigByType,
+   validateExportSize
+} = require('../validators/exportValidator');
 
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
@@ -71,6 +86,56 @@ router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetS
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
 router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
 
+// Export Routes (NEW) - ต้องใช้ authentication
+router.post('/export/jobs',
+   generalRateLimit,
+   authenticateToken,
+   createExportValidator,
+   validateExportConfigByType,
+   validateExportSize,
+   (req, res) => exportController.createExport(req, res)
+);
+
+router.get('/export/jobs/:jobId',
+   generalRateLimit,
+   authenticateToken,
+   getExportJobValidator,
+   (req, res) => exportController.getExportStatus(req, res)
+);
+
+router.get('/export/download/:jobId',
+   strictRateLimit,
+   authenticateToken,
+   downloadExportValidator,
+   (req, res) => exportController.downloadExport(req, res)
+);
+
+router.get('/export/history',
+   generalRateLimit,
+   authenticateToken,
+   getExportHistoryValidator,
+   (req, res) => exportController.getExportHistory(req, res)
+);
+
+router.delete('/export/jobs/:jobId',
+   generalRateLimit,
+   authenticateToken,
+   cancelExportValidator,
+   (req, res) => exportController.cancelExport(req, res)
+);
+
+router.get('/export/stats',
+   generalRateLimit,
+   authenticateToken,
+   (req, res) => exportController.getExportStats(req, res)
+);
+
+router.post('/export/cleanup',
+   strictRateLimit,
+   authenticateToken,
+   (req, res) => exportController.cleanupExpiredFiles(req, res)
+);
+
 // Scan Routes
 router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
 router.post('/scan/mock', generalRateLimit, authenticateToken, scanController.mockRfidScan);
@@ -120,6 +185,15 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/assets/stats/by-location': 'Get asset statistics by location',
             'GET /api/v1/assets/:asset_no': 'Get asset by number with details'
          },
+         export: {
+            'POST /api/v1/export/jobs': 'Create export job',
+            'GET /api/v1/export/jobs/:jobId': 'Get export job status',
+            'GET /api/v1/export/download/:jobId': 'Download export file',
+            'GET /api/v1/export/history': 'Get export history',
+            'DELETE /api/v1/export/jobs/:jobId': 'Cancel export job',
+            'GET /api/v1/export/stats': 'Get export statistics',
+            'POST /api/v1/export/cleanup': 'Cleanup expired files (Admin only)'
+         },
          scan: {
             'POST /api/v1/scan/log': 'Log asset scan',
             'POST /api/v1/scan/mock': 'Mock RFID scan (returns random assets)'
@@ -138,6 +212,10 @@ router.get('/docs', (req, res) => {
          },
          search: {
             search: 'Search term for asset number, description, serial number, inventory number'
+         },
+         export: {
+            exportType: 'Type of export (assets, scan_logs, status_history)',
+            exportConfig: 'Export configuration object with filters and format'
          }
       },
       responseFormat: {
@@ -149,7 +227,11 @@ router.get('/docs', (req, res) => {
       },
       errorCodes: {
          400: 'Bad Request - Invalid parameters or validation failed',
+         401: 'Unauthorized - Authentication required',
+         403: 'Forbidden - Access denied',
          404: 'Not Found - Resource not found',
+         409: 'Conflict - Resource conflict (e.g., pending export exists)',
+         410: 'Gone - Resource expired',
          429: 'Too Many Requests - Rate limit exceeded',
          500: 'Internal Server Error - Server error',
          503: 'Service Unavailable - Database connection failed'

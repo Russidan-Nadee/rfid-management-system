@@ -73,52 +73,6 @@ erDiagram
         timestamp scanned_at
     }
     
-    %% Future Extension Tables
-    asset_detail_technical {
-        varchar asset_no FK
-        text specs
-        varchar manufacturer
-        varchar model_no
-        varchar warranty_info
-        datetime created_at
-        datetime updated_at
-    }
-    
-    asset_detail_financial {
-        varchar asset_no FK
-        decimal acquisition_cost
-        decimal current_value
-        decimal depreciation_rate
-        date purchased_at
-        varchar supplier
-        varchar po_number
-        datetime created_at
-        datetime updated_at
-    }
-    
-    asset_detail_maintenance {
-        varchar asset_no FK
-        date last_maintained_at
-        date next_maintenance_at
-        varchar maintenance_type
-        varchar contractor
-        decimal maintenance_cost
-        text maintenance_notes
-        datetime created_at
-        datetime updated_at
-    }
-    
-    asset_detail_operation {
-        varchar asset_no FK
-        varchar operational_status
-        decimal operating_hours
-        varchar operator_id FK
-        decimal efficiency_rating
-        text operation_notes
-        datetime created_at
-        datetime updated_at
-    }
-    
     asset_status_history {
         int history_id PK
         varchar asset_no FK
@@ -129,29 +83,21 @@ erDiagram
         text remarks
     }
     
-    asset_movement_history {
-        int movement_id PK
-        varchar asset_no FK
-        varchar from_location_code FK
-        varchar to_location_code FK
-        datetime moved_at
-        varchar moved_by FK
-        text reason
-        varchar approval_by FK
-    }
-    
-    asset_files {
-        int file_id PK
-        varchar asset_no FK
-        varchar file_name
-        varchar file_type
+    export_history {
+        int export_id PK
+        varchar user_id FK
+        enum export_type
+        char status
+        json export_config
         varchar file_path
         bigint file_size
-        varchar uploaded_by FK
-        datetime uploaded_at
+        int total_records
+        datetime created_at
+        datetime expires_at
+        text error_message
     }
     
-    %% Current Active Relationships
+    %% Relationships
     mst_plant ||--o{ mst_location : "contains"
     mst_plant ||--o{ asset_master : "owns"
     mst_location ||--o{ asset_master : "houses"
@@ -160,21 +106,9 @@ erDiagram
     mst_user ||--o{ asset_master : "creates"
     mst_user ||--o{ user_login_log : "logs"
     mst_user ||--o{ asset_scan_log : "scans"
-    asset_master ||--o{ asset_scan_log : "scanned"
-    
-    %% Future Extension Relationships
-    asset_master ||--o{ asset_detail_technical : "has_technical"
-    asset_master ||--o{ asset_detail_financial : "has_financial"
-    asset_master ||--o{ asset_detail_maintenance : "has_maintenance"
-    asset_master ||--o{ asset_detail_operation : "has_operation"
-    asset_master ||--o{ asset_status_history : "tracks_status"
-    asset_master ||--o{ asset_movement_history : "tracks_movement"
-    asset_master ||--o{ asset_files : "has_files"
-    mst_user ||--o{ asset_detail_operation : "operates"
+    mst_user ||--o{ export_history : "exports"
     mst_user ||--o{ asset_status_history : "changes_status"
-    mst_user ||--o{ asset_movement_history : "moves"
-    mst_user ||--o{ asset_files : "uploads"
-    mst_location ||--o{ asset_movement_history : "from_location"
-    mst_location ||--o{ asset_movement_history : "to_location"
+    asset_master ||--o{ asset_scan_log : "scanned"
+    asset_master ||--o{ asset_status_history : "tracks_status"
 
     USE rfidassetdb;
