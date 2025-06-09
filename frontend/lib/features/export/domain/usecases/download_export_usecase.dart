@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../entities/export_job_entity.dart';
 import '../repositories/export_repository.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DownloadExportUseCase {
   final ExportRepository repository;
@@ -168,8 +169,7 @@ class DownloadExportUseCase {
         );
       }
 
-      // In real implementation, this would use share_plus package
-      // await Share.shareXFiles([XFile(downloadResult.filePath!)]);
+      await Share.shareXFiles([XFile(downloadResult.filePath!)]);
 
       return ShareResult.success(
         'Export shared successfully',

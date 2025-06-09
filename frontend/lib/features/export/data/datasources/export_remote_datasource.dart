@@ -83,7 +83,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       print('🔍 Response data: ${response.data}');
 
       if (response.success && response.data != null) {
-        print('🔍 About to parse: ${response.data!['data']}');
         return ExportJobModel.fromJson(response.data!);
       } else {
         throw _createApiException('Export job not found', response.message);
@@ -231,7 +230,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         fromJson: (json) => json,
         requiresAuth: true,
       );
-
       return response.success;
     } catch (e) {
       throw _handleException(e, 'cancel export job');
@@ -263,7 +261,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       );
 
       if (response.success && response.data != null) {
-        return ExportStatsModel.fromJson(response.data!['data']);
+        return ExportStatsModel.fromJson(response.data!);
       } else {
         throw _createApiException(
           'Failed to get export statistics',
