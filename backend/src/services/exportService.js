@@ -124,7 +124,7 @@ class ExportService {
    async _fetchAssetData(config) {
       const { filters = {}, columns = [] } = config;
 
-      // สร้าง WHERE clause จาก filters
+      // สร้าง WHERE clause จาก filters - Default to active assets only
       let whereClause = "a.status = 'A'";
       const params = [];
 
@@ -138,6 +138,7 @@ class ExportService {
          params.push(...filters.location_codes);
       }
 
+      // Override status filter only if explicitly provided
       if (filters.status && filters.status.length > 0) {
          whereClause = whereClause.replace("a.status = 'A'",
             `a.status IN (${filters.status.map(() => '?').join(',')})`);
@@ -204,16 +205,23 @@ class ExportService {
          }
       }
 
+      if (filters.plant_codes && filters.plant_codes.length > 0) {
+         whereClause += ` AND a.plant_code IN (${filters.plant_codes.map(() => '?').join(',')})`;
+         params.push(...filters.plant_codes);
+      }
+
       const query = `
          SELECT 
             s.scan_id, s.asset_no, s.scanned_at,
             a.description as asset_description,
             u.full_name as scanned_by_name,
-            l.description as location_description
+            l.description as location_description,
+            p.description as plant_description
          FROM asset_scan_log s
          LEFT JOIN asset_master a ON s.asset_no = a.asset_no
          LEFT JOIN mst_user u ON s.scanned_by = u.user_id
          LEFT JOIN mst_location l ON s.location_code = l.location_code
+         LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
          WHERE ${whereClause}
          ORDER BY s.scanned_at DESC
       `;
@@ -244,15 +252,24 @@ class ExportService {
          }
       }
 
+      if (filters.plant_codes && filters.plant_codes.length > 0) {
+         whereClause += ` AND a.plant_code IN (${filters.plant_codes.map(() => '?').join(',')})`;
+         params.push(...filters.plant_codes);
+      }
+
       const query = `
          SELECT 
             h.history_id, h.asset_no, h.old_status, h.new_status,
             h.changed_at, h.remarks,
             a.description as asset_description,
-            u.full_name as changed_by_name
+            u.full_name as changed_by_name,
+            p.description as plant_description,
+            l.description as location_description
          FROM asset_status_history h
          LEFT JOIN asset_master a ON h.asset_no = a.asset_no
          LEFT JOIN mst_user u ON h.changed_by = u.user_id
+         LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
+         LEFT JOIN mst_location l ON a.location_code = l.location_code
          WHERE ${whereClause}
          ORDER BY h.changed_at DESC
       `;
@@ -268,7 +285,7 @@ class ExportService {
     * @private
     */
    async _generateExportFile(exportJob, data) {
-      const config = exportJob.export_config;
+      const config = JSON.parse(exportJob.export_config);
       const format = config.format || 'xlsx';
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

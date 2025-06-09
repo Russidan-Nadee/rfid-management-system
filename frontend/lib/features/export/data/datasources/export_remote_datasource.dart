@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/export/data/datasources/export_remote_datasource.dart
 import 'dart:io';
+import 'package:frontend/core/services/storage_service.dart';
 import 'package:path/path.dart' as path;
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
@@ -51,6 +52,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         ApiConstants.exportJobs,
         body: requestBody,
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       if (response.success && response.data != null) {
@@ -72,6 +74,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         ApiConstants.exportJobStatus(exportId),
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       if (response.success && response.data != null) {
@@ -162,6 +165,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         ApiConstants.exportHistory,
         queryParams: queryParams,
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       if (response.success && response.data != null) {
@@ -184,6 +188,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       final response = await apiService.delete<Map<String, dynamic>>(
         ApiConstants.exportJobCancel(exportId),
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       return response.success;
@@ -198,6 +203,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       final response = await apiService.delete<Map<String, dynamic>>(
         ApiConstants.exportJobDelete(exportId),
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       return response.success;
@@ -212,6 +218,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         ApiConstants.exportStats,
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       if (response.success && response.data != null) {
@@ -233,6 +240,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       final response = await apiService.post<Map<String, dynamic>>(
         ApiConstants.exportCleanup,
         fromJson: (json) => json,
+        requiresAuth: true,
       );
 
       if (response.success && response.data != null) {
@@ -433,9 +441,7 @@ extension ApiServiceExtension on ApiService {
   }
 
   Future<String?> getAuthToken() async {
-    // This would get token from storage service
-    // return await storageService.getAuthToken();
-    return 'mock_token'; // For demo
+    return await StorageService().getAuthToken();
   }
 }
 

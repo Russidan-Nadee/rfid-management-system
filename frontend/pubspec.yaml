@@ -51,6 +51,7 @@ dependencies:
   crypto: ^3.0.3
   json_annotation: ^4.8.1
   flutter_secure_storage: ^8.0.0
+  equatable: ^2.0.5
   
   
   # Chart dependencies for data visualization

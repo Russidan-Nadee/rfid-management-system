@@ -1,0 +1,23 @@
+asset_no,description,serial_no,inventory_no,quantity,status,created_at,plant_description,location_description,unit_name,created_by_name
+3100005001,Zinc Phosphate Immersion Tank #1,TPK001,TPKINV01,1.00,A,Wed May 28 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Phosphating Line 1,Each,Parker Supervisor
+3100005002,Alkaline Degreasing Bath,TPK002,TPKINV02,1.00,C,Wed May 28 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Pre-Treatment Section,Each,Preparation Operator
+3100005003,E-Coat Bath Tank (Anodic),TPK003,TPKINV03,1.00,C,Tue May 27 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Production Manager
+3100005004,DC Rectifier Unit - E-Coat Line,TPK004,TPKINV04,1.00,C,Tue May 27 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Process Engineer
+3100005005,DI Water Rinse Tank - E-Coat,TPK005,TPKINV05,1.00,A,Mon May 26 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Safety Officer
+3100005006,Curing Oven - E-Coat (Conveyor),TPK006,TPKINV06,1.00,A,Mon May 26 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Curing Oven Area,Each,Maintenance Oven
+3100005007,Powder Coating Spray Booth #1,TPK007,TPKINV07,1.00,C,Sun May 25 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Paint Spray Booth 1,Each,Admin
+3100005008,Powder Recovery System,TPK008,TPKINV08,1.00,C,Sun May 25 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Paint Spray Booth 1,Each,Line Supervisor
+3100005009,Coating Adhesion Tester,TPK009,TPKINV09,2.00,A,Sat May 24 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Quality Control Chemist
+3100005010,Salt Spray Test Chamber,TPK010,TPKINV10,1.00,C,Sat May 24 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Quality Control Lab Personnel
+3100005011,Industrial Air Compressor - Main,TPK011,TPKINV11,1.00,C,Fri May 23 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Maintenance Workshop,Each,Equipment Operator
+3100005012,Wastewater Pre-Treatment Unit,TPK012,TPKINV12,1.00,C,Fri May 23 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Wastewater Treatment,Each,Plant Engineer
+3100005013,Chemical Dosing Pump - Phosphating,TPK013,TPKINV13,3.00,A,Thu May 22 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Phosphating Line 1,Each,Parker Operator
+3100005014,Conveyor System - E-Coat Line,TPK014,TPKINV14,1.00,A,Thu May 22 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Inventory Specialist
+3100005015,Paint Mixing Station,TPK015,TPKINV15,1.00,C,Wed May 21 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Paint Spray Booth 1,Each,Admin
+3100005016,Spectrophotometer for Bath Analysis,TPK016,TPKINV16,1.00,C,Wed May 21 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Quality Control Chemist
+3100005017,Ultrafiltration System (UF) - E-Coat,TPK017,TPKINV17,1.00,C,Tue May 20 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Production Manager
+3100005018,Sludge Dewatering Press,TPK018,TPKINV18,1.00,A,Tue May 20 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Wastewater Treatment,Each,Plant Engineer
+3100005019,Rinsing Stage #2 Tank - Phosphating,TPK019,TPKINV19,1.00,C,Mon May 19 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Phosphating Line 1,Each,Parker Operator
+3100005020,Temperature Controller - Tank Heater,TPK020,TPKINV20,4.00,A,Mon May 19 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Pre-Treatment Section,Piece,Equipment Technician
+3100005021,กล้องจุลทรรศน์ดิจิตอล - ห้องควบคุมคุณภาพ,TPKQN21,TPKNV21,1.00,A,Fri May 30 2025 15:45:56 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Parker Supervisor
+3100005022,กล้องจุลทรรศน์ดิจิตอล - ห้องควบคุมคุณภาพ,TPKQN22,TPKNV22,1.00,C,Fri May 30 2025 15:54:01 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Parker Supervisor

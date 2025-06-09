@@ -2,26 +2,17 @@ erDiagram
     mst_plant {
         varchar plant_code PK
         varchar description
-        char status
-        datetime created_at
-        datetime updated_at
     }
     
     mst_location {
         varchar location_code PK
         varchar description
         varchar plant_code FK
-        char status
-        datetime created_at
-        datetime updated_at
     }
     
     mst_unit {
         varchar unit_code PK
         varchar name
-        char status
-        datetime created_at
-        datetime updated_at
     }
     
     mst_user {

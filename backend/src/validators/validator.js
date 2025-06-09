@@ -63,7 +63,8 @@ const commonValidations = {
       ];
    },
 
-   status: () => {
+   // Asset status validation - only for assets
+   assetStatus: () => {
       return query('status')
          .optional()
          .isIn(['C', 'A', 'I'])
@@ -71,7 +72,7 @@ const commonValidations = {
    }
 };
 
-// Plant validators
+// Plant validators - No status field
 const plantValidators = {
    getPlantByCode: [
       commonValidations.code('plant_code'),
@@ -79,13 +80,12 @@ const plantValidators = {
    ],
 
    getPlants: [
-      commonValidations.status(),
       ...commonValidations.pagination(),
       handleValidationErrors
    ]
 };
 
-// Location validators
+// Location validators - No status field
 const locationValidators = {
    getLocationByCode: [
       commonValidations.code('location_code'),
@@ -98,7 +98,6 @@ const locationValidators = {
    ],
 
    getLocations: [
-      commonValidations.status(),
       query('plant_code')
          .optional()
          .trim()
@@ -109,7 +108,7 @@ const locationValidators = {
    ]
 };
 
-// Unit validators
+// Unit validators - No status field
 const unitValidators = {
    getUnitByCode: [
       commonValidations.code('unit_code'),
@@ -117,13 +116,12 @@ const unitValidators = {
    ],
 
    getUnits: [
-      commonValidations.status(),
       ...commonValidations.pagination(),
       handleValidationErrors
    ]
 };
 
-// User validators
+// User validators - No status field
 const userValidators = {
    getUserById: [
       commonValidations.id('user_id'),
@@ -143,13 +141,12 @@ const userValidators = {
    ],
 
    getUsers: [
-      commonValidations.status(),
       ...commonValidations.pagination(),
       handleValidationErrors
    ]
 };
 
-// Asset validators
+// Asset validators - Has status field
 const assetValidators = {
    getAssetByNo: [
       commonValidations.id('asset_no'),
@@ -157,7 +154,7 @@ const assetValidators = {
    ],
 
    getAssets: [
-      commonValidations.status(),
+      commonValidations.assetStatus(), // Only assets have status
       query('plant_code')
          .optional()
          .trim()
@@ -179,6 +176,7 @@ const assetValidators = {
 
    searchAssets: [
       commonValidations.searchTerm(),
+      commonValidations.assetStatus(), // Only assets have status
       query('plant_code')
          .optional()
          .trim()

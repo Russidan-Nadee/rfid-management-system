@@ -52,18 +52,18 @@ const applyPagination = (data, page = 1, limit = 50) => {
 const dashboardController = {
    async getDashboardStats(req, res) {
       try {
-         const [plantStats, assetStats, locationStats, userStats] = await Promise.all([
+         const [plantStats, assetStats, locationCount, userCount] = await Promise.all([
             plantService.getPlantStats(),
             assetService.getAssetStats(),
-            locationService.count({ status: 'A' }),
-            userService.count({ status: 'A' })
+            locationService.count(),
+            userService.count()
          ]);
 
          const dashboardData = {
             plants: plantStats,
             assets: assetStats,
-            locations: { active: locationStats },
-            users: { active: userStats }
+            locations: { total: locationCount },
+            users: { total: userCount }
          };
 
          return sendResponse(res, 200, true, 'Dashboard statistics retrieved successfully', dashboardData);
@@ -108,17 +108,10 @@ const dashboardController = {
 const plantController = {
    async getPlants(req, res) {
       try {
-         const { page = 1, limit = 50, status } = req.query;
-         const filters = {};
+         const { page = 1, limit = 50 } = req.query;
 
-         if (status) {
-            filters.status = status;
-         } else {
-            filters.status = 'A'; // Default to active only
-         }
-
-         const plants = await plantService.getAll(filters);
-         const totalCount = await plantService.count(filters);
+         const plants = await plantService.getAllPlants();
+         const totalCount = await plantService.count();
 
          const paginatedPlants = applyPagination(plants, parseInt(page), parseInt(limit));
          const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
@@ -158,7 +151,7 @@ const plantController = {
 const locationController = {
    async getLocations(req, res) {
       try {
-         const { page = 1, limit = 50, status, plant_code } = req.query;
+         const { page = 1, limit = 50, plant_code } = req.query;
 
          let locations;
          let totalCount;
@@ -169,12 +162,6 @@ const locationController = {
          } else {
             locations = await locationService.getLocationsWithPlant();
             totalCount = locations.length;
-
-            if (status && status !== 'A') {
-               const filters = { status };
-               locations = await locationService.getAll(filters);
-               totalCount = await locationService.count(filters);
-            }
          }
 
          const paginatedLocations = applyPagination(locations, parseInt(page), parseInt(limit));
@@ -221,17 +208,10 @@ const locationController = {
 const unitController = {
    async getUnits(req, res) {
       try {
-         const { page = 1, limit = 50, status } = req.query;
-         const filters = {};
+         const { page = 1, limit = 50 } = req.query;
 
-         if (status) {
-            filters.status = status;
-         } else {
-            filters.status = 'A'; // Default to active only
-         }
-
-         const units = await unitService.getAll(filters);
-         const totalCount = await unitService.count(filters);
+         const units = await unitService.getAllUnits();
+         const totalCount = await unitService.count();
 
          const paginatedUnits = applyPagination(units, parseInt(page), parseInt(limit));
          const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
@@ -261,17 +241,10 @@ const unitController = {
 const userController = {
    async getUsers(req, res) {
       try {
-         const { page = 1, limit = 50, status } = req.query;
-         const filters = {};
+         const { page = 1, limit = 50 } = req.query;
 
-         if (status) {
-            filters.status = status;
-         } else {
-            filters.status = 'A'; // Default to active only
-         }
-
-         const users = await userService.getAll(filters);
-         const totalCount = await userService.count(filters);
+         const users = await userService.getAllUsers();
+         const totalCount = await userService.count();
 
          // Remove sensitive information
          const sanitizedUsers = users.map(user => {
@@ -322,7 +295,6 @@ const userController = {
    }
 };
 
-
 const assetController = {
    async getAssets(req, res) {
       try {
@@ -332,26 +304,19 @@ const assetController = {
          let totalCount;
 
          // If specific filters are provided, use filtered search
-         if (plant_code || location_code || unit_code) {
+         if (plant_code || location_code || unit_code || status) {
             const filters = {};
             if (plant_code) filters.plant_code = plant_code;
             if (location_code) filters.location_code = location_code;
             if (unit_code) filters.unit_code = unit_code;
             if (status) filters.status = status;
-            else filters.status = 'A';
 
             assets = await assetService.searchAssets('', filters);
             totalCount = assets.length;
          } else {
-            // Get all assets with details
+            // Get all assets with details (default to active assets)
             assets = await assetService.getAssetsWithDetails();
             totalCount = assets.length;
-
-            if (status && status !== 'A') {
-               const filters = { status };
-               assets = await assetService.getAll(filters);
-               totalCount = await assetService.count(filters);
-            }
          }
 
          const paginatedAssets = applyPagination(assets, parseInt(page), parseInt(limit));
@@ -379,12 +344,13 @@ const assetController = {
 
    async searchAssets(req, res) {
       try {
-         const { search, page = 1, limit = 50, plant_code, location_code, unit_code } = req.query;
+         const { search, page = 1, limit = 50, plant_code, location_code, unit_code, status } = req.query;
 
          const filters = {};
          if (plant_code) filters.plant_code = plant_code;
          if (location_code) filters.location_code = location_code;
          if (unit_code) filters.unit_code = unit_code;
+         if (status) filters.status = status;
 
          const assets = await assetService.searchAssets(search, filters);
          const paginatedAssets = applyPagination(assets, parseInt(page), parseInt(limit));

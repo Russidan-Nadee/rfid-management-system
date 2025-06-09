@@ -82,11 +82,11 @@ class ExportModel extends BaseModel {
       const { limit = 50, offset = 0, status } = options;
 
       let query = `
-         SELECT e.*, u.full_name as user_name
-         FROM export_history e
-         LEFT JOIN mst_user u ON e.user_id = u.user_id
-         WHERE e.user_id = ?
-      `;
+      SELECT e.*, u.full_name as user_name
+      FROM export_history e
+      LEFT JOIN mst_user u ON e.user_id = u.user_id
+      WHERE e.user_id = ?
+   `;
 
       const params = [userId];
 
@@ -95,8 +95,8 @@ class ExportModel extends BaseModel {
          params.push(status);
       }
 
-      query += ` ORDER BY e.created_at DESC LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
+      // แก้ไขตรงนี้ - ใช้ string interpolation แทน parameter binding
+      query += ` ORDER BY e.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
 
       return this.executeQuery(query, params);
    }

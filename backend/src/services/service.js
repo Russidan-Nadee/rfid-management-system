@@ -36,11 +36,11 @@ class PlantService extends BaseService {
       super(PlantModel);
    }
 
-   async getActivePlants() {
+   async getAllPlants() {
       try {
-         return await this.model.getActivePlants();
+         return await this.model.getAllPlants();
       } catch (error) {
-         throw new Error(`Error fetching active plants: ${error.message}`);
+         throw new Error(`Error fetching plants: ${error.message}`);
       }
    }
 
@@ -59,13 +59,11 @@ class PlantService extends BaseService {
    async getPlantStats() {
       try {
          const totalPlants = await this.model.count();
-         const activePlants = await this.model.count({ status: 'A' });
-         const inactivePlants = totalPlants - activePlants;
 
          return {
             total: totalPlants,
-            active: activePlants,
-            inactive: inactivePlants
+            active: totalPlants, // No status field, all are considered active
+            inactive: 0
          };
       } catch (error) {
          throw new Error(`Error fetching plant statistics: ${error.message}`);
@@ -78,11 +76,11 @@ class LocationService extends BaseService {
       super(LocationModel);
    }
 
-   async getActiveLocations() {
+   async getAllLocations() {
       try {
-         return await this.model.getActiveLocations();
+         return await this.model.getAllLocations();
       } catch (error) {
-         throw new Error(`Error fetching active locations: ${error.message}`);
+         throw new Error(`Error fetching locations: ${error.message}`);
       }
    }
 
@@ -120,11 +118,11 @@ class UnitService extends BaseService {
       super(UnitModel);
    }
 
-   async getActiveUnits() {
+   async getAllUnits() {
       try {
-         return await this.model.getActiveUnits();
+         return await this.model.getAllUnits();
       } catch (error) {
-         throw new Error(`Error fetching active units: ${error.message}`);
+         throw new Error(`Error fetching units: ${error.message}`);
       }
    }
 
@@ -146,11 +144,11 @@ class UserService extends BaseService {
       super(UserModel);
    }
 
-   async getActiveUsers() {
+   async getAllUsers() {
       try {
-         return await this.model.getActiveUsers();
+         return await this.model.getAllUsers();
       } catch (error) {
-         throw new Error(`Error fetching active users: ${error.message}`);
+         throw new Error(`Error fetching users: ${error.message}`);
       }
    }
 
@@ -253,7 +251,7 @@ class AssetService extends BaseService {
          const totalAssets = await this.model.count();
          const activeAssets = await this.model.count({ status: 'A' });
          const createdAssets = await this.model.count({ status: 'C' });
-         const inactiveAssets = totalAssets - activeAssets - createdAssets;
+         const inactiveAssets = await this.model.count({ status: 'I' });
 
          return {
             total: totalAssets,
@@ -275,7 +273,6 @@ class AssetService extends BaseService {
                     COUNT(a.asset_no) as asset_count
                 FROM mst_plant p
                 LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status IN ('A', 'C')
-                WHERE p.status = 'A'
                 GROUP BY p.plant_code, p.description
                 ORDER BY p.plant_code
             `;
@@ -297,7 +294,6 @@ class AssetService extends BaseService {
                 FROM mst_location l
                 LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
                 LEFT JOIN asset_master a ON l.location_code = a.location_code AND a.status IN ('A', 'C')
-                WHERE l.status = 'A'
                 GROUP BY l.location_code, l.description, l.plant_code, p.description
                 ORDER BY l.location_code
             `;
@@ -494,6 +490,7 @@ class AssetService extends BaseService {
       }
    }
 }
+
 module.exports = {
    PlantService,
    LocationService,

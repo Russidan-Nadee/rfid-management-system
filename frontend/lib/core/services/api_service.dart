@@ -20,8 +20,13 @@ class ApiService {
 
     if (requiresAuth) {
       final token = await _storage.getAuthToken();
+      print('📡 REQUIRE AUTH: $requiresAuth'); // เพิ่มนี้
+      print('🔑 HEADER TOKEN: $token'); // เพิ่มนี้
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
+        print('✅ Authorization header added'); // เพิ่มนี้
+      } else {
+        print('❌ NO TOKEN - Request will fail'); // เพิ่มนี้
       }
     }
 
@@ -258,8 +263,42 @@ class ApiService {
     return token != null && token.isNotEmpty;
   }
 
+  Future<String?> getAuthToken() async {
+    final token = await _storage.getAuthToken();
+    print('🔑 DEBUG TOKEN: $token');
+    print('🔑 TOKEN LENGTH: ${token?.length ?? 0}');
+    return token;
+  }
+
   Future<void> clearAuthToken() async {
     await _storage.clearAuthData();
+  }
+
+  Future<http.Response> downloadFile(
+    String url,
+    String savePath, {
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final uri = Uri.parse(url);
+      final request = await http.Request('GET', uri);
+
+      if (headers != null) {
+        request.headers.addAll(headers);
+      }
+
+      final response = await _client.send(request);
+
+      if (response.statusCode == 200) {
+        final file = File(savePath);
+        await file.create(recursive: true);
+        await response.stream.pipe(file.openWrite());
+      }
+
+      return http.Response('', response.statusCode);
+    } catch (e) {
+      throw NetworkException('Download failed: $e');
+    }
   }
 
   // Dispose resources

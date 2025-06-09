@@ -4,12 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class ApiConstants {
   // Base Configuration
   static String get baseUrl {
-    if (kIsWeb) {
-      // สำหรับ Web (Chrome) ให้ใช้ localhost
-      return 'http://localhost:3000/api/v1';
-    } else {
-      return 'http://10.0.2.2:3000/api/v1'; // Default สำหรับ Android Emulator
-    }
+    return 'http://10.0.2.2:3000/api/v1';
   }
 
   static const Duration timeout = Duration(seconds: 30);

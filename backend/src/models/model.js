@@ -6,7 +6,7 @@ const dbConfig = {
    host: process.env.DB_HOST || 'localhost',
    user: process.env.DB_USER || 'root',
    password: process.env.DB_PASSWORD || '',
-   database: process.env.DB_NAME || 'asset_management',
+   database: process.env.DB_NAME || 'rfidassetdb',
    waitForConnections: true,
    connectionLimit: 10,
    queueLimit: 0,
@@ -82,14 +82,14 @@ class BaseModel {
    }
 }
 
-// Plant Model
+// Plant Model - No status field
 class PlantModel extends BaseModel {
    constructor() {
       super('mst_plant');
    }
 
-   async getActivePlants() {
-      return this.findAll({ status: 'A' }, 'plant_code');
+   async getAllPlants() {
+      return this.findAll({}, 'plant_code');
    }
 
    async getPlantByCode(plantCode) {
@@ -97,18 +97,18 @@ class PlantModel extends BaseModel {
    }
 }
 
-// Location Model
+// Location Model - No status field
 class LocationModel extends BaseModel {
    constructor() {
       super('mst_location');
    }
 
-   async getActiveLocations() {
-      return this.findAll({ status: 'A' }, 'location_code');
+   async getAllLocations() {
+      return this.findAll({}, 'location_code');
    }
 
    async getLocationsByPlant(plantCode) {
-      return this.findAll({ plant_code: plantCode, status: 'A' }, 'location_code');
+      return this.findAll({ plant_code: plantCode }, 'location_code');
    }
 
    async getLocationByCode(locationCode) {
@@ -120,21 +120,20 @@ class LocationModel extends BaseModel {
             SELECT l.*, p.description as plant_description 
             FROM mst_location l
             LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-            WHERE l.status = 'A'
             ORDER BY l.location_code
         `;
       return this.executeQuery(query);
    }
 }
 
-// Unit Model
+// Unit Model - No status field
 class UnitModel extends BaseModel {
    constructor() {
       super('mst_unit');
    }
 
-   async getActiveUnits() {
-      return this.findAll({ status: 'A' }, 'unit_code');
+   async getAllUnits() {
+      return this.findAll({}, 'unit_code');
    }
 
    async getUnitByCode(unitCode) {
@@ -142,14 +141,14 @@ class UnitModel extends BaseModel {
    }
 }
 
-// User Model
+// User Model - No status field
 class UserModel extends BaseModel {
    constructor() {
       super('mst_user');
    }
 
-   async getActiveUsers() {
-      return this.findAll({ status: 'A' }, 'user_id');
+   async getAllUsers() {
+      return this.findAll({}, 'user_id');
    }
 
    async getUserById(userId) {
@@ -162,7 +161,7 @@ class UserModel extends BaseModel {
    }
 }
 
-// Asset Model
+// Asset Model - Has status field
 class AssetModel extends BaseModel {
    constructor() {
       super('asset_master');
@@ -223,7 +222,6 @@ class AssetModel extends BaseModel {
       return results[0] || null;
    }
 
-
    async searchAssets(searchTerm, filters = {}) {
       let query = `
             SELECT 
@@ -264,12 +262,17 @@ class AssetModel extends BaseModel {
          params.push(filters.unit_code);
       }
 
+      // Allow status filter override
+      if (filters.status) {
+         query = query.replace("WHERE a.status = 'A'", `WHERE a.status = '${filters.status}'`);
+      }
+
       query += ` ORDER BY a.asset_no`;
 
       return this.executeQuery(query, params);
    }
 
-   // New methods for creating assets
+   // Asset creation and update methods
    async createAsset(assetData) {
       const query = `
          INSERT INTO asset_master (
@@ -308,7 +311,6 @@ class AssetModel extends BaseModel {
       return result.length > 0;
    }
 
-   // New methods for updating assets
    async updateAsset(assetNo, updateData) {
       const setClause = Object.keys(updateData)
          .map(key => `${key} = ?`)
