@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:frontend/core/services/storage_service.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../models/export_job_model.dart';
@@ -56,7 +57,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       );
 
       if (response.success && response.data != null) {
-        return ExportJobModel.fromJson(response.data!['data']);
+        return ExportJobModel.fromJson(response.data!);
       } else {
         throw _createApiException(
           'Failed to create export job',
@@ -77,12 +78,18 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         requiresAuth: true,
       );
 
+      print('🔍 Response success: ${response.success}');
+      print('🔍 Response data type: ${response.data.runtimeType}');
+      print('🔍 Response data: ${response.data}');
+
       if (response.success && response.data != null) {
-        return ExportJobModel.fromJson(response.data!['data']);
+        print('🔍 About to parse: ${response.data!['data']}');
+        return ExportJobModel.fromJson(response.data!);
       } else {
         throw _createApiException('Export job not found', response.message);
       }
     } catch (e) {
+      print('💥 Error in getExportJobStatus: $e');
       throw _handleException(e, 'get export job status');
     }
   }
@@ -91,9 +98,12 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   Future<String> downloadExportFile(int exportId) async {
     try {
       // First verify the export is ready
+      print('🔍 Getting export job status...');
       final exportJob = await getExportJobStatus(exportId);
+      print('✅ Export job status: ${exportJob.status}');
 
       if (!exportJob.isCompleted) {
+        print('❌ Export not completed: ${exportJob.statusLabel}');
         throw ExportException(
           'Export is not completed yet. Current status: ${exportJob.statusLabel}',
           ExportErrorType.validation,
@@ -101,6 +111,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       }
 
       if (exportJob.isExpired) {
+        print('❌ Export expired');
         throw ExportException(
           'Export file has expired',
           ExportErrorType.validation,
@@ -110,6 +121,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       // Use HTTP client directly for file download with progress
       final downloadUrl =
           '${ApiConstants.baseUrl}${ApiConstants.exportDownload(exportId)}';
+      print('🌐 Download URL: $downloadUrl');
 
       // Get auth token for download
       final token = await apiService.getAuthToken();
@@ -151,6 +163,8 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     int limit = 20,
     String? status,
   }) async {
+    print('🔄 Starting getExportHistory request...');
+
     try {
       final queryParams = <String, String>{
         'page': page.toString(),
@@ -161,23 +175,50 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         queryParams['status'] = status;
       }
 
-      final response = await apiService.get<Map<String, dynamic>>(
+      final response = await apiService.get<dynamic>(
         ApiConstants.exportHistory,
-        queryParams: queryParams,
         fromJson: (json) => json,
+        queryParams: queryParams,
         requiresAuth: true,
       );
 
+      print('📥 Raw response: ${response.toString()}');
+      print('📊 Response success: ${response.success}');
+      print('📋 Response data: ${response.data}');
+
       if (response.success && response.data != null) {
-        final historyResponse = ExportHistoryResponse.fromJson(response.data!);
-        return historyResponse.exports;
+        if (response.data is Map<String, dynamic>) {
+          final historyResponse = ExportHistoryResponse.fromJson(
+            response.data!,
+          );
+          print('✅ Parsed ${historyResponse.exports.length} exports');
+          return historyResponse.exports;
+        } else if (response.data is List) {
+          final exportsList = (response.data as List)
+              .map(
+                (item) => ExportJobModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+          print('✅ Parsed ${exportsList.length} exports from list');
+          print(
+            '🎯 Returning exports list: ${exportsList.map((e) => e.exportId).toList()}',
+          );
+          return exportsList;
+        } else {
+          throw Exception(
+            'Unexpected data format: ${response.data.runtimeType}',
+          );
+        }
       } else {
+        print('❌ Response failed or no data');
         throw _createApiException(
           'Failed to get export history',
           response.message,
         );
       }
     } catch (e) {
+      print('💥 Exception in getExportHistory: $e');
+      print('💥 Exception type: ${e.runtimeType}');
       throw _handleException(e, 'get export history');
     }
   }
@@ -259,10 +300,8 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   // Helper methods
 
   Future<String> _getTempDirectory() async {
-    // In real implementation, use path_provider
-    // final tempDir = await getTemporaryDirectory();
-    // return tempDir.path;
-    return '/data/data/com.example.app/cache';
+    final tempDir = await getTemporaryDirectory();
+    return tempDir.path;
   }
 
   String _generateTempFileName(ExportJobModel exportJob) {

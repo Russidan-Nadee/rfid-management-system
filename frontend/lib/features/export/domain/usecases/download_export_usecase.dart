@@ -55,29 +55,42 @@ class DownloadExportUseCase {
     String? customDirectory,
   }) async* {
     try {
+      print(
+        '🎯 UseCase downloadWithProgress started for export: $exportId',
+      ); // เพิ่ม
       yield DownloadProgress.started();
 
       // Validate export
+      print('🔍 UseCase validating export...'); // เพิ่ม
       yield DownloadProgress.validating();
       final exportJob = await repository.getExportJobStatus(exportId);
+      print('✅ UseCase got export job: ${exportJob.status}'); // เพิ่ม
 
       final validation = _validateDownload(exportJob);
       if (!validation.isValid) {
+        print(
+          '❌ UseCase validation failed: ${validation.errorMessage}',
+        ); // เพิ่ม
         yield DownloadProgress.failed(validation.errorMessage!);
         return;
       }
 
+      print('⏳ UseCase starting download simulation...'); // เพิ่ม
       yield DownloadProgress.downloading();
 
       // Simulate download progress (in real implementation, this would come from HTTP client)
       for (int i = 0; i <= 100; i += 10) {
+        print('📊 UseCase progress: $i%'); // เพิ่ม
         await Future.delayed(const Duration(milliseconds: 200));
         yield DownloadProgress.downloading(progress: i / 100);
       }
 
       // Download file
+      print('📂 UseCase calling repository.downloadExportFile...'); // เพิ่ม
       final tempFilePath = await repository.downloadExportFile(exportId);
+      print('✅ UseCase got temp file path: $tempFilePath'); // เพิ่ม
 
+      print('🔄 UseCase processing final file...'); // เพิ่ม
       yield DownloadProgress.processing();
 
       // Process final file
@@ -87,13 +100,16 @@ class DownloadExportUseCase {
         customFileName: customFileName,
         customDirectory: customDirectory,
       );
+      print('✅ UseCase final file path: $finalPath'); // เพิ่ม
 
       yield DownloadProgress.completed(
         filePath: finalPath,
         fileName: path.basename(finalPath),
         fileSize: await _getFileSize(finalPath),
       );
+      print('🎉 UseCase download completed successfully'); // เพิ่ม
     } catch (e) {
+      print('💥 UseCase download failed: $e'); // เพิ่ม
       yield DownloadProgress.failed('Download failed: ${e.toString()}');
     }
   }

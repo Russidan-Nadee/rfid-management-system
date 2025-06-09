@@ -93,15 +93,8 @@ class ExportService {
    async _fetchExportData(exportJob) {
       const { export_type, export_config } = exportJob;
 
-      // Parse JSON config อย่างปลอดภัย
-      let config;
-      try {
-         config = typeof export_config === 'string'
-            ? JSON.parse(export_config)
-            : export_config || {};
-      } catch (error) {
-         throw new Error(`Invalid export configuration: ${error.message}`);
-      }
+      // MySQL JSON column returns object directly
+      const config = export_config || {};
 
       switch (export_type) {
          case 'assets':
@@ -285,7 +278,8 @@ class ExportService {
     * @private
     */
    async _generateExportFile(exportJob, data) {
-      const config = JSON.parse(exportJob.export_config);
+      // MySQL JSON column returns object directly
+      const config = exportJob.export_config || {};
       const format = config.format || 'xlsx';
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -417,13 +411,12 @@ class ExportService {
    }
 
    /**
-    * คำนวณวันหมดอายุ (7 วันจากตอนนี้)
     * @returns {Date} วันหมดอายุ
     * @private
     */
    _calculateExpiryDate() {
       const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 7);
+      expiryDate.setHours(expiryDate.getHours() + 1);
       return expiryDate;
    }
 

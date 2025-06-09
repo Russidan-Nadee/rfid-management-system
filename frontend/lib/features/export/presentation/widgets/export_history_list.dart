@@ -636,6 +636,7 @@ class _ExportHistoryListState extends State<ExportHistoryList> {
   }
 
   void _downloadExport(int exportId) {
+    print('🔽 Download button clicked: $exportId');
     context.read<ExportBloc>().add(DownloadExportRequested(exportId));
   }
 

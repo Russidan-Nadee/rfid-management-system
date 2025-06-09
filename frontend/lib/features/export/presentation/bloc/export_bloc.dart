@@ -304,9 +304,11 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     DownloadExportRequested event,
     Emitter<ExportState> emit,
   ) async {
+    print('📥 BLoC download event received: ${event.exportId}');
     emit(ExportDownloading(exportId: event.exportId));
 
     try {
+      print('🚀 Starting downloadWithProgress...');
       await emit.forEach(
         downloadExportUseCase.downloadWithProgress(
           exportId: event.exportId,

@@ -19,10 +19,7 @@ class ExportModel extends BaseModel {
          ) VALUES (?, ?, ?, ?, ?, NOW(), ?)
       `;
 
-      // แปลง export_config เป็น JSON string อย่างปลอดภัย
-      const configJson = typeof exportData.export_config === 'string'
-         ? exportData.export_config
-         : JSON.stringify(exportData.export_config || {});
+      const configJson = exportData.export_config;
 
       const params = [
          exportData.user_id,

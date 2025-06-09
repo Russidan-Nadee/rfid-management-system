@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/export/data/repositories/export_repository_impl.dart
+import 'dart:io';
+
 import '../../domain/entities/export_job_entity.dart';
 import '../../domain/entities/export_config_entity.dart';
 import '../../domain/repositories/export_repository.dart' hide ExportErrorType;
@@ -40,11 +42,15 @@ class ExportRepositoryImpl implements ExportRepository {
   @override
   Future<ExportJobEntity> getExportJobStatus(int exportId) async {
     try {
+      print('🏪 Repository getExportJobStatus called: $exportId'); // เพิ่ม
       final jobModel = await remoteDataSource.getExportJobStatus(exportId);
+      print('✅ Repository got jobModel: $jobModel'); // เพิ่ม
       return jobModel;
     } on ExportException catch (e) {
+      print('💥 Repository ExportException: $e'); // เพิ่ม
       throw _mapExportException(e);
     } catch (e) {
+      print('💥 Repository general error: $e'); // เพิ่ม
       throw ExportRepositoryException(
         'Failed to get export job status: ${e.toString()}',
         ExportRepositoryErrorType.unknown,
@@ -223,14 +229,8 @@ class ExportRepositoryImpl implements ExportRepository {
   // Helper methods
 
   Future<bool> _fileExists(String filePath) async {
-    try {
-      // In real implementation, would use dart:io File
-      // final file = File(filePath);
-      // return await file.exists();
-      return true; // Mock implementation
-    } catch (e) {
-      return false;
-    }
+    final file = File(filePath);
+    return await file.exists();
   }
 
   ExportRepositoryException _mapExportException(ExportException e) {

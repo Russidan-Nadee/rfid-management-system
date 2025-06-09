@@ -40,7 +40,7 @@ class ExportController {
          const exportJob = await this.exportService.createExportJob({
             userId,
             exportType,
-            exportConfig
+            exportConfig: JSON.stringify(exportConfig)
          });
 
          res.status(201).json({
