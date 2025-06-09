@@ -106,6 +106,10 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       );
 
       if (result.success && result.exportJob != null) {
+        print('🔥 Raw status: "${result.exportJob!.status}"');
+        print('🔥 Status length: ${result.exportJob!.status.length}');
+        print('🔥 toUpperCase: "${result.exportJob!.status.toUpperCase()}"');
+        print('🔥 isCompleted: ${result.exportJob!.isCompleted}');
         emit(
           ExportJobCreated(
             exportJob: result.exportJob!,
@@ -114,7 +118,9 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         );
 
         // Start polling if export is pending
-        if (result.exportJob!.isPending) {
+        if (result.exportJob!.isCompleted) {
+          add(ShareExportRequested(result.exportJob!.exportId));
+        } else if (result.exportJob!.isPending) {
           add(StartPollingExportStatus(result.exportJob!.exportId));
         }
       } else {
@@ -198,36 +204,53 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         .pollStatus(exportId: event.exportId, interval: event.interval)
         .listen(
           (result) {
-            if (result.success && result.exportJob != null) {
-              emit(
-                ExportStatusUpdated(
-                  exportJob: result.exportJob!,
-                  isPolling: true,
-                ),
-              );
+            if (!emit.isDone) {
+              if (result.success && result.exportJob != null) {
+                print('🔥 Status: ${result.exportJob!.status}');
+                print('🔥 isCompleted: ${result.exportJob!.isCompleted}');
+                print('🔥 isFailed: ${result.exportJob!.isFailed}');
+                emit(
+                  ExportStatusUpdated(
+                    exportJob: result.exportJob!,
+                    isPolling: true,
+                  ),
+                );
 
-              // Stop polling if completed or failed
-              if (result.exportJob!.isCompleted || result.exportJob!.isFailed) {
+                // Stop polling if completed or failed
+                if (result.exportJob!.isCompleted ||
+                    result.exportJob!.isFailed) {
+                  print(
+                    '🔥 Export completed! Status: ${result.exportJob!.status}',
+                  ); // เพิ่ม
+                  if (result.exportJob!.isCompleted) {
+                    print(
+                      '🔥 Triggering share for export: ${result.exportJob!.exportId}',
+                    ); // เพิ่ม
+                    add(ShareExportRequested(result.exportJob!.exportId));
+                  }
+                  add(const StopPollingExportStatus());
+                }
+              } else {
+                emit(
+                  ExportError(
+                    message: result.errorMessage ?? 'Polling error',
+                    errorType: ExportErrorType.network,
+                  ),
+                );
                 add(const StopPollingExportStatus());
               }
-            } else {
-              emit(
-                ExportError(
-                  message: result.errorMessage ?? 'Polling error',
-                  errorType: ExportErrorType.network,
-                ),
-              );
-              add(const StopPollingExportStatus());
             }
           },
           onError: (error) {
-            emit(
-              ExportError(
-                message: 'Polling failed: ${error.toString()}',
-                errorType: ExportErrorType.network,
-                originalError: error,
-              ),
-            );
+            if (!emit.isDone) {
+              emit(
+                ExportError(
+                  message: 'Polling failed: ${error.toString()}',
+                  errorType: ExportErrorType.network,
+                  originalError: error,
+                ),
+              );
+            }
             add(const StopPollingExportStatus());
           },
         );
@@ -352,6 +375,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     ShareExportRequested event,
     Emitter<ExportState> emit,
   ) async {
+    print('🔥 Share event received: ${event.exportId}');
     emit(ExportLoading(message: 'Preparing to share...'));
 
     try {
