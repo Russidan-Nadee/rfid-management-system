@@ -113,6 +113,10 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     LoadExportHistory event,
     Emitter<ExportState> emit,
   ) async {
+    emit(
+      const ExportLoading(message: 'Loading history...'),
+    ); // ✅ เพิ่มบรรทัดนี้
+
     try {
       final exports = await exportRepository.getExportHistory(limit: 50);
       emit(ExportHistoryLoaded(exports));

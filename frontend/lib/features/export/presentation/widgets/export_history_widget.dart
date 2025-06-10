@@ -14,20 +14,35 @@ class ExportHistoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ExportBloc, ExportState>(
       builder: (context, state) {
-        if (state is ExportHistoryLoaded) {
-          return _buildHistoryList(context, state.exports);
+        if (state is ExportLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is ExportHistoryLoaded) {
+          final exports = state.exports;
+          if (exports.isEmpty) {
+            return const Center(child: Text('No export history.'));
+          }
+          return ListView.builder(
+            itemCount: exports.length,
+            itemBuilder: (context, index) {
+              final export = exports[index];
+              return ListTile(
+                title: Text('Export ID: ${export.exportId}'),
+                subtitle: Text('Status: ${export.status}'),
+                trailing: Text(_getDisplayName(export)),
+              );
+            },
+          );
+        } else if (state is ExportError) {
+          return Center(child: Text('Error: ${state.message}'));
+        } else {
+          return const SizedBox(); // default หรือ ExportInitial
         }
-
-        if (state is ExportError) {
-          return _buildErrorState(context, state.message);
-        }
-
-        return _buildLoadingState();
       },
     );
   }
 
   String _getDisplayName(ExportJobEntity export) {
+    final String? format;
     // ถ้ามี downloadUrl ให้ extract filename
     if (export.downloadUrl != null) {
       final segments = export.downloadUrl!.split('/');
