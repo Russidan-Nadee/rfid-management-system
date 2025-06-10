@@ -282,8 +282,13 @@ class ExportService {
       const config = exportJob.export_config || {};
       const format = config.format || 'xlsx';
 
+      console.log('Export format:', format);           // ✅ เพิ่มบรรทัดนี้
+      console.log('Export config:', config);          // ✅ เพิ่มบรรทัดนี้
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${exportJob.export_type}_${exportJob.export_id}_${timestamp}.${format}`;
+
+      console.log('File name:', fileName);
 
       // สร้าง directory ก่อน
       const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');

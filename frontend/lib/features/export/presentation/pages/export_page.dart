@@ -39,7 +39,13 @@ class _ExportPageState extends State<ExportPage>
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
-          title: const Text('Export Center'),
+          title: Text(
+            'Export Center',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: theme.colorScheme.onSurface,
           elevation: 1,

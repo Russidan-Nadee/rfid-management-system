@@ -29,7 +29,6 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     on<DownloadExport>(_onDownloadExport);
     on<LoadExportHistory>(_onLoadExportHistory);
   }
-
   Future<void> _onCreateAssetExport(
     CreateAssetExport event,
     Emitter<ExportState> emit,
@@ -37,7 +36,17 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     emit(const ExportLoading(message: 'Creating export job...'));
 
     try {
-      final config = ExportConfigEntity(format: event.format);
+      print('🔍 Format from UI: ${event.format}'); // ✅ Debug format
+
+      final config = ExportConfigEntity(
+        format: event.format,
+        filters: ExportFiltersEntity(
+          status: ['A', 'C', 'I'], // ✅ Export ทุก status
+        ),
+      );
+
+      print('🔍 Config format: ${config.format}'); // ✅ Debug config
+
       final result = await createExportJobUseCase.execute(
         exportType: 'assets',
         config: config,
