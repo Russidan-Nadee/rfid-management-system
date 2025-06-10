@@ -1,3 +1,4 @@
+// Path: backend/src/app.js
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -9,6 +10,9 @@ const routes = require('./routes/route');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./middlewares/middleware');
+
+// Import cleanup service
+const ExportCleanupService = require('./services/exportCleanupService');
 
 const app = express();
 
@@ -54,5 +58,32 @@ app.use((err, req, res, next) => {
 
 app.use(notFoundHandler);
 app.use(errorHandler);
+
+// Initialize Export Cleanup Service
+const cleanupService = new ExportCleanupService();
+
+// Start cleanup scheduler when app starts
+if (process.env.NODE_ENV === 'production') {
+   cleanupService.startScheduler();
+   console.log('🧹 Export cleanup scheduler started');
+} else {
+   console.log('🧹 Export cleanup scheduler disabled in development');
+}
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+   console.log('SIGTERM received, shutting down gracefully');
+   cleanupService.stopScheduler();
+   process.exit(0);
+});
+
+process.on('SIGINT', () => {
+   console.log('SIGINT received, shutting down gracefully');
+   cleanupService.stopScheduler();
+   process.exit(0);
+});
+
+// Export cleanup service for use in controllers
+app.locals.cleanupService = cleanupService;
 
 module.exports = app;

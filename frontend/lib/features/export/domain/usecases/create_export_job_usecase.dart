@@ -116,16 +116,23 @@ class CreateExportJobUseCase {
       );
     }
 
-    // Apply default filters for specific export types
-    if (exportType == 'assets' && config.filters?.status == null) {
-      // Default to active assets only
-      final updatedFilters = (config.filters ?? const ExportFiltersEntity())
-          .copyWith(status: ['A']);
-      processedConfig = processedConfig.copyWith(filters: updatedFilters);
-    }
+    // สำหรับ assets: ไม่มี default status filter
+    // ให้ export ทุก status เป็น default (All)
+    // ถ้า user เลือก status เฉพาะ จะส่งมาใน config.filters.status แล้ว
 
     // Optimize date range for scan_logs (limit to recent data if no range specified)
     if (exportType == 'scan_logs' && config.filters?.dateRange == null) {
+      final defaultRange = DateRangeEntity(
+        from: DateTime.now().subtract(const Duration(days: 30)),
+        to: DateTime.now(),
+      );
+      final updatedFilters = (config.filters ?? const ExportFiltersEntity())
+          .copyWith(dateRange: defaultRange);
+      processedConfig = processedConfig.copyWith(filters: updatedFilters);
+    }
+
+    // Optimize date range for status_history (limit to recent data if no range specified)
+    if (exportType == 'status_history' && config.filters?.dateRange == null) {
       final defaultRange = DateRangeEntity(
         from: DateTime.now().subtract(const Duration(days: 30)),
         to: DateTime.now(),

@@ -118,7 +118,8 @@ class ExportService {
       const { filters = {}, columns = [] } = config;
 
       // สร้าง WHERE clause จาก filters - Default to active assets only
-      let whereClause = "a.status = 'A'";
+      // ใหม่ - export ทุก status
+      let whereClause = "1=1";
       const params = [];
 
       if (filters.plant_codes && filters.plant_codes.length > 0) {
@@ -133,8 +134,7 @@ class ExportService {
 
       // Override status filter only if explicitly provided
       if (filters.status && filters.status.length > 0) {
-         whereClause = whereClause.replace("a.status = 'A'",
-            `a.status IN (${filters.status.map(() => '?').join(',')})`);
+         whereClause += ` AND a.status IN (${filters.status.map(() => '?').join(',')})`;
          params.push(...filters.status);
       }
 
