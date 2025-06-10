@@ -45,6 +45,7 @@ const authRoutes = require('./authRoutes');
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
 router.use('/auth', authRoutes);
+router.use('/search', require('./searchRoutes'));
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes
