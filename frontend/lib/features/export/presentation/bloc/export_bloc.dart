@@ -125,6 +125,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         print('✅ History download success: ${result.fileName}');
         await _shareFile(result.filePath!);
         emit(ExportCompleted(result.filePath!, result.fileName!));
+        add(const LoadExportHistory());
       } else {
         print('❌ History download failed: ${result.errorMessage}');
         emit(ExportError(result.errorMessage ?? 'Download failed'));
