@@ -27,8 +27,10 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     on<CreateAssetExport>(_onCreateAssetExport);
     on<CheckExportStatus>(_onCheckExportStatus);
     on<DownloadExport>(_onDownloadExport);
+    on<DownloadHistoryExport>(_onDownloadHistoryExport);
     on<LoadExportHistory>(_onLoadExportHistory);
   }
+
   Future<void> _onCreateAssetExport(
     CreateAssetExport event,
     Emitter<ExportState> emit,
@@ -36,16 +38,14 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     emit(const ExportLoading(message: 'Creating export job...'));
 
     try {
-      print('🔍 Format from UI: ${event.format}'); // ✅ Debug format
+      print('🔍 Format from UI: ${event.format}');
 
       final config = ExportConfigEntity(
         format: event.format,
-        filters: ExportFiltersEntity(
-          status: ['A', 'C', 'I'], // ✅ Export ทุก status
-        ),
+        filters: ExportFiltersEntity(status: ['A', 'C', 'I']),
       );
 
-      print('🔍 Config format: ${config.format}'); // ✅ Debug config
+      print('🔍 Config format: ${config.format}');
 
       final result = await createExportJobUseCase.execute(
         exportType: 'assets',
@@ -101,6 +101,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       if (result.success && result.filePath != null) {
         emit(ExportCompleted(result.filePath!, result.fileName!));
         await _shareFile(result.filePath!);
+        add(const LoadExportHistory());
       } else {
         emit(ExportError(result.errorMessage ?? 'Download failed'));
       }
@@ -109,13 +110,36 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     }
   }
 
+  Future<void> _onDownloadHistoryExport(
+    DownloadHistoryExport event,
+    Emitter<ExportState> emit,
+  ) async {
+    try {
+      print('🎯 Downloading history export: ${event.exportId}');
+
+      final result = await downloadExportUseCase.execute(
+        exportId: event.exportId,
+      );
+
+      if (result.success && result.filePath != null) {
+        print('✅ History download success: ${result.fileName}');
+        await _shareFile(result.filePath!);
+        emit(ExportCompleted(result.filePath!, result.fileName!));
+      } else {
+        print('❌ History download failed: ${result.errorMessage}');
+        emit(ExportError(result.errorMessage ?? 'Download failed'));
+      }
+    } catch (e) {
+      print('💥 History download error: $e');
+      emit(ExportError('Download failed: ${e.toString()}'));
+    }
+  }
+
   Future<void> _onLoadExportHistory(
     LoadExportHistory event,
     Emitter<ExportState> emit,
   ) async {
-    emit(
-      const ExportLoading(message: 'Loading history...'),
-    ); // ✅ เพิ่มบรรทัดนี้
+    emit(const ExportLoading(message: 'Loading history...'));
 
     try {
       final exports = await exportRepository.getExportHistory(limit: 50);

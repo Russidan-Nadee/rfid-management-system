@@ -1,6 +1,4 @@
 // Path: frontend/lib/core/constants/api_constants.dart
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 class ApiConstants {
   // Base Configuration
   static String get baseUrl {

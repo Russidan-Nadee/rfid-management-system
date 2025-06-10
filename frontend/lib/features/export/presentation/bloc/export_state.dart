@@ -50,6 +50,17 @@ class ExportHistoryLoaded extends ExportState {
   List<Object?> get props => [exports];
 }
 
+// เพิ่ม state ใหม่สำหรับ History download พร้อม export list
+class ExportHistoryDownloadSuccess extends ExportState {
+  final String fileName;
+  final List<ExportJobEntity> exports;
+
+  const ExportHistoryDownloadSuccess(this.fileName, this.exports);
+
+  @override
+  List<Object?> get props => [fileName, exports];
+}
+
 class ExportError extends ExportState {
   final String message;
 

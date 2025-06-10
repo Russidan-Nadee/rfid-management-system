@@ -175,7 +175,7 @@ class SearchUtils {
 
       return term
          .trim()
-         .replace(/['"\\;--]/g, '')           // ลบ SQL injection chars
+         .replace(/['"\\;-]/g, '')           // ลบ SQL injection chars
          .replace(/[<>{}()[\]]/g, '')         // ลบ special chars
          .replace(/\s+/g, ' ')                // แปลง multiple spaces
          .substring(0, 200);                  // จำกัดความยาว

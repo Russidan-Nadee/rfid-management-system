@@ -35,6 +35,16 @@ class DownloadExport extends ExportEvent {
   List<Object?> get props => [exportId];
 }
 
+// เพิ่ม event ใหม่สำหรับ History
+class DownloadHistoryExport extends ExportEvent {
+  final int exportId;
+
+  const DownloadHistoryExport(this.exportId);
+
+  @override
+  List<Object?> get props => [exportId];
+}
+
 class LoadExportHistory extends ExportEvent {
   const LoadExportHistory();
 }
