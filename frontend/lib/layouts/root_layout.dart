@@ -1,5 +1,6 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/features/dashboard/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
@@ -26,7 +27,7 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   List<Widget> get _pages => [
-    const _PlaceholderPage(title: 'Dashboard', icon: Icons.dashboard),
+    const DashboardPage(),
     const _PlaceholderPage(title: 'Search', icon: Icons.search),
     const ScanPage(),
     const ExportPage(),
