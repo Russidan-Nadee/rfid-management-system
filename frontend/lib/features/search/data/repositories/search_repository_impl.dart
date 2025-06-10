@@ -1,4 +1,8 @@
 // Path: frontend/lib/features/search/data/repositories/search_repository_impl.dart
+import 'package:frontend/features/search/data/models/search_response_model.dart';
+import 'package:frontend/features/search/data/models/search_result_model.dart';
+import 'package:frontend/features/search/data/models/search_suggestion_model.dart';
+
 import '../../domain/repositories/search_repository.dart';
 import '../../domain/entities/search_result_entity.dart';
 import '../../domain/entities/search_suggestion_entity.dart';

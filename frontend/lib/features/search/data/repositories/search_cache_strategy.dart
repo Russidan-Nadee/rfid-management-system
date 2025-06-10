@@ -1,9 +1,8 @@
 // Path: frontend/lib/features/search/data/repositories/search_cache_strategy.dart
-import 'dart:convert';
-import 'dart:math';
+import 'package:frontend/features/search/data/models/search_suggestion_model.dart';
+
 import '../contracts/search_datasource_contracts.dart';
 import '../models/search_response_model.dart';
-import '../exceptions/search_exceptions.dart';
 
 /// Search cache strategy for managing cache policies and optimization
 class SearchCacheStrategy {
