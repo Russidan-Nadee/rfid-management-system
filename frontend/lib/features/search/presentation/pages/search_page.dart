@@ -135,7 +135,7 @@ class _SearchPageState extends State<SearchPage> {
                           child: Row(
                             children: [
                               Text(
-                                'Search Results for "${state.query}" (${state.totalResults} items)',
+                                'Search Results for "${state.query}" Found (${state.totalResults} items)',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
