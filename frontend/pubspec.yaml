@@ -56,7 +56,7 @@ dependencies:
   
   
   # Chart dependencies for data visualization
-  fl_chart: ^0.63.0
+  fl_chart: ^1.0.0
   
   # Additional UI enhancements
   animations: ^2.0.8

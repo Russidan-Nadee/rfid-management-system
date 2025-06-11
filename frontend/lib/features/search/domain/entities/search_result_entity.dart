@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/search/domain/entities/search_result_entity.dart
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 /// Core search result entity representing any searchable item
 class SearchResultEntity extends Equatable {
@@ -157,18 +158,18 @@ class SearchResultEntity extends Equatable {
   }
 
   /// Get entity icon
-  String get entityIcon {
+  IconData get entityIcon {
     switch (entityType) {
       case 'assets':
-        return '📦';
+        return Icons.inventory_2; // หรือ Icons.build, Icons.storage
       case 'plants':
-        return '🏭';
+        return Icons.factory; // หรือ Icons.business, Icons.location_city
       case 'locations':
-        return '📍';
+        return Icons.place; // หรือ Icons.location_on, Icons.map
       case 'users':
-        return '👤';
+        return Icons.person; // หรือ Icons.account_circle, Icons.group
       default:
-        return '🔍';
+        return Icons.search; // ไอคอนเริ่มต้น
     }
   }
 
