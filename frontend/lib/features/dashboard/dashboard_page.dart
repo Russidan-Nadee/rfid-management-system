@@ -122,20 +122,6 @@ class DashboardPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             // Pie chart: Export Success vs Failed - ควรอยู่บน Dashboard
-            _DashboardCard(
-              title: 'Export Success vs Failed',
-              child: SizedBox(
-                height: 200,
-                child: Center(
-                  // TODO: แทนที่ด้วย Widget กราฟวงกลมแสดงผล Export จริง
-                  child: Text(
-                    'Placeholder: Pie Chart - Export Success vs Failed',
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
 
             // --- ส่วนที่ควรแยกไปหน้าอื่น (ตัวอย่าง) ---
 

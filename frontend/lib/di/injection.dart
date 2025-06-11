@@ -1,4 +1,5 @@
 // Path: frontend/lib/di/injection.dart
+import 'package:frontend/di/search_injection.dart';
 import 'package:get_it/get_it.dart';
 import '../core/services/api_service.dart';
 import '../core/services/storage_service.dart';
@@ -24,6 +25,7 @@ Future<void> configureDependencies() async {
   configureScanDependencies();
   configureSettingsDependencies();
   configureExportDependencies();
+  configureSearchDependencies();
 
   // Debug dependencies in development
   if (const bool.fromEnvironment('dart.vm.product') == false) {
@@ -47,7 +49,10 @@ void debugDependencies() {
   debugSettingsDependencies();
 
   // Export Dependencies
-  debugExportDependencies(); // เพิ่มบรรทัดนี้
+  debugExportDependencies();
+
+  // Search Dependencies
+  debugSearchDependencies();
 }
 
 /// Dispose resources when app is closed
