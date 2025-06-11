@@ -179,12 +179,21 @@ class SearchMetaModel extends Equatable {
   });
 
   factory SearchMetaModel.fromJson(Map<String, dynamic> json) {
+    print('🔍 META DEBUG: Full meta JSON = $json');
+    print('🔍 META DEBUG: json[totalResults] = ${json['totalResults']}');
+    print('🔍 META DEBUG: json[total_results] = ${json['total_results']}');
+    print('🔍 META DEBUG: json[query] = ${json['query']}');
+    print('🔍 META DEBUG: json[entities] = ${json['entities']}');
+
+    final totalResults = json['totalResults'] ?? json['total_results'] ?? 0;
+    print('🔍 META DEBUG: Final totalResults = $totalResults');
+
     return SearchMetaModel(
       query: json['query'] ?? '',
       entities: json['entities'] != null
           ? List<String>.from(json['entities'])
           : [],
-      totalResults: json['totalResults'] ?? json['total_results'] ?? 0,
+      totalResults: totalResults,
       cached: json['cached'] ?? false,
       performance: json['performance'] != null
           ? SearchPerformanceModel.fromJson(json['performance'])

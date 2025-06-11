@@ -1,6 +1,5 @@
 // Path: frontend/lib/features/search/data/datasources/remote/search_remote_datasource_impl.dart
 import '../../../../../core/services/api_service.dart';
-import '../../../../../core/constants/api_constants.dart';
 import '../../contracts/search_datasource_contracts.dart';
 import '../../models/search_response_model.dart';
 import '../../models/search_suggestion_model.dart';
@@ -32,17 +31,13 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         'include_details': includeDetails.toString(),
       };
 
-      final response = await apiService.get<Map<String, dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/instant',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return SearchResponseModel.fromJson(response.data!);
-      } else {
-        throw SearchException(response.message);
-      }
+      return SearchResponseModel.fromJson(responseJson);
     } catch (e) {
       throw createSearchExceptionFromError(e);
     }
@@ -68,19 +63,23 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         'fuzzy': fuzzy.toString(),
       };
 
-      final response = await apiService.get<List<dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/suggestions',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return response.data!
-            .map(
-              (json) =>
-                  SearchSuggestionModel.fromJson(json as Map<String, dynamic>),
-            )
-            .toList();
+      final response = SearchResponseModel.fromJson(responseJson);
+
+      if (response.success && response.totalResults > 0) {
+        // Extract suggestions from response data
+        final suggestions = <SearchSuggestionModel>[];
+        if (responseJson['data'] is List) {
+          for (final item in responseJson['data']) {
+            suggestions.add(SearchSuggestionModel.fromJson(item));
+          }
+        }
+        return suggestions;
       } else {
         return []; // Return empty list for suggestions if failed
       }
@@ -117,17 +116,13 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         queryParams['filters'] = _encodeFilters(filters);
       }
 
-      final response = await apiService.get<Map<String, dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/global',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return SearchResponseModel.fromJson(response.data!);
-      } else {
-        throw SearchException(response.message);
-      }
+      return SearchResponseModel.fromJson(responseJson);
     } catch (e) {
       throw createSearchExceptionFromError(e);
     }
@@ -166,17 +161,13 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         queryParams['filters'] = _encodeFilters(filters);
       }
 
-      final response = await apiService.get<Map<String, dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/advanced',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return SearchResponseModel.fromJson(response.data!);
-      } else {
-        throw SearchException(response.message);
-      }
+      return SearchResponseModel.fromJson(responseJson);
     } catch (e) {
       throw createSearchExceptionFromError(e);
     }
@@ -190,20 +181,24 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final queryParams = {'limit': limit.toString(), 'days': days.toString()};
 
-      final response = await apiService.get<List<dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/recent',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return response.data!
-            .map((item) => item['query']?.toString() ?? item.toString())
-            .where((query) => query.isNotEmpty)
-            .toList();
-      } else {
-        return [];
+      final response = SearchResponseModel.fromJson(responseJson);
+
+      if (response.success && response.totalResults > 0) {
+        final data = responseJson['data'];
+        if (data is List) {
+          return data
+              .map((item) => item['query']?.toString() ?? item.toString())
+              .where((query) => query.isNotEmpty)
+              .toList();
+        }
       }
+      return [];
     } catch (e) {
       // Return empty list if failed
       return [];
@@ -218,20 +213,24 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final queryParams = {'limit': limit.toString(), 'days': days.toString()};
 
-      final response = await apiService.get<List<dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/popular',
         queryParams: queryParams,
-        requiresAuth: false, // Popular searches can be public
+        requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return response.data!
-            .map((item) => item['query']?.toString() ?? item.toString())
-            .where((query) => query.isNotEmpty)
-            .toList();
-      } else {
-        return [];
+      final response = SearchResponseModel.fromJson(responseJson);
+
+      if (response.success && response.totalResults > 0) {
+        final data = responseJson['data'];
+        if (data is List) {
+          return data
+              .map((item) => item['query']?.toString() ?? item.toString())
+              .where((query) => query.isNotEmpty)
+              .toList();
+        }
       }
+      return [];
     } catch (e) {
       return [];
     }
@@ -289,18 +288,6 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       );
     } catch (e) {
       throw SearchFilterException('Failed to encode filters: $e');
-    }
-  }
-
-  /// Handle rate limiting
-  void _handleRateLimit(Map<String, String>? headers) {
-    if (headers != null) {
-      final remaining = headers['X-RateLimit-Remaining'];
-      final resetTime = headers['X-RateLimit-Reset'];
-
-      if (remaining == '0') {
-        throw SearchRateLimitException();
-      }
     }
   }
 
@@ -393,14 +380,16 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final queryParams = {'period': period, 'entity': entity};
 
-      final response = await apiService.get<Map<String, dynamic>>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/stats',
         queryParams: queryParams,
         requiresAuth: false,
       );
 
-      if (response.success && response.data != null) {
-        return response.data!;
+      final response = SearchResponseModel.fromJson(responseJson);
+
+      if (response.success && response.totalResults > 0) {
+        return responseJson['data'] as Map<String, dynamic>;
       } else {
         return {};
       }
@@ -412,10 +401,12 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
   /// Rebuild search index (admin only)
   Future<void> rebuildSearchIndex() async {
     try {
-      final response = await apiService.post<void>(
+      final responseJson = await apiService.getSearchResponse(
         '/search/reindex',
         requiresAuth: false,
       );
+
+      final response = SearchResponseModel.fromJson(responseJson);
 
       if (!response.success) {
         throw SearchException(

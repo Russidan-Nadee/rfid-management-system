@@ -301,6 +301,28 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getSearchResponse(
+    String endpoint, {
+    Map<String, String>? queryParams,
+    bool requiresAuth = true,
+  }) async {
+    final response = await _makeRequest<Map<String, dynamic>>(
+      'GET',
+      endpoint,
+      queryParams: queryParams,
+      requiresAuth: requiresAuth,
+    );
+
+    // Return full response structure
+    return {
+      'success': response.success,
+      'message': response.message,
+      'data': response.data,
+      'meta': response.meta,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+  }
+
   // Dispose resources
   void dispose() {
     _client.close();
