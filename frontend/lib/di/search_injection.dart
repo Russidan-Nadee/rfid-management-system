@@ -1,71 +1,98 @@
 // Path: frontend/lib/di/search_injection.dart
-import 'package:frontend/features/search/data/contracts/search_datasource_contracts.dart';
-import '../features/search/data/datasources/cache/search_cache_datasource_impl.dart';
-import '../features/search/data/datasources/remote/search_remote_datasource_impl.dart';
-import '../features/search/data/repositories/search_cache_strategy.dart';
-import '../features/search/data/repositories/search_repository_impl.dart';
-import '../features/search/domain/repositories/search_repository.dart';
+import 'package:get_it/get_it.dart';
+import '../core/services/api_service.dart';
+import '../core/services/storage_service.dart';
+
+// Domain
 import '../features/search/domain/usecases/instant_search_handler.dart';
 import '../features/search/domain/usecases/global_search_handler.dart';
 import '../features/search/domain/usecases/suggestion_builder.dart';
+import '../features/search/domain/usecases/history_manager.dart';
 import '../features/search/domain/usecases/query_validator.dart';
 import '../features/search/domain/usecases/ranking_calculator.dart';
-import '../features/search/domain/usecases/history_manager.dart';
-import '../features/search/domain/usecases/result_processor.dart';
-import '../features/search/presentation/bloc/search_bloc.dart';
-import 'injection.dart';
+import '../features/search/domain/repositories/search_repository.dart';
 
-/// Configure Search feature dependencies
+// Data
+import '../features/search/data/repositories/search_repository_impl.dart';
+import '../features/search/data/repositories/search_cache_strategy.dart';
+import '../features/search/data/datasources/remote/search_remote_datasource_impl.dart';
+import '../features/search/data/datasources/cache/search_cache_datasource_impl.dart';
+import '../features/search/data/contracts/search_datasource_contracts.dart';
+
+// Presentation
+import '../features/search/presentation/bloc/search_bloc.dart';
+
+final getIt = GetIt.instance;
+
 void configureSearchDependencies() {
-  // Data Sources (register by interface)
-  getIt.registerLazySingleton<SearchCacheDataSource>(
-    () => SearchCacheDataSourceImpl(getIt()),
-  );
+  // Data Sources
   getIt.registerLazySingleton<SearchRemoteDataSource>(
-    () => SearchRemoteDataSourceImpl(getIt()),
+    () => SearchRemoteDataSourceImpl(getIt<ApiService>()),
+  );
+
+  getIt.registerLazySingleton<SearchCacheDataSource>(
+    () => SearchCacheDataSourceImpl(getIt<StorageService>()),
   );
 
   // Cache Strategy
-  getIt.registerLazySingleton(() => SearchCacheStrategy(getIt()));
+  getIt.registerLazySingleton<SearchCacheStrategy>(
+    () => SearchCacheStrategy(getIt<SearchCacheDataSource>()),
+  );
 
   // Repository
   getIt.registerLazySingleton<SearchRepository>(
     () => SearchRepositoryImpl(
       remoteDataSource: getIt<SearchRemoteDataSource>(),
       cacheDataSource: getIt<SearchCacheDataSource>(),
-      cacheStrategy: getIt(),
+      cacheStrategy: getIt<SearchCacheStrategy>(),
     ),
   );
 
   // Use Cases
-  getIt.registerLazySingleton(() => QueryValidator());
-  getIt.registerLazySingleton(() => RankingCalculator());
-  getIt.registerLazySingleton(() => ResultProcessor());
+  getIt.registerLazySingleton<QueryValidator>(() => QueryValidator());
 
-  getIt.registerLazySingleton(() => InstantSearchHandler(getIt()));
-  getIt.registerLazySingleton(() => GlobalSearchHandler(getIt(), getIt()));
-  getIt.registerLazySingleton(() => SuggestionBuilder(getIt(), getIt()));
-  getIt.registerLazySingleton(() => HistoryManager(getIt()));
+  getIt.registerLazySingleton<RankingCalculator>(() => RankingCalculator());
 
-  // BLoC (Factory - new instance each time)
-  getIt.registerFactory(
+  getIt.registerLazySingleton<InstantSearchHandler>(
+    () => InstantSearchHandler(getIt<SearchRepository>()),
+  );
+
+  getIt.registerLazySingleton<GlobalSearchHandler>(
+    () =>
+        GlobalSearchHandler(getIt<SearchRepository>(), getIt<QueryValidator>()),
+  );
+
+  getIt.registerLazySingleton<SuggestionBuilder>(
+    () => SuggestionBuilder(
+      getIt<SearchRepository>(),
+      getIt<RankingCalculator>(),
+    ),
+  );
+
+  getIt.registerLazySingleton<HistoryManager>(
+    () => HistoryManager(getIt<SearchRepository>()),
+  );
+
+  // BLoC
+  getIt.registerFactory<SearchBloc>(
     () => SearchBloc(
-      repository: getIt<SearchRepository>(),
       instantSearchHandler: getIt<InstantSearchHandler>(),
-      globalSearchHandler: getIt<GlobalSearchHandler>(),
-      suggestionBuilder: getIt<SuggestionBuilder>(),
-      historyManager: getIt<HistoryManager>(),
-      resultProcessor: getIt<ResultProcessor>(),
+      searchRepository: getIt<SearchRepository>(),
     ),
   );
 }
 
-/// Debug Search dependencies
 void debugSearchDependencies() {
-  print('--- Search Dependencies ---');
-  print('SearchRepository: ${getIt.isRegistered<SearchRepository>()}');
-  print('InstantSearchHandler: ${getIt.isRegistered<InstantSearchHandler>()}');
-  print('GlobalSearchHandler: ${getIt.isRegistered<GlobalSearchHandler>()}');
-  print('SuggestionBuilder: ${getIt.isRegistered<SuggestionBuilder>()}');
-  print('SearchBloc: ${getIt.isRegistered<SearchBloc>()}');
+  print('🔍 Search Dependencies:');
+  print('  SearchBloc: ${getIt.isRegistered<SearchBloc>()}');
+  print('  SearchRepository: ${getIt.isRegistered<SearchRepository>()}');
+  print(
+    '  InstantSearchHandler: ${getIt.isRegistered<InstantSearchHandler>()}',
+  );
+  print(
+    '  SearchRemoteDataSource: ${getIt.isRegistered<SearchRemoteDataSource>()}',
+  );
+  print(
+    '  SearchCacheDataSource: ${getIt.isRegistered<SearchCacheDataSource>()}',
+  );
 }

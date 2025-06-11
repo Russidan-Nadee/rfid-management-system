@@ -1,93 +1,91 @@
-erDiagram
-    mst_plant {
-        varchar plant_code PK
-        varchar description
-    }
-    
-    mst_location {
-        varchar location_code PK
-        varchar description
-        varchar plant_code FK
-    }
-    
-    mst_unit {
-        varchar unit_code PK
-        varchar name
-    }
-    
-    mst_user {
-        varchar user_id PK
-        varchar username UK
-        varchar full_name
-        varchar password
-        enum role
+  asset_master {
+        varchar(20) asset_no PK
+        varchar(255) description
+        varchar(10) plant_code FK NULL
+        varchar(10) location_code FK NULL
+        varchar(50) serial_no UK
+        varchar(50) inventory_no UK
+        decimal(10,2) quantity
+        varchar(10) unit_code FK
+        char(1) status
+        varchar(20) created_by FK
         datetime created_at
-        datetime updated_at
-        datetime last_login
-    }
-    
-    user_login_log {
-        int log_id PK
-        varchar user_id FK
-        varchar username
-        enum event_type
-        datetime timestamp
-        varchar ip_address
-        text user_agent
-        varchar session_id
-        boolean success
-    }
-    
-    asset_master {
-        varchar asset_no PK
-        varchar description
-        varchar plant_code FK
-        varchar location_code FK
-        varchar serial_no UK
-        varchar inventory_no UK
-        decimal quantity
-        varchar unit_code FK
-        char status
-        varchar created_by FK
-        datetime created_at
-        datetime updated_at
         datetime deactivated_at
     }
-    
+
     asset_scan_log {
         int scan_id PK
-        varchar asset_no FK
-        varchar scanned_by FK
-        varchar location_code FK
-        varchar ip_address
+        varchar(20) asset_no FK
+        varchar(20) scanned_by FK
+        varchar(10) location_code FK
+        varchar(45) ip_address
         text user_agent
         timestamp scanned_at
     }
-    
+
     asset_status_history {
         int history_id PK
-        varchar asset_no FK
-        varchar old_status
-        varchar new_status
+        varchar(20) asset_no FK
+        varchar(50) old_status
+        varchar(50) new_status
         datetime changed_at
-        varchar changed_by FK
+        varchar(20) changed_by FK
         text remarks
     }
-    
+
     export_history {
         int export_id PK
-        varchar user_id FK
-        enum export_type
-        char status
+        varchar(20) user_id FK
+        enum('assets','scan_logs','status_history') export_type
+        char(1) status
         json export_config
-        varchar file_path
+        varchar(500) file_path
         bigint file_size
         int total_records
         datetime created_at
         datetime expires_at
         text error_message
     }
-    
+
+    mst_location {
+        varchar(10) location_code PK
+        varchar(255) description
+        varchar(10) plant_code FK
+    }
+
+    mst_plant {
+        varchar(10) plant_code PK
+        varchar(255) description
+    }
+
+    mst_unit {
+        varchar(10) unit_code PK
+        varchar(50) name
+    }
+
+    mst_user {
+        varchar(20) user_id PK
+        varchar(100) username UK
+        varchar(255) full_name
+        varchar(255) password
+        enum('admin','manager','user','viewer') role
+        datetime created_at
+        datetime updated_at
+        datetime last_login
+    }
+
+    user_login_log {
+        int log_id PK
+        varchar(20) user_id FK
+        varchar(20) username
+        enum('login','logout','failed_login','password_change') event_type
+        datetime timestamp
+        varchar(50) ip_address
+        text user_agent
+        varchar(255) session_id
+        boolean success
+    }
+
     %% Relationships
     mst_plant ||--o{ mst_location : "contains"
     mst_plant ||--o{ asset_master : "owns"

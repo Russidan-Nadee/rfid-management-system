@@ -1,6 +1,0 @@
-asset_no,description,serial_no,inventory_no,quantity,status,created_at,plant_description,location_description,unit_name,created_by_name
-3100005001,Zinc Phosphate Immersion Tank #1,TPK001,TPKINV01,1.00,A,Wed May 28 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Phosphating Line 1,Each,Parker Supervisor
-3100005005,DI Water Rinse Tank - E-Coat,TPK005,TPKINV05,1.00,A,Mon May 26 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,E-Coat Line 1,Each,Safety Officer
-3100005006,Curing Oven - E-Coat (Conveyor),TPK006,TPKINV06,1.00,A,Mon May 26 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Curing Oven Area,Each,Maintenance Oven
-3100005009,Coating Adhesion Tester,TPK009,TPKINV09,2.00,A,Sat May 24 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Quality Control Lab,Each,Quality Control Chemist
-3100005013,Chemical Dosing Pump - Phosphating,TPK013,TPKINV13,3.00,A,Thu May 22 2025 00:00:00 GMT+0700 (Indochina Time),Thai Parkerizing Plant,Phosphating Line 1,Each,Parker Operator

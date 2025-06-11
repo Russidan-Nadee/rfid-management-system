@@ -35,7 +35,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         '/search/instant',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -71,7 +71,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<List<dynamic>>(
         '/search/suggestions',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -120,7 +120,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         '/search/global',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -169,7 +169,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         '/search/advanced',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -193,7 +193,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<List<dynamic>>(
         '/search/recent',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -242,7 +242,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final response = await apiService.delete<void>(
         '/search/recent',
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (!response.success) {
@@ -396,7 +396,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final response = await apiService.get<Map<String, dynamic>>(
         '/search/stats',
         queryParams: queryParams,
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (response.success && response.data != null) {
@@ -414,7 +414,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final response = await apiService.post<void>(
         '/search/reindex',
-        requiresAuth: true,
+        requiresAuth: false,
       );
 
       if (!response.success) {
