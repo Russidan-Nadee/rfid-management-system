@@ -1,48 +1,64 @@
-// Path: frontend/lib/features/dashboard/data/models/charts_model.dart
+// Path: frontend/lib/features/dashboard/data/models/dashboard_stats_model.dart
+import '../../domain/entities/dashboard_stats.dart';
+import 'overview_model.dart';
+import 'charts_model.dart';
 
-import 'package:frontend/features/dashboard/domain/entities/scan_trend.dart';
+class DashboardStatsModel {
+  final OverviewModel overview;
+  final ChartsModel charts;
+  final DateTime lastUpdated;
 
-import '../../domain/entities/charts.dart';
-import 'asset_status_pie_model.dart';
-import 'scan_trend_model.dart';
+  DashboardStatsModel({
+    required this.overview,
+    required this.charts,
+    required this.lastUpdated,
+  });
 
-class ChartsModel {
-  final AssetStatusPieModel assetStatusPie;
-  final List<ScanTrendModel> scanTrend7d;
-
-  ChartsModel({required this.assetStatusPie, required this.scanTrend7d});
-
-  factory ChartsModel.fromJson(Map<String, dynamic> json) {
-    return ChartsModel(
-      assetStatusPie: AssetStatusPieModel.fromJson(
-        json['asset_status_pie'] ?? {},
-      ),
-      scanTrend7d:
-          (json['scan_trend_7d'] as List<dynamic>?)
-              ?.map(
-                (item) => ScanTrendModel.fromJson(item as Map<String, dynamic>),
-              )
-              .toList() ??
-          [],
+  factory DashboardStatsModel.fromJson(Map<String, dynamic> json) {
+    return DashboardStatsModel(
+      overview: OverviewModel.fromJson(json['overview'] ?? {}),
+      charts: ChartsModel.fromJson(json['charts'] ?? {}),
+      lastUpdated:
+          DateTime.tryParse(json['last_updated'] ?? '') ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'asset_status_pie': assetStatusPie.toJson(),
-      'scan_trend_7d': scanTrend7d.map((item) => item.toJson()).toList(),
+      'overview': overview.toJson(),
+      'charts': charts.toJson(),
+      'last_updated': lastUpdated.toIso8601String(),
     };
   }
 
-  Charts toEntity() {
-    final scanTrendEntities = <ScanTrend>[];
-    for (final item in scanTrend7d) {
-      scanTrendEntities.add(item.toEntity());
-    }
-
-    return Charts(
-      assetStatusPie: assetStatusPie.toEntity(),
-      scanTrend7d: scanTrendEntities,
+  DashboardStats toEntity() {
+    return DashboardStats(
+      overview: overview.toEntity(),
+      charts: charts.toEntity(),
     );
+  }
+
+  // Helper methods
+  bool get hasData => overview.totalAssets > 0;
+
+  bool get isRecent {
+    final now = DateTime.now();
+    final difference = now.difference(lastUpdated);
+    return difference.inMinutes < 30;
+  }
+
+  String get lastUpdatedFormatted {
+    final now = DateTime.now();
+    final difference = now.difference(lastUpdated);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
   }
 }

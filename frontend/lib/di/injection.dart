@@ -1,4 +1,5 @@
 // Path: frontend/lib/di/injection.dart
+import 'package:frontend/di/dashboard_injection.dart';
 import 'package:frontend/di/search_injection.dart';
 import 'package:get_it/get_it.dart';
 import '../core/services/api_service.dart';
@@ -26,6 +27,7 @@ Future<void> configureDependencies() async {
   configureSettingsDependencies();
   configureExportDependencies();
   configureSearchDependencies();
+  configureDashboardDependencies();
 
   // Debug dependencies in development
   if (const bool.fromEnvironment('dart.vm.product') == false) {
@@ -53,6 +55,9 @@ void debugDependencies() {
 
   // Search Dependencies
   debugSearchDependencies();
+
+  // Dashboard Dependencies
+  debugDashboardDependencies();
 }
 
 /// Dispose resources when app is closed

@@ -3,12 +3,12 @@ import 'package:frontend/core/errors/failures.dart';
 import 'package:frontend/core/utils/either.dart';
 import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:frontend/features/dashboard/domain/entities/overview_data.dart';
+import 'package:frontend/features/dashboard/domain/entities/alert.dart';
+import 'package:frontend/features/dashboard/domain/entities/recent_activity.dart';
 import 'package:frontend/features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../datasources/dashboard_remote_datasource.dart';
 import '../datasources/dashboard_cache_datasource.dart';
-import '../models/alert_model.dart';
-import '../models/recent_activity_model.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
   final DashboardRemoteDataSource remoteDataSource;
@@ -120,7 +120,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, List<AlertModel>>> getAlerts({
+  Future<Either<Failure, List<Alert>>> getAlerts({
     bool forceRefresh = false,
   }) async {
     try {
@@ -128,16 +128,18 @@ class DashboardRepositoryImpl implements DashboardRepository {
       if (!forceRefresh) {
         final cachedAlerts = await cacheDataSource.getCachedAlerts();
         if (cachedAlerts != null) {
-          return Right(cachedAlerts);
+          return Right(cachedAlerts.map((alert) => alert.toEntity()).toList());
         }
       }
 
       // Fetch from API
-      final alerts = await remoteDataSource.getAlerts();
+      final alertModels = await remoteDataSource.getAlerts();
 
       // Cache the result
-      await cacheDataSource.cacheAlerts(alerts);
+      await cacheDataSource.cacheAlerts(alertModels);
 
+      // Convert to entities
+      final alerts = alertModels.map((model) => model.toEntity()).toList();
       return Right(alerts);
     } on ServerException {
       return Left(ServerFailure('Failed to get alerts'));
@@ -146,7 +148,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } on CacheException {
       // If cache fails, try to get from remote anyway
       try {
-        final alerts = await remoteDataSource.getAlerts();
+        final alertModels = await remoteDataSource.getAlerts();
+        final alerts = alertModels.map((model) => model.toEntity()).toList();
         return Right(alerts);
       } catch (e) {
         return Left(ServerFailure('Failed to get alerts'));
@@ -157,7 +160,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, RecentActivityModel>> getRecentActivities({
+  Future<Either<Failure, RecentActivity>> getRecentActivities({
     String period = '7d',
     bool forceRefresh = false,
   }) async {
@@ -167,19 +170,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
         final cachedActivities = await cacheDataSource
             .getCachedRecentActivities(period);
         if (cachedActivities != null) {
-          return Right(cachedActivities);
+          return Right(cachedActivities.toEntity());
         }
       }
 
       // Fetch from API
-      final activities = await remoteDataSource.getRecentActivities(
+      final activitiesModel = await remoteDataSource.getRecentActivities(
         period: period,
       );
 
       // Cache the result
-      await cacheDataSource.cacheRecentActivities(activities, period);
+      await cacheDataSource.cacheRecentActivities(activitiesModel, period);
 
-      return Right(activities);
+      return Right(activitiesModel.toEntity());
     } on ServerException {
       return Left(ServerFailure('Failed to get recent activities'));
     } on NetworkException {
@@ -187,10 +190,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } on CacheException {
       // If cache fails, try to get from remote anyway
       try {
-        final activities = await remoteDataSource.getRecentActivities(
+        final activitiesModel = await remoteDataSource.getRecentActivities(
           period: period,
         );
-        return Right(activities);
+        return Right(activitiesModel.toEntity());
       } catch (e) {
         return Left(ServerFailure('Failed to get recent activities'));
       }

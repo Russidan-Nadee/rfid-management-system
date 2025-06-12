@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/dashboard/data/models/overview_data_model.dart
+import 'package:frontend/features/dashboard/data/models/charts_model.dart';
+
 import '../../domain/entities/overview_data.dart';
-import 'overview_model.dart';
 
 class OverviewDataModel {
   final OverviewModel overview;

@@ -3,8 +3,8 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/either.dart';
 import '../entities/dashboard_stats.dart';
 import '../entities/overview_data.dart';
-import '../../data/models/alert_model.dart';
-import '../../data/models/recent_activity_model.dart';
+import '../entities/alert.dart';
+import '../entities/recent_activity.dart';
 
 abstract class DashboardRepository {
   /// Get complete dashboard statistics including overview and charts
@@ -32,14 +32,12 @@ abstract class DashboardRepository {
 
   /// Get system alerts and notifications
   /// [forceRefresh] bypasses cache and fetches fresh data
-  Future<Either<Failure, List<AlertModel>>> getAlerts({
-    bool forceRefresh = false,
-  });
+  Future<Either<Failure, List<Alert>>> getAlerts({bool forceRefresh = false});
 
   /// Get recent activities (scans and exports)
   /// [period] - Time period filter: 'today', '7d', '30d'
   /// [forceRefresh] bypasses cache and fetches fresh data
-  Future<Either<Failure, RecentActivityModel>> getRecentActivities({
+  Future<Either<Failure, RecentActivity>> getRecentActivities({
     String period = '7d',
     bool forceRefresh = false,
   });
