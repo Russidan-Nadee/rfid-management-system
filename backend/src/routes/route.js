@@ -40,6 +40,15 @@ const {
    validateExportSize
 } = require('../validators/exportValidator');
 
+// Import dashboard validators (NEW)
+const {
+   dashboardStatsValidator,
+   dashboardAlertsValidator,
+   dashboardRecentValidator,
+   dashboardOverviewValidator,
+   dashboardQuickStatsValidator
+} = require('../validators/dashboardValidator');
+
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
 const { authenticateToken } = require('../middlewares/authMiddleware');
@@ -54,10 +63,133 @@ router.use('/search', require('./searchRoutes'));
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes
 const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests per 15 minutes
 
-// Dashboard Routes (NEW - using separate controller)
-router.get('/dashboard/stats', generalRateLimit, dashboardController.getDashboardStats);
-router.get('/dashboard/overview', generalRateLimit, dashboardController.getOverview);
-router.get('/dashboard/quick-stats', generalRateLimit, dashboardController.getQuickStats);
+// Dashboard Routes (ENHANCED - แทนที่ส่วนเดิม)
+router.get('/dashboard/stats',
+   generalRateLimit,
+   dashboardStatsValidator,
+   dashboardController.getDashboardStats
+);
+
+router.get('/dashboard/alerts',
+   generalRateLimit,
+   dashboardAlertsValidator,
+   dashboardController.getDashboardAlerts
+);
+
+router.get('/dashboard/recent',
+   generalRateLimit,
+   dashboardRecentValidator,
+   dashboardController.getDashboardRecent
+);
+
+router.get('/dashboard/overview',
+   generalRateLimit,
+   dashboardOverviewValidator,
+   dashboardController.getOverview
+);
+
+router.get('/dashboard/quick-stats',
+   generalRateLimit,
+   dashboardQuickStatsValidator,
+   dashboardController.getQuickStats
+);
+
+// API Documentation สำหรับ Dashboard APIs (NEW)
+router.get('/dashboard/docs', (req, res) => {
+   const dashboardDocs = {
+      success: true,
+      message: 'Dashboard API Documentation',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      endpoints: {
+         '/dashboard/stats': {
+            method: 'GET',
+            description: 'Get dashboard statistics with percentage changes',
+            parameters: {
+               period: 'Time period filter: today|7d|30d (default: today)'
+            },
+            response: {
+               overview: 'Asset counts, scan counts, export counts with trends',
+               charts: 'Asset status breakdown, scan trends',
+               period_info: 'Period details and comparison data'
+            },
+            example: '/dashboard/stats?period=7d'
+         },
+         '/dashboard/alerts': {
+            method: 'GET',
+            description: 'Get system alerts and notifications',
+            response: {
+               alerts: 'Array of alert objects with severity levels'
+            },
+            severity_levels: ['error', 'warning', 'info']
+         },
+         '/dashboard/recent': {
+            method: 'GET',
+            description: 'Get recent activities (scans and exports)',
+            parameters: {
+               period: 'Time period filter: today|7d|30d (default: 7d)'
+            },
+            response: {
+               recent_scans: '5 latest scans in period',
+               recent_exports: '5 latest exports in period'
+            }
+         },
+         '/dashboard/overview': {
+            method: 'GET',
+            description: 'Get system overview with charts',
+            parameters: {
+               period: 'Time period filter: today|7d|30d (default: 7d)'
+            },
+            response: {
+               assets_by_plant: 'Asset distribution by plant',
+               assets_by_location: 'Asset distribution by location',
+               recent_assets: 'Recently created assets',
+               scan_trend: 'Scan activity trend'
+            }
+         },
+         '/dashboard/quick-stats': {
+            method: 'GET',
+            description: 'Get quick statistics for widgets',
+            parameters: {
+               period: 'Time period filter: today|7d|30d (default: today)'
+            },
+            response: {
+               assets: 'Asset counts by status',
+               scans: 'Scan activity in period',
+               exports: 'Export activity in period',
+               users: 'Active users in period'
+            }
+         }
+      },
+      database_tables: {
+         asset_master: 'Main asset data with status tracking',
+         asset_scan_log: 'RFID scan activity logs',
+         asset_status_history: 'Asset status change history',
+         export_history: 'Export job tracking',
+         mst_plant: 'Plant master data',
+         mst_location: 'Location master data',
+         mst_user: 'User master data',
+         user_login_log: 'User activity logs'
+      },
+      period_options: {
+         today: 'Current day (00:00 to now)',
+         '7d': 'Last 7 days',
+         '30d': 'Last 30 days'
+      },
+      asset_status_codes: {
+         'A': 'Active',
+         'I': 'Inactive',
+         'C': 'Created'
+      },
+      export_status_codes: {
+         'P': 'Pending',
+         'C': 'Completed',
+         'F': 'Failed'
+      }
+   };
+
+   res.status(200).json(dashboardDocs);
+});
 
 // Plant Routes
 router.get('/plants', generalRateLimit, plantValidators.getPlants, plantController.getPlants);
@@ -158,9 +290,12 @@ router.get('/docs', (req, res) => {
       timestamp: new Date().toISOString(),
       endpoints: {
          dashboard: {
-            'GET /api/v1/dashboard/stats': 'Get dashboard statistics and overview cards',
-            'GET /api/v1/dashboard/overview': 'Get system overview with recent activities',
-            'GET /api/v1/dashboard/quick-stats': 'Get quick statistics for widgets'
+            'GET /api/v1/dashboard/stats': 'Get dashboard statistics with percentage changes and time period filtering',
+            'GET /api/v1/dashboard/alerts': 'Get system alerts and notifications',
+            'GET /api/v1/dashboard/recent': 'Get recent activities (scans and exports)',
+            'GET /api/v1/dashboard/overview': 'Get system overview with charts and trends',
+            'GET /api/v1/dashboard/quick-stats': 'Get quick statistics for widgets',
+            'GET /api/v1/dashboard/docs': 'Get dashboard API documentation'
          },
          plants: {
             'GET /api/v1/plants': 'Get all active plants',
@@ -217,7 +352,8 @@ router.get('/docs', (req, res) => {
             status: 'Filter by status (A=Active, I=Inactive, C=Created)',
             plant_code: 'Filter by plant code',
             location_code: 'Filter by location code',
-            unit_code: 'Filter by unit code'
+            unit_code: 'Filter by unit code',
+            period: 'Time period filter (today, 7d, 30d) - for dashboard APIs'
          },
          search: {
             search: 'Search term for asset number, description, serial number, inventory number'

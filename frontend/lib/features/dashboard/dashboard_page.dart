@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart'; // Make sure this is in your pubspec.yaml
-import 'package:intl/intl.dart'; // Make sure this is in your pubspec.yaml
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -10,7 +11,7 @@ class DashboardPage extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard Overview'), // Changed title for clarity
+        title: const Text('Dashboard Overview'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -18,8 +19,22 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 🏠 Overview (สรุปภาพรวม) ---
-            Text('🏠 Overview (สรุปภาพรวม)', style: theme.textTheme.titleLarge),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '🏠 Overview (สรุปภาพรวม)',
+                  style: theme.textTheme.titleLarge,
+                ),
+                DropdownButton<String>(
+                  value: '7 วัน',
+                  items: ['วันนี้', '7 วัน', '30 วัน'].map((e) {
+                    return DropdownMenuItem(value: e, child: Text(e));
+                  }).toList(),
+                  onChanged: (v) {},
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
@@ -29,98 +44,130 @@ class DashboardPage extends StatelessWidget {
                   icon: LucideIcons.boxes,
                   label: 'สินทรัพย์ทั้งหมด',
                   value: '1,240',
+                  subtext: '+5% จากสัปดาห์ก่อน',
+                  valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeCheck,
                   label: 'ใช้งานอยู่',
                   value: '1,100',
+                  subtext: '+2%',
+                  valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeX,
                   label: 'ไม่ใช้งาน',
                   value: '140',
+                  subtext: '-3%',
+                  valueColor: Colors.red,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.scanLine,
                   label: 'Scan วันนี้',
                   value: '57',
+                  subtext: '+12%',
+                  valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.fileUp,
                   label: 'Export สำเร็จ (7d)',
                   value: '12',
+                  subtext: '+1%',
+                  valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.fileX,
                   label: 'Export ล้มเหลว (7d)',
                   value: '2',
+                  subtext: '+100%',
+                  valueColor: Colors.red,
                 ),
               ],
             ),
             const SizedBox(height: 24),
 
-            // สถานะล่าสุดของ Asset ทั้งหมด (Pie Chart) - ควรอยู่บน Dashboard
             _DashboardCard(
               title: 'สถานะล่าสุดของ Asset ทั้งหมด',
               child: SizedBox(
                 height: 200,
-                child: Center(
-                  // TODO: แทนที่ด้วย Widget กราฟวงกลมแสดงสถานะสินทรัพย์จริง
-                  child: Text(
-                    'Placeholder: Pie Chart - Asset Status',
-                    style: theme.textTheme.bodyLarge,
+                child: PieChart(
+                  PieChartData(
+                    sections: [
+                      PieChartSectionData(
+                        value: 78,
+                        color: Colors.green,
+                        title: 'ใช้งาน',
+                      ),
+                      PieChartSectionData(
+                        value: 22,
+                        color: Colors.red,
+                        title: 'ไม่ใช้งาน',
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+
+            _DashboardCard(
+              title: '⚠️ แจ้งเตือนสำคัญ',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('• สินทรัพย์ 12 รายการไม่มีการสแกนเกิน 30 วัน'),
+                  Text('• Export ล้มเหลวต่อเนื่อง 2 ครั้ง'),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
 
-            // --- 🏭 Asset Monitoring (สรุป) ---
             Text(
               '🏭 Asset Monitoring (สรุป)',
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            // ตาราง: รายการ Asset ล่าสุดที่ถูก Scan (10 รายการ) - ควรอยู่บน Dashboard
             _MockTable(
               title: 'รายการ Asset ล่าสุดที่ถูก Scan (5 รายการ)',
-              onViewAll: () {
-                // TODO: นำทางไปยังหน้า Asset Monitoring เต็มรูปแบบ
-                print('Navigate to Asset Monitoring Page');
-              },
+              onViewAll: () => print('Navigate to Asset Monitoring Page'),
             ),
             const SizedBox(height: 12),
-            // กราฟ: Scan per day (7 วัน) - ควรอยู่บน Dashboard
             _DashboardCard(
               title: 'Scan per day (7 วัน)',
               child: SizedBox(
                 height: 200,
-                child: Center(
-                  // TODO: แทนที่ด้วย Widget กราฟแท่ง/เส้น แสดงจำนวน Scan ต่อวันจริง
-                  child: Text(
-                    'Placeholder: Graph - Scan per Day',
-                    style: theme.textTheme.bodyLarge,
+                child: LineChart(
+                  LineChartData(
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: [
+                          FlSpot(0, 10),
+                          FlSpot(1, 12),
+                          FlSpot(2, 14),
+                          FlSpot(3, 18),
+                          FlSpot(4, 16),
+                          FlSpot(5, 20),
+                          FlSpot(6, 22),
+                        ],
+                        isCurved: true,
+                        gradient: LinearGradient(colors: [theme.primaryColor]),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 32),
 
-            // --- 📄 Export Tracking (สรุป) ---
             Text(
               '📄 Export Tracking (สรุป)',
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            // ตาราง: Export jobs ล่าสุด (สถานะ, ประเภท, ขนาดไฟล์) - ควรอยู่บน Dashboard
             _MockTable(
               title: 'Export jobs ล่าสุด (5 รายการ)',
-              onViewAll: () {
-                // TODO: นำทางไปยังหน้า Export Tracking เต็มรูปแบบ
-                print('Navigate to Export Tracking Page');
-              },
+              onViewAll: () => print('Navigate to Export Tracking Page'),
             ),
-            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -128,17 +175,19 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-// --- Reusable Widgets (ปรับปรุง _MockTable) ---
-
 class _SummaryCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final String? subtext;
+  final Color? valueColor;
 
   const _SummaryCard({
     required this.icon,
     required this.label,
     required this.value,
+    this.subtext,
+    this.valueColor,
   });
 
   @override
@@ -163,7 +212,15 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Icon(icon, size: 28, color: theme.primaryColor),
           const SizedBox(height: 12),
-          Text(value, style: theme.textTheme.headlineSmall),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(color: valueColor),
+          ),
+          if (subtext != null)
+            Text(
+              subtext!,
+              style: theme.textTheme.bodySmall?.copyWith(color: valueColor),
+            ),
           const SizedBox(height: 4),
           Text(label, style: theme.textTheme.bodyMedium),
         ],
@@ -209,7 +266,7 @@ class _DashboardCard extends StatelessWidget {
 
 class _MockTable extends StatelessWidget {
   final String title;
-  final VoidCallback onViewAll; // เพิ่ม callback สำหรับปุ่ม "ดูทั้งหมด"
+  final VoidCallback onViewAll;
 
   const _MockTable({required this.title, required this.onViewAll});
 
@@ -221,9 +278,7 @@ class _MockTable extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Simplified mock table rows
           ...List.generate(3, (index) {
-            // แสดง 3 รายการเพื่อความกระชับบน Dashboard
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
@@ -244,11 +299,10 @@ class _MockTable extends StatelessWidget {
             );
           }),
           const SizedBox(height: 8),
-          // ปุ่ม "ดูทั้งหมด"
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: onViewAll, // ใช้ callback ที่ส่งมา
+              onPressed: onViewAll,
               child: const Text('ดูทั้งหมด >'),
             ),
           ),
