@@ -7,6 +7,8 @@ import 'package:frontend/features/dashboard/domain/repositories/dashboard_reposi
 import '../../../../core/errors/exceptions.dart';
 import '../datasources/dashboard_remote_datasource.dart';
 import '../datasources/dashboard_cache_datasource.dart';
+import '../models/alert_model.dart';
+import '../models/recent_activity_model.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
   final DashboardRemoteDataSource remoteDataSource;
@@ -19,22 +21,25 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<Either<Failure, DashboardStats>> getDashboardStats({
+    String period = 'today',
     bool forceRefresh = false,
   }) async {
     try {
       // Try cache first (if not force refresh)
       if (!forceRefresh) {
-        final cachedStats = await cacheDataSource.getCachedStats();
+        final cachedStats = await cacheDataSource.getCachedStats(period);
         if (cachedStats != null) {
           return Right(cachedStats.toEntity());
         }
       }
 
       // Fetch from API
-      final statsModel = await remoteDataSource.getDashboardStats();
+      final statsModel = await remoteDataSource.getDashboardStats(
+        period: period,
+      );
 
       // Cache the result
-      await cacheDataSource.cacheStats(statsModel);
+      await cacheDataSource.cacheStats(statsModel, period);
 
       return Right(statsModel.toEntity());
     } on ServerException {
@@ -44,7 +49,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } on CacheException {
       // If cache fails, try to get from remote anyway
       try {
-        final statsModel = await remoteDataSource.getDashboardStats();
+        final statsModel = await remoteDataSource.getDashboardStats(
+          period: period,
+        );
         return Right(statsModel.toEntity());
       } catch (e) {
         return Left(ServerFailure('Failed to get dashboard statistics'));
@@ -56,22 +63,25 @@ class DashboardRepositoryImpl implements DashboardRepository {
 
   @override
   Future<Either<Failure, OverviewData>> getOverviewData({
+    String period = '7d',
     bool forceRefresh = false,
   }) async {
     try {
       // Try cache first (if not force refresh)
       if (!forceRefresh) {
-        final cachedOverview = await cacheDataSource.getCachedOverview();
+        final cachedOverview = await cacheDataSource.getCachedOverview(period);
         if (cachedOverview != null) {
           return Right(cachedOverview.toEntity());
         }
       }
 
       // Fetch from API
-      final overviewModel = await remoteDataSource.getOverviewData();
+      final overviewModel = await remoteDataSource.getOverviewData(
+        period: period,
+      );
 
       // Cache the result
-      await cacheDataSource.cacheOverview(overviewModel);
+      await cacheDataSource.cacheOverview(overviewModel, period);
 
       return Right(overviewModel.toEntity());
     } on ServerException {
@@ -81,7 +91,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
     } on CacheException {
       // If cache fails, try to get from remote anyway
       try {
-        final overviewModel = await remoteDataSource.getOverviewData();
+        final overviewModel = await remoteDataSource.getOverviewData(
+          period: period,
+        );
         return Right(overviewModel.toEntity());
       } catch (e) {
         return Left(ServerFailure('Failed to get overview data'));
@@ -92,9 +104,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getQuickStats() async {
+  Future<Either<Failure, Map<String, dynamic>>> getQuickStats({
+    String period = 'today',
+  }) async {
     try {
-      final quickStats = await remoteDataSource.getQuickStats();
+      final quickStats = await remoteDataSource.getQuickStats(period: period);
       return Right(quickStats);
     } on ServerException {
       return Left(ServerFailure('Failed to get quick statistics'));
@@ -106,15 +120,99 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> refreshDashboardData() async {
+  Future<Either<Failure, List<AlertModel>>> getAlerts({
+    bool forceRefresh = false,
+  }) async {
     try {
-      // Clear cache
-      await cacheDataSource.clearCache();
+      // Try cache first (if not force refresh)
+      if (!forceRefresh) {
+        final cachedAlerts = await cacheDataSource.getCachedAlerts();
+        if (cachedAlerts != null) {
+          return Right(cachedAlerts);
+        }
+      }
 
-      // Force refresh both stats and overview
+      // Fetch from API
+      final alerts = await remoteDataSource.getAlerts();
+
+      // Cache the result
+      await cacheDataSource.cacheAlerts(alerts);
+
+      return Right(alerts);
+    } on ServerException {
+      return Left(ServerFailure('Failed to get alerts'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
+    } on CacheException {
+      // If cache fails, try to get from remote anyway
+      try {
+        final alerts = await remoteDataSource.getAlerts();
+        return Right(alerts);
+      } catch (e) {
+        return Left(ServerFailure('Failed to get alerts'));
+      }
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, RecentActivityModel>> getRecentActivities({
+    String period = '7d',
+    bool forceRefresh = false,
+  }) async {
+    try {
+      // Try cache first (if not force refresh)
+      if (!forceRefresh) {
+        final cachedActivities = await cacheDataSource
+            .getCachedRecentActivities(period);
+        if (cachedActivities != null) {
+          return Right(cachedActivities);
+        }
+      }
+
+      // Fetch from API
+      final activities = await remoteDataSource.getRecentActivities(
+        period: period,
+      );
+
+      // Cache the result
+      await cacheDataSource.cacheRecentActivities(activities, period);
+
+      return Right(activities);
+    } on ServerException {
+      return Left(ServerFailure('Failed to get recent activities'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
+    } on CacheException {
+      // If cache fails, try to get from remote anyway
+      try {
+        final activities = await remoteDataSource.getRecentActivities(
+          period: period,
+        );
+        return Right(activities);
+      } catch (e) {
+        return Left(ServerFailure('Failed to get recent activities'));
+      }
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> refreshDashboardData({
+    String period = 'today',
+  }) async {
+    try {
+      // Clear period-specific cache
+      await cacheDataSource.clearPeriodCache(period);
+
+      // Force refresh all data for the period
       await Future.wait([
-        getDashboardStats(forceRefresh: true),
-        getOverviewData(forceRefresh: true),
+        getDashboardStats(period: period, forceRefresh: true),
+        getOverviewData(period: period, forceRefresh: true),
+        getRecentActivities(period: period, forceRefresh: true),
+        getAlerts(forceRefresh: true),
       ]);
 
       return Right(unit);
@@ -124,9 +222,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> isCacheValid() async {
+  Future<Either<Failure, bool>> isCacheValid(String cacheKey) async {
     try {
-      final isValid = await cacheDataSource.isCacheValid();
+      final isValid = await cacheDataSource.isCacheValid(cacheKey);
       return Right(isValid);
     } catch (e) {
       return Left(CacheFailure('Failed to check cache validity'));
@@ -140,6 +238,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return Right(unit);
     } catch (e) {
       return Left(CacheFailure('Failed to clear cache'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearPeriodCache(String period) async {
+    try {
+      await cacheDataSource.clearPeriodCache(period);
+      return Right(unit);
+    } catch (e) {
+      return Left(CacheFailure('Failed to clear period cache'));
     }
   }
 }

@@ -1,30 +1,48 @@
-// Path: frontend/lib/features/dashboard/data/models/dashboard_stats_model.dart
-import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
+// Path: frontend/lib/features/dashboard/data/models/charts_model.dart
 
-import 'overview_model.dart';
-import 'charts_model.dart';
+import 'package:frontend/features/dashboard/domain/entities/scan_trend.dart';
 
-class DashboardStatsModel {
-  final OverviewModel overview;
-  final ChartsModel charts;
+import '../../domain/entities/charts.dart';
+import 'asset_status_pie_model.dart';
+import 'scan_trend_model.dart';
 
-  DashboardStatsModel({required this.overview, required this.charts});
+class ChartsModel {
+  final AssetStatusPieModel assetStatusPie;
+  final List<ScanTrendModel> scanTrend7d;
 
-  factory DashboardStatsModel.fromJson(Map<String, dynamic> json) {
-    return DashboardStatsModel(
-      overview: OverviewModel.fromJson(json['overview'] ?? {}),
-      charts: ChartsModel.fromJson(json['charts'] ?? {}),
+  ChartsModel({required this.assetStatusPie, required this.scanTrend7d});
+
+  factory ChartsModel.fromJson(Map<String, dynamic> json) {
+    return ChartsModel(
+      assetStatusPie: AssetStatusPieModel.fromJson(
+        json['asset_status_pie'] ?? {},
+      ),
+      scanTrend7d:
+          (json['scan_trend_7d'] as List<dynamic>?)
+              ?.map(
+                (item) => ScanTrendModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'overview': overview.toJson(), 'charts': charts.toJson()};
+    return {
+      'asset_status_pie': assetStatusPie.toJson(),
+      'scan_trend_7d': scanTrend7d.map((item) => item.toJson()).toList(),
+    };
   }
 
-  DashboardStats toEntity() {
-    return DashboardStats(
-      overview: overview.toEntity(),
-      charts: charts.toEntity(),
+  Charts toEntity() {
+    final scanTrendEntities = <ScanTrend>[];
+    for (final item in scanTrend7d) {
+      scanTrendEntities.add(item.toEntity());
+    }
+
+    return Charts(
+      assetStatusPie: assetStatusPie.toEntity(),
+      scanTrend7d: scanTrendEntities,
     );
   }
 }
