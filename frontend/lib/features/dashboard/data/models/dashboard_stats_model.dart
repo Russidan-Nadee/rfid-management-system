@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/models/dashboard_stats_model.dart
+import 'package:frontend/features/dashboard/data/models/asset_status_pie_model.dart';
+
 import '../../domain/entities/dashboard_stats.dart';
 import 'overview_model.dart';
 import 'charts_model.dart';
@@ -15,12 +17,49 @@ class DashboardStatsModel {
   });
 
   factory DashboardStatsModel.fromJson(Map<String, dynamic> json) {
-    return DashboardStatsModel(
-      overview: OverviewModel.fromJson(json['overview'] ?? {}),
-      charts: ChartsModel.fromJson(json['charts'] ?? {}),
-      lastUpdated:
-          DateTime.tryParse(json['last_updated'] ?? '') ?? DateTime.now(),
-    );
+    try {
+      // Handle Backend response structure that includes period_info
+      final overviewData = json['overview'] as Map<String, dynamic>? ?? {};
+      final chartsData = json['charts'] as Map<String, dynamic>? ?? {};
+
+      // Get timestamp from period_info or use current time
+      final periodInfo = json['period_info'] as Map<String, dynamic>?;
+      final timestampStr =
+          periodInfo?['start_date'] ??
+          json['timestamp'] ??
+          DateTime.now().toIso8601String();
+
+      return DashboardStatsModel(
+        // Pass the entire response to OverviewModel to handle nested structure
+        overview: OverviewModel.fromJson({'overview': overviewData}),
+        charts: ChartsModel.fromJson(chartsData),
+        lastUpdated: DateTime.tryParse(timestampStr) ?? DateTime.now(),
+      );
+    } catch (e) {
+      // Fallback for parsing errors - create empty model
+      print('Dashboard stats parsing error: $e');
+      return DashboardStatsModel(
+        overview: OverviewModel(
+          totalAssets: 0,
+          activeAssets: 0,
+          inactiveAssets: 0,
+          createdAssets: 0,
+          todayScans: 0,
+          exportSuccess7d: 0,
+          exportFailed7d: 0,
+        ),
+        charts: ChartsModel(
+          assetStatusPie: AssetStatusPieModel(
+            active: 0,
+            inactive: 0,
+            created: 0,
+            total: 0,
+          ),
+          scanTrend7d: [],
+        ),
+        lastUpdated: DateTime.now(),
+      );
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -60,5 +99,18 @@ class DashboardStatsModel {
     } else {
       return '${difference.inDays} days ago';
     }
+  }
+
+  // Create a copy with error handling
+  DashboardStatsModel copyWithSafeData({
+    OverviewModel? overview,
+    ChartsModel? charts,
+    DateTime? lastUpdated,
+  }) {
+    return DashboardStatsModel(
+      overview: overview ?? this.overview,
+      charts: charts ?? this.charts,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
   }
 }

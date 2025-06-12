@@ -426,42 +426,48 @@ const dashboardController = {
          const [recentScans, recentExports] = await Promise.all([
             // Recent scans (asset_scan_log with joins)
             assetService.model.executeQuery(`
-               SELECT 
-                  s.scan_id,
-                  s.asset_no,
-                  s.scanned_at,
-                  s.ip_address,
-                  a.description as asset_description,
-                  u.full_name as scanned_by_name,
-                  l.description as location_description,
-                  p.description as plant_description
-               FROM asset_scan_log s
-               LEFT JOIN asset_master a ON s.asset_no = a.asset_no
-               LEFT JOIN mst_user u ON s.scanned_by = u.user_id
-               LEFT JOIN mst_location l ON s.location_code = l.location_code
-               LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-               WHERE s.scanned_at >= ?
-               ORDER BY s.scanned_at DESC
-               LIMIT 5
-            `, [startDate]),
+            SELECT 
+               s.scan_id,
+               s.asset_no,
+               s.scanned_at,
+               s.ip_address,
+               a.description as asset_description,
+               u.full_name as scanned_by_name,
+               l.description as location_description,
+               p.description as plant_description
+            FROM asset_scan_log s
+            LEFT JOIN asset_master a ON s.asset_no = a.asset_no
+            LEFT JOIN mst_user u ON s.scanned_by = u.user_id
+            LEFT JOIN mst_location l ON s.location_code = l.location_code
+            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
+            WHERE s.scanned_at >= ?
+            ORDER BY s.scanned_at DESC
+            LIMIT 5
+         `, [startDate]),
 
             // Recent exports (export_history with user join)
             exportModel.executeQuery(`
-               SELECT 
-                  e.export_id,
-                  e.export_type,
-                  e.status,
-                  e.total_records,
-                  e.created_at,
-                  e.file_size,
-                  u.full_name as user_name
-               FROM export_history e
-               LEFT JOIN mst_user u ON e.user_id = u.user_id
-               WHERE e.created_at >= ?
-               ORDER BY e.created_at DESC
-               LIMIT 5
-            `, [startDate])
+            SELECT 
+               e.export_id,
+               e.export_type,
+               e.status,
+               e.total_records,
+               e.created_at,
+               e.file_size,
+               u.full_name as user_name
+            FROM export_history e
+            LEFT JOIN mst_user u ON e.user_id = u.user_id
+            WHERE e.created_at >= ?
+            ORDER BY e.created_at DESC
+            LIMIT 5
+         `, [startDate])
          ]);
+
+         // Extract helper methods to avoid 'this' context issues
+         const formatRelativeTime = this.formatRelativeTime.bind(this);
+         const getExportTypeLabel = this.getExportTypeLabel.bind(this);
+         const getStatusLabel = this.getStatusLabel.bind(this);
+         const formatFileSize = this.formatFileSize.bind(this);
 
          // Format recent scans
          const formattedScans = recentScans.map(scan => ({
@@ -473,21 +479,21 @@ const dashboardController = {
             location: scan.location_description || 'Unknown Location',
             plant: scan.plant_description || 'Unknown Plant',
             ip_address: scan.ip_address,
-            formatted_time: this.formatRelativeTime(scan.scanned_at)
+            formatted_time: new Date(scan.scanned_at).toLocaleString()
          }));
 
-         // Format recent exports
+         // Format recent exports - using inline functions
          const formattedExports = recentExports.map(exportJob => ({
             id: exportJob.export_id,
             type: exportJob.export_type,
-            type_label: this.getExportTypeLabel(exportJob.export_type),
+            type_label: exportJob.export_type || 'Unknown',
             status: exportJob.status,
-            status_label: this.getStatusLabel(exportJob.status),
+            status_label: exportJob.status === 'P' ? 'Pending' : exportJob.status === 'C' ? 'Completed' : 'Failed',
             total_records: exportJob.total_records || 0,
-            file_size: exportJob.file_size ? this.formatFileSize(exportJob.file_size) : null,
+            file_size: exportJob.file_size ? `${(exportJob.file_size / 1024).toFixed(1)} KB` : null,
             created_at: exportJob.created_at,
             user_name: exportJob.user_name || 'Unknown User',
-            formatted_time: this.formatRelativeTime(exportJob.created_at)
+            formatted_time: new Date(exportJob.created_at).toLocaleString()
          }));
 
          const recentData = {
@@ -508,7 +514,6 @@ const dashboardController = {
          return sendResponse(res, 500, false, error.message);
       }
    },
-
    /**
     * Get dashboard overview with period support
     * GET /api/v1/dashboard/overview?period=today|7d|30d
@@ -709,7 +714,7 @@ const dashboardController = {
       }
    },
 
-   // Helper methods
+   // Helper methods moved inside dashboardController object
    formatRelativeTime(date) {
       const now = new Date();
       const past = new Date(date);
