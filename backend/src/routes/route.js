@@ -1,3 +1,4 @@
+// Path: backend/src/routes/route.js
 const express = require('express');
 const router = express.Router();
 
@@ -8,9 +9,11 @@ const {
    unitController,
    userController,
    assetController,
-   dashboardController,
    scanController
 } = require('../controllers/controller');
+
+// Import dashboard controller (separate file)
+const dashboardController = require('../controllers/dashboardController');
 
 // Import export controller
 const ExportController = require('../controllers/exportController');
@@ -51,9 +54,10 @@ router.use('/search', require('./searchRoutes'));
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes
 const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests per 15 minutes
 
-// Dashboard Routes
+// Dashboard Routes (NEW - using separate controller)
 router.get('/dashboard/stats', generalRateLimit, dashboardController.getDashboardStats);
 router.get('/dashboard/overview', generalRateLimit, dashboardController.getOverview);
+router.get('/dashboard/quick-stats', generalRateLimit, dashboardController.getQuickStats);
 
 // Plant Routes
 router.get('/plants', generalRateLimit, plantValidators.getPlants, plantController.getPlants);
@@ -87,7 +91,7 @@ router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetS
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
 router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
 
-// Export Routes (NEW) - ต้องใช้ authentication
+// Export Routes - ต้องใช้ authentication
 router.post('/export/jobs',
    generalRateLimit,
    authenticateToken,
@@ -154,8 +158,9 @@ router.get('/docs', (req, res) => {
       timestamp: new Date().toISOString(),
       endpoints: {
          dashboard: {
-            'GET /api/v1/dashboard/stats': 'Get dashboard statistics',
-            'GET /api/v1/dashboard/overview': 'Get system overview'
+            'GET /api/v1/dashboard/stats': 'Get dashboard statistics and overview cards',
+            'GET /api/v1/dashboard/overview': 'Get system overview with recent activities',
+            'GET /api/v1/dashboard/quick-stats': 'Get quick statistics for widgets'
          },
          plants: {
             'GET /api/v1/plants': 'Get all active plants',
@@ -184,7 +189,10 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/assets/stats': 'Get asset statistics',
             'GET /api/v1/assets/stats/by-plant': 'Get asset statistics by plant',
             'GET /api/v1/assets/stats/by-location': 'Get asset statistics by location',
-            'GET /api/v1/assets/:asset_no': 'Get asset by number with details'
+            'GET /api/v1/assets/:asset_no': 'Get asset by number with details',
+            'POST /api/v1/assets': 'Create new asset',
+            'PUT /api/v1/assets/:asset_no': 'Update asset',
+            'PATCH /api/v1/assets/:asset_no/status': 'Update asset status'
          },
          export: {
             'POST /api/v1/export/jobs': 'Create export job',
@@ -206,7 +214,7 @@ router.get('/docs', (req, res) => {
             limit: 'Items per page (default: 50, max: 1000)'
          },
          filtering: {
-            status: 'Filter by status (A=Active, I=Inactive)',
+            status: 'Filter by status (A=Active, I=Inactive, C=Created)',
             plant_code: 'Filter by plant code',
             location_code: 'Filter by location code',
             unit_code: 'Filter by unit code'
