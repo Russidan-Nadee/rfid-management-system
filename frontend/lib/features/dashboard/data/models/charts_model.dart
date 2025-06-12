@@ -1,4 +1,8 @@
 // Path: frontend/lib/features/dashboard/data/models/charts_model.dart
+
+import 'package:frontend/features/dashboard/domain/entities/scan_trend.dart';
+
+import '../../domain/entities/charts.dart';
 import 'asset_status_pie_model.dart';
 import 'scan_trend_model.dart';
 
@@ -31,9 +35,14 @@ class ChartsModel {
   }
 
   Charts toEntity() {
+    final scanTrendEntities = <ScanTrend>[];
+    for (final item in scanTrend7d) {
+      scanTrendEntities.add(item.toEntity());
+    }
+
     return Charts(
       assetStatusPie: assetStatusPie.toEntity(),
-      scanTrend7d: scanTrend7d.map((item) => item.toEntity()).toList(),
+      scanTrend7d: scanTrendEntities,
     );
   }
 }

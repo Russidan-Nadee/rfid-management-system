@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/models/asset_status_pie_model.dart
+import 'package:frontend/features/dashboard/domain/entities/asset_status_pie.dart';
+
 import 'chart_data_model.dart';
 
 class AssetStatusPieModel {

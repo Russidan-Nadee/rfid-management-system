@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/models/dashboard_stats_model.dart
+import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
+
 import 'overview_model.dart';
 import 'charts_model.dart';
 

@@ -1,9 +1,10 @@
 // Path: frontend/lib/features/dashboard/data/datasources/dashboard_remote_datasource.dart
+import 'package:frontend/features/dashboard/data/models/overview_data_model.dart';
+
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/dashboard_stats_model.dart';
-import '../models/overview_data_model.dart';
 
 abstract class DashboardRemoteDataSource {
   Future<DashboardStatsModel> getDashboardStats();

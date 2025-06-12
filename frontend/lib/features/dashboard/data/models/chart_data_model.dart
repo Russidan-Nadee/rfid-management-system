@@ -1,5 +1,7 @@
 // Path: frontend/lib/features/dashboard/data/models/chart_data_model.dart
 
+import 'package:frontend/features/dashboard/domain/entities/chart_data.dart';
+
 class ChartDataModel {
   final String label;
   final double value;

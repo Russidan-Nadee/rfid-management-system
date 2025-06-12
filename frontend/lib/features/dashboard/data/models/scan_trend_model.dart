@@ -1,5 +1,7 @@
 // Path: frontend/lib/features/dashboard/data/models/scan_trend_model.dart
 
+import 'package:frontend/features/dashboard/domain/entities/scan_trend.dart';
+
 class ScanTrendModel {
   final String date;
   final int count;

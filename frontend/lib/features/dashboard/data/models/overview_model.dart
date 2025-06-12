@@ -1,5 +1,7 @@
 // Path: frontend/lib/features/dashboard/data/models/overview_model.dart
 
+import 'package:frontend/features/dashboard/domain/entities/overview.dart';
+
 class OverviewModel {
   final int totalAssets;
   final int activeAssets;
