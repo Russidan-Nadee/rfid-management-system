@@ -57,6 +57,50 @@ const calculatePercentageChange = (current, previous) => {
    return Math.round(((current - previous) / previous) * 100);
 };
 
+// Standalone helper functions (moved outside object to avoid binding issues)
+const formatRelativeTime = (date) => {
+   if (!date) return '-';
+
+   const now = new Date();
+   const past = new Date(date);
+   const diffMs = now - past;
+   const diffMins = Math.floor(diffMs / 60000);
+   const diffHours = Math.floor(diffMs / 3600000);
+   const diffDays = Math.floor(diffMs / 86400000);
+
+   if (diffMins < 1) return 'Just now';
+   if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+   return past.toLocaleDateString();
+};
+
+const getStatusLabel = (status) => {
+   const statusLabels = {
+      'P': 'Pending',
+      'C': 'Completed',
+      'F': 'Failed'
+   };
+   return statusLabels[status] || status;
+};
+
+const getExportTypeLabel = (exportType) => {
+   const typeLabels = {
+      'assets': 'Assets Export',
+      'scan_logs': 'Scan Logs Export',
+      'status_history': 'Status History Export'
+   };
+   return typeLabels[exportType] || exportType;
+};
+
+const formatFileSize = (bytes) => {
+   if (!bytes || bytes === 0) return '0 B';
+   const sizes = ['B', 'KB', 'MB', 'GB'];
+   const i = Math.floor(Math.log(bytes) / Math.log(1024));
+   const size = (bytes / Math.pow(1024, i)).toFixed(1);
+   return `${size} ${sizes[i]}`;
+};
+
 // Dashboard Controller
 const dashboardController = {
    /**
@@ -463,13 +507,7 @@ const dashboardController = {
          `, [startDate])
          ]);
 
-         // Extract helper methods to avoid 'this' context issues
-         const formatRelativeTime = this.formatRelativeTime.bind(this);
-         const getExportTypeLabel = this.getExportTypeLabel.bind(this);
-         const getStatusLabel = this.getStatusLabel.bind(this);
-         const formatFileSize = this.formatFileSize.bind(this);
-
-         // Format recent scans
+         // Format recent scans using standalone helper functions
          const formattedScans = recentScans.map(scan => ({
             id: scan.scan_id,
             asset_no: scan.asset_no,
@@ -482,15 +520,15 @@ const dashboardController = {
             formatted_time: new Date(scan.scanned_at).toLocaleString()
          }));
 
-         // Format recent exports - using inline functions
+         // Format recent exports using standalone helper functions
          const formattedExports = recentExports.map(exportJob => ({
             id: exportJob.export_id,
             type: exportJob.export_type,
-            type_label: exportJob.export_type || 'Unknown',
+            type_label: getExportTypeLabel(exportJob.export_type),
             status: exportJob.status,
-            status_label: exportJob.status === 'P' ? 'Pending' : exportJob.status === 'C' ? 'Completed' : 'Failed',
+            status_label: getStatusLabel(exportJob.status),
             total_records: exportJob.total_records || 0,
-            file_size: exportJob.file_size ? `${(exportJob.file_size / 1024).toFixed(1)} KB` : null,
+            file_size: exportJob.file_size ? formatFileSize(exportJob.file_size) : null,
             created_at: exportJob.created_at,
             user_name: exportJob.user_name || 'Unknown User',
             formatted_time: new Date(exportJob.created_at).toLocaleString()
@@ -514,6 +552,7 @@ const dashboardController = {
          return sendResponse(res, 500, false, error.message);
       }
    },
+
    /**
     * Get dashboard overview with period support
     * GET /api/v1/dashboard/overview?period=today|7d|30d
@@ -712,48 +751,6 @@ const dashboardController = {
          console.error('Quick stats error:', error);
          return sendResponse(res, 500, false, error.message);
       }
-   },
-
-   // Helper methods moved inside dashboardController object
-   formatRelativeTime(date) {
-      const now = new Date();
-      const past = new Date(date);
-      const diffMs = now - past;
-      const diffMins = Math.floor(diffMs / 60000);
-      const diffHours = Math.floor(diffMs / 3600000);
-      const diffDays = Math.floor(diffMs / 86400000);
-
-      if (diffMins < 1) return 'Just now';
-      if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-      return past.toLocaleDateString();
-   },
-
-   getStatusLabel(status) {
-      const statusLabels = {
-         'P': 'Pending',
-         'C': 'Completed',
-         'F': 'Failed'
-      };
-      return statusLabels[status] || status;
-   },
-
-   getExportTypeLabel(exportType) {
-      const typeLabels = {
-         'assets': 'Assets Export',
-         'scan_logs': 'Scan Logs Export',
-         'status_history': 'Status History Export'
-      };
-      return typeLabels[exportType] || exportType;
-   },
-
-   formatFileSize(bytes) {
-      if (bytes === 0) return '0 B';
-      const sizes = ['B', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(1024));
-      const size = (bytes / Math.pow(1024, i)).toFixed(1);
-      return `${size} ${sizes[i]}`;
    }
 };
 
