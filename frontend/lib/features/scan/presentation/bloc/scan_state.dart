@@ -19,15 +19,40 @@ class ScanLoading extends ScanState {
 
 class ScanSuccess extends ScanState {
   final List<ScannedItemEntity> scannedItems;
+  final String selectedFilter;
 
-  const ScanSuccess({required this.scannedItems});
+  const ScanSuccess({required this.scannedItems, this.selectedFilter = 'All'});
 
   @override
-  List<Object?> get props => [scannedItems];
+  List<Object?> get props => [scannedItems, selectedFilter];
 
   @override
   String toString() {
-    return 'ScanSuccess(items: ${scannedItems.length})';
+    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter)';
+  }
+
+  // เพิ่ม helper method สำหรับ filter
+  List<ScannedItemEntity> get filteredItems {
+    if (selectedFilter == 'All') return scannedItems;
+
+    switch (selectedFilter.toLowerCase()) {
+      case 'active':
+        return scannedItems
+            .where((item) => item.status.toUpperCase() == 'A')
+            .toList();
+      case 'checked':
+        return scannedItems
+            .where((item) => item.status.toUpperCase() == 'C')
+            .toList();
+      case 'inactive':
+        return scannedItems
+            .where((item) => item.status.toUpperCase() == 'I')
+            .toList();
+      case 'unknown':
+        return scannedItems.where((item) => item.isUnknown == true).toList();
+      default:
+        return scannedItems;
+    }
   }
 }
 

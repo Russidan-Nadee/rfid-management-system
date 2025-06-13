@@ -27,6 +27,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<MarkAssetChecked>(_onMarkAssetChecked);
     on<LogAssetScanned>(_onLogAssetScanned);
     on<AssetCreatedFromUnknown>(_onAssetCreatedFromUnknown);
+    on<FilterChanged>(_onFilterChanged);
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<ScanState> emit) async {
@@ -64,7 +65,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         }
       }
 
-      emit(ScanSuccess(scannedItems: scannedItems));
+      emit(ScanSuccess(scannedItems: scannedItems, selectedFilter: 'All'));
     } catch (e) {
       emit(ScanError(message: 'Scan failed: ${e.toString()}'));
     }
@@ -108,8 +109,12 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
   ) async {
     // เก็บ previous scan results ไว้ก่อน
     List<ScannedItemEntity>? previousScannedItems;
+    String currentFilter = 'All';
+
     if (state is ScanSuccess) {
-      previousScannedItems = (state as ScanSuccess).scannedItems;
+      final currentState = state as ScanSuccess;
+      previousScannedItems = currentState.scannedItems;
+      currentFilter = currentState.selectedFilter;
     }
 
     emit(AssetStatusUpdating(assetNo: event.assetNo));
@@ -129,13 +134,23 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           return item;
         }).toList();
 
-        // Emit เฉพาะ ScanSuccess สำหรับ ScanPage
-        emit(ScanSuccess(scannedItems: updatedItems));
+        // Emit เฉพาะ ScanSuccess สำหรับ ScanPage พร้อม filter
+        emit(
+          ScanSuccess(
+            scannedItems: updatedItems,
+            selectedFilter: currentFilter,
+          ),
+        );
       }
     } catch (e) {
       // ถ้า error ให้กลับไป previous state
       if (previousScannedItems != null) {
-        emit(ScanSuccess(scannedItems: previousScannedItems));
+        emit(
+          ScanSuccess(
+            scannedItems: previousScannedItems,
+            selectedFilter: currentFilter,
+          ),
+        );
       }
 
       emit(AssetStatusUpdateError(message: e.toString()));
@@ -153,8 +168,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     }
   }
 
-  // เพิ่มใน ScanBloc class
-
   Future<void> _onAssetCreatedFromUnknown(
     AssetCreatedFromUnknown event,
     Emitter<ScanState> emit,
@@ -171,8 +184,27 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         return item; // เก็บ item เดิม
       }).toList();
 
-      // Emit state ใหม่พร้อม updated list
-      emit(ScanSuccess(scannedItems: updatedItems));
+      // Emit state ใหม่พร้อม updated list และ filter เดิม
+      emit(
+        ScanSuccess(
+          scannedItems: updatedItems,
+          selectedFilter: currentState.selectedFilter,
+        ),
+      );
+    }
+  }
+
+  // เพิ่ม Filter handler
+  void _onFilterChanged(FilterChanged event, Emitter<ScanState> emit) {
+    if (state is ScanSuccess) {
+      final currentState = state as ScanSuccess;
+      // อัพเดต filter ใน state เดิม
+      emit(
+        ScanSuccess(
+          scannedItems: currentState.scannedItems,
+          selectedFilter: event.filter,
+        ),
+      );
     }
   }
 }

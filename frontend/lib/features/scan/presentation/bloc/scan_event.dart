@@ -59,3 +59,13 @@ class AssetCreatedFromUnknown extends ScanEvent {
   @override
   List<Object?> get props => [createdAsset];
 }
+
+// เพิ่ม FilterChanged event
+class FilterChanged extends ScanEvent {
+  final String filter;
+
+  const FilterChanged({required this.filter});
+
+  @override
+  List<Object?> get props => [filter];
+}

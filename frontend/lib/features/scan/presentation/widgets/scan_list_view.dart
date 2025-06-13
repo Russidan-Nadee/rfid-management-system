@@ -1,6 +1,10 @@
 // Path: frontend/lib/features/scan/presentation/widgets/scan_list_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/scanned_item_entity.dart';
+import '../bloc/scan_bloc.dart';
+import '../bloc/scan_event.dart';
+import '../bloc/scan_state.dart';
 import 'asset_card.dart';
 
 class ScanListView extends StatelessWidget {
@@ -36,48 +40,66 @@ class ScanListView extends StatelessWidget {
 
     print('ScanListView: Showing list with ${scannedItems.length} items');
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        print('ScanListView: Pull to refresh triggered');
-        onRefresh?.call();
-      },
-      color: theme.colorScheme.primary,
-      child: Column(
-        children: [
-          // Header
-          _buildHeader(theme),
+    return BlocBuilder<ScanBloc, ScanState>(
+      builder: (context, state) {
+        final filteredItems = state is ScanSuccess
+            ? state.filteredItems
+            : scannedItems;
+        final selectedFilter = state is ScanSuccess
+            ? state.selectedFilter
+            : 'All';
 
-          // List
-          Expanded(
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: scannedItems.length,
-              itemBuilder: (context, index) {
-                print(
-                  'ScanListView: Building card $index for asset ${scannedItems[index].assetNo}',
-                );
-                return AssetCard(item: scannedItems[index]);
-              },
-            ),
+        return RefreshIndicator(
+          onRefresh: () async {
+            print('ScanListView: Pull to refresh triggered');
+            onRefresh?.call();
+          },
+          color: theme.colorScheme.primary,
+          child: Column(
+            children: [
+              // Header with filters
+              _buildHeader(theme, scannedItems, selectedFilter, context),
+
+              // Filtered List
+              Expanded(
+                child: filteredItems.isEmpty
+                    ? _buildEmptyFilterState(theme, selectedFilter)
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          print(
+                            'ScanListView: Building card $index for asset ${filteredItems[index].assetNo}',
+                          );
+                          return AssetCard(item: filteredItems[index]);
+                        },
+                      ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    final totalItems = scannedItems.length;
-    final activeItems = scannedItems
+  Widget _buildHeader(
+    ThemeData theme,
+    List<ScannedItemEntity> allItems,
+    String selectedFilter,
+    BuildContext context,
+  ) {
+    final totalItems = allItems.length;
+    final activeItems = allItems
         .where((item) => item.status.toUpperCase() == 'A')
         .length;
-    final checkedItems = scannedItems
+    final checkedItems = allItems
         .where((item) => item.status.toUpperCase() == 'C')
         .length;
-    final inactiveItems = scannedItems
+    final inactiveItems = allItems
         .where((item) => item.status.toUpperCase() == 'I')
         .length;
-    final unknownItems = scannedItems
-        .where((item) => item.status.toUpperCase() == 'UNKNOWN')
+    final unknownItems = allItems
+        .where((item) => item.isUnknown == true)
         .length;
 
     print(
@@ -112,24 +134,50 @@ class ScanListView extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Status Summary
+          // Filter Chips
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
+              _buildFilterChip(
+                theme,
+                'All',
+                totalItems,
+                selectedFilter,
+                context,
+              ),
               if (activeItems > 0)
-                _buildStatusChip(
+                _buildFilterChip(
                   theme,
                   'Active',
                   activeItems,
-                  theme.colorScheme.primary,
+                  selectedFilter,
+                  context,
                 ),
               if (checkedItems > 0)
-                _buildStatusChip(theme, 'Checked', checkedItems, Colors.green),
+                _buildFilterChip(
+                  theme,
+                  'Checked',
+                  checkedItems,
+                  selectedFilter,
+                  context,
+                ),
               if (inactiveItems > 0)
-                _buildStatusChip(theme, 'Inactive', inactiveItems, Colors.grey),
+                _buildFilterChip(
+                  theme,
+                  'Inactive',
+                  inactiveItems,
+                  selectedFilter,
+                  context,
+                ),
               if (unknownItems > 0)
-                _buildStatusChip(theme, 'Unknown', unknownItems, Colors.red),
+                _buildFilterChip(
+                  theme,
+                  'Unknown',
+                  unknownItems,
+                  selectedFilter,
+                  context,
+                ),
             ],
           ),
         ],
@@ -137,26 +185,98 @@ class ScanListView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip(
+  Widget _buildFilterChip(
     ThemeData theme,
     String label,
     int count,
-    Color color,
+    String selectedFilter,
+    BuildContext context,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Text(
-        '$label ($count)',
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+    final isSelected = selectedFilter == label;
+    final color = _getFilterColor(label, theme);
+
+    return GestureDetector(
+      onTap: () {
+        context.read<ScanBloc>().add(FilterChanged(filter: label));
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color, width: isSelected ? 2 : 1),
         ),
+        child: Text(
+          '$label ($count)',
+          style: TextStyle(
+            color: isSelected ? Colors.white : color,
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getFilterColor(String label, ThemeData theme) {
+    switch (label.toLowerCase()) {
+      case 'all':
+        return theme.colorScheme.primary;
+      case 'active':
+        return theme.colorScheme.primary;
+      case 'checked':
+        return Colors.green;
+      case 'inactive':
+        return Colors.grey;
+      case 'unknown':
+        return Colors.red;
+      default:
+        return theme.colorScheme.primary;
+    }
+  }
+
+  Widget _buildEmptyFilterState(ThemeData theme, String filter) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.filter_list_off,
+              size: 40,
+              color: theme.colorScheme.primary.withOpacity(0.6),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            'No $filter items',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            'Try selecting a different filter or scan again',
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.colorScheme.onBackground.withOpacity(0.5),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
