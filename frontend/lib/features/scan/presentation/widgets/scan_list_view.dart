@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/scan_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/constants/app_colors.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -222,15 +223,15 @@ class ScanListView extends StatelessWidget {
   Color _getFilterColor(String label, ThemeData theme) {
     switch (label.toLowerCase()) {
       case 'all':
-        return theme.colorScheme.primary;
+        return AppColors.chartGreen;
       case 'active':
-        return theme.colorScheme.primary;
+        return theme.colorScheme.primary; // ใช้ AppColors
       case 'checked':
-        return Colors.green;
+        return Colors.deepPurple; // ใช้ AppColors
       case 'inactive':
-        return Colors.grey;
+        return AppColors.getStatusColor('I'); // ใช้ AppColors
       case 'unknown':
-        return Colors.red;
+        return AppColors.error; // ใช้ AppColors
       default:
         return theme.colorScheme.primary;
     }

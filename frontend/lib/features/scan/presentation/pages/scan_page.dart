@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../di/injection.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -188,10 +189,10 @@ class _ScanPageViewState extends State<ScanPageView> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: AppColors.error.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.error_outline, color: Colors.red, size: 60),
+            child: Icon(Icons.error_outline, color: AppColors.error, size: 60),
           ),
 
           const SizedBox(height: 32),

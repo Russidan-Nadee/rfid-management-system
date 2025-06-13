@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/pages/unknown_item_detail_page.dart
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class UnknownItemDetailPage extends StatelessWidget {
   final String assetNo;
@@ -29,16 +30,16 @@ class UnknownItemDetailPage extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: AppColors.error.withOpacity(0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.red.withOpacity(0.3),
+                    color: AppColors.error.withOpacity(0.3),
                     width: 2,
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.help_outline,
-                  color: Colors.red,
+                  color: AppColors.error,
                   size: 60,
                 ),
               ),
@@ -136,8 +137,8 @@ class UnknownItemDetailPage extends StatelessWidget {
                     icon: const Icon(Icons.report_problem),
                     label: const Text('Report Issue'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.error,
+                      foregroundColor: AppColors.onPrimary,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,

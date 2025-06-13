@@ -30,6 +30,12 @@ class AppColors {
     0xFFF59E0B,
   ); // Orange - Inactive assets
   static const Color assetCreated = Color(0xFF3B82F6); // Blue - Created assets
+  static const Color assetChecked = Color.fromARGB(
+    255,
+    30,
+    180,
+    60,
+  ); // Green - Checked assets
 
   // Trend Colors
   static const Color trendUp = Color.fromARGB(
@@ -73,6 +79,11 @@ class AppColors {
   static const Color backgroundSecondary = Color(0xFFF3F4F6); // Gray 100
   static const Color backgroundTertiary = Color(0xFFE5E7EB); // Gray 200
 
+  // UI State Colors
+  static const Color selected = primary;
+  static const Color unselected = textSecondary;
+  static Color hover = primary.withOpacity(0.1);
+
   // Helper Methods
   static Color getStatusColor(String status) {
     switch (status.toUpperCase()) {
@@ -85,6 +96,8 @@ class AppColors {
       case 'C':
       case 'CREATED':
         return assetCreated;
+      case 'CHECKED':
+        return assetChecked;
       default:
         return textSecondary;
     }
@@ -129,6 +142,24 @@ class AppColors {
         return severityInfo;
       default:
         return severityInfo;
+    }
+  }
+
+  // เพิ่ม Filter Color Helper
+  static Color getFilterColor(String filter) {
+    switch (filter.toLowerCase()) {
+      case 'all':
+        return primary;
+      case 'active':
+        return assetActive;
+      case 'checked':
+        return assetChecked;
+      case 'inactive':
+        return assetInactive;
+      case 'unknown':
+        return error;
+      default:
+        return primary;
     }
   }
 

@@ -1,6 +1,7 @@
 // Path: frontend/lib/app.dart
 import 'package:flutter/material.dart';
 import 'core/constants/app_theme.dart';
+import 'core/constants/app_colors.dart';
 import 'app/app_entry_point.dart';
 
 class AssetManagementApp extends StatelessWidget {
@@ -14,8 +15,8 @@ class AssetManagementApp extends StatelessWidget {
       theme: appTheme.copyWith(
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF4F46E5),
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -24,7 +25,7 @@ class AssetManagementApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           filled: true,
-          fillColor: Colors.grey[50],
+          fillColor: AppColors.backgroundSecondary,
         ),
       ),
       home: const AppEntryPoint(),

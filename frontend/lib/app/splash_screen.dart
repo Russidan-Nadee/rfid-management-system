@@ -1,5 +1,6 @@
 // Path: frontend/lib/presentation/splash_screen.dart
 import 'package:flutter/material.dart';
+import '../core/constants/app_colors.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -7,7 +8,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF4F46E5),
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -17,12 +18,12 @@ class SplashScreen extends StatelessWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.inventory_2_outlined,
-                color: Color(0xFF4F46E5),
+                color: AppColors.primary,
                 size: 50,
               ),
             ),
@@ -30,20 +31,20 @@ class SplashScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // App Title
-            const Text(
+            Text(
               'Asset Management',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.onPrimary,
               ),
             ),
 
             const SizedBox(height: 40),
 
             // Loading Indicator
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.onPrimary),
             ),
           ],
         ),
