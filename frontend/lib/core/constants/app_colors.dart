@@ -10,7 +10,7 @@ class AppColors {
   static const Color onBackground = Color(0xFF1F2937);
 
   // Status Colors (Dashboard specific)
-  static const Color success = Color(0xFF10B981); // Green 500
+  static final Color success = Colors.green; // Green 500
   static const Color successLight = Color(0xFFD1FAE5); // Green 100
   static const Color warning = Color(0xFFF59E0B); // Orange 500
   static const Color warningLight = Color(0xFFFEF3C7); // Orange 100
@@ -20,7 +20,7 @@ class AppColors {
   static const Color infoLight = Color(0xFFDDEAFE); // Blue 100
 
   // Asset Status Colors
-  static const Color assetActive = Color(0xFF10B981); // Green - Active assets
+  static const Color assetActive = Colors.green; // Green - Active assets
   static const Color assetInactive = Color(
     0xFFF59E0B,
   ); // Orange - Inactive assets
@@ -32,7 +32,7 @@ class AppColors {
   static const Color trendStable = Color(0xFF6B7280); // Gray - Stable trend
 
   // Chart Colors
-  static const Color chartGreen = Color(0xFF10B981);
+  static const Color chartGreen = Colors.green;
   static const Color chartRed = Color(0xFFEF4444);
   static const Color chartBlue = Color(0xFF3B82F6);
   static const Color chartOrange = Color(0xFFF59E0B);

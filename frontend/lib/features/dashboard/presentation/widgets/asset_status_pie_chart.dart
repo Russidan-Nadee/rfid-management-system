@@ -26,6 +26,7 @@ class AssetStatusPieChart extends StatelessWidget {
 
     return Column(
       children: [
+        const SizedBox(height: 40),
         SizedBox(
           height: radius != null ? radius! * 2 : 200,
           child: PieChart(
@@ -37,7 +38,7 @@ class AssetStatusPieChart extends StatelessWidget {
             ),
           ),
         ),
-        if (showLegend) ...[const SizedBox(height: 16), _buildLegend()],
+        if (showLegend) ...[const SizedBox(height: 60), _buildLegend()],
       ],
     );
   }
