@@ -1,10 +1,12 @@
-// Path: frontend/lib/features/scan/presentation/widgets/asset_card.dart
+// Path: lib/features/scan/presentation/widgets/asset_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../pages/asset_detail_page.dart';
 import '../pages/unknown_item_detail_page.dart';
+import '../pages/create_asset_page.dart';
 
 class AssetCard extends StatelessWidget {
   final ScannedItemEntity item;
@@ -98,10 +100,12 @@ class AssetCard extends StatelessWidget {
                 ),
               ),
 
-              // Arrow
+              // Arrow or Create Icon
               Icon(
-                Icons.chevron_right,
-                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
+                color: item.isUnknown
+                    ? Colors.green
+                    : theme.colorScheme.onSurface.withOpacity(0.4),
               ),
             ],
           ),
@@ -110,14 +114,24 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  void _navigateToDetail(BuildContext context) {
+  // แก้ไข _navigateToDetail method ใน AssetCard
+  void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
-      Navigator.of(context).push(
+      // Navigate to Create Asset Page for unknown items
+      final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
-          builder: (context) => UnknownItemDetailPage(assetNo: item.assetNo),
+          builder: (context) => CreateAssetPage(assetNo: item.assetNo),
         ),
       );
+
+      // ถ้าสร้าง asset สำเร็จ แล้ว result กลับมา
+      if (result != null && context.mounted) {
+        context.read<ScanBloc>().add(
+          AssetCreatedFromUnknown(createdAsset: result),
+        );
+      }
     } else {
+      // Navigate to Asset Detail Page for existing items
       final scanBloc = context.read<ScanBloc>();
       Navigator.of(context).push(
         MaterialPageRoute(

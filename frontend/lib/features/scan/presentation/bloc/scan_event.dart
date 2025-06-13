@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/bloc/scan_event.dart
 import 'package:equatable/equatable.dart';
+import 'package:frontend/features/scan/domain/entities/scanned_item_entity.dart';
 
 abstract class ScanEvent extends Equatable {
   const ScanEvent();
@@ -47,4 +48,14 @@ class LogAssetScanned extends ScanEvent {
 
   @override
   List<Object?> get props => [assetNo, scannedBy];
+}
+
+// แก้ไข AssetCreatedFromUnknown event ให้ครบ
+class AssetCreatedFromUnknown extends ScanEvent {
+  final ScannedItemEntity createdAsset;
+
+  const AssetCreatedFromUnknown({required this.createdAsset});
+
+  @override
+  List<Object?> get props => [createdAsset];
 }

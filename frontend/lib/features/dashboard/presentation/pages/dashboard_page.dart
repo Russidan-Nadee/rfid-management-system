@@ -21,7 +21,8 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<DashboardBloc>()..add(const LoadDashboard()),
+      create: (context) =>
+          getIt<DashboardBloc>()..add(const LoadDashboard(forceRefresh: true)),
       child: const DashboardPageView(),
     );
   }
@@ -39,21 +40,17 @@ class _DashboardPageViewState extends State<DashboardPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: const Text('Dashboard Overview'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _onRefresh,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-          ),
-        ],
+        title: const Text(
+          'Dashboard Overview',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.primary,
+        elevation: 1,
       ),
       body: BlocConsumer<DashboardBloc, DashboardState>(
         listener: (context, state) {
@@ -287,7 +284,9 @@ class _DashboardPageViewState extends State<DashboardPageView> {
     setState(() {
       _selectedPeriod = newPeriod;
     });
-    context.read<DashboardBloc>().add(ChangePeriod(newPeriod));
+    context.read<DashboardBloc>().add(
+      LoadDashboard(period: newPeriod, forceRefresh: true),
+    );
   }
 
   void _onRefresh() {

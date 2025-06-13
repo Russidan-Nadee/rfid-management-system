@@ -26,6 +26,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<UpdateAssetStatus>(_onUpdateAssetStatus);
     on<MarkAssetChecked>(_onMarkAssetChecked);
     on<LogAssetScanned>(_onLogAssetScanned);
+    on<AssetCreatedFromUnknown>(_onAssetCreatedFromUnknown);
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<ScanState> emit) async {
@@ -149,6 +150,29 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       await scanRepository.logAssetScan(event.assetNo, event.scannedBy);
     } catch (e) {
       // Silent fail - ไม่ emit error state เพื่อไม่กระทบ scan process
+    }
+  }
+
+  // เพิ่มใน ScanBloc class
+
+  Future<void> _onAssetCreatedFromUnknown(
+    AssetCreatedFromUnknown event,
+    Emitter<ScanState> emit,
+  ) async {
+    // เช็คว่า current state เป็น ScanSuccess หรือไม่
+    if (state is ScanSuccess) {
+      final currentState = state as ScanSuccess;
+
+      // หา unknown item แล้วแทนที่ด้วย created asset
+      final updatedItems = currentState.scannedItems.map((item) {
+        if (item.assetNo == event.createdAsset.assetNo && item.isUnknown) {
+          return event.createdAsset; // แทนที่ด้วย asset ที่สร้างแล้ว
+        }
+        return item; // เก็บ item เดิม
+      }).toList();
+
+      // Emit state ใหม่พร้อม updated list
+      emit(ScanSuccess(scannedItems: updatedItems));
     }
   }
 }

@@ -10,7 +10,7 @@ class AppColors {
   static const Color onBackground = Color(0xFF1F2937);
 
   // Status Colors (Dashboard specific)
-  static final Color success = Colors.green; // Green 500
+  static final Color success = Color.fromARGB(255, 30, 180, 60); // Green 500
   static const Color successLight = Color(0xFFD1FAE5); // Green 100
   static const Color warning = Color(0xFFF59E0B); // Orange 500
   static const Color warningLight = Color(0xFFFEF3C7); // Orange 100
@@ -20,19 +20,29 @@ class AppColors {
   static const Color infoLight = Color(0xFFDDEAFE); // Blue 100
 
   // Asset Status Colors
-  static const Color assetActive = Colors.green; // Green - Active assets
+  static const Color assetActive = Color.fromARGB(
+    255,
+    30,
+    180,
+    60,
+  ); // Green - Active assets
   static const Color assetInactive = Color(
     0xFFF59E0B,
   ); // Orange - Inactive assets
   static const Color assetCreated = Color(0xFF3B82F6); // Blue - Created assets
 
   // Trend Colors
-  static const Color trendUp = Color(0xFF10B981); // Green - Positive trend
+  static const Color trendUp = Color.fromARGB(
+    255,
+    30,
+    180,
+    60,
+  ); // Green - Positive trend
   static const Color trendDown = Color(0xFFEF4444); // Red - Negative trend
   static const Color trendStable = Color(0xFF6B7280); // Gray - Stable trend
 
   // Chart Colors
-  static const Color chartGreen = Colors.green;
+  static const Color chartGreen = Color.fromARGB(255, 30, 180, 60);
   static const Color chartRed = Color(0xFFEF4444);
   static const Color chartBlue = Color(0xFF3B82F6);
   static const Color chartOrange = Color(0xFFF59E0B);
@@ -40,7 +50,12 @@ class AppColors {
 
   // Export Status Colors
   static const Color exportPending = Color(0xFFF59E0B); // Orange
-  static const Color exportCompleted = Color(0xFF10B981); // Green
+  static const Color exportCompleted = Color.fromARGB(
+    255,
+    30,
+    180,
+    60,
+  ); // Green
   static const Color exportFailed = Color(0xFFEF4444); // Red
 
   // Severity Colors (Alerts)
