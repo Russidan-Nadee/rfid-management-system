@@ -196,10 +196,10 @@ class _DashboardPageViewState extends State<DashboardPageView> {
           color: AppColors.primary,
         ),
         SummaryCard(
-          icon: Icons.check_circle_outline,
-          label: 'Active Assets',
+          icon: Icons.warning_amber_outlined,
+          label: 'Avalable Assets',
           value: overview.activeAssets.toString(),
-          color: AppColors.assetActive,
+          color: AppColors.chartPurple,
         ),
         SummaryCard(
           icon: Icons.cancel_outlined,

@@ -216,12 +216,22 @@ class Helpers {
 
   // Show success message
   static void showSuccess(BuildContext context, String message) {
-    showSnackBar(context, message, backgroundColor: Colors.green);
+    showSnackBar(
+      context,
+      message,
+      backgroundColor: Colors.green,
+      duration: const Duration(seconds: 1),
+    );
   }
 
   // Show error message
   static void showError(BuildContext context, String message) {
-    showSnackBar(context, message, backgroundColor: Colors.red);
+    showSnackBar(
+      context,
+      message,
+      backgroundColor: Colors.red,
+      duration: const Duration(seconds: 2),
+    );
   }
 
   // Generate unique ID
