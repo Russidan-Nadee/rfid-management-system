@@ -51,7 +51,7 @@ class ApiService {
           }
           return ValidationException([message]);
         case 401:
-          return UnauthorizedException();
+          throw UnauthorizedException();
         case 403:
           return ForbiddenException();
         case 404:
@@ -160,7 +160,25 @@ class ApiService {
         final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
         return ApiResponse.fromJson(jsonResponse, fromJson);
       } else {
-        throw _handleError(response);
+        try {
+          throw _handleError(response);
+        } catch (e) {
+          if (e is UnauthorizedException && requiresAuth) {
+            final refreshed = await _refreshToken();
+            if (refreshed) {
+              // Retry original request
+              return _makeRequest<T>(
+                method,
+                endpoint,
+                body: body,
+                queryParams: queryParams,
+                requiresAuth: requiresAuth,
+                fromJson: fromJson,
+              );
+            }
+          }
+          rethrow; // throw error ต่อไป
+        }
       }
     } catch (e) {
       if (e is AppException) {
@@ -321,6 +339,38 @@ class ApiService {
       'meta': response.meta,
       'timestamp': DateTime.now().toIso8601String(),
     };
+  }
+
+  // เพิ่มใน api_service.dart
+  Future<bool> _refreshToken() async {
+    print('🔄 ATTEMPTING TOKEN REFRESH...');
+    final refreshToken = await _storage.getRefreshToken();
+    if (refreshToken == null) {
+      print('❌ NO REFRESH TOKEN FOUND');
+      return false;
+    }
+
+    try {
+      print('📡 CALLING REFRESH API...');
+      final response = await _client.post(
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.refreshToken}'),
+        headers: ApiConstants.defaultHeaders,
+        body: jsonEncode({'token': refreshToken}),
+      );
+      print('📥 REFRESH RESPONSE: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await _storage.saveAuthToken(data['token']);
+        print('✅ TOKEN REFRESHED SUCCESSFULLY');
+        return true;
+      }
+    } catch (e) {
+      print('Refresh failed: $e');
+    }
+    print('❌ TOKEN REFRESH FAILED');
+
+    return false;
   }
 
   // Dispose resources

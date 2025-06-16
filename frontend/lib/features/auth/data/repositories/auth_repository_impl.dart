@@ -84,11 +84,17 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> refreshToken() async {
     try {
-      final token = await storageService.getAuthToken();
-      if (token == null) return false;
+      final refreshToken = await storageService.getRefreshToken();
+      if (refreshToken == null) return false;
 
-      final success = await remoteDataSource.refreshToken(token);
-      return success;
+      final response = await remoteDataSource.refreshToken(refreshToken);
+
+      if (response) {
+        // ถ้า Backend return token ใหม่ ต้องบันทึก
+        // แต่ตอนนี้ Backend แค่ validate เลยไม่ต้องทำอะไร
+        return true;
+      }
+      return false;
     } catch (e) {
       return false;
     }
