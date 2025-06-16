@@ -5,7 +5,6 @@ import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../pages/asset_detail_page.dart';
-import '../pages/unknown_item_detail_page.dart';
 import '../pages/create_asset_page.dart';
 
 class AssetCard extends StatelessWidget {
