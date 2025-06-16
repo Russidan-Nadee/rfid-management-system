@@ -21,19 +21,11 @@ class ExportCleanupService {
             return;
          }
 
-         console.log('Starting automatic export cleanup...');
+         console.log('Starting daily export cleanup...');
          await this.runCleanup();
       });
 
-      // ทำงานทุก 6 ชั่วโมง (optional - for more frequent cleanup)
-      cron.schedule('0 */6 * * *', async () => {
-         if (this.isRunning) return;
-
-         console.log('Starting periodic export cleanup...');
-         await this.runCleanup();
-      });
-
-      console.log('Export cleanup scheduler started');
+      console.log('Daily export cleanup scheduler started');
    }
 
    /**

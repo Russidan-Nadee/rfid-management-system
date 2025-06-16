@@ -63,7 +63,7 @@ app.use(errorHandler);
 const cleanupService = new ExportCleanupService();
 
 // Start cleanup scheduler when app starts
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.TEST_CLEANUP === 'true') {
    cleanupService.startScheduler();
    console.log('🧹 Export cleanup scheduler started');
 } else {

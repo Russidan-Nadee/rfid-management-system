@@ -421,7 +421,7 @@ class ExportService {
     */
    _calculateExpiryDate() {
       const expiryDate = new Date();
-      expiryDate.setHours(expiryDate.getHours() + 1);
+      expiryDate.setHours(expiryDate.getHours() + 24);
       return expiryDate;
    }
 
