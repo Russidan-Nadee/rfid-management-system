@@ -1,0 +1,21 @@
+# Node.js
+node_modules/
+*.log
+
+# Environment (ถ้าเอาไว้ใน backend)
+.env
+
+# Uploads & Export Files
+uploads/
+uploads/**/*
+
+# Database files
+*.db
+*.sqlite
+
+# Cache
+.cache/
+
+# IDE
+.vscode/
+.DS_Store
