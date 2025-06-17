@@ -19,15 +19,15 @@ class ApiService {
     final headers = Map<String, String>.from(ApiConstants.defaultHeaders);
 
     if (requiresAuth) {
-      // final token = await _storage.getAuthToken();
-      // print('📡 REQUIRE AUTH: $requiresAuth'); // เพิ่มนี้
-      // print('🔑 HEADER TOKEN: $token'); // เพิ่มนี้
-      // if (token != null) {
-      //   headers['Authorization'] = 'Bearer $token';
-      //   print('✅ Authorization header added'); // เพิ่มนี้
-      // } else {
-      //   print('❌ NO TOKEN - Request will fail'); // เพิ่มนี้
-      // }
+      final token = await _storage.getAuthToken();
+      // print('📡 REQUIRE AUTH: $requiresAuth');
+      // print('🔑 HEADER TOKEN: $token');
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+        // print('✅ Authorization header added');
+      } else {
+        print('❌ NO TOKEN - Request will fail');
+      }
     }
 
     return headers;

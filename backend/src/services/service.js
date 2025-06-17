@@ -1,5 +1,6 @@
 // Path: backend/src/services/service.js
 const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../models/model');
+const DepartmentService = require('./departmentService');
 
 class BaseService {
    constructor(model) {
@@ -496,5 +497,6 @@ module.exports = {
    LocationService,
    UnitService,
    UserService,
-   AssetService
+   AssetService,
+   DepartmentService
 };

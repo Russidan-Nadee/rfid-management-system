@@ -37,44 +37,31 @@ class OverviewModel {
       // Handle nested structure from Backend
       final overview = json['overview'] as Map<String, dynamic>? ?? json;
 
-      print('🔍 DEBUG: Overview JSON structure:');
-      print('Raw overview data: $overview');
+      // Extract basic values directly
+      final totalAssets = overview['total_assets'] ?? 0;
+      final activeAssets = overview['active_assets'] ?? 0;
+      final inactiveAssets = overview['inactive_assets'] ?? 0;
+      final createdAssets = overview['created_assets'] ?? 0;
 
-      // Extract values with enhanced debugging
-      final totalAssets = _extractValue(overview['total_assets']) ?? 0;
-      final activeAssets = _extractValue(overview['active_assets']) ?? 0;
-      final inactiveAssets = _extractValue(overview['inactive_assets']) ?? 0;
-      final createdAssets = _extractValue(overview['created_assets']) ?? 0;
-      final todayScans = _extractValue(overview['scans']) ?? 0;
-      final exportSuccess7d = _extractValue(overview['export_success']) ?? 0;
-      final exportFailed7d = _extractValue(overview['export_failed']) ?? 0;
+      // Extract scan data
+      final scansData = overview['scans'] as Map<String, dynamic>?;
+      final todayScans = scansData?['value'] ?? 0;
+      final scansChangePercent = scansData?['change_percent'];
+      final scansTrend = scansData?['trend'];
 
-      // Extract trend data with debugging
-      final scansData = overview['scans'];
-      final exportSuccessData = overview['export_success'];
-      final exportFailedData = overview['export_failed'];
+      // Extract export success data
+      final exportSuccessData =
+          overview['export_success'] as Map<String, dynamic>?;
+      final exportSuccess7d = exportSuccessData?['value'] ?? 0;
+      final exportSuccessChangePercent = exportSuccessData?['change_percent'];
+      final exportSuccessTrend = exportSuccessData?['trend'];
 
-      print('📊 DEBUG: Trend data extraction:');
-      print('Scans data: $scansData');
-      print('Export success data: $exportSuccessData');
-      print('Export failed data: $exportFailedData');
-
-      // Parse trend information
-      final scansChangePercent = _extractChangePercent(scansData);
-      final scansTrend = _extractTrend(scansData);
-      final exportSuccessChangePercent = _extractChangePercent(
-        exportSuccessData,
-      );
-      final exportSuccessTrend = _extractTrend(exportSuccessData);
-      final exportFailedChangePercent = _extractChangePercent(exportFailedData);
-      final exportFailedTrend = _extractTrend(exportFailedData);
-
-      print('🔄 DEBUG: Parsed trend values:');
-      print('Scans: $scansChangePercent% ($scansTrend)');
-      print(
-        'Export Success: $exportSuccessChangePercent% ($exportSuccessTrend)',
-      );
-      print('Export Failed: $exportFailedChangePercent% ($exportFailedTrend)');
+      // Extract export failed data
+      final exportFailedData =
+          overview['export_failed'] as Map<String, dynamic>?;
+      final exportFailed7d = exportFailedData?['value'] ?? 0;
+      final exportFailedChangePercent = exportFailedData?['change_percent'];
+      final exportFailedTrend = exportFailedData?['trend'];
 
       return OverviewModel(
         totalAssets: totalAssets,
@@ -108,52 +95,6 @@ class OverviewModel {
         exportFailed7d: 0,
       );
     }
-  }
-
-  // Helper method to extract value from nested objects
-  static int? _extractValue(dynamic data) {
-    if (data == null) return null;
-
-    if (data is int) {
-      return data;
-    } else if (data is Map<String, dynamic>) {
-      final value = data['value'];
-      if (value is int) return value;
-      if (value is String) return int.tryParse(value);
-    } else if (data is String) {
-      return int.tryParse(data);
-    }
-
-    print(
-      '⚠️ WARNING: Could not extract value from: $data (${data.runtimeType})',
-    );
-    return null;
-  }
-
-  // Helper method to extract change percentage
-  static int? _extractChangePercent(dynamic data) {
-    if (data == null) return null;
-
-    if (data is Map<String, dynamic>) {
-      final changePercent = data['change_percent'];
-      if (changePercent is int) return changePercent;
-      if (changePercent is double) return changePercent.round();
-      if (changePercent is String) return int.tryParse(changePercent);
-    }
-
-    return null;
-  }
-
-  // Helper method to extract trend direction
-  static String? _extractTrend(dynamic data) {
-    if (data == null) return null;
-
-    if (data is Map<String, dynamic>) {
-      final trend = data['trend'];
-      if (trend is String) return trend;
-    }
-
-    return null;
   }
 
   Map<String, dynamic> toJson() {

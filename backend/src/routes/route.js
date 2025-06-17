@@ -40,13 +40,17 @@ const {
    validateExportSize
 } = require('../validators/exportValidator');
 
-// Import dashboard validators (NEW)
+// Import dashboard validators (ENHANCED)
 const {
    dashboardStatsValidator,
    dashboardAlertsValidator,
    dashboardRecentValidator,
    dashboardOverviewValidator,
-   dashboardQuickStatsValidator
+   dashboardQuickStatsValidator,
+   assetsByDepartmentValidator,
+   growthTrendsValidator,
+   locationAnalyticsValidator,
+   auditProgressValidator
 } = require('../validators/dashboardValidator');
 
 // Import middleware
@@ -94,12 +98,37 @@ router.get('/dashboard/quick-stats',
    dashboardController.getQuickStats
 );
 
-// API Documentation สำหรับ Dashboard APIs (NEW)
+// Enhanced Dashboard Routes (NEW FEATURE APIS)
+router.get('/dashboard/assets-by-plant',
+   generalRateLimit,
+   assetsByDepartmentValidator,
+   dashboardController.getAssetsByDepartment
+);
+
+router.get('/dashboard/growth-trends',
+   generalRateLimit,
+   growthTrendsValidator,
+   dashboardController.getGrowthTrends
+);
+
+router.get('/dashboard/location-analytics',
+   generalRateLimit,
+   locationAnalyticsValidator,
+   dashboardController.getLocationAnalytics
+);
+
+router.get('/dashboard/audit-progress',
+   generalRateLimit,
+   auditProgressValidator,
+   dashboardController.getAuditProgress
+);
+
+// API Documentation สำหรับ Dashboard APIs (ENHANCED)
 router.get('/dashboard/docs', (req, res) => {
    const dashboardDocs = {
       success: true,
-      message: 'Dashboard API Documentation',
-      version: '1.0.0',
+      message: 'Enhanced Dashboard API Documentation',
+      version: '2.0.0',
       timestamp: new Date().toISOString(),
       endpoints: {
          '/dashboard/stats': {
@@ -159,6 +188,72 @@ router.get('/dashboard/docs', (req, res) => {
                exports: 'Export activity in period',
                users: 'Active users in period'
             }
+         },
+         '/dashboard/assets-by-plant': {
+            method: 'GET',
+            description: 'Get assets distribution by department (Pie Chart data)',
+            parameters: {
+               plant_code: 'Filter by specific plant (optional)'
+            },
+            response: {
+               pie_chart_data: 'Asset distribution with percentages',
+               summary: 'Department statistics summary',
+               filter_info: 'Applied filters and metadata'
+            },
+            example: '/dashboard/assets-by-plant?plant_code=P001'
+         },
+         '/dashboard/growth-trends': {
+            method: 'GET',
+            description: 'Get growth trends by department/location (Line Chart data)',
+            parameters: {
+               dept_code: 'Filter by department (optional)',
+               period: 'Time period: Q1|Q2|Q3|Q4|1Y|custom (default: Q2)',
+               year: 'Year for quarterly/yearly data (default: current year)',
+               start_date: 'Start date for custom period (YYYY-MM-DD)',
+               end_date: 'End date for custom period (YYYY-MM-DD)'
+            },
+            response: {
+               trends: 'Monthly/quarterly growth data with percentages',
+               period_info: 'Period details and summary'
+            },
+            examples: [
+               '/dashboard/growth-trends?period=Q2&year=2024',
+               '/dashboard/growth-trends?dept_code=IT&period=custom&start_date=2024-01-01&end_date=2024-06-30'
+            ]
+         },
+         '/dashboard/location-analytics': {
+            method: 'GET',
+            description: 'Get location analytics and utilization data',
+            parameters: {
+               location_code: 'Filter by specific location (optional)',
+               period: 'Time period for trends: Q1|Q2|Q3|Q4|1Y|custom (default: Q2)',
+               year: 'Year for trend data (default: current year)',
+               start_date: 'Start date for custom period (YYYY-MM-DD)',
+               end_date: 'End date for custom period (YYYY-MM-DD)',
+               include_trends: 'Include growth trends: true|false (default: true)'
+            },
+            response: {
+               location_analytics: 'Location utilization and asset statistics',
+               analytics_summary: 'Utilization metrics summary',
+               growth_trends: 'Location-specific growth trends (if requested)'
+            },
+            example: '/dashboard/location-analytics?location_code=L001&include_trends=true'
+         },
+         '/dashboard/audit-progress': {
+            method: 'GET',
+            description: 'Get audit progress and completion status',
+            parameters: {
+               dept_code: 'Filter by department (optional)',
+               include_details: 'Include detailed asset audit data: true|false (default: false)',
+               audit_status: 'Filter by audit status: audited|never_audited|overdue (optional)'
+            },
+            response: {
+               audit_progress: 'Department-wise audit completion data',
+               overall_progress: 'Overall audit statistics (if multiple departments)',
+               detailed_audit: 'Asset-level audit details (if requested)',
+               recommendations: 'Audit improvement recommendations'
+            },
+            example: '/dashboard/audit-progress?dept_code=IT&include_details=true'
          }
       },
       database_tables: {
@@ -168,13 +263,24 @@ router.get('/dashboard/docs', (req, res) => {
          export_history: 'Export job tracking',
          mst_plant: 'Plant master data',
          mst_location: 'Location master data',
+         mst_department: 'Department master data (NEW)',
          mst_user: 'User master data',
          user_login_log: 'User activity logs'
       },
       period_options: {
-         today: 'Current day (00:00 to now)',
-         '7d': 'Last 7 days',
-         '30d': 'Last 30 days'
+         basic_periods: {
+            today: 'Current day (00:00 to now)',
+            '7d': 'Last 7 days',
+            '30d': 'Last 30 days'
+         },
+         enhanced_periods: {
+            Q1: 'Quarter 1 (January - March)',
+            Q2: 'Quarter 2 (April - June)',
+            Q3: 'Quarter 3 (July - September)',
+            Q4: 'Quarter 4 (October - December)',
+            '1Y': 'Full year (January - December)',
+            custom: 'Custom date range (requires start_date and end_date)'
+         }
       },
       asset_status_codes: {
          'A': 'Active',
@@ -185,6 +291,19 @@ router.get('/dashboard/docs', (req, res) => {
          'P': 'Pending',
          'C': 'Completed',
          'F': 'Failed'
+      },
+      audit_status_codes: {
+         'audited': 'Audited within last 12 months',
+         'never_audited': 'Never been audited',
+         'overdue': 'Audit overdue (more than 12 months)'
+      },
+      new_features: {
+         department_analytics: 'Asset distribution and growth tracking by department',
+         location_insights: 'Location utilization and performance metrics',
+         audit_tracking: 'Asset audit progress and compliance monitoring',
+         quarterly_trends: 'Quarterly and custom date range analytics',
+         growth_calculations: 'Automatic growth percentage calculations',
+         recommendations: 'AI-driven audit and utilization recommendations'
       }
    };
 
@@ -295,7 +414,11 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/dashboard/recent': 'Get recent activities (scans and exports)',
             'GET /api/v1/dashboard/overview': 'Get system overview with charts and trends',
             'GET /api/v1/dashboard/quick-stats': 'Get quick statistics for widgets',
-            'GET /api/v1/dashboard/docs': 'Get dashboard API documentation'
+            'GET /api/v1/dashboard/assets-by-plant': 'Get assets distribution by department (Pie Chart)',
+            'GET /api/v1/dashboard/growth-trends': 'Get growth trends by department/location (Line Chart)',
+            'GET /api/v1/dashboard/location-analytics': 'Get location analytics and utilization data',
+            'GET /api/v1/dashboard/audit-progress': 'Get audit progress and completion status',
+            'GET /api/v1/dashboard/docs': 'Get detailed dashboard API documentation'
          },
          plants: {
             'GET /api/v1/plants': 'Get all active plants',
@@ -353,7 +476,11 @@ router.get('/docs', (req, res) => {
             plant_code: 'Filter by plant code',
             location_code: 'Filter by location code',
             unit_code: 'Filter by unit code',
-            period: 'Time period filter (today, 7d, 30d) - for dashboard APIs'
+            dept_code: 'Filter by department code (NEW)',
+            period: 'Time period filter (today, 7d, 30d, Q1, Q2, Q3, Q4, 1Y, custom)',
+            year: 'Year for quarterly/yearly data',
+            start_date: 'Start date for custom period (YYYY-MM-DD)',
+            end_date: 'End date for custom period (YYYY-MM-DD)'
          },
          search: {
             search: 'Search term for asset number, description, serial number, inventory number'

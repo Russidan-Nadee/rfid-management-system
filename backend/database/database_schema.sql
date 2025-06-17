@@ -1,7 +1,7 @@
 -- =====================================================
 -- RFID Asset Management System - Database Schema
 -- =====================================================
--- Exact schema matching migration files
+-- Updated schema with Department table
 -- =====================================================
 
 USE rfidassetdb;
@@ -47,7 +47,24 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Master table for user information';
 
--- 4. Location Master Table
+-- 4. Department Master Table
+CREATE TABLE `mst_department` (
+  `dept_code` VARCHAR(10) NOT NULL COMMENT 'Department code - unique identifier',
+  `description` VARCHAR(255) DEFAULT NULL COMMENT 'Department description',
+  `plant_code` VARCHAR(10) DEFAULT NULL COMMENT 'Plant code reference',
+  PRIMARY KEY (`dept_code`),
+  INDEX `idx_mst_department_plant_code` (`plant_code`),
+  CONSTRAINT `fk_mst_department_plant_code` 
+    FOREIGN KEY (`plant_code`) 
+    REFERENCES `mst_plant` (`plant_code`) 
+    ON DELETE RESTRICT 
+    ON UPDATE CASCADE
+) ENGINE=InnoDB 
+DEFAULT CHARSET=utf8mb4 
+COLLATE=utf8mb4_unicode_ci 
+COMMENT='Master table for department information';
+
+-- 5. Location Master Table
 CREATE TABLE `mst_location` (
   `location_code` VARCHAR(10) NOT NULL COMMENT 'Location code - unique identifier',
   `description` VARCHAR(255) DEFAULT NULL COMMENT 'Location description',
@@ -64,12 +81,13 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Master table for location information';
 
--- 5. Asset Master Table
+-- 6. Asset Master Table
 CREATE TABLE `asset_master` (
   `asset_no` VARCHAR(20) NOT NULL COMMENT 'Asset number - unique identifier',
   `description` VARCHAR(255) DEFAULT NULL COMMENT 'Asset description',
   `plant_code` VARCHAR(10) DEFAULT NULL COMMENT 'Plant code reference',
   `location_code` VARCHAR(10) DEFAULT NULL COMMENT 'Location code reference',
+  `dept_code` VARCHAR(10) DEFAULT NULL COMMENT 'Department code reference',
   `serial_no` VARCHAR(50) DEFAULT NULL COMMENT 'Serial number - unique',
   `inventory_no` VARCHAR(50) DEFAULT NULL COMMENT 'Inventory number - unique',
   `quantity` DECIMAL(10,2) DEFAULT NULL COMMENT 'Asset quantity',
@@ -85,6 +103,7 @@ CREATE TABLE `asset_master` (
   
   INDEX `idx_asset_master_plant_code` (`plant_code`),
   INDEX `idx_asset_master_location_code` (`location_code`),
+  INDEX `idx_asset_master_dept_code` (`dept_code`),
   INDEX `idx_asset_master_unit_code` (`unit_code`),
   INDEX `idx_asset_master_status` (`status`),
   INDEX `idx_asset_master_created_by` (`created_by`),
@@ -99,6 +118,12 @@ CREATE TABLE `asset_master` (
   CONSTRAINT `fk_asset_master_location_code` 
     FOREIGN KEY (`location_code`) 
     REFERENCES `mst_location` (`location_code`) 
+    ON DELETE SET NULL 
+    ON UPDATE CASCADE,
+    
+  CONSTRAINT `fk_asset_master_dept_code` 
+    FOREIGN KEY (`dept_code`) 
+    REFERENCES `mst_department` (`dept_code`) 
     ON DELETE SET NULL 
     ON UPDATE CASCADE,
     
@@ -118,7 +143,7 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Asset master table';
 
--- 6. Asset Scan Log Table
+-- 7. Asset Scan Log Table
 CREATE TABLE `asset_scan_log` (
   `scan_id` INT NOT NULL AUTO_INCREMENT COMMENT 'Scan ID - auto increment',
   `asset_no` VARCHAR(20) DEFAULT NULL COMMENT 'Asset number reference',
@@ -155,7 +180,7 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Asset scan log table';
 
--- 7. Asset Status History Table
+-- 8. Asset Status History Table
 CREATE TABLE `asset_status_history` (
   `history_id` INT NOT NULL AUTO_INCREMENT COMMENT 'History ID - auto increment',
   `asset_no` VARCHAR(20) DEFAULT NULL COMMENT 'Asset number reference',
@@ -185,7 +210,7 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Asset status change history table';
 
--- 8. Export History Table
+-- 9. Export History Table
 CREATE TABLE `export_history` (
   `export_id` INT NOT NULL AUTO_INCREMENT COMMENT 'Export ID - auto increment',
   `user_id` VARCHAR(20) NOT NULL COMMENT 'User who requested the export',
@@ -214,7 +239,7 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_unicode_ci 
 COMMENT='Export history and status tracking table';
 
--- 9. User Login Log Table
+-- 10. User Login Log Table
 CREATE TABLE `user_login_log` (
   `log_id` INT NOT NULL AUTO_INCREMENT COMMENT 'Log ID - auto increment',
   `user_id` VARCHAR(20) DEFAULT NULL COMMENT 'User ID reference',

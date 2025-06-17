@@ -71,22 +71,6 @@ class DashboardPageMock extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             _DashboardCard(
-              title: '📊 วิเคราะห์สินทรัพย์ใหม่ที่เพิ่มเข้าระบบ',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    '• ปีนี้มีการเพิ่ม Asset ใหม่ 320 ชิ้น (+18% เทียบกับปีก่อน)',
-                  ),
-                  Text('• ส่วนใหญ่เป็นอุปกรณ์ IT และเครื่องมือผลิต'),
-                  Text('• บ่งชี้แนวโน้มการลงทุนเชิงรุกด้านเทคโนโลยี'),
-                  Text(
-                    '→ ควรตรวจสอบว่าลงทะเบียนครบ และใช้งานอย่างมีประสิทธิภาพ',
-                  ),
-                ],
-              ),
-            ),
-            _DashboardCard(
               title: '🏢 การกระจายสินทรัพย์ตามแผนก',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,6 +110,375 @@ class DashboardPageMock extends StatelessWidget {
                   const Text('• IT ใช้งบลงทุนมากที่สุด (45%)'),
                   const Text('• โรงงานรองลงมา (30%) → เน้นการผลิต'),
                   const Text('→ วิเคราะห์ ROI แยกแผนก เพื่อวางกลยุทธ์ปีถัดไป'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _DashboardCard(
+              title: '📈 การเติบโตของสินทรัพย์แต่ละแผนก',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'แผนก:',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      DropdownButton<String>(
+                        value: 'IT',
+                        items: ['IT', 'โรงงาน', 'Logistics', 'อื่นๆ'].map((
+                          dept,
+                        ) {
+                          return DropdownMenuItem(
+                            value: dept,
+                            child: Text(dept),
+                          );
+                        }).toList(),
+                        onChanged: (v) {},
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 200,
+                    child: LineChart(
+                      LineChartData(
+                        gridData: FlGridData(show: true),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 50,
+                              getTitlesWidget: (value, meta) {
+                                return Text('${value.toInt()}%');
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                const months = [
+                                  'ม.ค.',
+                                  'ก.พ.',
+                                  'มี.ค.',
+                                  'เม.ย.',
+                                  'พ.ค.',
+                                  'มิ.ย.',
+                                ];
+                                if (value.toInt() < months.length) {
+                                  return Text(months[value.toInt()]);
+                                }
+                                return const Text('');
+                              },
+                            ),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        borderData: FlBorderData(show: true),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: const [
+                              FlSpot(0, 5), // ม.ค. +5%
+                              FlSpot(1, 8), // ก.พ. +8%
+                              FlSpot(2, 12), // มี.ค. +12%
+                              FlSpot(3, 18), // เม.ย. +18%
+                              FlSpot(4, 15), // พ.ค. +15%
+                              FlSpot(5, 22), // มิ.ย. +22%
+                            ],
+                            isCurved: true,
+                            color: Colors.blue,
+                            barWidth: 3,
+                            dotData: FlDotData(show: true),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: Colors.blue.withOpacity(0.1),
+                            ),
+                          ),
+                        ],
+                        minX: 0,
+                        maxX: 5,
+                        minY: 0,
+                        maxY: 25,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text('• แผนก IT มีการเติบโต 22% ในครึ่งปีแรก'),
+                  const Text(
+                    '• เพิ่มขึ้นอย่างต่อเนื่องจาก Digital Transformation',
+                  ),
+                  const Text('→ คาดการณ์เติบโต 40% ภายในสิ้นปี'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _DashboardCard(
+              title: '🏭 การเติบโตของสินทรัพย์แต่ละพื้นที่ปฏิบัติการ',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'พื้นที่:',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      DropdownButton<String>(
+                        value: 'Curing Oven Area',
+                        items:
+                            [
+                              'Curing Oven Area',
+                              'E-Coat Line 1',
+                              'Maintenance Workshop',
+                              'Phosphating Line 1',
+                              'Pre-Treatment Section',
+                              'Paint Spray Booth 1',
+                              'Quality Control Lab',
+                              'Wastewater Treatment',
+                            ].map((location) {
+                              return DropdownMenuItem(
+                                value: location,
+                                child: Text(location),
+                              );
+                            }).toList(),
+                        onChanged: (v) {},
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 200,
+                    child: LineChart(
+                      LineChartData(
+                        gridData: FlGridData(show: true),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 50,
+                              getTitlesWidget: (value, meta) {
+                                return Text('${value.toInt()}%');
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: (value, meta) {
+                                const months = [
+                                  'ม.ค.',
+                                  'ก.พ.',
+                                  'มี.ค.',
+                                  'เม.ย.',
+                                  'พ.ค.',
+                                  'มิ.ย.',
+                                ];
+                                if (value.toInt() < months.length) {
+                                  return Text(months[value.toInt()]);
+                                }
+                                return const Text('');
+                              },
+                            ),
+                          ),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                        ),
+                        borderData: FlBorderData(show: true),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: const [
+                              FlSpot(0, 8), // ม.ค. +8%
+                              FlSpot(1, 12), // ก.พ. +12%
+                              FlSpot(2, 15), // มี.ค. +15%
+                              FlSpot(3, 11), // เม.ย. +11%
+                              FlSpot(4, 18), // พ.ค. +18%
+                              FlSpot(5, 25), // มิ.ย. +25%
+                            ],
+                            isCurved: true,
+                            color: Colors.purple,
+                            barWidth: 3,
+                            dotData: FlDotData(show: true),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: Colors.purple.withOpacity(0.1),
+                            ),
+                          ),
+                        ],
+                        minX: 0,
+                        maxX: 5,
+                        minY: 0,
+                        maxY: 30,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '• พื้นที่ Curing Oven มีการเติบโต 25% ในครึ่งปีแรก',
+                  ),
+                  const Text('• การปรับปรุงเตาอบเพิ่มประสิทธิภาพการผลิต'),
+                  const Text(
+                    '→ เป้าหมายเพิ่มเครื่องจักรใหม่ 2 ชุดภายในไตรมาส 4',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _DashboardCard(
+              title: '📋 ความคืบหน้าการตรวจสอบประจำปี',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'แผนก:',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      DropdownButton<String>(
+                        value: 'ทั้งหมด',
+                        items: ['ทั้งหมด', 'IT', 'โรงงาน', 'Logistics', 'อื่นๆ']
+                            .map((dept) {
+                              return DropdownMenuItem(
+                                value: dept,
+                                child: Text(dept),
+                              );
+                            })
+                            .toList(),
+                        onChanged: (v) {
+                          // Handle department change
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Progress Circle
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: CircularProgressIndicator(
+                            value: 0.28, // 28%
+                            strokeWidth: 12,
+                            backgroundColor: Colors.grey.shade200,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.orange,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          children: const [
+                            Text(
+                              '28%',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange,
+                              ),
+                            ),
+                            Text(
+                              'เสร็จแล้ว',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Progress Details
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: const [
+                          Text(
+                            '350',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          Text(
+                            'ตรวจแล้ว',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey.shade300,
+                      ),
+                      Column(
+                        children: const [
+                          Text(
+                            '890',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
+                          ),
+                          Text(
+                            'รอตรวจ',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey.shade300,
+                      ),
+                      Column(
+                        children: const [
+                          Text(
+                            '1,240',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          Text(
+                            'ทั้งหมด',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+                  const Text('• ความคืบหน้าภาพรวม 28% ของการตรวจสอบประจำปี'),
+                  const Text('• เป้าหมายให้เสร็จสิ้นภายในไตรมาส 3'),
+                  const Text(
+                    '→ ต้องเร่งความเร็วเพิ่มขึ้น 15% เพื่อทันเป้าหมาย',
+                  ),
                 ],
               ),
             ),
