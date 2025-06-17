@@ -1,4 +1,4 @@
-// Path: lib/features/scan/presentation/pages/create_asset_page.dart
+// Path: frontend/lib/features/scan/presentation/pages/create_asset_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
@@ -11,22 +11,45 @@ import '../bloc/asset_creation_bloc.dart';
 
 class CreateAssetPage extends StatelessWidget {
   final String assetNo;
+  final String? plantCode;
+  final String? locationCode;
+  final String? locationName;
 
-  const CreateAssetPage({super.key, required this.assetNo});
+  const CreateAssetPage({
+    super.key,
+    required this.assetNo,
+    this.plantCode,
+    this.locationCode,
+    this.locationName,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => getIt<AssetCreationBloc>()..add(LoadMasterData()),
-      child: CreateAssetView(assetNo: assetNo),
+      child: CreateAssetView(
+        assetNo: assetNo,
+        plantCode: plantCode,
+        locationCode: locationCode,
+        locationName: locationName,
+      ),
     );
   }
 }
 
 class CreateAssetView extends StatefulWidget {
   final String assetNo;
+  final String? plantCode;
+  final String? locationCode;
+  final String? locationName;
 
-  const CreateAssetView({super.key, required this.assetNo});
+  const CreateAssetView({
+    super.key,
+    required this.assetNo,
+    this.plantCode,
+    this.locationCode,
+    this.locationName,
+  });
 
   @override
   State<CreateAssetView> createState() => _CreateAssetViewState();
@@ -42,6 +65,16 @@ class _CreateAssetViewState extends State<CreateAssetView> {
   String? _selectedPlant;
   String? _selectedLocation;
   String? _selectedUnit;
+
+  bool get _hasLocationData => widget.locationCode != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_hasLocationData) {
+      _selectedLocation = widget.locationCode;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,55 +319,100 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                     icon: Icons.location_on,
                     color: AppColors.info,
                     children: [
-                      // Plant Dropdown
-                      _buildDropdownField<String>(
-                        value: _selectedPlant,
-                        label: 'Plant',
-                        icon: Icons.business,
-                        isRequired: true,
-                        items: state.plants
-                            .map(
-                              (plant) => DropdownMenuItem(
-                                value: plant.plantCode,
-                                child: Text(plant.toString()),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedPlant = value;
-                            _selectedLocation = null;
-                          });
-                          if (value != null) {
-                            context.read<AssetCreationBloc>().add(
-                              PlantSelected(value),
-                            );
-                          }
-                        },
-                        validator: (value) =>
-                            value == null ? 'Please select a plant' : null,
-                      ),
-                      const SizedBox(height: 16),
+                      if (_hasLocationData) ...[
+                        // Read-only ถ้ามี location data
+                        _buildDropdownField<String>(
+                          value: _selectedPlant,
+                          label: 'Plant',
+                          icon: Icons.business,
+                          isRequired: true,
+                          items: state.plants
+                              .map(
+                                (plant) => DropdownMenuItem(
+                                  value: plant.plantCode,
+                                  child: Text(plant.toString()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedPlant = value;
+                              _selectedLocation = null;
+                            });
+                            if (value != null) {
+                              context.read<AssetCreationBloc>().add(
+                                PlantSelected(value),
+                              );
+                            }
+                          },
+                          validator: (value) =>
+                              value == null ? 'Please select a plant' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildReadOnlyField(
+                          label: 'Location Code',
+                          value: widget.locationCode!,
+                          icon: Icons.place,
+                        ),
+                        if (widget.locationName != null) ...[
+                          const SizedBox(height: 16),
+                          _buildReadOnlyField(
+                            label: 'Location Name',
+                            value: widget.locationName!,
+                            icon: Icons.location_city,
+                          ),
+                        ],
+                      ] else ...[
+                        // Dropdown ถ้าไม่มี location data
+                        _buildDropdownField<String>(
+                          value: _selectedPlant,
+                          label: 'Plant',
+                          icon: Icons.business,
+                          isRequired: true,
+                          items: state.plants
+                              .map(
+                                (plant) => DropdownMenuItem(
+                                  value: plant.plantCode,
+                                  child: Text(plant.toString()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedPlant = value;
+                              _selectedLocation = null;
+                            });
+                            if (value != null) {
+                              context.read<AssetCreationBloc>().add(
+                                PlantSelected(value),
+                              );
+                            }
+                          },
+                          validator: (value) =>
+                              value == null ? 'Please select a plant' : null,
+                        ),
+                        const SizedBox(height: 16),
 
-                      // Location Dropdown
-                      _buildDropdownField<String>(
-                        value: _selectedLocation,
-                        label: 'Location',
-                        icon: Icons.place,
-                        isRequired: true,
-                        items: state.locations
-                            .map(
-                              (location) => DropdownMenuItem(
-                                value: location.locationCode,
-                                child: Text(location.toString()),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedLocation = value),
-                        validator: (value) =>
-                            value == null ? 'Please select a location' : null,
-                      ),
+                        // Location Dropdown
+                        _buildDropdownField<String>(
+                          value: _selectedLocation,
+                          label: 'Location',
+                          icon: Icons.place,
+                          isRequired: true,
+                          items: state.locations
+                              .map(
+                                (location) => DropdownMenuItem(
+                                  value: location.locationCode,
+                                  child: Text(location.toString()),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedLocation = value),
+                          validator: (value) =>
+                              value == null ? 'Please select a location' : null,
+                        ),
+                      ],
                     ],
                   ),
 
@@ -700,7 +778,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           assetNo: widget.assetNo,
           description: _descriptionController.text,
           plantCode: _selectedPlant!,
-          locationCode: _selectedLocation!,
+          locationCode: widget.locationCode ?? _selectedLocation!,
           unitCode: _selectedUnit!,
           serialNo: _serialController.text.isNotEmpty
               ? _serialController.text

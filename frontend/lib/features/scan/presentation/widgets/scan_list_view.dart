@@ -8,7 +8,7 @@ import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
 import 'asset_card.dart';
 
-class ScanListView extends StatelessWidget {
+class ScanListView extends StatefulWidget {
   final List<ScannedItemEntity> scannedItems;
   final bool isLoading;
   final VoidCallback? onRefresh;
@@ -21,25 +21,35 @@ class ScanListView extends StatelessWidget {
   });
 
   @override
+  State<ScanListView> createState() => _ScanListViewState();
+}
+
+class _ScanListViewState extends State<ScanListView> {
+  bool _isLocationFilterExpanded = true;
+  bool _isStatusFilterExpanded = true;
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    print('ScanListView: Building with ${scannedItems.length} items');
-    print('ScanListView: isLoading = $isLoading');
+    print('ScanListView: Building with ${widget.scannedItems.length} items');
+    print('ScanListView: isLoading = ${widget.isLoading}');
 
-    if (isLoading) {
+    if (widget.isLoading) {
       print('ScanListView: Showing loading indicator');
       return Center(
         child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
 
-    if (scannedItems.isEmpty) {
+    if (widget.scannedItems.isEmpty) {
       print('ScanListView: Showing empty state');
       return _buildEmptyState(theme);
     }
 
-    print('ScanListView: Showing list with ${scannedItems.length} items');
+    print(
+      'ScanListView: Showing list with ${widget.scannedItems.length} items',
+    );
 
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
@@ -56,19 +66,21 @@ class ScanListView extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: () async {
             print('ScanListView: Pull to refresh triggered');
-            onRefresh?.call();
+            widget.onRefresh?.call();
           },
           color: theme.colorScheme.primary,
           child: Column(
             children: [
               // Location Filter
-              _LocationFilterWidgetWithContext(
-                availableLocations: availableLocations,
-                selectedLocation: selectedLocation,
+              _buildLocationFilter(
+                theme,
+                availableLocations,
+                selectedLocation,
+                context,
               ),
 
               // Header with status filters
-              _buildHeader(theme, statusCounts, selectedFilter, context),
+              _buildStatusFilter(theme, statusCounts, selectedFilter, context),
 
               // Filtered List
               Expanded(
@@ -96,14 +108,13 @@ class ScanListView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(
+  Widget _buildLocationFilter(
     ThemeData theme,
-    Map<String, int> statusCounts,
-    String selectedFilter,
+    List<String> availableLocations,
+    String selectedLocation,
     BuildContext context,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
@@ -111,72 +122,251 @@ class ScanListView extends StatelessWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.filter_list, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Filter by Status',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
-                ),
+          // Header
+          InkWell(
+            onTap: () => setState(
+              () => _isLocationFilterExpanded = !_isLocationFilterExpanded,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: theme.colorScheme.primary,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filter by Location',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const Spacer(),
+                  AnimatedRotation(
+                    turns: _isLocationFilterExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
 
-          const SizedBox(height: 12),
-
-          // Status Filter Chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildFilterChip(
-                theme,
-                'All',
-                statusCounts['All'] ?? 0,
-                selectedFilter,
-                context,
-              ),
-              if ((statusCounts['Active'] ?? 0) > 0)
-                _buildFilterChip(
-                  theme,
-                  'Active',
-                  statusCounts['Active'] ?? 0,
-                  selectedFilter,
-                  context,
-                ),
-              if ((statusCounts['Checked'] ?? 0) > 0)
-                _buildFilterChip(
-                  theme,
-                  'Checked',
-                  statusCounts['Checked'] ?? 0,
-                  selectedFilter,
-                  context,
-                ),
-              if ((statusCounts['Inactive'] ?? 0) > 0)
-                _buildFilterChip(
-                  theme,
-                  'Inactive',
-                  statusCounts['Inactive'] ?? 0,
-                  selectedFilter,
-                  context,
-                ),
-              if ((statusCounts['Unknown'] ?? 0) > 0)
-                _buildFilterChip(
-                  theme,
-                  'Unknown',
-                  statusCounts['Unknown'] ?? 0,
-                  selectedFilter,
-                  context,
-                ),
-            ],
+          // Content
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: _isLocationFilterExpanded ? null : 0,
+            child: _isLocationFilterExpanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: availableLocations.map((location) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildLocationChip(
+                              context,
+                              theme,
+                              location,
+                              selectedLocation,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildStatusFilter(
+    ThemeData theme,
+    Map<String, int> statusCounts,
+    String selectedFilter,
+    BuildContext context,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header
+          InkWell(
+            onTap: () => setState(
+              () => _isStatusFilterExpanded = !_isStatusFilterExpanded,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.filter_list, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filter by Status',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const Spacer(),
+                  AnimatedRotation(
+                    turns: _isStatusFilterExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Content
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: _isStatusFilterExpanded ? null : 0,
+            child: _isStatusFilterExpanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(
+                          theme,
+                          'All',
+                          statusCounts['All'] ?? 0,
+                          selectedFilter,
+                          context,
+                        ),
+                        if ((statusCounts['Active'] ?? 0) > 0)
+                          _buildFilterChip(
+                            theme,
+                            'Active',
+                            statusCounts['Active'] ?? 0,
+                            selectedFilter,
+                            context,
+                          ),
+                        if ((statusCounts['Checked'] ?? 0) > 0)
+                          _buildFilterChip(
+                            theme,
+                            'Checked',
+                            statusCounts['Checked'] ?? 0,
+                            selectedFilter,
+                            context,
+                          ),
+                        if ((statusCounts['Inactive'] ?? 0) > 0)
+                          _buildFilterChip(
+                            theme,
+                            'Inactive',
+                            statusCounts['Inactive'] ?? 0,
+                            selectedFilter,
+                            context,
+                          ),
+                        if ((statusCounts['Unknown'] ?? 0) > 0)
+                          _buildFilterChip(
+                            theme,
+                            'Unknown',
+                            statusCounts['Unknown'] ?? 0,
+                            selectedFilter,
+                            context,
+                          ),
+                      ],
+                    ),
+                  )
+                : const SizedBox(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationChip(
+    BuildContext context,
+    ThemeData theme,
+    String location,
+    String selectedLocation,
+  ) {
+    final isSelected = selectedLocation == location;
+    final isAllLocations = location == 'All Locations';
+
+    return GestureDetector(
+      onTap: () => context.read<ScanBloc>().add(
+        LocationFilterChanged(location: location),
+      ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isAllLocations
+                    ? AppColors.chartGreen
+                    : theme.colorScheme.primary)
+              : (isAllLocations
+                    ? AppColors.chartGreen.withOpacity(0.1)
+                    : theme.colorScheme.primary.withOpacity(0.1)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? (isAllLocations
+                      ? AppColors.chartGreen
+                      : theme.colorScheme.primary)
+                : (isAllLocations
+                      ? AppColors.chartGreen
+                      : theme.colorScheme.primary),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isAllLocations) ...[
+              Icon(
+                Icons.public,
+                size: 16,
+                color: isSelected ? Colors.white : AppColors.chartGreen,
+              ),
+              const SizedBox(width: 6),
+            ] else ...[
+              Icon(
+                Icons.location_on,
+                size: 16,
+                color: isSelected ? Colors.white : theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              _getDisplayText(location),
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : (isAllLocations
+                          ? AppColors.chartGreen
+                          : theme.colorScheme.primary),
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -213,6 +403,14 @@ class ScanListView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getDisplayText(String location) {
+    // ถ้าชื่อยาวเกินไป ให้ตัดให้สั้น
+    if (location.length > 20) {
+      return '${location.substring(0, 17)}...';
+    }
+    return location;
   }
 
   Color _getFilterColor(String label, ThemeData theme) {
@@ -328,147 +526,5 @@ class ScanListView extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-// Import the internal widget class
-class _LocationFilterWidgetWithContext extends StatelessWidget {
-  final List<String> availableLocations;
-  final String selectedLocation;
-
-  const _LocationFilterWidgetWithContext({
-    required this.availableLocations,
-    required this.selectedLocation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.location_on,
-                color: theme.colorScheme.primary,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Filter by Location',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: availableLocations.map((location) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _buildLocationChip(context, theme, location),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocationChip(
-    BuildContext context,
-    ThemeData theme,
-    String location,
-  ) {
-    final isSelected = selectedLocation == location;
-    final isAllLocations = location == 'All Locations';
-
-    return GestureDetector(
-      onTap: () => context.read<ScanBloc>().add(
-        LocationFilterChanged(location: location),
-      ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isAllLocations
-                    ? AppColors.chartGreen
-                    : theme.colorScheme.primary)
-              : (isAllLocations
-                    ? AppColors.chartGreen.withOpacity(0.1)
-                    : theme.colorScheme.primary.withOpacity(0.1)),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? (isAllLocations
-                      ? AppColors.chartGreen
-                      : theme.colorScheme.primary)
-                : (isAllLocations
-                      ? AppColors.chartGreen
-                      : theme.colorScheme.primary),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isAllLocations) ...[
-              Icon(
-                Icons.public,
-                size: 16,
-                color: isSelected ? Colors.white : AppColors.chartGreen,
-              ),
-              const SizedBox(width: 6),
-            ] else ...[
-              Icon(
-                Icons.location_on,
-                size: 16,
-                color: isSelected ? Colors.white : theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              _getDisplayText(location),
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : (isAllLocations
-                          ? AppColors.chartGreen
-                          : theme.colorScheme.primary),
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getDisplayText(String location) {
-    // ถ้าชื่อยาวเกินไป ให้ตัดให้สั้น
-    if (location.length > 20) {
-      return '${location.substring(0, 17)}...';
-    }
-    return location;
   }
 }

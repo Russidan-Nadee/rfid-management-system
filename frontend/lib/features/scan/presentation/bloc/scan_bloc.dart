@@ -55,7 +55,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             print('Failed to get current user for logging: $e');
           }
         } catch (e) {
-          // คืน existing error handling เดิม
+          // แก้ส่วนนี้ - ส่ง cached location data ไปใน unknown item
           if (e.toString().contains('Asset not found') ||
               e.toString().contains('404') ||
               e.toString().contains('not found')) {
@@ -63,24 +63,38 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             final cachedLocation = MockRfidDataSource.getCachedLocationData(
               assetNo,
             );
-            scannedItems.add(
-              ScannedItemEntity.unknown(
-                assetNo,
-                locationName: cachedLocation?['location_name'],
-              ),
+
+            final unknownItem = ScannedItemEntity(
+              assetNo: assetNo,
+              description: 'Unknown Item',
+              status: 'Unknown',
+              isUnknown: true,
+              // ส่ง location data จาก cache
+              plantCode: cachedLocation?['plant_code'],
+              locationCode: cachedLocation?['location_code'],
+              locationName: cachedLocation?['location_name'],
             );
+
+            scannedItems.add(unknownItem);
           } else {
             print('Unexpected error for asset $assetNo: $e');
             // เอา cached location มาใส่ใน unknown item
             final cachedLocation = MockRfidDataSource.getCachedLocationData(
               assetNo,
             );
-            scannedItems.add(
-              ScannedItemEntity.unknown(
-                assetNo,
-                locationName: cachedLocation?['location_name'],
-              ),
+
+            final unknownItem = ScannedItemEntity(
+              assetNo: assetNo,
+              description: 'Unknown Item',
+              status: 'Unknown',
+              isUnknown: true,
+              // ส่ง location data จาก cache
+              plantCode: cachedLocation?['plant_code'],
+              locationCode: cachedLocation?['location_code'],
+              locationName: cachedLocation?['location_name'],
             );
+
+            scannedItems.add(unknownItem);
           }
         }
       }

@@ -1,4 +1,4 @@
-// Path: lib/features/scan/presentation/widgets/asset_card.dart
+// Path: frontend/lib/features/scan/presentation/widgets/asset_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
@@ -73,9 +73,10 @@ class AssetCard extends StatelessWidget {
 
                     const SizedBox(height: 4),
 
-                    // Status
+                    // Status และ Location Row
                     Row(
                       children: [
+                        // Status
                         Container(
                           width: 8,
                           height: 8,
@@ -93,6 +94,29 @@ class AssetCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+
+                        // Location (ถ้ามี)
+                        if (item.locationName != null) ...[
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.location_on,
+                            size: 12,
+                            color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              item.locationName!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
@@ -113,13 +137,21 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  // แก้ไข _navigateToDetail method ใน AssetCard
+  // แก้ไข _navigateToDetail method ส่ง location data
   void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
-      // Navigate to Create Asset Page for unknown items
+      print('DEBUG: plantCode=${item.plantCode}');
+      print('DEBUG: locationCode=${item.locationCode}');
+      print('DEBUG: locationName=${item.locationName}');
+      // Navigate to Create Asset Page for unknown items พร้อม location data
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
-          builder: (context) => CreateAssetPage(assetNo: item.assetNo),
+          builder: (context) => CreateAssetPage(
+            assetNo: item.assetNo,
+            plantCode: item.plantCode,
+            locationCode: item.locationCode,
+            locationName: item.locationName,
+          ),
         ),
       );
 
