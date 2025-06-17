@@ -5,6 +5,8 @@ import '../entities/dashboard_stats.dart';
 import '../entities/overview_data.dart';
 import '../entities/alert.dart';
 import '../entities/recent_activity.dart';
+import '../entities/department_analytics.dart';
+import '../entities/growth_trends.dart';
 
 abstract class DashboardRepository {
   /// Get complete dashboard statistics including overview and charts
@@ -39,6 +41,60 @@ abstract class DashboardRepository {
   /// [forceRefresh] bypasses cache and fetches fresh data
   Future<Either<Failure, RecentActivity>> getRecentActivities({
     String period = '7d',
+    bool forceRefresh = false,
+  });
+
+  /// Get department analytics with asset distribution by plant
+  /// [plantCode] - Filter by specific plant (optional)
+  /// [forceRefresh] bypasses cache and fetches fresh data
+  Future<Either<Failure, DepartmentAnalytics>> getAssetsByDepartment({
+    String? plantCode,
+    bool forceRefresh = false,
+  });
+
+  /// Get growth trends by department/location with configurable periods
+  /// [deptCode] - Filter by department (optional)
+  /// [period] - Time period: Q1|Q2|Q3|Q4|1Y|custom
+  /// [year] - Year for quarterly/yearly data
+  /// [startDate] - Start date for custom period (YYYY-MM-DD)
+  /// [endDate] - End date for custom period (YYYY-MM-DD)
+  /// [forceRefresh] bypasses cache and fetches fresh data
+  Future<Either<Failure, GrowthTrends>> getGrowthTrends({
+    String? deptCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool forceRefresh = false,
+  });
+
+  /// Get location analytics and utilization data
+  /// [locationCode] - Filter by specific location (optional)
+  /// [period] - Time period for trends: Q1|Q2|Q3|Q4|1Y|custom
+  /// [year] - Year for trend data
+  /// [startDate] - Start date for custom period (YYYY-MM-DD)
+  /// [endDate] - End date for custom period (YYYY-MM-DD)
+  /// [includeTrends] - Include growth trends in response
+  /// [forceRefresh] bypasses cache and fetches fresh data
+  Future<Either<Failure, Map<String, dynamic>>> getLocationAnalytics({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
+    bool forceRefresh = false,
+  });
+
+  /// Get audit progress and completion status
+  /// [deptCode] - Filter by department (optional)
+  /// [includeDetails] - Include detailed asset audit data
+  /// [auditStatus] - Filter by audit status: audited|never_audited|overdue
+  /// [forceRefresh] bypasses cache and fetches fresh data
+  Future<Either<Failure, Map<String, dynamic>>> getAuditProgress({
+    String? deptCode,
+    bool includeDetails = false,
+    String? auditStatus,
     bool forceRefresh = false,
   });
 

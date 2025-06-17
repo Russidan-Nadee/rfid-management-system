@@ -5,6 +5,8 @@ import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart
 import 'package:frontend/features/dashboard/domain/entities/overview_data.dart';
 import 'package:frontend/features/dashboard/domain/entities/alert.dart';
 import 'package:frontend/features/dashboard/domain/entities/recent_activity.dart';
+import 'package:frontend/features/dashboard/domain/entities/department_analytics.dart';
+import 'package:frontend/features/dashboard/domain/entities/growth_trends.dart';
 import 'package:frontend/features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../datasources/dashboard_remote_datasource.dart';
@@ -25,7 +27,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      // Try cache first (if not force refresh)
       if (!forceRefresh) {
         final cachedStats = await cacheDataSource.getCachedStats(period);
         if (cachedStats != null) {
@@ -33,29 +34,15 @@ class DashboardRepositoryImpl implements DashboardRepository {
         }
       }
 
-      // Fetch from API
       final statsModel = await remoteDataSource.getDashboardStats(
         period: period,
       );
-
-      // Cache the result
       await cacheDataSource.cacheStats(statsModel, period);
-
       return Right(statsModel.toEntity());
     } on ServerException {
       return Left(ServerFailure('Failed to get dashboard statistics'));
     } on NetworkException {
       return Left(NetworkFailure('No internet connection'));
-    } on CacheException {
-      // If cache fails, try to get from remote anyway
-      try {
-        final statsModel = await remoteDataSource.getDashboardStats(
-          period: period,
-        );
-        return Right(statsModel.toEntity());
-      } catch (e) {
-        return Left(ServerFailure('Failed to get dashboard statistics'));
-      }
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred'));
     }
@@ -67,7 +54,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      // Try cache first (if not force refresh)
       if (!forceRefresh) {
         final cachedOverview = await cacheDataSource.getCachedOverview(period);
         if (cachedOverview != null) {
@@ -75,29 +61,15 @@ class DashboardRepositoryImpl implements DashboardRepository {
         }
       }
 
-      // Fetch from API
       final overviewModel = await remoteDataSource.getOverviewData(
         period: period,
       );
-
-      // Cache the result
       await cacheDataSource.cacheOverview(overviewModel, period);
-
       return Right(overviewModel.toEntity());
     } on ServerException {
       return Left(ServerFailure('Failed to get overview data'));
     } on NetworkException {
       return Left(NetworkFailure('No internet connection'));
-    } on CacheException {
-      // If cache fails, try to get from remote anyway
-      try {
-        final overviewModel = await remoteDataSource.getOverviewData(
-          period: period,
-        );
-        return Right(overviewModel.toEntity());
-      } catch (e) {
-        return Left(ServerFailure('Failed to get overview data'));
-      }
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred'));
     }
@@ -124,7 +96,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      // Try cache first (if not force refresh)
       if (!forceRefresh) {
         final cachedAlerts = await cacheDataSource.getCachedAlerts();
         if (cachedAlerts != null) {
@@ -132,28 +103,14 @@ class DashboardRepositoryImpl implements DashboardRepository {
         }
       }
 
-      // Fetch from API
       final alertModels = await remoteDataSource.getAlerts();
-
-      // Cache the result
       await cacheDataSource.cacheAlerts(alertModels);
-
-      // Convert to entities
       final alerts = alertModels.map((model) => model.toEntity()).toList();
       return Right(alerts);
     } on ServerException {
       return Left(ServerFailure('Failed to get alerts'));
     } on NetworkException {
       return Left(NetworkFailure('No internet connection'));
-    } on CacheException {
-      // If cache fails, try to get from remote anyway
-      try {
-        final alertModels = await remoteDataSource.getAlerts();
-        final alerts = alertModels.map((model) => model.toEntity()).toList();
-        return Right(alerts);
-      } catch (e) {
-        return Left(ServerFailure('Failed to get alerts'));
-      }
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred'));
     }
@@ -165,7 +122,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      // Try cache first (if not force refresh)
       if (!forceRefresh) {
         final cachedActivities = await cacheDataSource
             .getCachedRecentActivities(period);
@@ -174,29 +130,183 @@ class DashboardRepositoryImpl implements DashboardRepository {
         }
       }
 
-      // Fetch from API
       final activitiesModel = await remoteDataSource.getRecentActivities(
         period: period,
       );
-
-      // Cache the result
       await cacheDataSource.cacheRecentActivities(activitiesModel, period);
-
       return Right(activitiesModel.toEntity());
     } on ServerException {
       return Left(ServerFailure('Failed to get recent activities'));
     } on NetworkException {
       return Left(NetworkFailure('No internet connection'));
-    } on CacheException {
-      // If cache fails, try to get from remote anyway
-      try {
-        final activitiesModel = await remoteDataSource.getRecentActivities(
-          period: period,
-        );
-        return Right(activitiesModel.toEntity());
-      } catch (e) {
-        return Left(ServerFailure('Failed to get recent activities'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, DepartmentAnalytics>> getAssetsByDepartment({
+    String? plantCode,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateDepartmentAnalyticsCacheKey(plantCode: plantCode);
+
+      if (!forceRefresh) {
+        final cachedAnalytics = await cacheDataSource
+            .getCachedDepartmentAnalytics(cacheKey);
+        if (cachedAnalytics != null) {
+          return Right(cachedAnalytics.toEntity());
+        }
       }
+
+      final analyticsModel = await remoteDataSource.getAssetsByDepartment(
+        plantCode: plantCode,
+      );
+      await cacheDataSource.cacheDepartmentAnalytics(analyticsModel, cacheKey);
+      return Right(analyticsModel.toEntity());
+    } on ServerException {
+      return Left(ServerFailure('Failed to get department analytics'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, GrowthTrends>> getGrowthTrends({
+    String? deptCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateGrowthTrendsCacheKey(
+            deptCode: deptCode,
+            period: period,
+            year: year,
+            startDate: startDate,
+            endDate: endDate,
+          );
+
+      if (!forceRefresh) {
+        final cachedTrends = await cacheDataSource.getCachedGrowthTrends(
+          cacheKey,
+        );
+        if (cachedTrends != null) {
+          return Right(cachedTrends.toEntity());
+        }
+      }
+
+      final trendsModel = await remoteDataSource.getGrowthTrends(
+        deptCode: deptCode,
+        period: period,
+        year: year,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      await cacheDataSource.cacheGrowthTrends(trendsModel, cacheKey);
+      return Right(trendsModel.toEntity());
+    } on ServerException {
+      return Left(ServerFailure('Failed to get growth trends'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getLocationAnalytics({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateLocationAnalyticsCacheKey(
+            locationCode: locationCode,
+            period: period,
+            year: year,
+            startDate: startDate,
+            endDate: endDate,
+            includeTrends: includeTrends,
+          );
+
+      if (!forceRefresh) {
+        final cachedAnalytics = await cacheDataSource
+            .getCachedLocationAnalytics(cacheKey);
+        if (cachedAnalytics != null) {
+          return Right(cachedAnalytics);
+        }
+      }
+
+      final analyticsData = await remoteDataSource.getLocationAnalytics(
+        locationCode: locationCode,
+        period: period,
+        year: year,
+        startDate: startDate,
+        endDate: endDate,
+        includeTrends: includeTrends,
+      );
+
+      await cacheDataSource.cacheLocationAnalytics(analyticsData, cacheKey);
+      return Right(analyticsData);
+    } on ServerException {
+      return Left(ServerFailure('Failed to get location analytics'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
+    } catch (e) {
+      return Left(ServerFailure('An unexpected error occurred'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getAuditProgress({
+    String? deptCode,
+    bool includeDetails = false,
+    String? auditStatus,
+    bool forceRefresh = false,
+  }) async {
+    try {
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateAuditProgressCacheKey(
+            deptCode: deptCode,
+            includeDetails: includeDetails,
+            auditStatus: auditStatus,
+          );
+
+      if (!forceRefresh) {
+        final cachedProgress = await cacheDataSource.getCachedAuditProgress(
+          cacheKey,
+        );
+        if (cachedProgress != null) {
+          return Right(cachedProgress);
+        }
+      }
+
+      final progressData = await remoteDataSource.getAuditProgress(
+        deptCode: deptCode,
+        includeDetails: includeDetails,
+        auditStatus: auditStatus,
+      );
+
+      await cacheDataSource.cacheAuditProgress(progressData, cacheKey);
+      return Right(progressData);
+    } on ServerException {
+      return Left(ServerFailure('Failed to get audit progress'));
+    } on NetworkException {
+      return Left(NetworkFailure('No internet connection'));
     } catch (e) {
       return Left(ServerFailure('An unexpected error occurred'));
     }
@@ -207,17 +317,13 @@ class DashboardRepositoryImpl implements DashboardRepository {
     String period = 'today',
   }) async {
     try {
-      // Clear period-specific cache
       await cacheDataSource.clearPeriodCache(period);
-
-      // Force refresh all data for the period
       await Future.wait([
         getDashboardStats(period: period, forceRefresh: true),
         getOverviewData(period: period, forceRefresh: true),
         getRecentActivities(period: period, forceRefresh: true),
         getAlerts(forceRefresh: true),
       ]);
-
       return Right(unit);
     } catch (e) {
       return Left(ServerFailure('Failed to refresh dashboard data'));
