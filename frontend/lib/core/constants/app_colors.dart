@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary Colors
-  static const Color primary = Color.fromARGB(255, 37, 120, 214);
+  static const Color primary = Color.fromARGB(255, 80, 131, 211);
   static const Color background = Color(0xFFF9FAFB);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color onPrimary = Colors.white;
@@ -18,6 +18,7 @@ class AppColors {
   static const Color errorLight = Color(0xFFFEE2E2); // Red 100
   static const Color info = Color(0xFF3B82F6); // Blue 500
   static const Color infoLight = Color(0xFFDDEAFE); // Blue 100
+  static const Color DarkBlue = Color.fromARGB(255, 9, 49, 122);
 
   // Asset Status Colors
   static const Color assetActive = Color.fromARGB(

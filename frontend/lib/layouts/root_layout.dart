@@ -1,5 +1,6 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/features/dashboard/dashboard_page_mock.dart';
 import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
@@ -28,7 +29,7 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   List<Widget> get _pages => [
-    const DashboardPage(),
+    const DashboardPageMock(),
     const SearchPage(),
     const ScanPage(),
     const ExportPage(),

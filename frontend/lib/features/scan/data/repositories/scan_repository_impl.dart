@@ -1,4 +1,4 @@
-// Path: lib/features/scan/data/repositories/scan_repository_impl.dart
+// Path: frontend/lib/features/scan/data/repositories/scan_repository_impl.dart
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../../domain/entities/scanned_item_entity.dart';
@@ -18,7 +18,7 @@ class ScanRepositoryImpl implements ScanRepository {
     required this.mockRfidDataSource,
   });
 
-  // Existing methods (unchanged)
+  // Modified method to include cached location data
   @override
   Future<ScannedItemEntity> getAssetDetails(String assetNo) async {
     try {
@@ -28,7 +28,18 @@ class ScanRepositoryImpl implements ScanRepository {
       );
 
       if (response.success && response.data != null) {
-        return ScannedItemModel.fromJson(response.data!);
+        // Get cached location data from Mock
+        final cachedLocation = MockRfidDataSource.getCachedLocationData(
+          assetNo,
+        );
+
+        // Merge API data with cached location
+        final mergedData = Map<String, dynamic>.from(response.data!);
+        if (cachedLocation != null) {
+          mergedData.addAll(cachedLocation);
+        }
+
+        return ScannedItemModel.fromJson(mergedData);
       } else {
         throw Exception('Asset not found');
       }

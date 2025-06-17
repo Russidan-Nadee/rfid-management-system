@@ -13,6 +13,10 @@ class ScannedItemModel extends ScannedItemEntity {
     super.createdAt,
     required super.status,
     super.isUnknown,
+    // เพิ่ม location parameters
+    super.plantCode,
+    super.locationCode,
+    super.locationName,
   });
 
   factory ScannedItemModel.fromJson(Map<String, dynamic> json) {
@@ -28,15 +32,20 @@ class ScannedItemModel extends ScannedItemEntity {
           ? DateTime.tryParse(json['created_at'])
           : null,
       status: json['status'] ?? 'A',
+      // เพิ่ม location parsing (ตรงกับ Backend)
+      plantCode: json['plant_code'],
+      locationCode: json['location_code'],
+      locationName: json['location_description'], // แก้ให้ตรงกับ Backend
     );
   }
 
-  factory ScannedItemModel.unknown(String assetNo) {
+  factory ScannedItemModel.unknown(String assetNo, {String? locationName}) {
     return ScannedItemModel(
       assetNo: assetNo,
       description: 'Unknown Item',
       status: 'Unknown',
       isUnknown: true,
+      locationName: locationName,
     );
   }
 
@@ -49,7 +58,7 @@ class ScannedItemModel extends ScannedItemEntity {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = {
       'asset_no': assetNo,
       'description': description,
       'serial_no': serialNo,
@@ -60,5 +69,12 @@ class ScannedItemModel extends ScannedItemEntity {
       'created_at': createdAt?.toIso8601String(),
       'status': status,
     };
+
+    // เพิ่ม location ถ้ามี
+    if (plantCode != null) json['plant_code'] = plantCode;
+    if (locationCode != null) json['location_code'] = locationCode;
+    if (locationName != null) json['location_name'] = locationName;
+
+    return json;
   }
 }

@@ -19,15 +19,15 @@ class ApiService {
     final headers = Map<String, String>.from(ApiConstants.defaultHeaders);
 
     if (requiresAuth) {
-      final token = await _storage.getAuthToken();
-      print('📡 REQUIRE AUTH: $requiresAuth'); // เพิ่มนี้
-      print('🔑 HEADER TOKEN: $token'); // เพิ่มนี้
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-        print('✅ Authorization header added'); // เพิ่มนี้
-      } else {
-        print('❌ NO TOKEN - Request will fail'); // เพิ่มนี้
-      }
+      // final token = await _storage.getAuthToken();
+      // print('📡 REQUIRE AUTH: $requiresAuth'); // เพิ่มนี้
+      // print('🔑 HEADER TOKEN: $token'); // เพิ่มนี้
+      // if (token != null) {
+      //   headers['Authorization'] = 'Bearer $token';
+      //   print('✅ Authorization header added'); // เพิ่มนี้
+      // } else {
+      //   print('❌ NO TOKEN - Request will fail'); // เพิ่มนี้
+      // }
     }
 
     return headers;
@@ -343,10 +343,10 @@ class ApiService {
 
   // เพิ่มใน api_service.dart
   Future<bool> _refreshToken() async {
-    print('🔄 ATTEMPTING TOKEN REFRESH...');
+    // print('🔄 ATTEMPTING TOKEN REFRESH...');
     final refreshToken = await _storage.getRefreshToken();
     if (refreshToken == null) {
-      print('❌ NO REFRESH TOKEN FOUND');
+      // print('❌ NO REFRESH TOKEN FOUND');
       return false;
     }
 

@@ -427,7 +427,7 @@ const assetController = {
 
    async getAssetNumbers(req, res) {
       try {
-         const { limit = 5 } = req.query;
+         const { limit = 50 } = req.query;
          const assets = await assetService.getAssetNumbers(parseInt(limit));
          return sendResponse(res, 200, true, 'Asset numbers retrieved successfully', {
             asset_numbers: assets

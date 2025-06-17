@@ -12,6 +12,10 @@ class ScannedItemEntity extends Equatable {
   final DateTime? createdAt;
   final String status;
   final bool isUnknown;
+  // เพิ่ม location fields (optional เพื่อ backward compatibility)
+  final String? plantCode;
+  final String? locationCode;
+  final String? locationName;
 
   const ScannedItemEntity({
     required this.assetNo,
@@ -24,14 +28,19 @@ class ScannedItemEntity extends Equatable {
     this.createdAt,
     required this.status,
     this.isUnknown = false,
+    // Location fields เป็น optional
+    this.plantCode,
+    this.locationCode,
+    this.locationName,
   });
 
-  factory ScannedItemEntity.unknown(String assetNo) {
+  factory ScannedItemEntity.unknown(String assetNo, {String? locationName}) {
     return ScannedItemEntity(
       assetNo: assetNo,
       description: 'Unknown Item',
       status: 'Unknown',
       isUnknown: true,
+      locationName: locationName,
     );
   }
 
@@ -50,5 +59,8 @@ class ScannedItemEntity extends Equatable {
     createdAt,
     status,
     isUnknown,
+    plantCode,
+    locationCode,
+    locationName,
   ];
 }

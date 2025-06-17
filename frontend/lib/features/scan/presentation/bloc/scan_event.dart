@@ -50,7 +50,6 @@ class LogAssetScanned extends ScanEvent {
   List<Object?> get props => [assetNo, scannedBy];
 }
 
-// แก้ไข AssetCreatedFromUnknown event ให้ครบ
 class AssetCreatedFromUnknown extends ScanEvent {
   final ScannedItemEntity createdAsset;
 
@@ -60,7 +59,6 @@ class AssetCreatedFromUnknown extends ScanEvent {
   List<Object?> get props => [createdAsset];
 }
 
-// เพิ่ม FilterChanged event
 class FilterChanged extends ScanEvent {
   final String filter;
 
@@ -68,4 +66,14 @@ class FilterChanged extends ScanEvent {
 
   @override
   List<Object?> get props => [filter];
+}
+
+// เพิ่ม LocationFilterChanged event
+class LocationFilterChanged extends ScanEvent {
+  final String location;
+
+  const LocationFilterChanged({required this.location});
+
+  @override
+  List<Object?> get props => [location];
 }

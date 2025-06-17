@@ -5,6 +5,7 @@ import '../../domain/repositories/scan_repository.dart';
 import '../../domain/usecases/get_asset_details_usecase.dart';
 import '../../domain/usecases/update_asset_status_usecase.dart';
 import '../../../auth/domain/usecases/get_current_user_usecase.dart';
+import '../../data/datasources/mock_rfid_datasource.dart';
 import 'scan_event.dart';
 import 'scan_state.dart';
 
@@ -28,6 +29,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<LogAssetScanned>(_onLogAssetScanned);
     on<AssetCreatedFromUnknown>(_onAssetCreatedFromUnknown);
     on<FilterChanged>(_onFilterChanged);
+    on<LocationFilterChanged>(_onLocationFilterChanged);
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<ScanState> emit) async {
@@ -57,15 +59,39 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           if (e.toString().contains('Asset not found') ||
               e.toString().contains('404') ||
               e.toString().contains('not found')) {
-            scannedItems.add(ScannedItemEntity.unknown(assetNo));
+            // เอา cached location มาใส่ใน unknown item
+            final cachedLocation = MockRfidDataSource.getCachedLocationData(
+              assetNo,
+            );
+            scannedItems.add(
+              ScannedItemEntity.unknown(
+                assetNo,
+                locationName: cachedLocation?['location_name'],
+              ),
+            );
           } else {
             print('Unexpected error for asset $assetNo: $e');
-            scannedItems.add(ScannedItemEntity.unknown(assetNo));
+            // เอา cached location มาใส่ใน unknown item
+            final cachedLocation = MockRfidDataSource.getCachedLocationData(
+              assetNo,
+            );
+            scannedItems.add(
+              ScannedItemEntity.unknown(
+                assetNo,
+                locationName: cachedLocation?['location_name'],
+              ),
+            );
           }
         }
       }
 
-      emit(ScanSuccess(scannedItems: scannedItems, selectedFilter: 'All'));
+      emit(
+        ScanSuccess(
+          scannedItems: scannedItems,
+          selectedFilter: 'All',
+          selectedLocation: 'All Locations',
+        ),
+      );
     } catch (e) {
       emit(ScanError(message: 'Scan failed: ${e.toString()}'));
     }
@@ -110,11 +136,13 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     // เก็บ previous scan results ไว้ก่อน
     List<ScannedItemEntity>? previousScannedItems;
     String currentFilter = 'All';
+    String currentLocation = 'All Locations';
 
     if (state is ScanSuccess) {
       final currentState = state as ScanSuccess;
       previousScannedItems = currentState.scannedItems;
       currentFilter = currentState.selectedFilter;
+      currentLocation = currentState.selectedLocation;
     }
 
     emit(AssetStatusUpdating(assetNo: event.assetNo));
@@ -139,6 +167,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           ScanSuccess(
             scannedItems: updatedItems,
             selectedFilter: currentFilter,
+            selectedLocation: currentLocation,
           ),
         );
       }
@@ -149,6 +178,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           ScanSuccess(
             scannedItems: previousScannedItems,
             selectedFilter: currentFilter,
+            selectedLocation: currentLocation,
           ),
         );
       }
@@ -189,20 +219,40 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         ScanSuccess(
           scannedItems: updatedItems,
           selectedFilter: currentState.selectedFilter,
+          selectedLocation: currentState.selectedLocation,
         ),
       );
     }
   }
 
-  // เพิ่ม Filter handler
+  // Status Filter handler
   void _onFilterChanged(FilterChanged event, Emitter<ScanState> emit) {
     if (state is ScanSuccess) {
       final currentState = state as ScanSuccess;
-      // อัพเดต filter ใน state เดิม
+      // อัพเดต status filter ใน state เดิม - ไม่ใช่ scan ใหม่
       emit(
-        ScanSuccess(
+        ScanSuccessFiltered(
           scannedItems: currentState.scannedItems,
           selectedFilter: event.filter,
+          selectedLocation: currentState.selectedLocation,
+        ),
+      );
+    }
+  }
+
+  // Location Filter handler
+  void _onLocationFilterChanged(
+    LocationFilterChanged event,
+    Emitter<ScanState> emit,
+  ) {
+    if (state is ScanSuccess) {
+      final currentState = state as ScanSuccess;
+      // อัพเดต location filter และ reset status filter เป็น 'All' - ไม่ใช่ scan ใหม่
+      emit(
+        ScanSuccessFiltered(
+          scannedItems: currentState.scannedItems,
+          selectedLocation: event.location,
+          selectedFilter: 'All', // Reset status filter เมื่อเปลี่ยน location
         ),
       );
     }

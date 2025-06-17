@@ -36,7 +36,7 @@ class _ScanPageViewState extends State<ScanPageView> {
     // Auto scan after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        print('ScanPage: Starting scan...');
+        // print('ScanPage: Starting scan...');
         context.read<ScanBloc>().add(const StartScan());
       }
     });
@@ -79,12 +79,13 @@ class _ScanPageViewState extends State<ScanPageView> {
       backgroundColor: theme.colorScheme.background,
       body: BlocListener<ScanBloc, ScanState>(
         listener: (context, state) {
-          print('ScanPage: State changed to ${state.runtimeType}');
+          // print('ScanPage: State changed to ${state.runtimeType}');
 
           if (state is ScanError) {
-            print('ScanPage: Error occurred - ${state.message}');
+            // print('ScanPage: Error occurred - ${state.message}');
             Helpers.showError(context, state.message);
-          } else if (state is ScanSuccess) {
+          } else if (state is ScanSuccess && state is! ScanSuccessFiltered) {
+            // แสดง success message เฉพาะเมื่อ scan จริงๆ (ไม่ใช่ filter)
             print(
               'ScanPage: Scan success - ${state.scannedItems.length} items',
             );
@@ -92,6 +93,9 @@ class _ScanPageViewState extends State<ScanPageView> {
               context,
               'Scanned ${state.scannedItems.length} items',
             );
+          } else if (state is AssetStatusUpdateError) {
+            // แสดง error message สำหรับ status update
+            Helpers.showError(context, state.message);
           }
         },
         child: BlocBuilder<ScanBloc, ScanState>(

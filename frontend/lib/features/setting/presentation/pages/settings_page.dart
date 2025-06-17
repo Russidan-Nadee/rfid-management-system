@@ -8,7 +8,6 @@ import '../../../auth/presentation/bloc/auth_event.dart';
 import '../bloc/settings_bloc.dart';
 import '../bloc/settings_event.dart';
 import '../bloc/settings_state.dart';
-import '../widgets/theme_setting_widget.dart';
 import '../widgets/user_profile_widget.dart';
 import '../widgets/app_info_widget.dart';
 
@@ -112,13 +111,6 @@ class SettingsPageView extends StatelessWidget {
           const UserProfileWidget(),
 
           const SizedBox(height: 24),
-
-          // App Preferences Section
-          _buildSectionTitle(theme, 'App Preferences'),
-          const SizedBox(height: 12),
-          ThemeSettingWidget(settings: settings),
-
-          const SizedBox(height: 16),
 
           // Language Setting
           _buildLanguageSetting(context, settings, theme),

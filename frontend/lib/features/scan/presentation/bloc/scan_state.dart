@@ -20,39 +20,121 @@ class ScanLoading extends ScanState {
 class ScanSuccess extends ScanState {
   final List<ScannedItemEntity> scannedItems;
   final String selectedFilter;
+  final String selectedLocation;
 
-  const ScanSuccess({required this.scannedItems, this.selectedFilter = 'All'});
+  const ScanSuccess({
+    required this.scannedItems,
+    this.selectedFilter = 'All',
+    this.selectedLocation = 'All Locations',
+  });
 
   @override
-  List<Object?> get props => [scannedItems, selectedFilter];
+  List<Object?> get props => [scannedItems, selectedFilter, selectedLocation];
 
   @override
   String toString() {
-    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter)';
+    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation)';
   }
 
-  // เพิ่ม helper method สำหรับ filter
+  // Get unique location names from scanned items
+  List<String> get availableLocations {
+    final locationNames = scannedItems
+        .where((item) => item.locationName != null)
+        .map((item) => item.locationName!)
+        .toSet()
+        .toList();
+
+    locationNames.sort();
+    return ['All Locations', ...locationNames];
+  }
+
+  // Get filtered items by location first, then by status
   List<ScannedItemEntity> get filteredItems {
-    if (selectedFilter == 'All') return scannedItems;
+    // First filter by location
+    List<ScannedItemEntity> locationFiltered;
+    if (selectedLocation == 'All Locations') {
+      locationFiltered = scannedItems;
+    } else {
+      locationFiltered = scannedItems
+          .where((item) => item.locationName == selectedLocation)
+          .toList();
+    }
+
+    // Then filter by status
+    if (selectedFilter == 'All') return locationFiltered;
 
     switch (selectedFilter.toLowerCase()) {
       case 'active':
-        return scannedItems
+        return locationFiltered
             .where((item) => item.status.toUpperCase() == 'A')
             .toList();
       case 'checked':
-        return scannedItems
+        return locationFiltered
             .where((item) => item.status.toUpperCase() == 'C')
             .toList();
       case 'inactive':
-        return scannedItems
+        return locationFiltered
             .where((item) => item.status.toUpperCase() == 'I')
             .toList();
       case 'unknown':
-        return scannedItems.where((item) => item.isUnknown == true).toList();
+        return locationFiltered
+            .where((item) => item.isUnknown == true)
+            .toList();
       default:
-        return scannedItems;
+        return locationFiltered;
     }
+  }
+
+  // Get status counts for current location
+  Map<String, int> get statusCounts {
+    final locationFiltered = selectedLocation == 'All Locations'
+        ? scannedItems
+        : scannedItems
+              .where((item) => item.locationName == selectedLocation)
+              .toList();
+
+    return {
+      'All': locationFiltered.length,
+      'Active': locationFiltered
+          .where((item) => item.status.toUpperCase() == 'A')
+          .length,
+      'Checked': locationFiltered
+          .where((item) => item.status.toUpperCase() == 'C')
+          .length,
+      'Inactive': locationFiltered
+          .where((item) => item.status.toUpperCase() == 'I')
+          .length,
+      'Unknown': locationFiltered
+          .where((item) => item.isUnknown == true)
+          .length,
+    };
+  }
+
+  // Copy with method for state updates
+  ScanSuccess copyWith({
+    List<ScannedItemEntity>? scannedItems,
+    String? selectedFilter,
+    String? selectedLocation,
+  }) {
+    return ScanSuccess(
+      scannedItems: scannedItems ?? this.scannedItems,
+      selectedFilter: selectedFilter ?? this.selectedFilter,
+      selectedLocation: selectedLocation ?? this.selectedLocation,
+    );
+  }
+}
+
+// เพิ่ม state ใหม่สำหรับ filter changes (ไม่ใช่ scan ใหม่)
+class ScanSuccessFiltered extends ScanSuccess {
+  const ScanSuccessFiltered({
+    required super.scannedItems,
+    super.selectedFilter = 'All',
+    super.selectedLocation = 'All Locations',
+  });
+
+  @override
+  String toString() {
+    return 'ScanSuccessFiltered(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation)';
   }
 }
 
