@@ -1,9 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/bloc/dashboard_bloc.dart
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/dashboard/domain/entities/alert.dart';
-import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
-import 'package:frontend/features/dashboard/domain/entities/overview_data.dart';
-import 'package:frontend/features/dashboard/domain/entities/recent_activity.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_overview_data_usecase.dart';
 import '../../domain/usecases/get_quick_stats_usecase.dart';
@@ -11,7 +8,6 @@ import '../../domain/usecases/clear_cache_usecase.dart';
 import '../../domain/usecases/refresh_dashboard_usecase.dart';
 import '../../domain/usecases/is_cache_valid_usecase.dart';
 import '../../domain/repositories/dashboard_repository.dart';
-import '../../../../core/errors/failures.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
 
@@ -24,6 +20,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final IsCacheValidUseCase isCacheValid;
   final DashboardRepository repository;
 
+  Timer? _refreshTimer;
+
   DashboardBloc({
     required this.getDashboardStats,
     required this.getOverviewData,
@@ -33,93 +31,168 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     required this.isCacheValid,
     required this.repository,
   }) : super(const DashboardInitial()) {
-    on<LoadDashboard>(_onLoadDashboard);
+    on<LoadDashboardStats>(_onLoadDashboardStats);
+    on<LoadOverviewData>(_onLoadOverviewData);
+    on<LoadQuickStats>(_onLoadQuickStats);
+    on<LoadDepartmentAnalytics>(_onLoadDepartmentAnalytics);
+    on<LoadGrowthTrends>(_onLoadGrowthTrends);
+    on<LoadLocationAnalytics>(_onLoadLocationAnalytics);
+    on<LoadAuditProgress>(_onLoadAuditProgress);
     on<RefreshDashboard>(_onRefreshDashboard);
+    on<ClearDashboardCache>(_onClearDashboardCache);
     on<ChangePeriod>(_onChangePeriod);
-    on<LoadAlerts>(_onLoadAlerts);
-    on<LoadRecentActivities>(_onLoadRecentActivities);
-    on<ClearDashboardCache>(_onClearCache);
-    on<RetryDashboardLoad>(_onRetryDashboardLoad);
   }
 
-  Future<void> _onLoadDashboard(
-    LoadDashboard event,
+  Future<void> _onLoadDashboardStats(
+    LoadDashboardStats event,
     Emitter<DashboardState> emit,
   ) async {
-    emit(
-      DashboardLoading(period: event.period, isRefreshing: event.forceRefresh),
-    );
+    emit(const DashboardLoading(message: 'Loading dashboard statistics...'));
 
     try {
-      // Load all dashboard data concurrently
-      final results = await Future.wait([
-        getDashboardStats(forceRefresh: event.forceRefresh),
-        getOverviewData(forceRefresh: event.forceRefresh),
-        repository.getAlerts(forceRefresh: event.forceRefresh),
-        repository.getRecentActivities(
-          period: event.period,
-          forceRefresh: event.forceRefresh,
-        ),
-      ]);
+      final result = await getDashboardStats(forceRefresh: event.forceRefresh);
 
-      final statsResult = results[0];
-      final overviewResult = results[1];
-      final alertsResult = results[2];
-      final activitiesResult = results[3];
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (stats) => emit(DashboardStatsLoaded(stats)),
+      );
+    } catch (e) {
+      emit(DashboardError('Failed to load dashboard stats: ${e.toString()}'));
+    }
+  }
 
-      // Check if all results are successful
-      if (statsResult.isRight &&
-          overviewResult.isRight &&
-          alertsResult.isRight &&
-          activitiesResult.isRight) {
-        emit(
-          DashboardLoaded(
-            dashboardStats: statsResult.right as DashboardStats,
-            overviewData: overviewResult.right as OverviewData,
-            alerts: alertsResult.right as List<Alert>,
-            recentActivities: activitiesResult.right as RecentActivity,
-            currentPeriod: event.period,
-            lastUpdated: DateTime.now(),
-            isFromCache: !event.forceRefresh,
-          ),
-        );
-      } else {
-        // Handle partial success - emit partial loaded state
-        final loadingComponents = <String>[];
-        final errorComponents = <String>[];
+  Future<void> _onLoadOverviewData(
+    LoadOverviewData event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading overview data...'));
 
-        if (statsResult.isLeft) errorComponents.add('stats');
-        if (overviewResult.isLeft) errorComponents.add('overview');
-        if (alertsResult.isLeft) errorComponents.add('alerts');
-        if (activitiesResult.isLeft) errorComponents.add('activities');
+    try {
+      final result = await getOverviewData(forceRefresh: event.forceRefresh);
 
-        emit(
-          DashboardPartialLoaded(
-            dashboardStats: statsResult.isRight
-                ? statsResult.right as DashboardStats?
-                : null,
-            overviewData: overviewResult.isRight
-                ? overviewResult.right as OverviewData?
-                : null,
-            alerts: alertsResult.isRight
-                ? alertsResult.right as List<Alert>?
-                : null,
-            recentActivities: activitiesResult.isRight
-                ? activitiesResult.right as RecentActivity?
-                : null,
-            currentPeriod: event.period,
-            errorComponents: errorComponents,
-          ),
-        );
-      }
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (overview) => emit(OverviewDataLoaded(overview)),
+      );
+    } catch (e) {
+      emit(DashboardError('Failed to load overview data: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onLoadQuickStats(
+    LoadQuickStats event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading quick statistics...'));
+
+    try {
+      final result = await getQuickStats();
+
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (quickStats) => emit(QuickStatsLoaded(quickStats)),
+      );
+    } catch (e) {
+      emit(DashboardError('Failed to load quick stats: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onLoadDepartmentAnalytics(
+    LoadDepartmentAnalytics event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading department analytics...'));
+
+    try {
+      final result = await repository.getAssetsByDepartment(
+        plantCode: event.plantCode,
+        forceRefresh: event.forceRefresh,
+      );
+
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (analytics) => emit(DepartmentAnalyticsLoaded(analytics)),
+      );
     } catch (e) {
       emit(
-        DashboardError(
-          message: 'Failed to load dashboard: ${e.toString()}',
-          period: event.period,
-          errorType: _getErrorType(e),
-        ),
+        DashboardError('Failed to load department analytics: ${e.toString()}'),
       );
+    }
+  }
+
+  Future<void> _onLoadGrowthTrends(
+    LoadGrowthTrends event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading growth trends...'));
+
+    try {
+      final result = await repository.getGrowthTrends(
+        deptCode: event.deptCode,
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        forceRefresh: event.forceRefresh,
+      );
+
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (trends) => emit(GrowthTrendsLoaded(trends)),
+      );
+    } catch (e) {
+      emit(DashboardError('Failed to load growth trends: ${e.toString()}'));
+    }
+  }
+
+  Future<void> _onLoadLocationAnalytics(
+    LoadLocationAnalytics event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading location analytics...'));
+
+    try {
+      final result = await repository.getLocationAnalytics(
+        locationCode: event.locationCode,
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        includeTrends: event.includeTrends,
+        forceRefresh: event.forceRefresh,
+      );
+
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (analytics) => emit(LocationAnalyticsLoaded(analytics)),
+      );
+    } catch (e) {
+      emit(
+        DashboardError('Failed to load location analytics: ${e.toString()}'),
+      );
+    }
+  }
+
+  Future<void> _onLoadAuditProgress(
+    LoadAuditProgress event,
+    Emitter<DashboardState> emit,
+  ) async {
+    emit(const DashboardLoading(message: 'Loading audit progress...'));
+
+    try {
+      final result = await repository.getAuditProgress(
+        deptCode: event.deptCode,
+        includeDetails: event.includeDetails,
+        auditStatus: event.auditStatus,
+        forceRefresh: event.forceRefresh,
+      );
+
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (progress) => emit(AuditProgressLoaded(progress)),
+      );
+    } catch (e) {
+      emit(DashboardError('Failed to load audit progress: ${e.toString()}'));
     }
   }
 
@@ -127,30 +200,34 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     RefreshDashboard event,
     Emitter<DashboardState> emit,
   ) async {
-    // If currently loaded, show refreshing state
-    if (state is DashboardLoaded) {
-      emit(
-        DashboardRefreshing(
-          currentData: state as DashboardLoaded,
-          refreshingComponent: 'all',
-        ),
-      );
+    emit(const DashboardLoading(message: 'Refreshing dashboard...'));
+
+    try {
+      final result = await refreshDashboard();
+
+      result.fold((failure) => emit(DashboardError(failure.message)), (_) {
+        emit(const DashboardRefreshed());
+        // Auto-reload data after refresh
+        add(const LoadDashboardStats(forceRefresh: true));
+      });
+    } catch (e) {
+      emit(DashboardError('Failed to refresh dashboard: ${e.toString()}'));
     }
+  }
 
-    // Use refresh use case
-    final result = await refreshDashboard();
+  Future<void> _onClearDashboardCache(
+    ClearDashboardCache event,
+    Emitter<DashboardState> emit,
+  ) async {
+    try {
+      final result = await clearCache();
 
-    if (result.isRight) {
-      // Reload dashboard after refresh
-      add(LoadDashboard(period: event.period, forceRefresh: true));
-    } else {
-      emit(
-        DashboardError(
-          message: 'Failed to refresh dashboard: ${result.left!.message}',
-          period: event.period,
-          errorType: _getErrorTypeFromFailure(result.left!),
-        ),
+      result.fold(
+        (failure) => emit(DashboardError(failure.message)),
+        (_) => emit(const DashboardCacheCleared()),
       );
+    } catch (e) {
+      emit(DashboardError('Failed to clear cache: ${e.toString()}'));
     }
   }
 
@@ -158,101 +235,26 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     ChangePeriod event,
     Emitter<DashboardState> emit,
   ) async {
-    // Load dashboard with new period
-    add(LoadDashboard(period: event.period));
+    emit(DashboardPeriodChanged(event.period));
+
+    // Reload data with new period
+    add(const LoadDashboardStats(forceRefresh: true));
   }
 
-  Future<void> _onLoadAlerts(
-    LoadAlerts event,
-    Emitter<DashboardState> emit,
-  ) async {
-    if (state is DashboardLoaded) {
-      final currentState = state as DashboardLoaded;
-
-      final result = await repository.getAlerts(
-        forceRefresh: event.forceRefresh,
-      );
-
-      if (result.isRight) {
-        emit(currentState.copyWith(alerts: result.right as List<Alert>));
-      }
-      // Don't emit error for individual component failures
-    }
+  void startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      add(const RefreshDashboard());
+    });
   }
 
-  Future<void> _onLoadRecentActivities(
-    LoadRecentActivities event,
-    Emitter<DashboardState> emit,
-  ) async {
-    if (state is DashboardLoaded) {
-      final currentState = state as DashboardLoaded;
-
-      final result = await repository.getRecentActivities(
-        period: event.period,
-        forceRefresh: event.forceRefresh,
-      );
-
-      if (result.isRight) {
-        emit(
-          currentState.copyWith(
-            recentActivities: result.right as RecentActivity,
-          ),
-        );
-      }
-      // Don't emit error for individual component failures
-    }
-  }
-
-  Future<void> _onClearCache(
-    ClearDashboardCache event,
-    Emitter<DashboardState> emit,
-  ) async {
-    await clearCache();
-
-    // Reload dashboard after clearing cache
-    if (state is DashboardLoaded) {
-      final currentState = state as DashboardLoaded;
-      add(
-        LoadDashboard(period: currentState.currentPeriod, forceRefresh: true),
-      );
-    } else {
-      add(const LoadDashboard(forceRefresh: true));
-    }
-  }
-
-  Future<void> _onRetryDashboardLoad(
-    RetryDashboardLoad event,
-    Emitter<DashboardState> emit,
-  ) async {
-    add(LoadDashboard(period: event.period, forceRefresh: true));
-  }
-
-  String _getErrorType(dynamic error) {
-    if (error is NetworkFailure) return 'network';
-    if (error is ServerFailure) return 'server';
-    if (error is CacheFailure) return 'cache';
-    if (error is UnauthorizedFailure) return 'auth';
-    return 'general';
-  }
-
-  String _getErrorTypeFromFailure(Failure failure) {
-    if (failure is NetworkFailure) return 'network';
-    if (failure is ServerFailure) return 'server';
-    if (failure is CacheFailure) return 'cache';
-    if (failure is UnauthorizedFailure) return 'auth';
-    return 'general';
-  }
-
-  // Helper method to check if data is stale
-  bool _isDataStale(DateTime lastUpdated) {
-    final now = DateTime.now();
-    final difference = now.difference(lastUpdated);
-    return difference.inMinutes > 5; // Consider data stale after 5 minutes
+  void stopAutoRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
   }
 
   @override
   Future<void> close() {
-    // Clean up any subscriptions or timers here
+    stopAutoRefresh();
     return super.close();
   }
 }

@@ -2,296 +2,256 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../di/injection.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
-import '../widgets/summary_card.dart';
-import '../widgets/dashboard_card.dart';
-import '../widgets/alerts_section.dart';
-import '../widgets/asset_status_pie_chart.dart';
-import '../widgets/scan_trend_line_chart.dart';
-import '../widgets/period_selector.dart';
-import '../widgets/asset_monitoring_section.dart';
-import '../widgets/export_tracking_section.dart';
+import '../widgets/summary_cards_widget.dart';
+import '../widgets/department_card.dart';
+import '../widgets/growth_trends_card.dart';
+import '../widgets/audit_progress_card.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          getIt<DashboardBloc>()..add(const LoadDashboard(forceRefresh: true)),
-      child: const DashboardPageView(),
-    );
-  }
+  State<DashboardPage> createState() => _DashboardPageState();
 }
 
-class DashboardPageView extends StatefulWidget {
-  const DashboardPageView({super.key});
-
-  @override
-  State<DashboardPageView> createState() => _DashboardPageViewState();
-}
-
-class _DashboardPageViewState extends State<DashboardPageView> {
+class _DashboardPageState extends State<DashboardPage> {
   String _selectedPeriod = '7d';
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        title: const Text(
-          'Dashboard Overview',
-          style: TextStyle(fontWeight: FontWeight.bold),
+
+    return BlocProvider(
+      create: (context) => getIt<DashboardBloc>()
+        ..add(const LoadDashboardStats())
+        ..add(const LoadQuickStats())
+        ..add(const LoadDepartmentAnalytics())
+        ..add(const LoadGrowthTrends())
+        ..add(const LoadAuditProgress()),
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.background,
+        appBar: AppBar(
+          title: const Text('Dashboard Overview'),
+          centerTitle: true,
+          backgroundColor: theme.colorScheme.surface,
+          foregroundColor: theme.colorScheme.onSurface,
+          elevation: 1,
+          actions: [
+            BlocBuilder<DashboardBloc, DashboardState>(
+              builder: (context, state) {
+                return IconButton(
+                  onPressed: state is DashboardLoading
+                      ? null
+                      : () {
+                          context.read<DashboardBloc>().add(
+                            const RefreshDashboard(),
+                          );
+                        },
+                  icon: state is DashboardLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
+                );
+              },
+            ),
+          ],
         ),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.primary,
-        elevation: 1,
-      ),
-      body: BlocConsumer<DashboardBloc, DashboardState>(
-        listener: (context, state) {
-          if (state is DashboardError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-                action: SnackBarAction(
-                  label: 'Retry',
-                  textColor: Colors.white,
-                  onPressed: _onRefresh,
+        body: BlocListener<DashboardBloc, DashboardState>(
+          listener: (context, state) {
+            if (state is DashboardError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 3),
                 ),
+              );
+            } else if (state is DashboardRefreshed) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Dashboard refreshed successfully'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          child: RefreshIndicator(
+            onRefresh: () async {
+              context.read<DashboardBloc>().add(const RefreshDashboard());
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Period selector header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '🏠 Overview (สรุปภาพรวม)',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      _buildPeriodDropdown(context, theme),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Summary Cards
+                  const SummaryCardsWidget(),
+                  const SizedBox(height: 24),
+
+                  // Department Analytics (Pie Chart)
+                  const DepartmentCard(),
+                  const SizedBox(height: 24),
+
+                  // Growth Trends (Line Chart)
+                  const GrowthTrendsCard(),
+                  const SizedBox(height: 24),
+
+                  // Audit Progress (Circle Progress)
+                  const AuditProgressCard(),
+                ],
               ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is DashboardLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            );
-          }
-
-          if (state is DashboardLoaded) {
-            return _buildDashboardContent(state);
-          }
-
-          if (state is DashboardError) {
-            return _buildErrorView(state);
-          }
-
-          return const SizedBox.shrink();
-        },
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildDashboardContent(DashboardLoaded state) {
-    return RefreshIndicator(
-      onRefresh: () async => _onRefresh(),
-      color: AppColors.primary,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with period selector
-            _buildHeader(),
-            const SizedBox(height: 16),
+  Widget _buildPeriodDropdown(BuildContext context, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedPeriod,
+          items: const [
+            DropdownMenuItem(value: 'today', child: Text('วันนี้')),
+            DropdownMenuItem(value: '7d', child: Text('7 วัน')),
+            DropdownMenuItem(value: '30d', child: Text('30 วัน')),
+          ],
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _selectedPeriod = value;
+              });
+              context.read<DashboardBloc>().add(ChangePeriod(value));
+            }
+          },
+          style: theme.textTheme.bodyMedium,
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            // Summary Cards Grid (2x3)
-            _buildSummaryGrid(state),
-            const SizedBox(height: 24),
+/// Alternative implementation with tabs for different dashboard views
+class DashboardPageWithTabs extends StatefulWidget {
+  const DashboardPageWithTabs({super.key});
 
-            // Asset Status Pie Chart
-            DashboardCard(
-              title: 'Asset Status Distribution',
-              icon: Icons.pie_chart,
+  @override
+  State<DashboardPageWithTabs> createState() => _DashboardPageWithTabsState();
+}
 
-              child: AssetStatusPieChart(
-                assetStatusPie: state.dashboardStats.charts.assetStatusPie,
-              ),
-            ),
-            const SizedBox(height: 16),
+class _DashboardPageWithTabsState extends State<DashboardPageWithTabs>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
-            // Alerts Section
-            if (state.alerts.isNotEmpty) ...[
-              AlertsSection(alerts: state.alerts),
-              const SizedBox(height: 16),
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return BlocProvider(
+      create: (context) => getIt<DashboardBloc>()
+        ..add(const LoadDashboardStats())
+        ..startAutoRefresh(),
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.background,
+        appBar: AppBar(
+          title: const Text('Dashboard'),
+          backgroundColor: theme.colorScheme.surface,
+          bottom: TabBar(
+            controller: _tabController,
+            indicatorColor: theme.colorScheme.primary,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(0.6),
+            tabs: const [
+              Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
+              Tab(icon: Icon(Icons.trending_up), text: 'Analytics'),
+              Tab(icon: Icon(Icons.assignment), text: 'Audit'),
             ],
-
-            // Asset Monitoring Section
-            AssetMonitoringSection(
-              recentScans: state.recentActivities.recentScans,
-            ),
-            const SizedBox(height: 16),
-
-            // Scan Trend Chart
-            DashboardCard(
-              title: 'Scan Activity Trend',
-              icon: Icons.trending_up,
-              child: ScanTrendLineChart(
-                scanTrendList: state.dashboardStats.charts.scanTrend7d,
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Overview Tab
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: const [
+                  SummaryCardsWidget(),
+                  SizedBox(height: 24),
+                  DepartmentCard(),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
 
-            // Export Tracking Section
-            ExportTrackingSection(
-              recentExports: state.recentActivities.recentExports,
+            // Analytics Tab
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: const [
+                  GrowthTrendsCard(),
+                  SizedBox(height: 24),
+                  // LocationAnalyticsCard(), // TODO: Add when implemented
+                ],
+              ),
+            ),
+
+            // Audit Tab
+            const SingleChildScrollView(
+              padding: EdgeInsets.all(16),
+              child: AuditProgressCard(),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.dashboard, size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
-            const Text(
-              'Overview',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onBackground,
-              ),
-            ),
-          ],
-        ),
-        PeriodSelector(
-          selectedPeriod: _selectedPeriod,
-          onPeriodChanged: _onPeriodChanged,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryGrid(DashboardLoaded state) {
-    final overview = state.dashboardStats.overview;
-
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.1,
-      children: [
-        SummaryCard(
-          icon: Icons.inventory_2_outlined,
-          label: 'Total Assets',
-          value: overview.totalAssets.toString(),
-          color: AppColors.primary,
-        ),
-        SummaryCard(
-          icon: Icons.warning_amber_outlined,
-          label: 'Avalable Assets',
-          value: overview.activeAssets.toString(),
-          color: AppColors.chartPurple,
-        ),
-        SummaryCard(
-          icon: Icons.cancel_outlined,
-          label: 'Inactive Assets',
-          value: overview.inactiveAssets.toString(),
-          color: AppColors.assetInactive,
-        ),
-        SummaryCard(
-          icon: Icons.qr_code_scanner,
-          label: 'Scans Today',
-          value: overview.todayScans.toString(),
-          color: AppColors.info,
-          changePercent: overview.scansChangePercent,
-          trend: overview.scansTrend,
-        ),
-        SummaryCard(
-          icon: Icons.file_upload_outlined,
-          label: 'Export Success (7d)',
-          value: overview.exportSuccess7d.toString(),
-          color: AppColors.success,
-          changePercent: overview.exportSuccessChangePercent,
-          trend: overview.exportSuccessTrend,
-        ),
-        SummaryCard(
-          icon: Icons.error_outline,
-          label: 'Export Failed (7d)',
-          value: overview.exportFailed7d.toString(),
-          color: AppColors.error,
-          changePercent: overview.exportFailedChangePercent,
-          trend: overview.exportFailedTrend,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildErrorView(DashboardError state) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              state.isNetworkError ? Icons.wifi_off : Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              state.isNetworkError
-                  ? 'Network Error'
-                  : 'Failed to load dashboard',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.onBackground,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _onRefresh,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _onPeriodChanged(String newPeriod) {
-    setState(() {
-      _selectedPeriod = newPeriod;
-    });
-    context.read<DashboardBloc>().add(
-      LoadDashboard(period: newPeriod, forceRefresh: true),
-    );
-  }
-
-  void _onRefresh() {
-    context.read<DashboardBloc>().add(
-      RefreshDashboard(period: _selectedPeriod),
     );
   }
 }

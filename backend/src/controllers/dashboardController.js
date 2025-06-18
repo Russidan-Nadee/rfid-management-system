@@ -1,5 +1,6 @@
 // Path: backend/src/controllers/dashboardController.js
 const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../services/service');
+const DepartmentService = require('../services/departmentService');
 const ExportModel = require('../models/exportModel');
 
 // Initialize services
@@ -8,6 +9,7 @@ const locationService = new LocationService();
 const unitService = new UnitService();
 const userService = new UserService();
 const assetService = new AssetService();
+const departmentService = new DepartmentService();
 const exportModel = new ExportModel();
 
 // Response helper function

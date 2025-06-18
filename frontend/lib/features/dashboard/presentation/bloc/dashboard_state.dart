@@ -4,6 +4,8 @@ import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/overview_data.dart';
 import '../../domain/entities/alert.dart';
 import '../../domain/entities/recent_activity.dart';
+import '../../domain/entities/department_analytics.dart';
+import '../../domain/entities/growth_trends.dart';
 
 abstract class DashboardState extends Equatable {
   const DashboardState();
@@ -12,172 +14,211 @@ abstract class DashboardState extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Initial state
 class DashboardInitial extends DashboardState {
   const DashboardInitial();
 }
 
+/// Loading state with message
 class DashboardLoading extends DashboardState {
-  final String period;
-  final bool isRefreshing;
-
-  const DashboardLoading({this.period = '7d', this.isRefreshing = false});
-
-  @override
-  List<Object?> get props => [period, isRefreshing];
-}
-
-class DashboardLoaded extends DashboardState {
-  final DashboardStats dashboardStats;
-  final OverviewData overviewData;
-  final List<Alert> alerts;
-  final RecentActivity recentActivities;
-  final String currentPeriod;
-  final DateTime lastUpdated;
-  final bool isFromCache;
-
-  const DashboardLoaded({
-    required this.dashboardStats,
-    required this.overviewData,
-    required this.alerts,
-    required this.recentActivities,
-    required this.currentPeriod,
-    required this.lastUpdated,
-    this.isFromCache = false,
-  });
-
-  @override
-  List<Object?> get props => [
-    dashboardStats,
-    overviewData,
-    alerts,
-    recentActivities,
-    currentPeriod,
-    lastUpdated,
-    isFromCache,
-  ];
-
-  // Helper getters
-  bool get hasAlerts => alerts.isNotEmpty;
-  bool get hasRecentScans => recentActivities.hasScans;
-  bool get hasRecentExports => recentActivities.hasExports;
-
-  int get totalAssets => dashboardStats.overview.totalAssets;
-  int get activeAssets => dashboardStats.overview.activeAssets;
-  int get todayScans => dashboardStats.overview.todayScans;
-
-  // Copy with method for state updates
-  DashboardLoaded copyWith({
-    DashboardStats? dashboardStats,
-    OverviewData? overviewData,
-    List<Alert>? alerts,
-    RecentActivity? recentActivities,
-    String? currentPeriod,
-    DateTime? lastUpdated,
-    bool? isFromCache,
-  }) {
-    return DashboardLoaded(
-      dashboardStats: dashboardStats ?? this.dashboardStats,
-      overviewData: overviewData ?? this.overviewData,
-      alerts: alerts ?? this.alerts,
-      recentActivities: recentActivities ?? this.recentActivities,
-      currentPeriod: currentPeriod ?? this.currentPeriod,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
-      isFromCache: isFromCache ?? this.isFromCache,
-    );
-  }
-}
-
-class DashboardError extends DashboardState {
   final String message;
-  final String errorType;
-  final String period;
-  final bool canRetry;
 
-  const DashboardError({
-    required this.message,
-    this.errorType = 'general',
-    this.period = '7d',
-    this.canRetry = true,
-  });
+  const DashboardLoading({this.message = 'Loading...'});
 
   @override
-  List<Object?> get props => [message, errorType, period, canRetry];
-
-  // Helper getters for error types
-  bool get isNetworkError => errorType == 'network';
-  bool get isServerError => errorType == 'server';
-  bool get isCacheError => errorType == 'cache';
-  bool get isAuthError => errorType == 'auth';
+  List<Object?> get props => [message];
 }
 
-class DashboardPartialLoaded extends DashboardState {
-  final DashboardStats? dashboardStats;
-  final OverviewData? overviewData;
+/// Dashboard statistics loaded successfully
+class DashboardStatsLoaded extends DashboardState {
+  final DashboardStats stats;
+
+  const DashboardStatsLoaded(this.stats);
+
+  @override
+  List<Object?> get props => [stats];
+}
+
+/// Overview data loaded successfully
+class OverviewDataLoaded extends DashboardState {
+  final OverviewData overview;
+
+  const OverviewDataLoaded(this.overview);
+
+  @override
+  List<Object?> get props => [overview];
+}
+
+/// Quick statistics loaded successfully
+class QuickStatsLoaded extends DashboardState {
+  final Map<String, dynamic> quickStats;
+
+  const QuickStatsLoaded(this.quickStats);
+
+  @override
+  List<Object?> get props => [quickStats];
+}
+
+/// Department analytics loaded successfully
+class DepartmentAnalyticsLoaded extends DashboardState {
+  final DepartmentAnalytics analytics;
+
+  const DepartmentAnalyticsLoaded(this.analytics);
+
+  @override
+  List<Object?> get props => [analytics];
+}
+
+/// Growth trends loaded successfully
+class GrowthTrendsLoaded extends DashboardState {
+  final GrowthTrends trends;
+
+  const GrowthTrendsLoaded(this.trends);
+
+  @override
+  List<Object?> get props => [trends];
+}
+
+/// Location analytics loaded successfully
+class LocationAnalyticsLoaded extends DashboardState {
+  final Map<String, dynamic> analytics;
+
+  const LocationAnalyticsLoaded(this.analytics);
+
+  @override
+  List<Object?> get props => [analytics];
+}
+
+/// Audit progress loaded successfully
+class AuditProgressLoaded extends DashboardState {
+  final Map<String, dynamic> progress;
+
+  const AuditProgressLoaded(this.progress);
+
+  @override
+  List<Object?> get props => [progress];
+}
+
+/// Alerts loaded successfully
+class AlertsLoaded extends DashboardState {
+  final List<Alert> alerts;
+
+  const AlertsLoaded(this.alerts);
+
+  @override
+  List<Object?> get props => [alerts];
+}
+
+/// Recent activities loaded successfully
+class RecentActivitiesLoaded extends DashboardState {
+  final RecentActivity activities;
+
+  const RecentActivitiesLoaded(this.activities);
+
+  @override
+  List<Object?> get props => [activities];
+}
+
+/// Dashboard refreshed successfully
+class DashboardRefreshed extends DashboardState {
+  const DashboardRefreshed();
+}
+
+/// Dashboard cache cleared successfully
+class DashboardCacheCleared extends DashboardState {
+  const DashboardCacheCleared();
+}
+
+/// Period changed successfully
+class DashboardPeriodChanged extends DashboardState {
+  final String period;
+
+  const DashboardPeriodChanged(this.period);
+
+  @override
+  List<Object?> get props => [period];
+}
+
+/// Multiple data loaded successfully (for combined UI)
+class DashboardDataLoaded extends DashboardState {
+  final DashboardStats? stats;
+  final OverviewData? overview;
+  final Map<String, dynamic>? quickStats;
   final List<Alert>? alerts;
   final RecentActivity? recentActivities;
-  final String currentPeriod;
-  final List<String> loadingComponents;
-  final List<String> errorComponents;
+  final DepartmentAnalytics? departmentAnalytics;
+  final GrowthTrends? growthTrends;
+  final Map<String, dynamic>? locationAnalytics;
+  final Map<String, dynamic>? auditProgress;
 
-  const DashboardPartialLoaded({
-    this.dashboardStats,
-    this.overviewData,
+  const DashboardDataLoaded({
+    this.stats,
+    this.overview,
+    this.quickStats,
     this.alerts,
     this.recentActivities,
-    required this.currentPeriod,
-    this.loadingComponents = const [],
-    this.errorComponents = const [],
+    this.departmentAnalytics,
+    this.growthTrends,
+    this.locationAnalytics,
+    this.auditProgress,
   });
 
   @override
   List<Object?> get props => [
-    dashboardStats,
-    overviewData,
+    stats,
+    overview,
+    quickStats,
     alerts,
     recentActivities,
-    currentPeriod,
-    loadingComponents,
-    errorComponents,
+    departmentAnalytics,
+    growthTrends,
+    locationAnalytics,
+    auditProgress,
   ];
 
-  // Helper getters
-  bool get hasOverview => dashboardStats != null && overviewData != null;
-  bool get hasAlerts => alerts != null;
+  /// Helper methods to check data availability
+  bool get hasStats => stats != null;
+  bool get hasOverview => overview != null;
+  bool get hasQuickStats => quickStats != null;
+  bool get hasAlerts => alerts != null && alerts!.isNotEmpty;
   bool get hasRecentActivities => recentActivities != null;
-  bool get isStatsLoading => loadingComponents.contains('stats');
-  bool get isAlertsLoading => loadingComponents.contains('alerts');
-  bool get isActivitiesLoading => loadingComponents.contains('activities');
+  bool get hasDepartmentAnalytics => departmentAnalytics != null;
+  bool get hasGrowthTrends => growthTrends != null;
+  bool get hasLocationAnalytics => locationAnalytics != null;
+  bool get hasAuditProgress => auditProgress != null;
 
-  DashboardPartialLoaded copyWith({
-    DashboardStats? dashboardStats,
-    OverviewData? overviewData,
+  /// Copy with method for updating specific data
+  DashboardDataLoaded copyWith({
+    DashboardStats? stats,
+    OverviewData? overview,
+    Map<String, dynamic>? quickStats,
     List<Alert>? alerts,
     RecentActivity? recentActivities,
-    String? currentPeriod,
-    List<String>? loadingComponents,
-    List<String>? errorComponents,
+    DepartmentAnalytics? departmentAnalytics,
+    GrowthTrends? growthTrends,
+    Map<String, dynamic>? locationAnalytics,
+    Map<String, dynamic>? auditProgress,
   }) {
-    return DashboardPartialLoaded(
-      dashboardStats: dashboardStats ?? this.dashboardStats,
-      overviewData: overviewData ?? this.overviewData,
+    return DashboardDataLoaded(
+      stats: stats ?? this.stats,
+      overview: overview ?? this.overview,
+      quickStats: quickStats ?? this.quickStats,
       alerts: alerts ?? this.alerts,
       recentActivities: recentActivities ?? this.recentActivities,
-      currentPeriod: currentPeriod ?? this.currentPeriod,
-      loadingComponents: loadingComponents ?? this.loadingComponents,
-      errorComponents: errorComponents ?? this.errorComponents,
+      departmentAnalytics: departmentAnalytics ?? this.departmentAnalytics,
+      growthTrends: growthTrends ?? this.growthTrends,
+      locationAnalytics: locationAnalytics ?? this.locationAnalytics,
+      auditProgress: auditProgress ?? this.auditProgress,
     );
   }
 }
 
-class DashboardRefreshing extends DashboardState {
-  final DashboardLoaded currentData;
-  final String refreshingComponent; // 'all', 'stats', 'alerts', 'activities'
+/// Error state
+class DashboardError extends DashboardState {
+  final String message;
 
-  const DashboardRefreshing({
-    required this.currentData,
-    this.refreshingComponent = 'all',
-  });
+  const DashboardError(this.message);
 
   @override
-  List<Object?> get props => [currentData, refreshingComponent];
+  List<Object?> get props => [message];
 }

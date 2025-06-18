@@ -55,6 +55,8 @@ void configureDashboardDependencies() {
     () => IsCacheValidUseCase(getIt<DashboardRepository>()),
   );
 
+  // Enhanced APIs ใช้ Repository โดยตรง - ไม่มี Use Cases
+
   // Presentation Layer - BLoC (Factory - new instance each time)
   getIt.registerFactory<DashboardBloc>(
     () => DashboardBloc(
