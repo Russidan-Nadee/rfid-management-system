@@ -81,18 +81,3 @@ void configureSearchDependencies() {
     ),
   );
 }
-
-void debugSearchDependencies() {
-  print('🔍 Search Dependencies:');
-  print('  SearchBloc: ${getIt.isRegistered<SearchBloc>()}');
-  print('  SearchRepository: ${getIt.isRegistered<SearchRepository>()}');
-  print(
-    '  InstantSearchHandler: ${getIt.isRegistered<InstantSearchHandler>()}',
-  );
-  print(
-    '  SearchRemoteDataSource: ${getIt.isRegistered<SearchRemoteDataSource>()}',
-  );
-  print(
-    '  SearchCacheDataSource: ${getIt.isRegistered<SearchCacheDataSource>()}',
-  );
-}

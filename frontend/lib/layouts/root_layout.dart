@@ -1,7 +1,6 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/dashboard_page_mock.dart';
-import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
@@ -15,21 +14,16 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 0;
+  int _currentIndex = 2;
   bool _isRailExtended = true;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  final _navigatorKeys = List.generate(
+    5,
+    (index) => GlobalKey<NavigatorState>(),
+  );
 
   List<Widget> get _pages => [
-    const DashboardPage(),
+    const DashboardPageMock(),
     const SearchPage(),
     const ScanPage(),
     const ExportPage(),
@@ -37,7 +31,12 @@ class _RootLayoutState extends State<RootLayout> {
   ];
 
   void _onNavTap(int index) {
-    setState(() => _currentIndex = index);
+    if (index != _currentIndex) {
+      _navigatorKeys[_currentIndex].currentState?.popUntil(
+        (route) => route.isFirst,
+      );
+      setState(() => _currentIndex = index);
+    }
   }
 
   @override
@@ -101,6 +100,7 @@ class _RootLayoutState extends State<RootLayout> {
             ),
           Expanded(
             child: Navigator(
+              key: _navigatorKeys[_currentIndex],
               pages: [MaterialPage(child: _pages[_currentIndex])],
               onPopPage: (route, result) => route.didPop(result),
             ),

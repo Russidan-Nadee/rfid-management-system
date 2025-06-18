@@ -37,17 +37,3 @@ void configureSettingsDependencies() {
     ),
   );
 }
-
-/// Debug Settings dependencies
-void debugSettingsDependencies() {
-  print('--- Settings Dependencies ---');
-  print(
-    'SettingsLocalDataSource: ${getIt.isRegistered<SettingsLocalDataSource>()}',
-  );
-  print('SettingsRepository: ${getIt.isRegistered<SettingsRepository>()}');
-  print('GetSettingsUseCase: ${getIt.isRegistered<GetSettingsUseCase>()}');
-  print(
-    'UpdateSettingsUseCase: ${getIt.isRegistered<UpdateSettingsUseCase>()}',
-  );
-  print('SettingsBloc: ${getIt.isRegistered<SettingsBloc>()}');
-}

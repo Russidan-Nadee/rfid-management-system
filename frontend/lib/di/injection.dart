@@ -29,44 +29,9 @@ Future<void> configureDependencies() async {
   configureSearchDependencies();
   configureDashboardDependencies();
 
-  // Debug dependencies in development
-  if (const bool.fromEnvironment('dart.vm.product') == false) {
-    debugDependencies();
-  }
+  if (const bool.fromEnvironment('dart.vm.product') == false) {}
 }
 
-/// Reset all dependencies (useful for testing)
 void resetDependencies() {
-  getIt.reset();
-}
-
-/// Check if dependencies are registered (for debugging)
-void debugDependencies() {
-  // Auth Dependencies
-
-  // Scan Dependencies
-  debugScanDependencies();
-
-  // Settings Dependencies
-  debugSettingsDependencies();
-
-  // Export Dependencies
-  debugExportDependencies();
-
-  // Search Dependencies
-  debugSearchDependencies();
-
-  // Dashboard Dependencies
-  debugDashboardDependencies();
-}
-
-/// Dispose resources when app is closed
-void disposeDependencies() {
-  // Dispose API service
-  if (getIt.isRegistered<ApiService>()) {
-    getIt<ApiService>().dispose();
-  }
-
-  // Reset all dependencies
   getIt.reset();
 }

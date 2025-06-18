@@ -112,16 +112,6 @@ class SettingsPageView extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Language Setting
-          _buildLanguageSetting(context, settings, theme),
-
-          const SizedBox(height: 16),
-
-          // Remember Login Setting
-          _buildRememberLoginSetting(context, settings, theme),
-
-          const SizedBox(height: 24),
-
           // About Section
           _buildSectionTitle(theme, 'About'),
           const SizedBox(height: 12),
@@ -143,54 +133,6 @@ class SettingsPageView extends StatelessWidget {
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: theme.colorScheme.primary,
-      ),
-    );
-  }
-
-  Widget _buildLanguageSetting(
-    BuildContext context,
-    settings,
-    ThemeData theme,
-  ) {
-    return Card(
-      elevation: 1,
-      color: theme.colorScheme.surface,
-      child: ListTile(
-        leading: Icon(Icons.language, color: theme.colorScheme.primary),
-        title: const Text('Language'),
-        subtitle: Text(settings.language == 'en' ? 'English' : 'ไทย'),
-        trailing: DropdownButton<String>(
-          value: settings.language,
-          items: const [
-            DropdownMenuItem(value: 'en', child: Text('English')),
-            DropdownMenuItem(value: 'th', child: Text('ไทย')),
-          ],
-          onChanged: (value) {
-            if (value != null) {
-              context.read<SettingsBloc>().add(UpdateLanguage(value));
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRememberLoginSetting(
-    BuildContext context,
-    settings,
-    ThemeData theme,
-  ) {
-    return Card(
-      elevation: 1,
-      color: theme.colorScheme.surface,
-      child: SwitchListTile(
-        secondary: Icon(Icons.memory, color: theme.colorScheme.primary),
-        title: const Text('Remember Login'),
-        subtitle: const Text('Stay logged in after app restart'),
-        value: settings.rememberLogin,
-        onChanged: (value) {
-          context.read<SettingsBloc>().add(UpdateRememberLogin(value));
-        },
       ),
     );
   }

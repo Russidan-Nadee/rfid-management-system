@@ -67,22 +67,3 @@ void configureScanDependencies() {
   });
 }
 
-/// Debug Scan dependencies
-void debugScanDependencies() {
-  print('--- Scan Dependencies ---');
-  print('MockRfidDataSource: ${getIt.isRegistered<MockRfidDataSource>()}');
-  print('ScanRepository: ${getIt.isRegistered<ScanRepository>()}');
-  print(
-    'GetAssetDetailsUseCase: ${getIt.isRegistered<GetAssetDetailsUseCase>()}',
-  );
-  print(
-    'UpdateAssetStatusUseCase: ${getIt.isRegistered<UpdateAssetStatusUseCase>()}',
-  );
-  print(
-    'GetCurrentUserUseCase: ${getIt.isRegistered<GetCurrentUserUseCase>()}',
-  );
-  print('CreateAssetUseCase: ${getIt.isRegistered<CreateAssetUseCase>()}');
-  print('GetMasterDataUseCase: ${getIt.isRegistered<GetMasterDataUseCase>()}');
-  print('ScanBloc: ${getIt.isRegistered<ScanBloc>()}');
-  print('AssetCreationBloc: ${getIt.isRegistered<AssetCreationBloc>()}');
-}

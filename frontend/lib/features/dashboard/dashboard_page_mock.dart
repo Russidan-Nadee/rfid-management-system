@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/core/constants/app_colors.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 class DashboardPageMock extends StatelessWidget {
@@ -10,8 +11,15 @@ class DashboardPageMock extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard Overview'),
-        centerTitle: true,
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -22,15 +30,8 @@ class DashboardPageMock extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '🏠 Overview (สรุปภาพรวม)',
-                  style: theme.textTheme.titleLarge,
-                ),
-                DropdownButton<String>(
-                  value: '7 วัน',
-                  items: ['วันนี้', '7 วัน', '30 วัน'].map((e) {
-                    return DropdownMenuItem(value: e, child: Text(e));
-                  }).toList(),
-                  onChanged: (v) {},
+                  'Overview',
+                  style: TextStyle(color: AppColors.primary, fontSize: 20),
                 ),
               ],
             ),
@@ -41,37 +42,37 @@ class DashboardPageMock extends StatelessWidget {
               children: const [
                 _SummaryCard(
                   icon: LucideIcons.boxes,
-                  label: 'สินทรัพย์ทั้งหมด',
+                  label: 'All Assets',
                   value: '1,240',
                   subtext: '+5% YoY',
                   valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeCheck,
-                  label: 'ใช้งานอยู่',
+                  label: 'Active',
                   value: '1,100',
                   subtext: '89% Utilization',
                   valueColor: Colors.green,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeX,
-                  label: 'ไม่ใช้งาน',
+                  label: 'Inactive',
                   value: '140',
                   subtext: '11% Idle Assets',
                   valueColor: Colors.red,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.packagePlus,
-                  label: 'สินทรัพย์ใหม่ (ปีนี้)',
+                  label: 'New Assets (1Y)',
                   value: '320',
-                  subtext: '+18% YoY',
+                  subtext: '+10% YoY',
                   valueColor: Colors.green,
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _DashboardCard(
-              title: '🏢 การกระจายสินทรัพย์ตามแผนก',
+              title: 'Asset distribution',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -87,17 +88,17 @@ class DashboardPageMock extends StatelessWidget {
                           ),
                           PieChartSectionData(
                             value: 30,
-                            title: 'โรงงาน',
+                            title: 'GA',
                             color: Colors.orange,
                           ),
                           PieChartSectionData(
                             value: 15,
-                            title: 'Logistics',
+                            title: 'FIN',
                             color: Colors.green,
                           ),
                           PieChartSectionData(
                             value: 10,
-                            title: 'อื่นๆ',
+                            title: 'ACC',
                             color: Colors.grey,
                           ),
                         ],
@@ -106,16 +107,12 @@ class DashboardPageMock extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text('• IT ใช้งบลงทุนมากที่สุด (45%)'),
-                  const Text('• โรงงานรองลงมา (30%) → เน้นการผลิต'),
-                  const Text('→ วิเคราะห์ ROI แยกแผนก เพื่อวางกลยุทธ์ปีถัดไป'),
                 ],
               ),
             ),
             const SizedBox(height: 24),
             _DashboardCard(
-              title: '📈 การเติบโตของสินทรัพย์แต่ละแผนก',
+              title: 'Asset Growth',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -123,14 +120,12 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'แผนก:',
+                        'Department:',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
-                        value: 'IT',
-                        items: ['IT', 'โรงงาน', 'Logistics', 'อื่นๆ'].map((
-                          dept,
-                        ) {
+                        value: 'All',
+                        items: ['All', 'GA', 'ACC', 'FIN'].map((dept) {
                           return DropdownMenuItem(
                             value: dept,
                             child: Text(dept),
@@ -160,14 +155,7 @@ class DashboardPageMock extends StatelessWidget {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                const months = [
-                                  'ม.ค.',
-                                  'ก.พ.',
-                                  'มี.ค.',
-                                  'เม.ย.',
-                                  'พ.ค.',
-                                  'มิ.ย.',
-                                ];
+                                const months = ['Q1', 'Q2', 'Q3', 'Q4', '1Y'];
                                 if (value.toInt() < months.length) {
                                   return Text(months[value.toInt()]);
                                 }
@@ -186,12 +174,12 @@ class DashboardPageMock extends StatelessWidget {
                         lineBarsData: [
                           LineChartBarData(
                             spots: const [
-                              FlSpot(0, 5), // ม.ค. +5%
-                              FlSpot(1, 8), // ก.พ. +8%
-                              FlSpot(2, 12), // มี.ค. +12%
-                              FlSpot(3, 18), // เม.ย. +18%
-                              FlSpot(4, 15), // พ.ค. +15%
-                              FlSpot(5, 22), // มิ.ย. +22%
+                              FlSpot(0, 5),
+                              FlSpot(1, 8),
+                              FlSpot(2, 12),
+                              FlSpot(3, 18),
+                              FlSpot(4, 15),
+                              FlSpot(5, 22),
                             ],
                             isCurved: true,
                             color: Colors.blue,
@@ -210,18 +198,12 @@ class DashboardPageMock extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text('• แผนก IT มีการเติบโต 22% ในครึ่งปีแรก'),
-                  const Text(
-                    '• เพิ่มขึ้นอย่างต่อเนื่องจาก Digital Transformation',
-                  ),
-                  const Text('→ คาดการณ์เติบโต 40% ภายในสิ้นปี'),
                 ],
               ),
             ),
             const SizedBox(height: 24),
             _DashboardCard(
-              title: '🏭 การเติบโตของสินทรัพย์แต่ละพื้นที่ปฏิบัติการ',
+              title: 'Asset Location Growth',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -229,14 +211,14 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'พื้นที่:',
+                        'Location:',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
-                        value: 'Curing Oven Area',
+                        value: 'All',
                         items:
                             [
-                              'Curing Oven Area',
+                              'All',
                               'E-Coat Line 1',
                               'Maintenance Workshop',
                               'Phosphating Line 1',
@@ -274,14 +256,7 @@ class DashboardPageMock extends StatelessWidget {
                             sideTitles: SideTitles(
                               showTitles: true,
                               getTitlesWidget: (value, meta) {
-                                const months = [
-                                  'ม.ค.',
-                                  'ก.พ.',
-                                  'มี.ค.',
-                                  'เม.ย.',
-                                  'พ.ค.',
-                                  'มิ.ย.',
-                                ];
+                                const months = ['Q1', 'Q2', 'Q3', 'Q4', '1Y'];
                                 if (value.toInt() < months.length) {
                                   return Text(months[value.toInt()]);
                                 }
@@ -324,21 +299,13 @@ class DashboardPageMock extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '• พื้นที่ Curing Oven มีการเติบโต 25% ในครึ่งปีแรก',
-                  ),
-                  const Text('• การปรับปรุงเตาอบเพิ่มประสิทธิภาพการผลิต'),
-                  const Text(
-                    '→ เป้าหมายเพิ่มเครื่องจักรใหม่ 2 ชุดภายในไตรมาส 4',
-                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 24),
             _DashboardCard(
-              title: '📋 ความคืบหน้าการตรวจสอบประจำปี',
+              title: 'Inspection progress',
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -346,19 +313,17 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'แผนก:',
+                        'department:',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
-                        value: 'ทั้งหมด',
-                        items: ['ทั้งหมด', 'IT', 'โรงงาน', 'Logistics', 'อื่นๆ']
-                            .map((dept) {
-                              return DropdownMenuItem(
-                                value: dept,
-                                child: Text(dept),
-                              );
-                            })
-                            .toList(),
+                        value: 'all',
+                        items: ['all', 'IT', 'GA', 'HR', 'ACC'].map((dept) {
+                          return DropdownMenuItem(
+                            value: dept,
+                            child: Text(dept),
+                          );
+                        }).toList(),
                         onChanged: (v) {
                           // Handle department change
                         },
@@ -395,7 +360,7 @@ class DashboardPageMock extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'เสร็จแล้ว',
+                              'Checked',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -424,7 +389,7 @@ class DashboardPageMock extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'ตรวจแล้ว',
+                            'Checked',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
@@ -445,7 +410,7 @@ class DashboardPageMock extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'รอตรวจ',
+                            'Waiting',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
@@ -466,19 +431,12 @@ class DashboardPageMock extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'ทั้งหมด',
+                            'All',
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
                       ),
                     ],
-                  ),
-
-                  const SizedBox(height: 16),
-                  const Text('• ความคืบหน้าภาพรวม 28% ของการตรวจสอบประจำปี'),
-                  const Text('• เป้าหมายให้เสร็จสิ้นภายในไตรมาส 3'),
-                  const Text(
-                    '→ ต้องเร่งความเร็วเพิ่มขึ้น 15% เพื่อทันเป้าหมาย',
                   ),
                 ],
               ),
@@ -578,36 +536,3 @@ class _DashboardCard extends StatelessWidget {
     );
   }
 }
-
-
-// การกระจายสินทรัพย์ตามแผนก
-
-// Pie Chart (กราฟวงกลม): แสดงสัดส่วนภาพรวมแต่ละแผนก
-
-// Bar Chart (กราฟแท่ง): เปรียบเทียบปริมาณสินทรัพย์ของแต่ละแผนก
-
-// Treemap Chart: แสดงสัดส่วนเชิงลึกแบบแบ่งเป็นกลุ่มย่อย
-
-// Stacked Bar Chart: เปรียบเทียบสินทรัพย์รวมและแยกย่อยตามแผนก
-
-// การเติบโตของสินทรัพย์แต่ละแผนก / พื้นที่ปฏิบัติการ
-
-// Line Chart (กราฟเส้น): ดูแนวโน้มและการเติบโตตลอดเวลา
-
-// Bar Chart (กราฟแท่ง): เปรียบเทียบการเติบโต ณ จุดเวลาต่างๆ
-
-// Area Chart: เน้นแสดงปริมาณและแนวโน้มเติบโตที่มีน้ำหนัก
-
-// Combo Chart (Line + Bar): แสดงเทรนด์และปริมาณเปรียบเทียบพร้อมกัน
-
-// ความคืบหน้าการตรวจสอบประจำปี
-
-// Circular Progress Indicator (วงกลมความคืบหน้า): แสดง % เสร็จแล้วเด่นชัด
-
-// Bar Chart (กราฟแท่ง): แสดงความคืบหน้ารายส่วนหรืองานย่อย
-
-// Gauge Chart (มาตรวัด): แสดงสถานะความคืบหน้าแบบเข็มชี้
-
-// Bullet Chart: เทียบความคืบหน้ากับเป้าหมายได้ชัดเจน
-
-// Progress Bar (แถบความคืบหน้า): แบบเรียบง่าย แสดง % งานเสร็จ

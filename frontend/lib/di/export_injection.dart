@@ -43,22 +43,3 @@ void configureExportDependencies() {
     ),
   );
 }
-
-/// Debug Export dependencies
-void debugExportDependencies() {
-  print('--- Export Dependencies ---');
-  print(
-    'ExportRemoteDataSource: ${getIt.isRegistered<ExportRemoteDataSource>()}',
-  );
-  print('ExportRepository: ${getIt.isRegistered<ExportRepository>()}');
-  print(
-    'CreateExportJobUseCase: ${getIt.isRegistered<CreateExportJobUseCase>()}',
-  );
-  print(
-    'GetExportStatusUseCase: ${getIt.isRegistered<GetExportStatusUseCase>()}',
-  );
-  print(
-    'DownloadExportUseCase: ${getIt.isRegistered<DownloadExportUseCase>()}',
-  );
-  print('ExportBloc: ${getIt.isRegistered<ExportBloc>()}');
-}
