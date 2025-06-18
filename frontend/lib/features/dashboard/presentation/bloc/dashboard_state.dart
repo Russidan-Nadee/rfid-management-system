@@ -6,6 +6,7 @@ import '../../domain/entities/alert.dart';
 import '../../domain/entities/recent_activity.dart';
 import '../../domain/entities/department_analytics.dart';
 import '../../domain/entities/growth_trends.dart';
+import '../../domain/entities/location_analytics.dart';
 
 abstract class DashboardState extends Equatable {
   const DashboardState();
@@ -79,11 +80,21 @@ class GrowthTrendsLoaded extends DashboardState {
   List<Object?> get props => [trends];
 }
 
-/// Location analytics loaded successfully
+/// Location analytics loaded successfully (legacy Map version)
 class LocationAnalyticsLoaded extends DashboardState {
   final Map<String, dynamic> analytics;
 
   const LocationAnalyticsLoaded(this.analytics);
+
+  @override
+  List<Object?> get props => [analytics];
+}
+
+/// Location analytics loaded with typed entity
+class LocationAnalyticsLoadedEntity extends DashboardState {
+  final LocationAnalytics analytics;
+
+  const LocationAnalyticsLoadedEntity(this.analytics);
 
   @override
   List<Object?> get props => [analytics];
@@ -148,7 +159,7 @@ class DashboardDataLoaded extends DashboardState {
   final RecentActivity? recentActivities;
   final DepartmentAnalytics? departmentAnalytics;
   final GrowthTrends? growthTrends;
-  final Map<String, dynamic>? locationAnalytics;
+  final LocationAnalytics? locationAnalytics;
   final Map<String, dynamic>? auditProgress;
 
   const DashboardDataLoaded({
@@ -196,7 +207,7 @@ class DashboardDataLoaded extends DashboardState {
     RecentActivity? recentActivities,
     DepartmentAnalytics? departmentAnalytics,
     GrowthTrends? growthTrends,
-    Map<String, dynamic>? locationAnalytics,
+    LocationAnalytics? locationAnalytics,
     Map<String, dynamic>? auditProgress,
   }) {
     return DashboardDataLoaded(

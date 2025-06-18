@@ -9,6 +9,7 @@ import '../features/dashboard/domain/usecases/get_quick_stats_usecase.dart';
 import '../features/dashboard/domain/usecases/clear_cache_usecase.dart';
 import '../features/dashboard/domain/usecases/refresh_dashboard_usecase.dart';
 import '../features/dashboard/domain/usecases/is_cache_valid_usecase.dart';
+import '../features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
 import '../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'injection.dart';
 
@@ -55,7 +56,9 @@ void configureDashboardDependencies() {
     () => IsCacheValidUseCase(getIt<DashboardRepository>()),
   );
 
-  // Enhanced APIs ใช้ Repository โดยตรง - ไม่มี Use Cases
+  getIt.registerLazySingleton<GetLocationAnalyticsUseCase>(
+    () => GetLocationAnalyticsUseCase(getIt<DashboardRepository>()),
+  );
 
   // Presentation Layer - BLoC (Factory - new instance each time)
   getIt.registerFactory<DashboardBloc>(
@@ -66,6 +69,7 @@ void configureDashboardDependencies() {
       clearCache: getIt<ClearCacheUseCase>(),
       refreshDashboard: getIt<RefreshDashboardUseCase>(),
       isCacheValid: getIt<IsCacheValidUseCase>(),
+      getLocationAnalytics: getIt<GetLocationAnalyticsUseCase>(),
       repository: getIt<DashboardRepository>(),
     ),
   );
@@ -93,5 +97,8 @@ void debugDashboardDependencies() {
     'RefreshDashboardUseCase: ${getIt.isRegistered<RefreshDashboardUseCase>()}',
   );
   print('IsCacheValidUseCase: ${getIt.isRegistered<IsCacheValidUseCase>()}');
+  print(
+    'GetLocationAnalyticsUseCase: ${getIt.isRegistered<GetLocationAnalyticsUseCase>()}',
+  );
   print('DashboardBloc: ${getIt.isRegistered<DashboardBloc>()}');
 }

@@ -8,6 +8,7 @@ import '../bloc/dashboard_state.dart';
 import '../widgets/summary_cards_widget.dart';
 import '../widgets/department_card.dart';
 import '../widgets/growth_trends_card.dart';
+import '../widgets/location_analytics_card.dart';
 import '../widgets/audit_progress_card.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -30,6 +31,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ..add(const LoadQuickStats())
         ..add(const LoadDepartmentAnalytics())
         ..add(const LoadGrowthTrends())
+        ..add(const LoadLocationAnalytics())
         ..add(const LoadAuditProgress()),
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
@@ -119,8 +121,12 @@ class _DashboardPageState extends State<DashboardPage> {
                   const DepartmentCard(),
                   const SizedBox(height: 24),
 
-                  // Growth Trends (Line Chart)
+                  // Growth Trends (Line Chart) - Department
                   const GrowthTrendsCard(),
+                  const SizedBox(height: 24),
+
+                  // Location Analytics (Line Chart) - Location
+                  const LocationAnalyticsCard(),
                   const SizedBox(height: 24),
 
                   // Audit Progress (Circle Progress)
@@ -183,7 +189,7 @@ class _DashboardPageWithTabsState extends State<DashboardPageWithTabs>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -210,9 +216,11 @@ class _DashboardPageWithTabsState extends State<DashboardPageWithTabs>
             indicatorColor: theme.colorScheme.primary,
             labelColor: theme.colorScheme.primary,
             unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(0.6),
+            isScrollable: true,
             tabs: const [
               Tab(icon: Icon(Icons.dashboard), text: 'Overview'),
               Tab(icon: Icon(Icons.trending_up), text: 'Analytics'),
+              Tab(icon: Icon(Icons.location_on), text: 'Locations'),
               Tab(icon: Icon(Icons.assignment), text: 'Audit'),
             ],
           ),
@@ -239,7 +247,19 @@ class _DashboardPageWithTabsState extends State<DashboardPageWithTabs>
                 children: const [
                   GrowthTrendsCard(),
                   SizedBox(height: 24),
-                  // LocationAnalyticsCard(), // TODO: Add when implemented
+                  DepartmentCard(),
+                ],
+              ),
+            ),
+
+            // Locations Tab
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: const [
+                  LocationAnalyticsCard(),
+                  SizedBox(height: 24),
+                  // Additional location widgets can be added here
                 ],
               ),
             ),
@@ -248,6 +268,112 @@ class _DashboardPageWithTabsState extends State<DashboardPageWithTabs>
             const SingleChildScrollView(
               padding: EdgeInsets.all(16),
               child: AuditProgressCard(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact dashboard for mobile or small screens
+class CompactDashboardPage extends StatefulWidget {
+  const CompactDashboardPage({super.key});
+
+  @override
+  State<CompactDashboardPage> createState() => _CompactDashboardPageState();
+}
+
+class _CompactDashboardPageState extends State<CompactDashboardPage> {
+  int _selectedIndex = 0;
+  final PageController _pageController = PageController();
+
+  final List<Widget> _pages = const [
+    SummaryCardsWidget(),
+    DepartmentCard(),
+    GrowthTrendsCard(),
+    LocationAnalyticsCard(),
+    AuditProgressCard(),
+  ];
+
+  final List<String> _pageTitles = const [
+    'ภาพรวม',
+    'แผนก',
+    'การเติบโต',
+    'พื้นที่',
+    'การตรวจสอบ',
+  ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return BlocProvider(
+      create: (context) => getIt<DashboardBloc>()
+        ..add(const LoadDashboardStats())
+        ..add(const LoadQuickStats())
+        ..add(const LoadDepartmentAnalytics())
+        ..add(const LoadGrowthTrends())
+        ..add(const LoadLocationAnalytics())
+        ..add(const LoadAuditProgress()),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Dashboard - ${_pageTitles[_selectedIndex]}'),
+          centerTitle: true,
+          backgroundColor: theme.colorScheme.surface,
+          foregroundColor: theme.colorScheme.onSurface,
+          elevation: 1,
+        ),
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          children: _pages.map((page) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: page,
+            );
+          }).toList(),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard),
+              label: 'ภาพรวม',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.business), label: 'แผนก'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.trending_up),
+              label: 'การเติบโต',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.location_on),
+              label: 'พื้นที่',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: 'ตรวจสอบ',
             ),
           ],
         ),

@@ -7,10 +7,12 @@ import 'package:frontend/features/dashboard/domain/entities/alert.dart';
 import 'package:frontend/features/dashboard/domain/entities/recent_activity.dart';
 import 'package:frontend/features/dashboard/domain/entities/department_analytics.dart';
 import 'package:frontend/features/dashboard/domain/entities/growth_trends.dart';
+import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
 import 'package:frontend/features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../datasources/dashboard_remote_datasource.dart';
 import '../datasources/dashboard_cache_datasource.dart';
+import '../models/location_analytics_model.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
   final DashboardRemoteDataSource remoteDataSource;
@@ -223,7 +225,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getLocationAnalytics({
+  Future<Either<Failure, LocationAnalytics>> getLocationAnalytics({
     String? locationCode,
     String period = 'Q2',
     int? year,
@@ -247,7 +249,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
         final cachedAnalytics = await cacheDataSource
             .getCachedLocationAnalytics(cacheKey);
         if (cachedAnalytics != null) {
-          return Right(cachedAnalytics);
+          final analyticsModel = LocationAnalyticsModel.fromJson(
+            cachedAnalytics,
+          );
+          return Right(analyticsModel.toEntity());
         }
       }
 
@@ -260,8 +265,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
         includeTrends: includeTrends,
       );
 
+      final analyticsModel = LocationAnalyticsModel.fromJson(analyticsData);
       await cacheDataSource.cacheLocationAnalytics(analyticsData, cacheKey);
-      return Right(analyticsData);
+      return Right(analyticsModel.toEntity());
     } on ServerException {
       return Left(ServerFailure('Failed to get location analytics'));
     } on NetworkException {

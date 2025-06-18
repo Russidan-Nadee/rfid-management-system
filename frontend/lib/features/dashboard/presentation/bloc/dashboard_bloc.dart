@@ -7,6 +7,7 @@ import '../../domain/usecases/get_quick_stats_usecase.dart';
 import '../../domain/usecases/clear_cache_usecase.dart';
 import '../../domain/usecases/refresh_dashboard_usecase.dart';
 import '../../domain/usecases/is_cache_valid_usecase.dart';
+import '../../domain/usecases/get_location_analytics_usecase.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
@@ -18,6 +19,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final ClearCacheUseCase clearCache;
   final RefreshDashboardUseCase refreshDashboard;
   final IsCacheValidUseCase isCacheValid;
+  final GetLocationAnalyticsUseCase getLocationAnalytics;
   final DashboardRepository repository;
 
   Timer? _refreshTimer;
@@ -29,6 +31,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     required this.clearCache,
     required this.refreshDashboard,
     required this.isCacheValid,
+    required this.getLocationAnalytics,
     required this.repository,
   }) : super(const DashboardInitial()) {
     on<LoadDashboardStats>(_onLoadDashboardStats);
@@ -152,7 +155,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(const DashboardLoading(message: 'Loading location analytics...'));
 
     try {
-      final result = await repository.getLocationAnalytics(
+      final params = GetLocationAnalyticsParams(
         locationCode: event.locationCode,
         period: event.period,
         year: event.year,
@@ -162,9 +165,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         forceRefresh: event.forceRefresh,
       );
 
+      final result = await getLocationAnalytics(params);
+
       result.fold(
         (failure) => emit(DashboardError(failure.message)),
-        (analytics) => emit(LocationAnalyticsLoaded(analytics)),
+        (analytics) => emit(LocationAnalyticsLoadedEntity(analytics)),
       );
     } catch (e) {
       emit(
