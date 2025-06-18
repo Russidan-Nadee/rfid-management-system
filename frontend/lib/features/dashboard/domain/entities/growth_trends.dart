@@ -215,6 +215,22 @@ class GrowthTrends {
     return 'GrowthTrends(trends: ${trends.length} items, periodInfo: $periodInfo)';
   }
 
+  String get trendAnalysis {
+    if (trends.isEmpty) return 'No data available';
+
+    final positiveCount = trends.where((t) => t.hasGrowth).length;
+    final negativeCount = trends.where((t) => t.hasDecline).length;
+    final stableCount = trends.where((t) => t.isStable).length;
+
+    if (positiveCount > negativeCount) {
+      return 'Growing trend ($positiveCount periods with growth)';
+    } else if (negativeCount > positiveCount) {
+      return 'Declining trend ($negativeCount periods with decline)';
+    } else {
+      return 'Stable trend (mixed growth patterns)';
+    }
+  }
+
   // Helper getters
   bool get hasData => trends.isNotEmpty;
   bool get hasQuarterlyData =>

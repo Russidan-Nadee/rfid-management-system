@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
-import '../../domain/entities/location_analytics.dart';
 import 'chart_card_wrapper.dart';
 import 'line_chart_component.dart';
 
@@ -491,33 +490,36 @@ class _LocationAnalyticsCardState extends State<LocationAnalyticsCard> {
   }
 
   List<String> _getXAxisLabels(List<dynamic> trends) {
-    return trends.map((trend) {
-      try {
-        final monthYear = trend['month_year'] ?? '';
-        final parts = monthYear.split('-');
-        if (parts.length == 2) {
-          final month = int.parse(parts[1]);
-          const months = [
-            'ม.ค.',
-            'ก.พ.',
-            'มี.ค.',
-            'เม.ย.',
-            'พ.ค.',
-            'มิ.ย.',
-            'ก.ค.',
-            'ส.ค.',
-            'ก.ย.',
-            'ต.ค.',
-            'พ.ย.',
-            'ธ.ค.',
-          ];
-          return months[month - 1];
-        }
-      } catch (e) {
-        // Fallback
-      }
-      return trend['month_year'] ?? '';
-    }).toList();
+    return trends
+        .map((trend) {
+          try {
+            final monthYear = trend['month_year'] ?? '';
+            final parts = monthYear.split('-');
+            if (parts.length == 2) {
+              final month = int.parse(parts[1]);
+              const months = [
+                'ม.ค.',
+                'ก.พ.',
+                'มี.ค.',
+                'เม.ย.',
+                'พ.ค.',
+                'มิ.ย.',
+                'ก.ค.',
+                'ส.ค.',
+                'ก.ย.',
+                'ต.ค.',
+                'พ.ย.',
+                'ธ.ค.',
+              ];
+              return months[month - 1];
+            }
+          } catch (e) {
+            // Fallback
+          }
+          return trend['month_year'] ?? '';
+        })
+        .cast<String>()
+        .toList(); // ← เพิ่ม .cast<String>()
   }
 
   Color _getUtilizationColor(int utilizationRate) {

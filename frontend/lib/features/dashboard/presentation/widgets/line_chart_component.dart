@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class LineChartData {
+class CustomLineChartData {
   final double x;
   final double y;
   final String label;
   final int? growthPercentage;
   final String? tooltip;
 
-  const LineChartData({
+  const CustomLineChartData({
     required this.x,
     required this.y,
     required this.label,
@@ -19,7 +19,7 @@ class LineChartData {
 }
 
 class LineChartComponent extends StatefulWidget {
-  final List<LineChartData> data;
+  final List<CustomLineChartData> data;
   final List<String>? xAxisLabels;
   final String? title;
   final String? yAxisTitle;
@@ -279,7 +279,7 @@ class _LineChartComponentState extends State<LineChartComponent>
     );
   }
 
-  String _buildTooltipText(LineChartData data) {
+  String _buildTooltipText(CustomLineChartData data) {
     final lines = <String>[data.label, 'จำนวน: ${data.y.toStringAsFixed(0)}'];
 
     if (data.growthPercentage != null) {
@@ -465,7 +465,7 @@ class MultiLineChartComponent extends StatelessWidget {
 
 class MultiLineData {
   final String label;
-  final List<LineChartData> data;
+  final List<CustomLineChartData> data;
   final Color color;
 
   const MultiLineData({
