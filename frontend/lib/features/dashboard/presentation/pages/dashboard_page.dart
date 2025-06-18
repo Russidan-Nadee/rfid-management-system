@@ -37,7 +37,6 @@ class _DashboardPageState extends State<DashboardPage> {
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
           title: const Text('Dashboard Overview'),
-          centerTitle: true,
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: theme.colorScheme.onSurface,
           elevation: 1,

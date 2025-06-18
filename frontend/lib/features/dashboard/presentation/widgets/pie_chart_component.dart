@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/pie_chart_component.dart
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:fl_chart/fl_chart.dart' as fl_chart; // เพิ่ม as fl_chart
 
 class PieChartData {
   final String label;
@@ -72,13 +72,17 @@ class _PieChartComponentState extends State<PieChartComponent> {
   Widget _buildPieChart() {
     return AspectRatio(
       aspectRatio: 1.0,
-      child: PieChart(
-        PieChartData(
+      child: fl_chart.PieChart(
+        // เปลี่ยนเป็น fl_chart.PieChart
+        fl_chart.PieChartData(
+          // เปลี่ยนเป็น fl_chart.PieChartData
           sections: _buildSections(),
           centerSpaceRadius: widget.centerSpaceRadius,
           sectionsSpace: widget.sectionsSpace,
-          pieTouchData: PieTouchData(
-            touchCallback: (FlTouchEvent event, pieTouchResponse) {
+          pieTouchData: fl_chart.PieTouchData(
+            // เปลี่ยนเป็น fl_chart.PieTouchData
+            touchCallback: (fl_chart.FlTouchEvent event, pieTouchResponse) {
+              // เปลี่ยนเป็น fl_chart.FlTouchEvent
               setState(() {
                 if (!event.isInterestedForInteractions ||
                     pieTouchResponse == null ||
@@ -96,13 +100,15 @@ class _PieChartComponentState extends State<PieChartComponent> {
     );
   }
 
-  List<PieChartSectionData> _buildSections() {
+  List<fl_chart.PieChartSectionData> _buildSections() {
+    // เปลี่ยนเป็น fl_chart.PieChartSectionData
     return widget.data.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
       final isTouched = index == touchedIndex;
 
-      return PieChartSectionData(
+      return fl_chart.PieChartSectionData(
+        // เปลี่ยนเป็น fl_chart.PieChartSectionData
         color: data.color,
         value: data.value,
         title: _buildSectionTitle(data, isTouched),
@@ -332,12 +338,16 @@ class _EnhancedPieChartComponentState extends State<EnhancedPieChartComponent>
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  PieChart(
-                    PieChartData(
+                  fl_chart.PieChart(
+                    // เปลี่ยนเป็น fl_chart.PieChart
+                    fl_chart.PieChartData(
+                      // เปลี่ยนเป็น fl_chart.PieChartData
                       sections: _buildAnimatedSections(),
                       centerSpaceRadius: 60,
                       sectionsSpace: 4,
-                      pieTouchData: PieTouchData(touchCallback: _handleTouch),
+                      pieTouchData: fl_chart.PieTouchData(
+                        touchCallback: _handleTouch,
+                      ), // เปลี่ยนเป็น fl_chart.PieTouchData
                     ),
                   ),
                   if (widget.centerWidget != null) widget.centerWidget!,
@@ -352,14 +362,16 @@ class _EnhancedPieChartComponentState extends State<EnhancedPieChartComponent>
     );
   }
 
-  List<PieChartSectionData> _buildAnimatedSections() {
+  List<fl_chart.PieChartSectionData> _buildAnimatedSections() {
+    // เปลี่ยนเป็น fl_chart.PieChartSectionData
     return widget.data.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
       final isTouched = index == touchedIndex;
       final animatedValue = data.value * _animation.value;
 
-      return PieChartSectionData(
+      return fl_chart.PieChartSectionData(
+        // เปลี่ยนเป็น fl_chart.PieChartSectionData
         color: data.color,
         value: animatedValue,
         title: isTouched && widget.showValues
@@ -429,7 +441,11 @@ class _EnhancedPieChartComponentState extends State<EnhancedPieChartComponent>
     );
   }
 
-  void _handleTouch(FlTouchEvent event, PieTouchResponse? pieTouchResponse) {
+  void _handleTouch(
+    fl_chart.FlTouchEvent event,
+    fl_chart.PieTouchResponse? pieTouchResponse,
+  ) {
+    // เปลี่ยนเป็น fl_chart.FlTouchEvent และ fl_chart.PieTouchResponse
     setState(() {
       if (!event.isInterestedForInteractions ||
           pieTouchResponse == null ||

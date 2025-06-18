@@ -251,8 +251,8 @@ class _LineChartComponentState extends State<LineChartComponent>
         });
       },
       touchTooltipData: LineTouchTooltipData(
-        tooltipBgColor: Colors.blueAccent.withOpacity(0.9),
-        tooltipRoundedRadius: 8,
+        // tooltipBgColor: Colors.blueAccent.withOpacity(0.9),
+        // tooltipRoundedRadius: 8,
         tooltipPadding: const EdgeInsets.all(8),
         tooltipMargin: 8,
         getTooltipItems: (List<LineBarSpot> touchedBarSpots) {

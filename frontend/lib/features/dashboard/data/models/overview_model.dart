@@ -37,11 +37,26 @@ class OverviewModel {
       // Handle nested structure from Backend
       final overview = json['overview'] as Map<String, dynamic>? ?? json;
 
-      // Extract basic values directly
-      final totalAssets = overview['total_assets'] ?? 0;
-      final activeAssets = overview['active_assets'] ?? 0;
-      final inactiveAssets = overview['inactive_assets'] ?? 0;
-      final createdAssets = overview['created_assets'] ?? 0;
+      // Extract basic values, handling both int and map formats for assets
+      final totalAssetsRaw = overview['total_assets'];
+      final totalAssets = totalAssetsRaw is int
+          ? totalAssetsRaw
+          : (totalAssetsRaw as Map<String, dynamic>?)?['value'] ?? 0;
+
+      final activeAssetsRaw = overview['active_assets'];
+      final activeAssets = activeAssetsRaw is int
+          ? activeAssetsRaw
+          : (activeAssetsRaw as Map<String, dynamic>?)?['value'] ?? 0;
+
+      final inactiveAssetsRaw = overview['inactive_assets'];
+      final inactiveAssets = inactiveAssetsRaw is int
+          ? inactiveAssetsRaw
+          : (inactiveAssetsRaw as Map<String, dynamic>?)?['value'] ?? 0;
+
+      final createdAssetsRaw = overview['created_assets'];
+      final createdAssets = createdAssetsRaw is int
+          ? createdAssetsRaw
+          : (createdAssetsRaw as Map<String, dynamic>?)?['value'] ?? 0;
 
       // Extract scan data
       final scansData = overview['scans'] as Map<String, dynamic>?;

@@ -180,24 +180,6 @@ class SummaryCardsWidget extends StatelessWidget {
           changePercent: null,
           trend: null,
         ),
-        _SummaryCard(
-          icon: LucideIcons.scan,
-          label: 'การสแกนวันนี้',
-          value: '$todayScans',
-          subtext: _buildTrendText(scansChangePercent, scansTrend),
-          valueColor: Colors.purple,
-          changePercent: scansChangePercent,
-          trend: scansTrend,
-        ),
-        _SummaryCard(
-          icon: LucideIcons.fileCheck,
-          label: 'Export สำเร็จ',
-          value: '$exportSuccess',
-          subtext: _buildTrendText(exportChangePercent, exportTrend),
-          valueColor: Colors.green,
-          changePercent: exportChangePercent,
-          trend: exportTrend,
-        ),
       ],
     );
   }

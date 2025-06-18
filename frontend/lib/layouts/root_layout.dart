@@ -29,7 +29,7 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   List<Widget> get _pages => [
-    const DashboardPageMock(),
+    const DashboardPage(),
     const SearchPage(),
     const ScanPage(),
     const ExportPage(),

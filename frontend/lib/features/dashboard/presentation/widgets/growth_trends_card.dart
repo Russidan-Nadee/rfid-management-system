@@ -142,7 +142,7 @@ class _GrowthTrendsCardState extends State<GrowthTrendsCard> {
           child: LineChartComponent(
             data: trends.trends
                 .map(
-                  (trend) => LineChartData(
+                  (trend) => CustomLineChartData(
                     x: _getXValue(trend.monthYear),
                     y: trend.assetCount.toDouble(),
                     label: trend.monthYear,

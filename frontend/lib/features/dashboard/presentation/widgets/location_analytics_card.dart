@@ -161,7 +161,7 @@ class _LocationAnalyticsCardState extends State<LocationAnalyticsCard> {
               ? LineChartComponent(
                   data: locationTrends
                       .map(
-                        (trend) => LineChartData(
+                        (trend) => CustomLineChartData(
                           x: _getXValue(trend['month_year'] ?? ''),
                           y: (trend['asset_count'] ?? 0).toDouble(),
                           label: trend['month_year'] ?? '',
