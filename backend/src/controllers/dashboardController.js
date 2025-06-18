@@ -751,6 +751,310 @@ const dashboardController = {
          console.error('Quick stats error:', error);
          return sendResponse(res, 500, false, error.message);
       }
+   },
+
+   /**
+    * Get assets distribution by department (Pie Chart data)
+    * GET /api/v1/dashboard/assets-by-plant?plant_code=xxx
+    */
+   async getAssetsByDepartment(req, res) {
+      try {
+         const { plant_code } = req.query;
+
+         let departmentStats;
+         if (plant_code) {
+            // Get departments for specific plant
+            departmentStats = await departmentService.model.executeQuery(`
+               SELECT 
+                  d.dept_code,
+                  d.description as dept_description,
+                  d.plant_code,
+                  p.description as plant_description,
+                  COUNT(a.asset_no) as asset_count,
+                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+               FROM mst_department d
+               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+               WHERE d.plant_code = ?
+               GROUP BY d.dept_code, d.description, d.plant_code, p.description
+               ORDER BY asset_count DESC
+            `, [plant_code]);
+         } else {
+            // Get all departments across all plants
+            departmentStats = await departmentService.model.executeQuery(`
+               SELECT 
+                  d.dept_code,
+                  d.description as dept_description,
+                  d.plant_code,
+                  p.description as plant_description,
+                  COUNT(a.asset_no) as asset_count,
+                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+               FROM mst_department d
+               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+               GROUP BY d.dept_code, d.description, d.plant_code, p.description
+               ORDER BY asset_count DESC
+            `);
+         }
+
+         // Calculate summary
+         const totalAssets = departmentStats.reduce((sum, dept) => sum + (dept.asset_count || 0), 0);
+         const totalDepartments = departmentStats.length;
+
+         const pieChartData = departmentStats.map(dept => ({
+            name: dept.dept_description || dept.dept_code,
+            value: dept.asset_count || 0,
+            percentage: dept.percentage || 0,
+            dept_code: dept.dept_code,
+            plant_code: dept.plant_code,
+            plant_description: dept.plant_description
+         }));
+
+         const responseData = {
+            pie_chart_data: pieChartData,
+            summary: {
+               total_assets: totalAssets,
+               total_departments: totalDepartments,
+               plant_filter: plant_code || 'all'
+            },
+            filter_info: {
+               applied_filters: {
+                  plant_code: plant_code || null
+               }
+            }
+         };
+
+         return sendResponse(res, 200, true, 'Assets by department retrieved successfully', responseData);
+
+      } catch (error) {
+         console.error('Get assets by department error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   /**
+    * Get growth trends by department/location (Line Chart data)  
+    * GET /api/v1/dashboard/growth-trends?dept_code=xxx&period=Q2&year=2024
+    */
+   async getGrowthTrends(req, res) {
+      try {
+         const {
+            dept_code,
+            period = 'Q2',
+            year,
+            start_date,
+            end_date
+         } = req.query;
+
+         const yearToUse = year ? parseInt(year) : new Date().getFullYear();
+
+         let trendsData;
+         if (period === 'custom' && start_date && end_date) {
+            // Custom date range
+            trendsData = await departmentService.getAssetGrowthTrends(
+               dept_code,
+               period,
+               yearToUse,
+               start_date,
+               end_date
+            );
+         } else {
+            // Predefined periods (Q1, Q2, Q3, Q4, 1Y)
+            trendsData = await departmentService.getAssetGrowthTrends(
+               dept_code,
+               period,
+               yearToUse
+            );
+         }
+
+         // Process trends for line chart
+         const lineChartData = trendsData.trends.map(trend => ({
+            period: trend.month_year || `${yearToUse}-${trend.quarter || 'Q1'}`,
+            asset_count: trend.asset_count || 0,
+            growth_percentage: trend.growth_percentage || 0,
+            cumulative_count: trend.cumulative_count || 0,
+            dept_code: trend.dept_code,
+            dept_description: trend.dept_description
+         }));
+
+         const responseData = {
+            trends: lineChartData,
+            period_info: trendsData.period_info,
+            summary: {
+               total_periods: lineChartData.length,
+               total_growth: trendsData.period_info.total_growth || 0,
+               average_growth: lineChartData.length > 0
+                  ? Math.round(lineChartData.reduce((sum, item) => sum + (item.growth_percentage || 0), 0) / lineChartData.length)
+                  : 0
+            }
+         };
+
+         return sendResponse(res, 200, true, 'Growth trends retrieved successfully', responseData);
+
+      } catch (error) {
+         console.error('Get growth trends error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   /**
+    * Get location analytics and utilization data
+    * GET /api/v1/dashboard/location-analytics?location_code=xxx&include_trends=true
+    */
+   async getLocationAnalytics(req, res) {
+      try {
+         const {
+            location_code,
+            period = 'Q2',
+            year,
+            start_date,
+            end_date,
+            include_trends = 'true'
+         } = req.query;
+
+         // Get location analytics
+         const locationAnalytics = await departmentService.getLocationAnalytics(location_code);
+
+         // Calculate analytics summary
+         const totalLocations = locationAnalytics.length;
+         const totalAssets = locationAnalytics.reduce((sum, loc) => sum + (loc.total_assets || 0), 0);
+         const averageUtilization = totalLocations > 0
+            ? Math.round(locationAnalytics.reduce((sum, loc) => sum + (loc.utilization_rate || 0), 0) / totalLocations)
+            : 0;
+
+         let growthTrends = null;
+         if (include_trends === 'true' && location_code) {
+            const yearToUse = year ? parseInt(year) : new Date().getFullYear();
+
+            try {
+               if (period === 'custom' && start_date && end_date) {
+                  growthTrends = await departmentService.getLocationGrowthTrends(
+                     location_code,
+                     period,
+                     yearToUse,
+                     start_date,
+                     end_date
+                  );
+               } else {
+                  growthTrends = await departmentService.getLocationGrowthTrends(
+                     location_code,
+                     period,
+                     yearToUse
+                  );
+               }
+            } catch (trendError) {
+               console.warn('Failed to get location trends:', trendError.message);
+               growthTrends = { location_trends: [], period_info: {} };
+            }
+         }
+
+         const responseData = {
+            location_analytics: locationAnalytics,
+            analytics_summary: {
+               total_locations: totalLocations,
+               total_assets: totalAssets,
+               average_utilization_rate: averageUtilization,
+               high_utilization_locations: locationAnalytics.filter(loc => (loc.utilization_rate || 0) > 80).length,
+               low_activity_locations: locationAnalytics.filter(loc => (loc.scan_frequency || 0) < 1).length
+            },
+            growth_trends: growthTrends
+         };
+
+         return sendResponse(res, 200, true, 'Location analytics retrieved successfully', responseData);
+
+      } catch (error) {
+         console.error('Get location analytics error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   /**
+    * Get audit progress and completion status
+    * GET /api/v1/dashboard/audit-progress?dept_code=xxx&include_details=true
+    */
+   async getAuditProgress(req, res) {
+      try {
+         const {
+            dept_code,
+            include_details = 'false',
+            audit_status
+         } = req.query;
+
+         // Get audit progress
+         const auditProgress = await departmentService.getAuditProgress(dept_code);
+
+         let detailedAudit = null;
+         if (include_details === 'true') {
+            try {
+               detailedAudit = await departmentService.getDetailedAuditProgress(dept_code, audit_status);
+            } catch (detailError) {
+               console.warn('Failed to get detailed audit:', detailError.message);
+               detailedAudit = { detailed_audit_data: [], summary: {} };
+            }
+         }
+
+         // Generate recommendations based on audit progress
+         const recommendations = [];
+
+         if (auditProgress.overall_progress) {
+            const overallCompletion = auditProgress.overall_progress.completion_percentage || 0;
+
+            if (overallCompletion < 50) {
+               recommendations.push({
+                  type: 'critical',
+                  message: 'Audit completion rate is below 50%. Immediate action required.',
+                  action: 'Schedule intensive audit sessions'
+               });
+            } else if (overallCompletion < 80) {
+               recommendations.push({
+                  type: 'warning',
+                  message: 'Audit completion rate needs improvement.',
+                  action: 'Focus on unaudited departments'
+               });
+            } else {
+               recommendations.push({
+                  type: 'success',
+                  message: 'Good audit progress. Maintain current pace.',
+                  action: 'Complete remaining items'
+               });
+            }
+         }
+
+         // Check for departments with low completion rates
+         auditProgress.department_progress.forEach(dept => {
+            const completion = dept.completion_percentage || 0;
+            if (completion < 30) {
+               recommendations.push({
+                  type: 'department_alert',
+                  message: `Department ${dept.dept_description} has very low audit completion (${completion}%)`,
+                  action: `Prioritize ${dept.dept_code} department audit`,
+                  dept_code: dept.dept_code
+               });
+            }
+         });
+
+         const responseData = {
+            audit_progress: auditProgress.department_progress,
+            overall_progress: auditProgress.overall_progress,
+            detailed_audit: detailedAudit,
+            recommendations: recommendations,
+            audit_info: {
+               audit_period: auditProgress.audit_period,
+               generated_at: auditProgress.generated_at,
+               filters_applied: {
+                  dept_code: dept_code || null,
+                  audit_status: audit_status || null,
+                  include_details: include_details === 'true'
+               }
+            }
+         };
+
+         return sendResponse(res, 200, true, 'Audit progress retrieved successfully', responseData);
+
+      } catch (error) {
+         console.error('Get audit progress error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
    }
 };
 
