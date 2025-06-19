@@ -1,0 +1,406 @@
+// Path: frontend/lib/features/dashboard/data/repositories/dashboard_repository_impl.dart
+import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/either.dart';
+import '../../domain/entities/dashboard_stats.dart';
+import '../../domain/entities/asset_distribution.dart';
+import '../../domain/entities/growth_trend.dart';
+import '../../domain/entities/audit_progress.dart';
+import '../../domain/repositories/dashboard_repository.dart';
+import '../datasources/dashboard_remote_datasource.dart';
+import '../datasources/dashboard_cache_datasource.dart';
+
+class DashboardRepositoryImpl implements DashboardRepository {
+  final DashboardRemoteDataSource remoteDataSource;
+  final DashboardCacheDataSource cacheDataSource;
+
+  DashboardRepositoryImpl({
+    required this.remoteDataSource,
+    required this.cacheDataSource,
+  });
+
+  @override
+  Future<Either<Failure, DashboardStats>> getDashboardStats(
+    String period,
+  ) async {
+    try {
+      // Try to get from cache first
+      final cachedStats = await cacheDataSource.getCachedDashboardStats(period);
+      if (cachedStats != null) {
+        return Right(_mapDashboardStatsModelToEntity(cachedStats));
+      }
+
+      // Fetch from remote if not in cache
+      final remoteStats = await remoteDataSource.getDashboardStats(period);
+
+      // Cache the result
+      await cacheDataSource.cacheDashboardStats(period, remoteStats);
+
+      return Right(_mapDashboardStatsModelToEntity(remoteStats));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on CacheException catch (e) {
+      // If cache fails, try remote anyway
+      try {
+        final remoteStats = await remoteDataSource.getDashboardStats(period);
+        return Right(_mapDashboardStatsModelToEntity(remoteStats));
+      } catch (remoteError) {
+        return Left(CacheFailure(e.message));
+      }
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AssetDistribution>> getAssetDistribution(
+    String? plantCode,
+  ) async {
+    try {
+      // Generate cache key
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateDistributionCacheKey(plantCode);
+
+      // Try to get from cache first
+      final cachedDistribution = await cacheDataSource
+          .getCachedAssetDistribution(cacheKey);
+      if (cachedDistribution != null) {
+        return Right(_mapAssetDistributionModelToEntity(cachedDistribution));
+      }
+
+      // Fetch from remote if not in cache
+      final remoteDistribution = await remoteDataSource.getAssetDistribution(
+        plantCode,
+      );
+
+      // Cache the result
+      await cacheDataSource.cacheAssetDistribution(
+        cacheKey,
+        remoteDistribution,
+      );
+
+      return Right(_mapAssetDistributionModelToEntity(remoteDistribution));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on CacheException catch (e) {
+      // If cache fails, try remote anyway
+      try {
+        final remoteDistribution = await remoteDataSource.getAssetDistribution(
+          plantCode,
+        );
+        return Right(_mapAssetDistributionModelToEntity(remoteDistribution));
+      } catch (remoteError) {
+        return Left(CacheFailure(e.message));
+      }
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, GrowthTrend>> getGrowthTrends({
+    String? deptCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+  }) async {
+    try {
+      // Generate cache key
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateGrowthTrendsCacheKey(
+            deptCode: deptCode,
+            period: period,
+            year: year,
+            startDate: startDate,
+            endDate: endDate,
+          );
+
+      // Try to get from cache first
+      final cachedTrends = await cacheDataSource.getCachedGrowthTrends(
+        cacheKey,
+      );
+      if (cachedTrends != null) {
+        return Right(_mapGrowthTrendModelToEntity(cachedTrends));
+      }
+
+      // Fetch from remote if not in cache
+      final remoteTrends = await remoteDataSource.getGrowthTrends(
+        deptCode: deptCode,
+        period: period,
+        year: year,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Cache the result
+      await cacheDataSource.cacheGrowthTrends(cacheKey, remoteTrends);
+
+      return Right(_mapGrowthTrendModelToEntity(remoteTrends));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on CacheException catch (e) {
+      // If cache fails, try remote anyway
+      try {
+        final remoteTrends = await remoteDataSource.getGrowthTrends(
+          deptCode: deptCode,
+          period: period,
+          year: year,
+          startDate: startDate,
+          endDate: endDate,
+        );
+        return Right(_mapGrowthTrendModelToEntity(remoteTrends));
+      } catch (remoteError) {
+        return Left(CacheFailure(e.message));
+      }
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuditProgress>> getAuditProgress({
+    String? deptCode,
+    bool includeDetails = false,
+    String? auditStatus,
+  }) async {
+    try {
+      // Generate cache key
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateAuditProgressCacheKey(
+            deptCode: deptCode,
+            includeDetails: includeDetails,
+            auditStatus: auditStatus,
+          );
+
+      // Try to get from cache first
+      final cachedProgress = await cacheDataSource.getCachedAuditProgress(
+        cacheKey,
+      );
+      if (cachedProgress != null) {
+        return Right(_mapAuditProgressModelToEntity(cachedProgress));
+      }
+
+      // Fetch from remote if not in cache
+      final remoteProgress = await remoteDataSource.getAuditProgress(
+        deptCode: deptCode,
+        includeDetails: includeDetails,
+        auditStatus: auditStatus,
+      );
+
+      // Cache the result
+      await cacheDataSource.cacheAuditProgress(cacheKey, remoteProgress);
+
+      return Right(_mapAuditProgressModelToEntity(remoteProgress));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on CacheException catch (e) {
+      // If cache fails, try remote anyway
+      try {
+        final remoteProgress = await remoteDataSource.getAuditProgress(
+          deptCode: deptCode,
+          includeDetails: includeDetails,
+          auditStatus: auditStatus,
+        );
+        return Right(_mapAuditProgressModelToEntity(remoteProgress));
+      } catch (remoteError) {
+        return Left(CacheFailure(e.message));
+      }
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearDashboardCache() async {
+    try {
+      await cacheDataSource.clearDashboardCache();
+      return const Right(unit);
+    } catch (e) {
+      return Left(CacheFailure('Failed to clear cache: $e'));
+    }
+  }
+
+  // Private mapping methods to convert models to entities
+  DashboardStats _mapDashboardStatsModelToEntity(model) {
+    return DashboardStats(
+      overview: DashboardOverview(
+        totalAssets: AssetCount(
+          value: model.overview.totalAssets.value,
+          changePercent: model.overview.totalAssets.changePercent,
+          trend: model.overview.totalAssets.trend,
+        ),
+        activeAssets: AssetCount(
+          value: model.overview.activeAssets.value,
+          changePercent: model.overview.activeAssets.changePercent,
+          trend: model.overview.activeAssets.trend,
+        ),
+        inactiveAssets: AssetCount(
+          value: model.overview.inactiveAssets.value,
+          changePercent: model.overview.inactiveAssets.changePercent,
+          trend: model.overview.inactiveAssets.trend,
+        ),
+        createdAssets: AssetCount(
+          value: model.overview.createdAssets.value,
+          changePercent: model.overview.createdAssets.changePercent,
+          trend: model.overview.createdAssets.trend,
+        ),
+        scans: ScanCount(
+          value: model.overview.scans.value,
+          changePercent: model.overview.scans.changePercent,
+          trend: model.overview.scans.trend,
+          previousValue: model.overview.scans.previousValue,
+        ),
+        exportSuccess: ExportCount(
+          value: model.overview.exportSuccess.value,
+          changePercent: model.overview.exportSuccess.changePercent,
+          trend: model.overview.exportSuccess.trend,
+          previousValue: model.overview.exportSuccess.previousValue,
+        ),
+        exportFailed: ExportCount(
+          value: model.overview.exportFailed.value,
+          changePercent: model.overview.exportFailed.changePercent,
+          trend: model.overview.exportFailed.trend,
+          previousValue: model.overview.exportFailed.previousValue,
+        ),
+        totalPlants: model.overview.totalPlants,
+        totalLocations: model.overview.totalLocations,
+        totalUsers: model.overview.totalUsers,
+      ),
+      charts: DashboardCharts(
+        assetStatusPie: AssetStatusPie(
+          active: model.charts.assetStatusPie.active,
+          inactive: model.charts.assetStatusPie.inactive,
+          created: model.charts.assetStatusPie.created,
+          total: model.charts.assetStatusPie.total,
+        ),
+        scanTrend7d: model.charts.scanTrend7d
+            .map(
+              (scanModel) => ScanTrend(
+                date: scanModel.date,
+                count: scanModel.count,
+                dayName: scanModel.dayName,
+              ),
+            )
+            .toList(),
+      ),
+      periodInfo: DashboardPeriodInfo(
+        period: model.periodInfo.period,
+        startDate: model.periodInfo.startDate,
+        endDate: model.periodInfo.endDate,
+        comparisonPeriod: ComparisonPeriod(
+          startDate: model.periodInfo.comparisonPeriod.startDate,
+          endDate: model.periodInfo.comparisonPeriod.endDate,
+        ),
+      ),
+    );
+  }
+
+  AssetDistribution _mapAssetDistributionModelToEntity(model) {
+    return AssetDistribution(
+      pieChartData: model.pieChartData
+          .map(
+            (pieModel) => PieChartData(
+              name: pieModel.name,
+              value: pieModel.value,
+              percentage: pieModel.percentage,
+              deptCode: pieModel.deptCode,
+              plantCode: pieModel.plantCode,
+              plantDescription: pieModel.plantDescription,
+            ),
+          )
+          .toList(),
+      summary: DistributionSummary(
+        totalAssets: model.summary.totalAssets,
+        totalDepartments: model.summary.totalDepartments,
+        plantFilter: model.summary.plantFilter,
+      ),
+      filterInfo: FilterInfo(
+        appliedFilters: AppliedFilters(
+          plantCode: model.filterInfo.appliedFilters.plantCode,
+        ),
+      ),
+    );
+  }
+
+  GrowthTrend _mapGrowthTrendModelToEntity(model) {
+    return GrowthTrend(
+      trends: model.trends
+          .map(
+            (trendModel) => TrendData(
+              period: trendModel.period,
+              assetCount: trendModel.assetCount,
+              growthPercentage: trendModel.growthPercentage,
+              cumulativeCount: trendModel.cumulativeCount,
+              deptCode: trendModel.deptCode,
+              deptDescription: trendModel.deptDescription,
+            ),
+          )
+          .toList(),
+      periodInfo: TrendPeriodInfo(
+        period: model.periodInfo.period,
+        year: model.periodInfo.year,
+        startDate: model.periodInfo.startDate,
+        endDate: model.periodInfo.endDate,
+        totalGrowth: model.periodInfo.totalGrowth,
+      ),
+      summary: TrendSummary(
+        totalPeriods: model.summary.totalPeriods,
+        totalGrowth: model.summary.totalGrowth,
+        averageGrowth: model.summary.averageGrowth,
+      ),
+    );
+  }
+
+  AuditProgress _mapAuditProgressModelToEntity(model) {
+    return AuditProgress(
+      auditProgress: model.auditProgress
+          .map(
+            (deptModel) => DepartmentProgress(
+              deptCode: deptModel.deptCode,
+              deptDescription: deptModel.deptDescription,
+              totalAssets: deptModel.totalAssets,
+              auditedAssets: deptModel.auditedAssets,
+              pendingAudit: deptModel.pendingAudit,
+              completionPercentage: deptModel.completionPercentage,
+            ),
+          )
+          .toList(),
+      overallProgress: model.overallProgress != null
+          ? OverallProgress(
+              totalAssets: model.overallProgress!.totalAssets,
+              auditedAssets: model.overallProgress!.auditedAssets,
+              pendingAudit: model.overallProgress!.pendingAudit,
+              completionPercentage: model.overallProgress!.completionPercentage,
+            )
+          : null,
+      recommendations: model.recommendations
+          .map(
+            (recModel) => Recommendation(
+              type: recModel.type,
+              message: recModel.message,
+              action: recModel.action,
+              deptCode: recModel.deptCode,
+            ),
+          )
+          .toList(),
+      auditInfo: AuditInfo(
+        auditPeriod: model.auditInfo.auditPeriod,
+        generatedAt: model.auditInfo.generatedAt,
+        filtersApplied: AuditFilters(
+          deptCode: model.auditInfo.filtersApplied.deptCode,
+          auditStatus: model.auditInfo.filtersApplied.auditStatus,
+          includeDetails: model.auditInfo.filtersApplied.includeDetails,
+        ),
+      ),
+    );
+  }
+}

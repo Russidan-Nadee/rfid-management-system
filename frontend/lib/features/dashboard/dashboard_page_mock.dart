@@ -22,7 +22,7 @@ class DashboardPageMock extends StatelessWidget {
         foregroundColor: theme.colorScheme.onSurface,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -31,7 +31,7 @@ class DashboardPageMock extends StatelessWidget {
               children: [
                 Text(
                   'Overview',
-                  style: TextStyle(color: AppColors.primary, fontSize: 20),
+                  style: TextStyle(color: AppColors.onBackground, fontSize: 20),
                 ),
               ],
             ),
@@ -39,30 +39,38 @@ class DashboardPageMock extends StatelessWidget {
             Wrap(
               spacing: 12,
               runSpacing: 12,
-              children: const [
+              children: [
                 _SummaryCard(
                   icon: LucideIcons.boxes,
+                  iconColor: Colors.blue,
                   label: 'All Assets',
+                  labelColor: Colors.blue,
                   value: '1,240',
                   subtext: '+5% YoY',
-                  valueColor: Colors.green,
+                  valueColor: Colors.blue,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeCheck,
+                  iconColor: Colors.orange,
+                  labelColor: Colors.orange,
                   label: 'Active',
                   value: '1,100',
                   subtext: '89% Utilization',
-                  valueColor: Colors.green,
+                  valueColor: Colors.orange,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.badgeX,
                   label: 'Inactive',
+                  iconColor: Colors.red,
+                  labelColor: Colors.red,
                   value: '140',
                   subtext: '11% Idle Assets',
                   valueColor: Colors.red,
                 ),
                 _SummaryCard(
                   icon: LucideIcons.packagePlus,
+                  iconColor: Colors.green,
+                  labelColor: Colors.green,
                   label: 'New Assets (1Y)',
                   value: '320',
                   subtext: '+10% YoY',
@@ -120,7 +128,7 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Department:',
+                        'Department',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
@@ -211,7 +219,7 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Location:',
+                        'Location',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
@@ -302,7 +310,6 @@ class DashboardPageMock extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
             _DashboardCard(
               title: 'Inspection progress',
@@ -313,7 +320,7 @@ class DashboardPageMock extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'department:',
+                        'department',
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       DropdownButton<String>(
@@ -454,6 +461,8 @@ class _SummaryCard extends StatelessWidget {
   final String value;
   final String? subtext;
   final Color? valueColor;
+  final Color? iconColor;
+  final Color? labelColor;
 
   const _SummaryCard({
     required this.icon,
@@ -461,6 +470,8 @@ class _SummaryCard extends StatelessWidget {
     required this.value,
     this.subtext,
     this.valueColor,
+    this.iconColor,
+    this.labelColor,
   });
 
   @override
@@ -483,7 +494,7 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 28, color: theme.primaryColor),
+          Icon(icon, size: 28, color: iconColor ?? theme.primaryColor),
           const SizedBox(height: 12),
           Text(
             value,
@@ -495,7 +506,10 @@ class _SummaryCard extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(color: valueColor),
             ),
           const SizedBox(height: 4),
-          Text(label, style: theme.textTheme.bodyMedium),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(color: labelColor),
+          ),
         ],
       ),
     );
