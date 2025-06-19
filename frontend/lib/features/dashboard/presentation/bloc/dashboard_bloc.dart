@@ -289,6 +289,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         year: event.year,
         startDate: event.startDate,
         endDate: event.endDate,
+        groupBy: event.groupBy,
       ),
     );
 

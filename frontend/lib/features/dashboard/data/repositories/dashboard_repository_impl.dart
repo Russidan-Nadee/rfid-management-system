@@ -108,6 +108,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     int? year,
     String? startDate,
     String? endDate,
+    String groupBy = 'day', // เพิ่มบรรทัดนี้
   }) async {
     try {
       // Generate cache key
@@ -135,6 +136,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
         year: year,
         startDate: startDate,
         endDate: endDate,
+        groupBy: groupBy, // เพิ่มบรรทัดนี้
       );
 
       // Cache the result
@@ -154,6 +156,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           year: year,
           startDate: startDate,
           endDate: endDate,
+          groupBy: groupBy, // เพิ่มบรรทัดนี้
         );
         return Right(_mapGrowthTrendModelToEntity(remoteTrends));
       } catch (remoteError) {

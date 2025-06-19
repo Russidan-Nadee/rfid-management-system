@@ -1,4 +1,3 @@
-// Path: frontend/lib/features/dashboard/domain/repositories/dashboard_repository.dart
 import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/either.dart';
 import '../entities/dashboard_stats.dart';
@@ -28,6 +27,7 @@ abstract class DashboardRepository {
   /// [year] year for quarterly/yearly data
   /// [startDate] start date for custom period (YYYY-MM-DD)
   /// [endDate] end date for custom period (YYYY-MM-DD)
+  /// [groupBy] group by: 'day', 'month', 'year'
   /// Returns [GrowthTrend] containing trend data and analytics
   Future<Either<Failure, GrowthTrend>> getGrowthTrends({
     String? deptCode,
@@ -35,6 +35,7 @@ abstract class DashboardRepository {
     int? year,
     String? startDate,
     String? endDate,
+    String groupBy = 'day',
   });
 
   /// Get audit progress and completion status

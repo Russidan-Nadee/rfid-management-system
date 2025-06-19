@@ -28,7 +28,6 @@ class AuditProgressWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDepartmentFilter(),
           const SizedBox(height: 20),
           _buildProgressCircle(),
           const SizedBox(height: 20),
@@ -38,33 +37,8 @@ class AuditProgressWidget extends StatelessWidget {
             _buildRecommendations(),
           ],
           const SizedBox(height: 16),
-          _buildToggleButton(),
         ],
       ),
-    );
-  }
-
-  Widget _buildDepartmentFilter() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Department:',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        DropdownButton<String>(
-          value: 'all',
-          items: ['all', 'IT', 'GA', 'HR', 'ACC'].map((dept) {
-            return DropdownMenuItem(
-              value: dept,
-              child: Text(dept.toUpperCase()),
-            );
-          }).toList(),
-          onChanged: (value) {
-            // Handle department filter change
-          },
-        ),
-      ],
     );
   }
 
@@ -262,23 +236,6 @@ class AuditProgressWidget extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => onToggleDetails(!includeDetails),
-        icon: Icon(
-          includeDetails ? Icons.expand_less : Icons.expand_more,
-          size: 16,
-        ),
-        label: Text(includeDetails ? 'Hide Details' : 'Show Details'),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-        ),
       ),
     );
   }

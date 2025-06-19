@@ -51,7 +51,7 @@ class TrendDataModel {
   factory TrendDataModel.fromJson(Map<String, dynamic> json) {
     return TrendDataModel(
       period: json['period'] ?? '',
-      assetCount: json['asset_count'] ?? 0,
+      assetCount: int.tryParse(json['asset_count']?.toString() ?? '0') ?? 0,
       growthPercentage: json['growth_percentage'] ?? 0,
       cumulativeCount: json['cumulative_count'] ?? 0,
       deptCode: json['dept_code'] ?? '',

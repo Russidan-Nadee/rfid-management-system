@@ -48,17 +48,31 @@ class DepartmentModel extends BaseModel {
       return this.executeQuery(query);
    }
 
-   async getAssetGrowthTrends(deptCode = null, startDate, endDate) {
+   async getAssetGrowthTrends(deptCode = null, startDate, endDate, groupBy = 'day') {
+      const groupByFormats = {
+         'day': '%Y-%m-%d',
+         'month': '%Y-%m',
+         'year': '%Y'
+      };
+
+      const format = groupByFormats[groupBy] || '%Y-%m-%d';
+
       let query = `
-         SELECT 
-            DATE_FORMAT(a.created_at, '%Y-%m') as month_year,
-            COUNT(*) as asset_count,
-            d.dept_code,
-            d.description as dept_description
-         FROM asset_master a
-         LEFT JOIN mst_department d ON a.dept_code = d.dept_code
-         WHERE a.created_at >= ? AND a.created_at <= ?
-      `;
+  SELECT 
+    period,
+    CAST(SUM(daily_count) OVER (ORDER BY period) AS UNSIGNED) as asset_count,
+    dept_code,
+    dept_description
+  FROM (
+    SELECT 
+      DATE_FORMAT(a.created_at, '${format}') as period,
+      COUNT(*) as daily_count,
+      d.dept_code,
+      d.description as dept_description
+    FROM asset_master a
+    LEFT JOIN mst_department d ON a.dept_code = d.dept_code
+    WHERE a.created_at >= ? AND a.created_at <= ?
+`;
       const params = [startDate, endDate];
 
       if (deptCode) {
@@ -67,9 +81,10 @@ class DepartmentModel extends BaseModel {
       }
 
       query += `
-         GROUP BY DATE_FORMAT(a.created_at, '%Y-%m'), d.dept_code, d.description
-         ORDER BY month_year, d.dept_code
-      `;
+      GROUP BY DATE_FORMAT(a.created_at, '${format}'), d.dept_code, d.description
+    ) daily_counts
+    ORDER BY period, dept_code
+  `;
 
       return this.executeQuery(query, params);
    }
@@ -154,32 +169,20 @@ class DepartmentModel extends BaseModel {
    }
 
    async getAuditProgress(deptCode = null) {
-      // Note: This assumes there's an audit tracking mechanism
-      // For now, we'll simulate with asset scan data
       let query = `
-         SELECT 
-            d.dept_code,
-            d.description as dept_description,
-            COUNT(DISTINCT a.asset_no) as total_assets,
-            COUNT(DISTINCT CASE 
-               WHEN s.scanned_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-               THEN a.asset_no 
-            END) as audited_assets,
-            COUNT(DISTINCT CASE 
-               WHEN s.scanned_at < DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-                 OR s.scanned_at IS NULL 
-               THEN a.asset_no 
-            END) as pending_audit,
-            ROUND(
-               (COUNT(DISTINCT CASE 
-                  WHEN s.scanned_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-                  THEN a.asset_no 
-               END) * 100.0 / COUNT(DISTINCT a.asset_no)), 2
-            ) as completion_percentage
-         FROM mst_department d
-         LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
-         LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no
-      `;
+    SELECT 
+      d.dept_code,
+      d.description as dept_description,
+      COUNT(DISTINCT a.asset_no) as total_assets,
+      COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) as audited_assets,
+      COUNT(DISTINCT CASE WHEN a.status = 'A' THEN a.asset_no END) as pending_audit,
+      ROUND(
+        (COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) * 100.0 / 
+         COUNT(DISTINCT a.asset_no)), 2
+      ) as completion_percentage
+    FROM mst_department d
+    LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+  `;
       const params = [];
 
       if (deptCode) {
@@ -188,9 +191,9 @@ class DepartmentModel extends BaseModel {
       }
 
       query += `
-         GROUP BY d.dept_code, d.description
-         ORDER BY d.dept_code
-      `;
+    GROUP BY d.dept_code, d.description
+    ORDER BY d.dept_code
+  `;
 
       return this.executeQuery(query, params);
    }

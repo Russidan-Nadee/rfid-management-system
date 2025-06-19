@@ -16,6 +16,7 @@ abstract class DashboardRemoteDataSource {
     int? year,
     String? startDate,
     String? endDate,
+    String groupBy, // เพิ่มบรรทัดนี้
   });
   Future<AuditProgressModel> getAuditProgress({
     String? deptCode,
@@ -83,6 +84,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     int? year,
     String? startDate,
     String? endDate,
+    String groupBy = 'day',
   }) async {
     try {
       final queryParams = <String, String>{'period': period};
@@ -93,6 +95,10 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       if (year != null) {
         queryParams['year'] = year.toString();
+      }
+
+      if (groupBy.isNotEmpty) {
+        queryParams['group_by'] = groupBy;
       }
 
       if (period == 'custom') {

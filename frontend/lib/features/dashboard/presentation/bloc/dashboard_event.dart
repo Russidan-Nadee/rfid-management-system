@@ -35,6 +35,7 @@ class LoadGrowthTrends extends DashboardEvent {
   final int? year;
   final String? startDate;
   final String? endDate;
+  final String groupBy;
 
   const LoadGrowthTrends({
     this.deptCode,
@@ -42,6 +43,7 @@ class LoadGrowthTrends extends DashboardEvent {
     this.year,
     this.startDate,
     this.endDate,
+    this.groupBy = 'day',
   });
 
   @override

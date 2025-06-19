@@ -28,6 +28,7 @@ class GetGrowthTrendsUseCase {
       year: params.year,
       startDate: params.startDate,
       endDate: params.endDate,
+      groupBy: params.groupBy,
     );
   }
 
@@ -98,6 +99,7 @@ class GetGrowthTrendsParams {
   final int? year;
   final String? startDate;
   final String? endDate;
+  final String groupBy;
 
   const GetGrowthTrendsParams({
     this.deptCode,
@@ -105,6 +107,7 @@ class GetGrowthTrendsParams {
     this.year,
     this.startDate,
     this.endDate,
+    this.groupBy = 'day',
   });
 
   /// Factory constructor for quarterly trends
@@ -172,11 +175,13 @@ class GetGrowthTrendsParams {
         other.period == period &&
         other.year == year &&
         other.startDate == startDate &&
-        other.endDate == endDate;
+        other.endDate == endDate &&
+        other.groupBy == groupBy;
   }
 
   @override
-  int get hashCode => Object.hash(deptCode, period, year, startDate, endDate);
+  int get hashCode =>
+      Object.hash(deptCode, period, year, startDate, endDate, groupBy);
 
   @override
   String toString() =>

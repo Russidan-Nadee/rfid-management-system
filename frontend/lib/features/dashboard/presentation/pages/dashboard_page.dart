@@ -12,7 +12,6 @@ import '../widgets/summary_cards_widget.dart';
 import '../widgets/asset_distribution_chart_widget.dart';
 import '../widgets/growth_trend_chart_widget.dart';
 import '../widgets/audit_progress_widget.dart';
-import '../widgets/dashboard_filters_widget.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -164,29 +163,29 @@ class _DashboardPageContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                DashboardFiltersWidget(
-                  currentPeriod: loadedState.currentPeriod,
-                  currentPlantFilter: loadedState.currentPlantFilter,
-                  currentDeptFilter: loadedState.currentDeptFilter,
-                  onPeriodChanged: (period) {
-                    context.read<DashboardBloc>().add(
-                      ChangePeriodFilter(period),
-                    );
-                  },
-                  onPlantChanged: (plantCode) {
-                    context.read<DashboardBloc>().add(
-                      ChangePlantFilter(plantCode),
-                    );
-                  },
-                  onDeptChanged: (deptCode) {
-                    context.read<DashboardBloc>().add(
-                      ChangeDepartmentFilter(deptCode),
-                    );
-                  },
-                  onResetFilters: () {
-                    context.read<DashboardBloc>().add(const ResetFilters());
-                  },
-                ),
+                // DashboardFiltersWidget(
+                //   currentPeriod: loadedState.currentPeriod,
+                //   currentPlantFilter: loadedState.currentPlantFilter,
+                //   currentDeptFilter: loadedState.currentDeptFilter,
+                //   onPeriodChanged: (period) {
+                //     context.read<DashboardBloc>().add(
+                //       ChangePeriodFilter(period),
+                //     );
+                //   },
+                //   onPlantChanged: (plantCode) {
+                //     context.read<DashboardBloc>().add(
+                //       ChangePlantFilter(plantCode),
+                //     );
+                //   },
+                //   onDeptChanged: (deptCode) {
+                //     context.read<DashboardBloc>().add(
+                //       ChangeDepartmentFilter(deptCode),
+                //     );
+                //   },
+                //   onResetFilters: () {
+                //     context.read<DashboardBloc>().add(const ResetFilters());
+                //   },
+                // ),
               ],
             ),
 

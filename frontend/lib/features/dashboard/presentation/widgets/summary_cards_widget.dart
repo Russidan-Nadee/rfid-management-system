@@ -21,51 +21,54 @@ class SummaryCardsWidget extends StatelessWidget {
       return _buildLoadingCards();
     }
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        _SummaryCard(
-          icon: LucideIcons.boxes,
-          iconColor: AppColors.primary,
-          label: 'All Assets',
-          labelColor: AppColors.primary,
-          value: Helpers.formatNumber(stats.overview.totalAssets.value),
-          subtext: _formatTrendText(stats.overview.totalAssets),
-          valueColor: AppColors.primary,
-          trend: stats.overview.totalAssets.trend,
-        ),
-        _SummaryCard(
-          icon: LucideIcons.badgeCheck,
-          iconColor: AppColors.assetActive,
-          labelColor: AppColors.assetActive,
-          label: 'Active',
-          value: Helpers.formatNumber(stats.overview.activeAssets.value),
-          subtext: _formatTrendText(stats.overview.activeAssets),
-          valueColor: AppColors.assetActive,
-          trend: stats.overview.activeAssets.trend,
-        ),
-        _SummaryCard(
-          icon: LucideIcons.badgeX,
-          label: 'Inactive',
-          iconColor: AppColors.assetInactive,
-          labelColor: AppColors.assetInactive,
-          value: Helpers.formatNumber(stats.overview.inactiveAssets.value),
-          subtext: _formatTrendText(stats.overview.inactiveAssets),
-          valueColor: AppColors.assetInactive,
-          trend: stats.overview.inactiveAssets.trend,
-        ),
-        _SummaryCard(
-          icon: LucideIcons.packagePlus,
-          iconColor: AppColors.assetCreated,
-          labelColor: AppColors.assetCreated,
-          label: 'New Assets',
-          value: Helpers.formatNumber(stats.overview.createdAssets.value),
-          subtext: _formatTrendText(stats.overview.createdAssets),
-          valueColor: AppColors.assetCreated,
-          trend: stats.overview.createdAssets.trend,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          _SummaryCard(
+            icon: LucideIcons.boxes,
+            iconColor: AppColors.primary,
+            label: 'All Assets',
+            labelColor: AppColors.primary,
+            value: Helpers.formatNumber(stats.overview.totalAssets.value),
+            subtext: _formatTrendText(stats.overview.totalAssets),
+            valueColor: AppColors.primary,
+            trend: stats.overview.totalAssets.trend,
+          ),
+          _SummaryCard(
+            icon: LucideIcons.badgeCheck,
+            iconColor: AppColors.assetActive,
+            labelColor: AppColors.assetActive,
+            label: 'Active',
+            value: Helpers.formatNumber(stats.overview.activeAssets.value),
+            subtext: _formatTrendText(stats.overview.activeAssets),
+            valueColor: AppColors.assetActive,
+            trend: stats.overview.activeAssets.trend,
+          ),
+          _SummaryCard(
+            icon: LucideIcons.badgeX,
+            label: 'Inactive',
+            iconColor: AppColors.assetInactive,
+            labelColor: AppColors.assetInactive,
+            value: Helpers.formatNumber(stats.overview.inactiveAssets.value),
+            subtext: _formatTrendText(stats.overview.inactiveAssets),
+            valueColor: AppColors.assetInactive,
+            trend: stats.overview.inactiveAssets.trend,
+          ),
+          _SummaryCard(
+            icon: LucideIcons.packagePlus,
+            iconColor: AppColors.assetCreated,
+            labelColor: AppColors.assetCreated,
+            label: 'New Assets',
+            value: Helpers.formatNumber(stats.overview.createdAssets.value),
+            subtext: _formatTrendText(stats.overview.createdAssets),
+            valueColor: AppColors.assetCreated,
+            trend: stats.overview.createdAssets.trend,
+          ),
+        ],
+      ),
     );
   }
 
