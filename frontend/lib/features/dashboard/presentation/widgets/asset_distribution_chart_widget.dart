@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/asset_distribution_chart_widget.dart
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:fl_chart/fl_chart.dart' as charts;
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/asset_distribution.dart';
 
@@ -39,10 +39,10 @@ class AssetDistributionChartWidget extends StatelessWidget {
   }
 
   Widget _buildPieChart() {
-    return PieChart(
-      PieChartData(
+    return charts.PieChart(
+      charts.PieChartData(
         sections: distribution.pieChartData.map((data) {
-          return PieChartSectionData(
+          return charts.PieChartSectionData(
             value: data.value.toDouble(),
             title: '${data.formattedPercentage}',
             color: _getColorForIndex(distribution.pieChartData.indexOf(data)),
@@ -56,10 +56,12 @@ class AssetDistributionChartWidget extends StatelessWidget {
         }).toList(),
         sectionsSpace: 4,
         centerSpaceRadius: 30,
-        pieTouchData: PieTouchData(
-          touchCallback: (FlTouchEvent event, pieTouchResponse) {
-            // Handle chart interactions
-          },
+        pieTouchData: charts.PieTouchData(
+          touchCallback:
+              (
+                charts.FlTouchEvent event,
+                charts.PieTouchResponse? pieTouchResponse,
+              ) {},
         ),
       ),
     );

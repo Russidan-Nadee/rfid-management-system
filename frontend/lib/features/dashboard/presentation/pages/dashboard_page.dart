@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/dashboard/presentation/pages/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/dashboard/presentation/widgets/dashboard_refresh_widget';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
@@ -12,7 +13,6 @@ import '../widgets/asset_distribution_chart_widget.dart';
 import '../widgets/growth_trend_chart_widget.dart';
 import '../widgets/audit_progress_widget.dart';
 import '../widgets/dashboard_filters_widget.dart';
-import '../widgets/dashboard_refresh_widget.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});

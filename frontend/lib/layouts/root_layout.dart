@@ -1,6 +1,7 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/dashboard_page_mock.dart';
+import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
@@ -14,7 +15,7 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 2;
+  int _currentIndex = 0;
   bool _isRailExtended = true;
 
   final _navigatorKeys = List.generate(
@@ -23,7 +24,7 @@ class _RootLayoutState extends State<RootLayout> {
   );
 
   List<Widget> get _pages => [
-    const DashboardPageMock(),
+    const DashboardPage(),
     const SearchPage(),
     const ScanPage(),
     const ExportPage(),
