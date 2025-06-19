@@ -1,11 +1,11 @@
 // Path: frontend/lib/features/dashboard/presentation/bloc/dashboard_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/errors/failures.dart';
-import '../../../../core/utils/either.dart';
-import '../../domain/entities/dashboard_stats.dart';
-import '../../domain/entities/asset_distribution.dart';
-import '../../domain/entities/growth_trend.dart';
-import '../../domain/entities/audit_progress.dart';
+import 'package:frontend/core/errors/failures.dart';
+import 'package:frontend/core/utils/either.dart';
+import 'package:frontend/features/dashboard/domain/entities/asset_distribution.dart';
+import 'package:frontend/features/dashboard/domain/entities/audit_progress.dart';
+import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:frontend/features/dashboard/domain/entities/growth_trend.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_asset_distribution_usecase.dart';
 import '../../domain/usecases/get_growth_trends_usecase.dart';
@@ -47,25 +47,72 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     LoadInitialDashboard event,
     Emitter<DashboardState> emit,
   ) async {
+    print('🔵 Starting dashboard load...');
     emit(const DashboardLoading(loadingMessage: 'Loading dashboard...'));
 
     try {
+      print('📡 Calling dashboard APIs...');
+
       // Load all dashboard data in parallel
-      final statsResult = await getDashboardStatsUseCase(
-        const GetDashboardStatsParams(period: 'today'),
+      final Future<Either<Failure, DashboardStats>> statsResult =
+          getDashboardStatsUseCase(
+            const GetDashboardStatsParams(period: 'today'),
+          );
+
+      final Future<Either<Failure, AssetDistribution>> distributionResult =
+          getAssetDistributionUseCase(GetAssetDistributionParams.all());
+
+      final Future<Either<Failure, GrowthTrend>> trendsResult =
+          getGrowthTrendsUseCase(GetGrowthTrendsParams.currentQuarter());
+
+      final Future<Either<Failure, AuditProgress>> auditResult =
+          getAuditProgressUseCase(GetAuditProgressParams.overview());
+
+      // Wait for all results
+      final results = await Future.wait([
+        statsResult,
+        distributionResult,
+        trendsResult,
+        auditResult,
+      ]);
+
+      print(
+        '📊 Stats result: ${results[0].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
-      final distributionResult = await getAssetDistributionUseCase(
-        GetAssetDistributionParams.all(),
+      print(
+        '📈 Distribution result: ${results[1].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
-      final trendsResult = await getGrowthTrendsUseCase(
-        GetGrowthTrendsParams.currentQuarter(),
+      print(
+        '📉 Trends result: ${results[2].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
-      final auditResult = await getAuditProgressUseCase(
-        GetAuditProgressParams.overview(),
+      print(
+        '📋 Audit result: ${results[3].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
 
+      // Check individual failures
+      if (results[0].isLeft) {
+        final failure = (results[0] as Left).left;
+        print('❌ Stats error: ${failure.message}');
+      }
+
+      if (results[1].isLeft) {
+        final failure = (results[1] as Left).left;
+        print('❌ Distribution error: ${failure.message}');
+      }
+
+      if (results[2].isLeft) {
+        final failure = (results[2] as Left).left;
+        print('❌ Trends error: ${failure.message}');
+      }
+
+      if (results[3].isLeft) {
+        final failure = (results[3] as Left).left;
+        print('❌ Audit error: ${failure.message}');
+      }
+
       // Check if any critical data failed to load
-      if (statsResult.isLeft) {
+      if (results[0].isLeft) {
+        print('💥 Critical failure: Dashboard stats failed');
         emit(
           DashboardError(
             message: 'Failed to load dashboard statistics',
@@ -75,16 +122,27 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         return;
       }
 
+      print('✅ Loading dashboard data successfully');
       emit(
         DashboardLoaded(
-          stats: statsResult.fold((l) => null, (r) => r),
-          distribution: distributionResult.fold((l) => null, (r) => r),
-          growthTrend: trendsResult.fold((l) => null, (r) => r),
-          auditProgress: auditResult.fold((l) => null, (r) => r),
+          stats: results[0].fold((l) => null, (r) => r as DashboardStats?),
+          distribution: results[1].fold(
+            (l) => null,
+            (r) => r as AssetDistribution?,
+          ),
+          growthTrend: results[2].fold((l) => null, (r) => r as GrowthTrend?),
+          auditProgress: results[3].fold(
+            (l) => null,
+            (r) => r as AuditProgress?,
+          ),
           lastUpdated: DateTime.now(),
         ),
       );
-    } catch (e) {
+
+      print('🎉 Dashboard loaded successfully!');
+    } catch (e, stackTrace) {
+      print('💥 Unexpected dashboard error: $e');
+      print('📍 Stack trace: $stackTrace');
       emit(
         DashboardError(
           message: 'Unexpected error loading dashboard: $e',

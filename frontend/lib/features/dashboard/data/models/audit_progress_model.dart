@@ -70,7 +70,9 @@ class DepartmentProgressModel {
       totalAssets: json['total_assets'] ?? 0,
       auditedAssets: json['audited_assets'] ?? 0,
       pendingAudit: json['pending_audit'] ?? 0,
-      completionPercentage: (json['completion_percentage'] ?? 0).toDouble(),
+      completionPercentage:
+          double.tryParse(json['completion_percentage']?.toString() ?? '0') ??
+          0.0,
     );
   }
 

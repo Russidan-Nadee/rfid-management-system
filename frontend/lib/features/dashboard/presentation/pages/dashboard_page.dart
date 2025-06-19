@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/dashboard/presentation/pages/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/dashboard_refresh_widget';
+import 'package:frontend/features/dashboard/presentation/widgets/dashboard_refresh_widget.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';

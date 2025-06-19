@@ -283,7 +283,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
           total: model.charts.assetStatusPie.total,
         ),
         scanTrend7d: model.charts.scanTrend7d
-            .map(
+            .map<ScanTrend>(
               (scanModel) => ScanTrend(
                 date: scanModel.date,
                 count: scanModel.count,
@@ -307,7 +307,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   AssetDistribution _mapAssetDistributionModelToEntity(model) {
     return AssetDistribution(
       pieChartData: model.pieChartData
-          .map(
+          .map<PieChartData>(
             (pieModel) => PieChartData(
               name: pieModel.name,
               value: pieModel.value,
@@ -334,7 +334,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   GrowthTrend _mapGrowthTrendModelToEntity(model) {
     return GrowthTrend(
       trends: model.trends
-          .map(
+          .map<TrendData>(
             (trendModel) => TrendData(
               period: trendModel.period,
               assetCount: trendModel.assetCount,
@@ -363,7 +363,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   AuditProgress _mapAuditProgressModelToEntity(model) {
     return AuditProgress(
       auditProgress: model.auditProgress
-          .map(
+          .map<DepartmentProgress>(
             (deptModel) => DepartmentProgress(
               deptCode: deptModel.deptCode,
               deptDescription: deptModel.deptDescription,
@@ -383,7 +383,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
             )
           : null,
       recommendations: model.recommendations
-          .map(
+          .map<Recommendation>(
             (recModel) => Recommendation(
               type: recModel.type,
               message: recModel.message,

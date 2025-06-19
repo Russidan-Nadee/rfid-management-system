@@ -54,7 +54,7 @@ class PieChartDataModel {
     return PieChartDataModel(
       name: json['name'] ?? '',
       value: json['value'] ?? 0,
-      percentage: (json['percentage'] ?? 0).toDouble(),
+      percentage: double.tryParse(json['percentage']?.toString() ?? '0') ?? 0.0,
       deptCode: json['dept_code'] ?? '',
       plantCode: json['plant_code'] ?? '',
       plantDescription: json['plant_description'] ?? '',
