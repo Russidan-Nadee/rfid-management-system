@@ -4,36 +4,110 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/growth_trend.dart';
 
-class GrowthTrendChartWidget extends StatelessWidget {
+class GrowthTrendChartWidget extends StatefulWidget {
   final GrowthTrend growthTrend;
   final bool isLoading;
+  final String? selectedDeptCode;
+  final List<Map<String, String>> availableDepartments;
+  final Function(String?) onDeptChanged;
 
   const GrowthTrendChartWidget({
     super.key,
     required this.growthTrend,
     this.isLoading = false,
+    this.selectedDeptCode,
+    this.availableDepartments = const [],
+    required this.onDeptChanged,
   });
 
   @override
+  State<GrowthTrendChartWidget> createState() => _GrowthTrendChartWidgetState();
+}
+
+class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
+  String? _currentSelectedDept;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentSelectedDept = widget.selectedDeptCode;
+  }
+
+  @override
+  void didUpdateWidget(GrowthTrendChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDeptCode != oldWidget.selectedDeptCode) {
+      setState(() {
+        _currentSelectedDept = widget.selectedDeptCode;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return _buildLoadingWidget();
     }
 
     return _DashboardCard(
-      title: 'Asset Growth Trends',
+      title: 'Asset Growth Department',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildDepartmentFilter(),
+          const SizedBox(height: 16),
           _buildPeriodInfo(),
           const SizedBox(height: 16),
           SizedBox(
             height: 200,
-            child: growthTrend.hasData ? _buildLineChart() : _buildEmptyState(),
+            child: widget.growthTrend.hasData
+                ? _buildLineChart()
+                : _buildEmptyState(),
           ),
           const SizedBox(height: 16),
           _buildTrendSummary(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDepartmentFilter() {
+    final Map<String, String> uniqueDepts = {};
+
+    for (final dept in widget.availableDepartments) {
+      uniqueDepts[dept['code']!] = dept['name']!;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _currentSelectedDept,
+          hint: const Text('All Departments'),
+          isExpanded: true,
+          items: [
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('All Departments'),
+            ),
+            ...uniqueDepts.entries.map(
+              (entry) => DropdownMenuItem<String?>(
+                value: entry.key,
+                child: Text(entry.value),
+              ),
+            ),
+          ],
+          onChanged: (String? newValue) {
+            setState(() {
+              _currentSelectedDept = newValue;
+            });
+            widget.onDeptChanged(newValue);
+          },
+        ),
       ),
     );
   }
@@ -43,10 +117,10 @@ class GrowthTrendChartWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Period: ${growthTrend.periodInfo.period}',
+          'Period: ${widget.growthTrend.periodInfo.period}',
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
         ),
-        if (growthTrend.periodInfo.isCurrentYear)
+        if (widget.growthTrend.periodInfo.isCurrentYear)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -67,11 +141,8 @@ class GrowthTrendChartWidget extends StatelessWidget {
   }
 
   Widget _buildLineChart() {
-    final spots = growthTrend.trends.asMap().entries.map((entry) {
-      return FlSpot(
-        entry.key.toDouble(),
-        entry.value.growthPercentage.toDouble(),
-      );
+    final spots = widget.growthTrend.trends.asMap().entries.map((entry) {
+      return FlSpot(entry.key.toDouble(), entry.value.assetCount.toDouble());
     }).toList();
 
     return LineChart(
@@ -95,7 +166,7 @@ class GrowthTrendChartWidget extends StatelessWidget {
               reservedSize: 50,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  '${value.toInt()}%',
+                  '${value.toInt()}',
                   style: const TextStyle(fontSize: 10),
                 );
               },
@@ -106,11 +177,11 @@ class GrowthTrendChartWidget extends StatelessWidget {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index >= 0 && index < growthTrend.trends.length) {
+                if (index >= 0 && index < widget.growthTrend.trends.length) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      growthTrend.trends[index].period,
+                      widget.growthTrend.trends[index].period,
                       style: const TextStyle(fontSize: 10),
                     ),
                   );
@@ -135,14 +206,24 @@ class GrowthTrendChartWidget extends StatelessWidget {
             dotData: FlDotData(
               show: true,
               getDotPainter: (spot, percent, barData, index) {
-                final trend = growthTrend.trends[index];
+                // เพิ่ม check index ก่อนใช้
+                if (index < widget.growthTrend.trends.length) {
+                  final trend = widget.growthTrend.trends[index];
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: trend.isPositiveGrowth
+                        ? AppColors.trendUp
+                        : trend.isNegativeGrowth
+                        ? AppColors.trendDown
+                        : AppColors.trendStable,
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  );
+                }
+                // fallback ถ้า index เกิน
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: trend.isPositiveGrowth
-                      ? AppColors.trendUp
-                      : trend.isNegativeGrowth
-                      ? AppColors.trendDown
-                      : AppColors.trendStable,
+                  color: AppColors.primary,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -159,10 +240,10 @@ class GrowthTrendChartWidget extends StatelessWidget {
             getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
               return touchedBarSpots.map((barSpot) {
                 final index = barSpot.x.toInt();
-                if (index < growthTrend.trends.length) {
-                  final trend = growthTrend.trends[index];
+                if (index < widget.growthTrend.trends.length) {
+                  final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
-                    '${trend.period}\n${trend.formattedGrowthPercentage}\n${trend.assetCount} assets',
+                    '${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
                     const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -192,23 +273,23 @@ class GrowthTrendChartWidget extends StatelessWidget {
         children: [
           _buildSummaryItem(
             'Total Growth',
-            growthTrend.summary.formattedTotalGrowth,
+            widget.growthTrend.summary.totalGrowth.toString(),
             Icons.trending_up,
-            growthTrend.hasPositiveGrowth
+            widget.growthTrend.hasPositiveGrowth
                 ? AppColors.trendUp
                 : AppColors.trendDown,
           ),
           Container(width: 1, height: 30, color: Colors.grey.shade300),
           _buildSummaryItem(
             'Average Growth',
-            growthTrend.summary.formattedAverageGrowth,
+            widget.growthTrend.summary.averageGrowth.toString(),
             Icons.analytics,
             AppColors.primary,
           ),
           Container(width: 1, height: 30, color: Colors.grey.shade300),
           _buildSummaryItem(
             'Periods',
-            growthTrend.summary.totalPeriods.toString(),
+            widget.growthTrend.summary.totalPeriods.toString(),
             Icons.calendar_today,
             AppColors.textSecondary,
           ),
@@ -261,7 +342,7 @@ class GrowthTrendChartWidget extends StatelessWidget {
 
   Widget _buildLoadingWidget() {
     return _DashboardCard(
-      title: 'Asset Growth Trends',
+      title: 'Asset Growth Department',
       child: Container(
         height: 200,
         child: const Center(child: CircularProgressIndicator()),

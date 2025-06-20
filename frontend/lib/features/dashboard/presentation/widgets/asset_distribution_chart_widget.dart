@@ -1,4 +1,3 @@
-// Path: frontend/lib/features/dashboard/presentation/widgets/asset_distribution_chart_widget.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart' as charts;
 import '../../../../core/constants/app_colors.dart';
@@ -54,7 +53,7 @@ class AssetDistributionChartWidget extends StatelessWidget {
             ),
           );
         }).toList(),
-        sectionsSpace: 4,
+        sectionsSpace: 0.8,
         centerSpaceRadius: 30,
         pieTouchData: charts.PieTouchData(
           touchCallback:

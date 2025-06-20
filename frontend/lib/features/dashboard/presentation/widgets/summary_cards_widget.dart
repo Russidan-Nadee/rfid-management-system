@@ -18,71 +18,117 @@ class SummaryCardsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return _buildLoadingCards();
+      return _buildLoadingCards(context);
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          _SummaryCard(
-            icon: LucideIcons.boxes,
-            iconColor: AppColors.primary,
-            label: 'All Assets',
-            labelColor: AppColors.primary,
-            value: Helpers.formatNumber(stats.overview.totalAssets.value),
-            subtext: _formatTrendText(stats.overview.totalAssets),
-            valueColor: AppColors.primary,
-            trend: stats.overview.totalAssets.trend,
-          ),
-          _SummaryCard(
-            icon: LucideIcons.badgeCheck,
-            iconColor: AppColors.assetActive,
-            labelColor: AppColors.assetActive,
-            label: 'Active',
-            value: Helpers.formatNumber(stats.overview.activeAssets.value),
-            subtext: _formatTrendText(stats.overview.activeAssets),
-            valueColor: AppColors.assetActive,
-            trend: stats.overview.activeAssets.trend,
-          ),
-          _SummaryCard(
-            icon: LucideIcons.badgeX,
-            label: 'Inactive',
-            iconColor: AppColors.assetInactive,
-            labelColor: AppColors.assetInactive,
-            value: Helpers.formatNumber(stats.overview.inactiveAssets.value),
-            subtext: _formatTrendText(stats.overview.inactiveAssets),
-            valueColor: AppColors.assetInactive,
-            trend: stats.overview.inactiveAssets.trend,
-          ),
-          _SummaryCard(
-            icon: LucideIcons.packagePlus,
-            iconColor: AppColors.assetCreated,
-            labelColor: AppColors.assetCreated,
-            label: 'New Assets',
-            value: Helpers.formatNumber(stats.overview.createdAssets.value),
-            subtext: _formatTrendText(stats.overview.createdAssets),
-            valueColor: AppColors.assetCreated,
-            trend: stats.overview.createdAssets.trend,
-          ),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // คำนวณจำนวน columns ตามขนาดหน้าจอ
+          final screenWidth = constraints.maxWidth;
+          int crossAxisCount;
+          double childAspectRatio;
+
+          if (screenWidth > 800) {
+            // Desktop/Tablet landscape - 4 columns
+            crossAxisCount = 4;
+            childAspectRatio = 1.3;
+          } else if (screenWidth > 600) {
+            // Tablet portrait - 2 columns
+            crossAxisCount = 2;
+            childAspectRatio = 1.4;
+          } else {
+            // Mobile - 2 columns
+            crossAxisCount = 2;
+            childAspectRatio = 1.2;
+          }
+
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            children: [
+              _SummaryCard(
+                icon: LucideIcons.boxes,
+                iconColor: AppColors.primary,
+                label: 'All Assets',
+                labelColor: AppColors.primary,
+                value: Helpers.formatNumber(stats.overview.totalAssets.value),
+                valueColor: AppColors.primary,
+                trend: stats.overview.totalAssets.trend,
+              ),
+              _SummaryCard(
+                icon: LucideIcons.badgeCheck,
+                iconColor: AppColors.assetActive,
+                labelColor: AppColors.assetActive,
+                label: 'Active',
+                value: Helpers.formatNumber(stats.overview.activeAssets.value),
+                valueColor: AppColors.assetActive,
+                trend: stats.overview.activeAssets.trend,
+              ),
+              _SummaryCard(
+                icon: LucideIcons.badgeX,
+                label: 'Inactive',
+                iconColor: AppColors.assetInactive,
+                labelColor: AppColors.assetInactive,
+                value: Helpers.formatNumber(
+                  stats.overview.inactiveAssets.value,
+                ),
+                valueColor: AppColors.assetInactive,
+                trend: stats.overview.inactiveAssets.trend,
+              ),
+              _SummaryCard(
+                icon: LucideIcons.packagePlus,
+                iconColor: AppColors.assetCreated,
+                labelColor: AppColors.assetCreated,
+                label: 'New Assets',
+                value: Helpers.formatNumber(stats.overview.createdAssets.value),
+                valueColor: AppColors.assetCreated,
+                trend: stats.overview.createdAssets.trend,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildLoadingCards() {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: List.generate(4, (index) => _LoadingSummaryCard()),
-    );
-  }
+  Widget _buildLoadingCards(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          int crossAxisCount;
+          double childAspectRatio;
 
-  String _formatTrendText(AssetCount assetCount) {
-    final sign = assetCount.changePercent > 0 ? '+' : '';
-    return '$sign${assetCount.changePercent}%';
+          if (screenWidth > 800) {
+            crossAxisCount = 4;
+            childAspectRatio = 1.1;
+          } else if (screenWidth > 600) {
+            crossAxisCount = 2;
+            childAspectRatio = 1.2;
+          } else {
+            crossAxisCount = 2;
+            childAspectRatio = 1.0;
+          }
+
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            children: List.generate(4, (index) => _LoadingSummaryCard()),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -90,7 +136,6 @@ class _SummaryCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  final String? subtext;
   final Color? valueColor;
   final Color? iconColor;
   final Color? labelColor;
@@ -100,7 +145,6 @@ class _SummaryCard extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    this.subtext,
     this.valueColor,
     this.iconColor,
     this.labelColor,
@@ -111,7 +155,6 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -125,65 +168,33 @@ class _SummaryCard extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 28, color: iconColor ?? theme.primaryColor),
-              const Spacer(),
-              _buildTrendIcon(),
-            ],
-          ),
+          Icon(icon, size: 24, color: iconColor),
           const SizedBox(height: 12),
           Text(
             value,
             style: theme.textTheme.headlineSmall?.copyWith(
               color: valueColor,
               fontWeight: FontWeight.bold,
+              fontSize: 28,
             ),
+            textAlign: TextAlign.center,
           ),
-          if (subtext != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtext!,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.getTrendColor(trend),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
           const SizedBox(height: 8),
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: labelColor ?? theme.textTheme.bodyMedium?.color,
+              color: labelColor,
               fontWeight: FontWeight.w500,
+              fontSize: 13,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
-  }
-
-  Widget _buildTrendIcon() {
-    IconData trendIcon;
-    Color trendColor;
-
-    switch (trend) {
-      case 'up':
-        trendIcon = Icons.trending_up;
-        trendColor = AppColors.trendUp;
-        break;
-      case 'down':
-        trendIcon = Icons.trending_down;
-        trendColor = AppColors.trendDown;
-        break;
-      default:
-        trendIcon = Icons.trending_flat;
-        trendColor = AppColors.trendStable;
-    }
-
-    return Icon(trendIcon, size: 20, color: trendColor);
   }
 }
 
@@ -192,8 +203,6 @@ class _LoadingSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      width: 160,
-      height: 120,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor,
@@ -208,12 +217,13 @@ class _LoadingSummaryCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Container(
-                width: 28,
-                height: 28,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(4),
@@ -221,8 +231,8 @@ class _LoadingSummaryCard extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(4),
@@ -230,10 +240,19 @@ class _LoadingSummaryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Container(
-            width: 80,
-            height: 24,
+            width: double.infinity,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Container(
+            width: 60,
+            height: 12,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(4),
@@ -241,17 +260,8 @@ class _LoadingSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Container(
-            width: 60,
-            height: 16,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: 100,
-            height: 16,
+            width: 80,
+            height: 13,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
               borderRadius: BorderRadius.circular(4),

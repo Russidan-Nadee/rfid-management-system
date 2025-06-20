@@ -54,7 +54,7 @@ class _DashboardPageContent extends StatelessWidget {
                       RefreshDashboard(
                         period: state.currentPeriod,
                         plantCode: state.currentPlantFilter,
-                        deptCode: state.currentDeptFilter,
+                        deptCode: null, // ลบ deptCode เพราะมี 2 filters แยกกัน
                       ),
                     );
                   } else {
@@ -156,36 +156,13 @@ class _DashboardPageContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Overview',
+                  'Overview this year',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                // DashboardFiltersWidget(
-                //   currentPeriod: loadedState.currentPeriod,
-                //   currentPlantFilter: loadedState.currentPlantFilter,
-                //   currentDeptFilter: loadedState.currentDeptFilter,
-                //   onPeriodChanged: (period) {
-                //     context.read<DashboardBloc>().add(
-                //       ChangePeriodFilter(period),
-                //     );
-                //   },
-                //   onPlantChanged: (plantCode) {
-                //     context.read<DashboardBloc>().add(
-                //       ChangePlantFilter(plantCode),
-                //     );
-                //   },
-                //   onDeptChanged: (deptCode) {
-                //     context.read<DashboardBloc>().add(
-                //       ChangeDepartmentFilter(deptCode),
-                //     );
-                //   },
-                //   onResetFilters: () {
-                //     context.read<DashboardBloc>().add(const ResetFilters());
-                //   },
-                // ),
               ],
             ),
 
@@ -217,6 +194,16 @@ class _DashboardPageContent extends StatelessWidget {
             if (loadedState.growthTrend != null)
               GrowthTrendChartWidget(
                 growthTrend: loadedState.growthTrend!,
+                selectedDeptCode: loadedState
+                    .growthTrendDeptFilter, // ใช้ growthTrendDeptFilter
+                availableDepartments: _getAllDepartments(loadedState),
+                onDeptChanged: (deptCode) {
+                  context.read<DashboardBloc>().add(
+                    LoadGrowthTrends(
+                      deptCode: deptCode,
+                    ), // แยก event สำหรับ Growth Trend
+                  );
+                },
                 isLoading:
                     state is DashboardPartialLoading &&
                     state.loadingType == 'trends',
@@ -229,6 +216,16 @@ class _DashboardPageContent extends StatelessWidget {
               AuditProgressWidget(
                 auditProgress: loadedState.auditProgress!,
                 includeDetails: loadedState.includeDetails,
+                selectedDeptCode: loadedState
+                    .auditProgressDeptFilter, // ใช้ auditProgressDeptFilter
+                availableDepartments: _getAllDepartments(loadedState),
+                onDeptChanged: (deptCode) {
+                  context.read<DashboardBloc>().add(
+                    LoadAuditProgress(
+                      deptCode: deptCode,
+                    ), // แยก event สำหรับ Audit Progress
+                  );
+                },
                 isLoading:
                     state is DashboardPartialLoading &&
                     state.loadingType == 'audit',
@@ -271,6 +268,50 @@ class _DashboardPageContent extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Helper method เพื่อรวม Department จากทุกแหล่ง
+  List<Map<String, String>> _getAllDepartments(DashboardLoaded state) {
+    final Set<String> allDeptCodes = {};
+    final Map<String, String> deptMap = {};
+
+    // รวม Department จาก Audit Progress
+    if (state.auditProgress != null) {
+      for (final dept in state.auditProgress!.auditProgress) {
+        allDeptCodes.add(dept.deptCode);
+        deptMap[dept.deptCode] = dept.deptDescription;
+      }
+    }
+
+    // รวม Department จาก Growth Trend (ถ้ามี)
+    if (state.growthTrend != null) {
+      for (final trend in state.growthTrend!.trends) {
+        if (trend.deptCode.isNotEmpty) {
+          allDeptCodes.add(trend.deptCode);
+          deptMap[trend.deptCode] = trend.deptDescription;
+        }
+      }
+    }
+
+    // รวม Department จาก Asset Distribution (ถ้ามี)
+    if (state.distribution != null) {
+      for (final item in state.distribution!.pieChartData) {
+        if (item.deptCode.isNotEmpty) {
+          allDeptCodes.add(item.deptCode);
+          deptMap[item.deptCode] = item.name;
+        }
+      }
+    }
+
+    // Convert เป็น List และเรียงตามชื่อ
+    final List<Map<String, String>> departments = allDeptCodes
+        .map((code) => {'code': code, 'name': deptMap[code] ?? code})
+        .toList();
+
+    // เรียงตามชื่อ Department
+    departments.sort((a, b) => a['name']!.compareTo(b['name']!));
+
+    return departments;
   }
 
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {

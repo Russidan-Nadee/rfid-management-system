@@ -1,5 +1,4 @@
 // Path: frontend/lib/features/search/data/contracts/search_datasource_contracts.dart
-import '../models/search_result_model.dart';
 import '../models/search_suggestion_model.dart';
 import '../models/search_filter_model.dart';
 import '../models/search_response_model.dart';

@@ -57,11 +57,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<Either<Failure, AssetDistribution>> getAssetDistribution(
     String? plantCode,
+    String? deptCode,
   ) async {
     try {
       // Generate cache key
       final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
-          .generateDistributionCacheKey(plantCode);
+          .generateDistributionCacheKey(plantCode, deptCode);
 
       // Try to get from cache first
       final cachedDistribution = await cacheDataSource
@@ -73,6 +74,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Fetch from remote if not in cache
       final remoteDistribution = await remoteDataSource.getAssetDistribution(
         plantCode,
+        deptCode,
       );
 
       // Cache the result
@@ -91,6 +93,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
       try {
         final remoteDistribution = await remoteDataSource.getAssetDistribution(
           plantCode,
+          deptCode,
         );
         return Right(_mapAssetDistributionModelToEntity(remoteDistribution));
       } catch (remoteError) {

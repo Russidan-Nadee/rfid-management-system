@@ -152,7 +152,7 @@ const dashboardController = {
             assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master'),
             assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['A']),
             assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['I']),
-            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['C']),
+            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE YEAR(created_at) = YEAR(NOW())'),
 
             // Current period - Scans (asset_scan_log table)
             assetService.model.executeQuery(
@@ -756,48 +756,48 @@ const dashboardController = {
    },
 
    /**
-    * Get assets distribution by department (Pie Chart data)
-    * GET /api/v1/dashboard/assets-by-plant?plant_code=xxx
-    */
+   * Get assets distribution by department (Pie Chart data)
+   * GET /api/v1/dashboard/assets-by-plant?plant_code=xxx&dept_code=xxx
+   */
    async getAssetsByDepartment(req, res) {
       try {
-         const { plant_code } = req.query;
+         const { plant_code, dept_code } = req.query;
 
          let departmentStats;
+         let whereConditions = [];
+         let params = [];
+
+         // Build WHERE conditions based on filters
          if (plant_code) {
-            // Get departments for specific plant
-            departmentStats = await departmentService.model.executeQuery(`
-               SELECT 
-                  d.dept_code,
-                  d.description as dept_description,
-                  d.plant_code,
-                  p.description as plant_description,
-                  COUNT(a.asset_no) as asset_count,
-                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
-               FROM mst_department d
-               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
-               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
-               WHERE d.plant_code = ?
-               GROUP BY d.dept_code, d.description, d.plant_code, p.description
-               ORDER BY asset_count DESC
-            `, [plant_code]);
-         } else {
-            // Get all departments across all plants
-            departmentStats = await departmentService.model.executeQuery(`
-               SELECT 
-                  d.dept_code,
-                  d.description as dept_description,
-                  d.plant_code,
-                  p.description as plant_description,
-                  COUNT(a.asset_no) as asset_count,
-                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
-               FROM mst_department d
-               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
-               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
-               GROUP BY d.dept_code, d.description, d.plant_code, p.description
-               ORDER BY asset_count DESC
-            `);
+            whereConditions.push('d.plant_code = ?');
+            params.push(plant_code);
          }
+
+         if (dept_code) {
+            whereConditions.push('d.dept_code = ?');
+            params.push(dept_code);
+         }
+
+         const whereClause = whereConditions.length > 0
+            ? `WHERE ${whereConditions.join(' AND ')}`
+            : '';
+
+         // Get departments with asset counts and percentages
+         departmentStats = await departmentService.model.executeQuery(`
+         SELECT 
+            d.dept_code,
+            d.description as dept_description,
+            d.plant_code,
+            p.description as plant_description,
+            COUNT(a.asset_no) as asset_count,
+            ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+         FROM mst_department d
+         LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+         LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+         ${whereClause}
+         GROUP BY d.dept_code, d.description, d.plant_code, p.description
+         ORDER BY asset_count DESC
+      `, params);
 
          // Calculate summary
          const totalAssets = departmentStats.reduce((sum, dept) => sum + (dept.asset_count || 0), 0);
@@ -817,11 +817,13 @@ const dashboardController = {
             summary: {
                total_assets: totalAssets,
                total_departments: totalDepartments,
-               plant_filter: plant_code || 'all'
+               plant_filter: plant_code || 'all',
+               dept_filter: dept_code || 'all'
             },
             filter_info: {
                applied_filters: {
-                  plant_code: plant_code || null
+                  plant_code: plant_code || null,
+                  dept_code: dept_code || null
                }
             }
          };

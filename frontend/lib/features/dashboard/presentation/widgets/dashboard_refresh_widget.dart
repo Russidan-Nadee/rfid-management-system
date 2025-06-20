@@ -23,9 +23,9 @@ class DashboardRefreshWidget extends StatelessWidget {
         // Last refresh time indicator
         if (lastRefresh != null && !isLoading)
           _LastRefreshIndicator(lastRefresh: lastRefresh!),
-        
+
         const SizedBox(width: 8),
-        
+
         // Refresh button
         _RefreshButton(
           onPressed: isLoading ? null : onRefresh,
@@ -49,13 +49,13 @@ class _LastRefreshIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isRecent 
-            ? Colors.green.withOpacity(0.1) 
+        color: isRecent
+            ? Colors.green.withOpacity(0.1)
             : Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isRecent 
-              ? Colors.green.withOpacity(0.3) 
+          color: isRecent
+              ? Colors.green.withOpacity(0.3)
               : Colors.grey.withOpacity(0.3),
         ),
       ),
@@ -86,38 +86,31 @@ class _RefreshButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
-  const _RefreshButton({
-    this.onPressed,
-    required this.isLoading,
-  });
+  const _RefreshButton({this.onPressed, required this.isLoading});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.primary.withOpacity(0.1),
+    return InkWell(
+      onTap: onPressed,
       borderRadius: BorderRadius.circular(8),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: isLoading
-              ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-                )
-              : Icon(
-                  Icons.refresh,
-                  size: 16,
-                  color: onPressed != null 
-                      ? AppColors.primary 
-                      : Colors.grey.shade400,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: isLoading
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
-        ),
+              )
+            : Icon(
+                Icons.refresh,
+                size: 16,
+                color: onPressed != null
+                    ? AppColors.primary
+                    : Colors.grey.shade400,
+              ),
       ),
     );
   }
@@ -141,7 +134,8 @@ class DashboardRefreshEnhanced extends StatefulWidget {
   });
 
   @override
-  State<DashboardRefreshEnhanced> createState() => _DashboardRefreshEnhancedState();
+  State<DashboardRefreshEnhanced> createState() =>
+      _DashboardRefreshEnhancedState();
 }
 
 class _DashboardRefreshEnhancedState extends State<DashboardRefreshEnhanced>
@@ -156,13 +150,9 @@ class _DashboardRefreshEnhancedState extends State<DashboardRefreshEnhanced>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    _rotationAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.easeInOut,
-    ));
+    _rotationAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _rotationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -190,9 +180,9 @@ class _DashboardRefreshEnhancedState extends State<DashboardRefreshEnhanced>
         // Data freshness indicator
         if (widget.lastRefresh != null)
           _DataFreshnessIndicator(lastRefresh: widget.lastRefresh!),
-        
+
         const SizedBox(width: 8),
-        
+
         // Refresh controls
         if (widget.showMenu) ...[
           _RefreshMenuButton(
@@ -297,11 +287,11 @@ class _RefreshMenuButton extends StatelessWidget {
             child: Icon(
               Icons.refresh,
               size: 18,
-              color: isLoading 
-                  ? AppColors.primary 
-                  : onRefresh != null 
-                      ? AppColors.primary 
-                      : Colors.grey.shade400,
+              color: isLoading
+                  ? AppColors.primary
+                  : onRefresh != null
+                  ? AppColors.primary
+                  : Colors.grey.shade400,
             ),
           );
         },
@@ -393,8 +383,8 @@ class _SimpleRefreshButton extends StatelessWidget {
                 child: Icon(
                   Icons.refresh,
                   size: 16,
-                  color: onPressed != null 
-                      ? AppColors.primary 
+                  color: onPressed != null
+                      ? AppColors.primary
                       : Colors.grey.shade400,
                 ),
               );
@@ -435,9 +425,9 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
             onChanged: (value) => setState(() => _isEnabled = value),
             activeColor: AppColors.primary,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Interval selection
           if (_isEnabled) ...[
             const Text(
@@ -465,9 +455,9 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
                 );
               }).toList(),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Warning note
             Container(
               padding: const EdgeInsets.all(12),
@@ -478,7 +468,11 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.amber.shade700),
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Colors.amber.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -525,7 +519,7 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _isEnabled 
+          _isEnabled
               ? 'Auto refresh enabled (${_formatInterval(_selectedInterval)})'
               : 'Auto refresh disabled',
         ),

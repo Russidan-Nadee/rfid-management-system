@@ -20,7 +20,7 @@ abstract class DashboardCacheDataSource {
   Future<AuditProgressModel?> getCachedAuditProgress(String key);
   Future<void> clearDashboardCache();
   bool isCacheValid(String key, Duration maxAge);
-  String generateDistributionCacheKey(String? plantCode);
+  String generateDistributionCacheKey(String? plantCode, String? deptCode);
   String generateGrowthTrendsCacheKey({
     String? deptCode,
     String period,
@@ -268,8 +268,11 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
   }
 
   @override
-  String generateDistributionCacheKey(String? plantCode) {
-    return _generateCacheKey({'plant_code': plantCode ?? 'all'});
+  String generateDistributionCacheKey(String? plantCode, String? deptCode) {
+    return _generateCacheKey({
+      'plant_code': plantCode ?? 'all',
+      'dept_code': deptCode ?? 'all',
+    });
   }
 
   @override

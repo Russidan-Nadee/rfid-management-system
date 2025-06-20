@@ -97,6 +97,14 @@ const assetsByDepartmentValidator = [
       .matches(/^[A-Za-z0-9_-]+$/)
       .withMessage('Plant code must contain only alphanumeric characters, hyphens, and underscores'),
 
+   query('dept_code')
+      .optional()
+      .trim()
+      .isLength({ min: 1, max: 10 })
+      .withMessage('Department code must be between 1 and 10 characters')
+      .matches(/^[A-Za-z0-9_-]+$/)
+      .withMessage('Department code must contain only alphanumeric characters, hyphens, and underscores'),
+
    handleValidationErrors
 ];
 

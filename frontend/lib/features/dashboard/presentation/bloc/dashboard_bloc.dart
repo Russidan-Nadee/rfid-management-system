@@ -37,9 +37,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<ClearDashboardCache>(_onClearDashboardCache);
     on<ChangePeriodFilter>(_onChangePeriodFilter);
     on<ChangePlantFilter>(_onChangePlantFilter);
-    on<ChangeDepartmentFilter>(_onChangeDepartmentFilter);
     on<ToggleDetailsView>(_onToggleDetailsView);
     on<ResetFilters>(_onResetFilters);
+    // ลบ ChangeDepartmentFilter handler ออก
   }
 
   /// Load initial dashboard data
@@ -310,7 +310,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             currentState.copyWith(
               growthTrend: trends,
-              currentDeptFilter: event.deptCode,
+              growthTrendDeptFilter:
+                  event.deptCode, // ใช้ growthTrendDeptFilter
               lastUpdated: DateTime.now(),
             ),
           );
@@ -318,7 +319,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             DashboardLoaded(
               growthTrend: trends,
-              currentDeptFilter: event.deptCode,
+              growthTrendDeptFilter:
+                  event.deptCode, // ใช้ growthTrendDeptFilter
               lastUpdated: DateTime.now(),
             ),
           );
@@ -370,7 +372,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             currentState.copyWith(
               auditProgress: audit,
-              currentDeptFilter: event.deptCode,
+              auditProgressDeptFilter:
+                  event.deptCode, // ใช้ auditProgressDeptFilter
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
             ),
@@ -379,7 +382,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             DashboardLoaded(
               auditProgress: audit,
-              currentDeptFilter: event.deptCode,
+              auditProgressDeptFilter:
+                  event.deptCode, // ใช้ auditProgressDeptFilter
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
             ),
@@ -400,7 +404,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     await clearDashboardCacheUseCase();
 
     // Reload all data
-    add(LoadInitialDashboard());
+    add(const LoadInitialDashboard());
   }
 
   /// Clear dashboard cache
@@ -441,14 +445,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     add(LoadAssetDistribution(plantCode: event.plantCode));
   }
 
-  /// Change department filter
-  Future<void> _onChangeDepartmentFilter(
-    ChangeDepartmentFilter event,
-    Emitter<DashboardState> emit,
-  ) async {
-    add(LoadGrowthTrends(deptCode: event.deptCode));
-    add(LoadAuditProgress(deptCode: event.deptCode));
-  }
+  // ลบ _onChangeDepartmentFilter method ออก
 
   /// Toggle details view
   Future<void> _onToggleDetailsView(
@@ -459,7 +456,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     if (currentState is DashboardLoaded) {
       add(
         LoadAuditProgress(
-          deptCode: currentState.currentDeptFilter,
+          deptCode: currentState
+              .auditProgressDeptFilter, // ใช้ auditProgressDeptFilter
           includeDetails: event.includeDetails,
         ),
       );

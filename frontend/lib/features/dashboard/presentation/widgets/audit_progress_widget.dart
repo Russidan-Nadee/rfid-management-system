@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/audit_progress.dart';
 
-class AuditProgressWidget extends StatelessWidget {
+class AuditProgressWidget extends StatefulWidget {
   final AuditProgress auditProgress;
   final bool includeDetails;
   final bool isLoading;
   final Function(bool) onToggleDetails;
+  final String? selectedDeptCode;
+  final List<Map<String, String>> availableDepartments;
+  final Function(String?) onDeptChanged;
 
   const AuditProgressWidget({
     super.key,
@@ -15,24 +18,51 @@ class AuditProgressWidget extends StatelessWidget {
     required this.includeDetails,
     this.isLoading = false,
     required this.onToggleDetails,
+    this.selectedDeptCode,
+    this.availableDepartments = const [],
+    required this.onDeptChanged,
   });
 
   @override
+  State<AuditProgressWidget> createState() => _AuditProgressWidgetState();
+}
+
+class _AuditProgressWidgetState extends State<AuditProgressWidget> {
+  String? _currentSelectedDept;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentSelectedDept = widget.selectedDeptCode;
+  }
+
+  @override
+  void didUpdateWidget(AuditProgressWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDeptCode != oldWidget.selectedDeptCode) {
+      setState(() {
+        _currentSelectedDept = widget.selectedDeptCode;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (isLoading) {
+    if (widget.isLoading) {
       return _buildLoadingWidget();
     }
 
     return _DashboardCard(
-      title: 'Audit Progress',
+      title: _getCardTitle(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildDepartmentFilter(),
           const SizedBox(height: 20),
           _buildProgressCircle(),
           const SizedBox(height: 20),
           _buildProgressDetails(),
-          if (auditProgress.hasRecommendations) ...[
+          if (widget.auditProgress.hasRecommendations) ...[
             const SizedBox(height: 16),
             _buildRecommendations(),
           ],
@@ -42,11 +72,65 @@ class AuditProgressWidget extends StatelessWidget {
     );
   }
 
+  String _getCardTitle() {
+    if (_currentSelectedDept == null) {
+      return 'Audit Progress - All Departments';
+    }
+
+    final selectedDept = widget.availableDepartments.firstWhere(
+      (dept) => dept['code'] == _currentSelectedDept,
+      orElse: () => {'name': 'Unknown Department'},
+    );
+
+    return 'Audit Progress - ${selectedDept['name']}';
+  }
+
+  Widget _buildDepartmentFilter() {
+    final Map<String, String> uniqueDepts = {};
+
+    for (final dept in widget.availableDepartments) {
+      uniqueDepts[dept['code']!] = dept['name']!;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _currentSelectedDept,
+          hint: const Text('All Departments'),
+          isExpanded: true,
+          items: [
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text('All Departments'),
+            ),
+            ...uniqueDepts.entries.map(
+              (entry) => DropdownMenuItem<String?>(
+                value: entry.key,
+                child: Text(entry.value),
+              ),
+            ),
+          ],
+          onChanged: (String? newValue) {
+            setState(() {
+              _currentSelectedDept = newValue;
+            });
+            widget.onDeptChanged(newValue);
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildProgressCircle() {
-    final overallProgress = auditProgress.overallProgress;
+    final overallProgress = widget.auditProgress.overallProgress;
     final completionPercentage =
         overallProgress?.completionPercentage ??
-        auditProgress.averageCompletionPercentage;
+        widget.auditProgress.averageCompletionPercentage;
 
     return Center(
       child: Stack(
@@ -86,8 +170,41 @@ class AuditProgressWidget extends StatelessWidget {
   }
 
   Widget _buildProgressDetails() {
-    final overallProgress = auditProgress.overallProgress;
+    // ถ้าเลือก Department เฉพาะ
+    if (_currentSelectedDept != null) {
+      // หา Department ที่เลือก
+      final selectedDeptProgress = widget.auditProgress.auditProgress
+          .where((dept) => dept.deptCode == _currentSelectedDept)
+          .firstOrNull;
 
+      if (selectedDeptProgress != null) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildProgressStat(
+              'Checked',
+              selectedDeptProgress.auditedAssets.toString(),
+              Colors.green,
+            ),
+            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildProgressStat(
+              'Pending',
+              selectedDeptProgress.pendingAudit.toString(),
+              Colors.orange,
+            ),
+            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildProgressStat(
+              'Total',
+              selectedDeptProgress.totalAssets.toString(),
+              AppColors.primary,
+            ),
+          ],
+        );
+      }
+    }
+
+    // ถ้าเลือก All Departments หรือมี overall progress
+    final overallProgress = widget.auditProgress.overallProgress;
     if (overallProgress != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -113,7 +230,7 @@ class AuditProgressWidget extends StatelessWidget {
       );
     }
 
-    // If no overall progress, show department summary
+    // Fallback: แสดง Department Summary
     return Column(
       children: [
         Text(
@@ -129,19 +246,19 @@ class AuditProgressWidget extends StatelessWidget {
           children: [
             _buildProgressStat(
               'Completed',
-              auditProgress.completedDepartments.length.toString(),
+              widget.auditProgress.completedDepartments.length.toString(),
               Colors.green,
             ),
             Container(width: 1, height: 40, color: Colors.grey.shade300),
             _buildProgressStat(
               'Critical',
-              auditProgress.criticalDepartments.length.toString(),
+              widget.auditProgress.criticalDepartments.length.toString(),
               Colors.red,
             ),
             Container(width: 1, height: 40, color: Colors.grey.shade300),
             _buildProgressStat(
               'Total Depts',
-              auditProgress.auditProgress.length.toString(),
+              widget.auditProgress.auditProgress.length.toString(),
               AppColors.primary,
             ),
           ],
@@ -167,8 +284,8 @@ class AuditProgressWidget extends StatelessWidget {
   }
 
   Widget _buildRecommendations() {
-    final criticalRecs = auditProgress.criticalRecommendations;
-    final warningRecs = auditProgress.warningRecommendations;
+    final criticalRecs = widget.auditProgress.criticalRecommendations;
+    final warningRecs = widget.auditProgress.warningRecommendations;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -201,9 +318,9 @@ class AuditProgressWidget extends StatelessWidget {
           if (warningRecs.isNotEmpty) ...[
             ...warningRecs.take(1).map((rec) => _buildRecommendationItem(rec)),
           ],
-          if (auditProgress.recommendations.length > 3)
+          if (widget.auditProgress.recommendations.length > 3)
             Text(
-              '+ ${auditProgress.recommendations.length - 3} more recommendations',
+              '+ ${widget.auditProgress.recommendations.length - 3} more recommendations',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade600,

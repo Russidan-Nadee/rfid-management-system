@@ -9,7 +9,10 @@ import '../models/audit_progress_model.dart';
 
 abstract class DashboardRemoteDataSource {
   Future<DashboardStatsModel> getDashboardStats(String period);
-  Future<AssetDistributionModel> getAssetDistribution(String? plantCode);
+  Future<AssetDistributionModel> getAssetDistribution(
+    String? plantCode,
+    String? deptCode,
+  );
   Future<GrowthTrendModel> getGrowthTrends({
     String? deptCode,
     String period,
@@ -52,11 +55,19 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   }
 
   @override
-  Future<AssetDistributionModel> getAssetDistribution(String? plantCode) async {
+  Future<AssetDistributionModel> getAssetDistribution(
+    String? plantCode,
+    String? deptCode,
+  ) async {
     try {
       final queryParams = <String, String>{};
+
       if (plantCode != null && plantCode.isNotEmpty) {
         queryParams['plant_code'] = plantCode;
+      }
+
+      if (deptCode != null && deptCode.isNotEmpty) {
+        queryParams['dept_code'] = deptCode;
       }
 
       final response = await apiService.get<Map<String, dynamic>>(

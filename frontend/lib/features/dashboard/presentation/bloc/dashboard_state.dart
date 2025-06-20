@@ -35,7 +35,9 @@ class DashboardLoaded extends DashboardState {
   final AuditProgress? auditProgress;
   final String currentPeriod;
   final String? currentPlantFilter;
-  final String? currentDeptFilter;
+  // แยก department filters สำหรับแต่ละ card
+  final String? growthTrendDeptFilter; // สำหรับ Growth Trend Card
+  final String? auditProgressDeptFilter; // สำหรับ Audit Progress Card
   final bool includeDetails;
   final DateTime lastUpdated;
 
@@ -46,7 +48,8 @@ class DashboardLoaded extends DashboardState {
     this.auditProgress,
     this.currentPeriod = 'today',
     this.currentPlantFilter,
-    this.currentDeptFilter,
+    this.growthTrendDeptFilter,
+    this.auditProgressDeptFilter,
     this.includeDetails = false,
     required this.lastUpdated,
   });
@@ -70,7 +73,10 @@ class DashboardLoaded extends DashboardState {
 
   /// Check if has active filters
   bool get hasActiveFilters =>
-      currentPlantFilter != null || currentDeptFilter != null || includeDetails;
+      currentPlantFilter != null ||
+      growthTrendDeptFilter != null ||
+      auditProgressDeptFilter != null ||
+      includeDetails;
 
   /// Copy with method for state updates
   DashboardLoaded copyWith({
@@ -80,7 +86,8 @@ class DashboardLoaded extends DashboardState {
     AuditProgress? auditProgress,
     String? currentPeriod,
     String? currentPlantFilter,
-    String? currentDeptFilter,
+    String? growthTrendDeptFilter,
+    String? auditProgressDeptFilter,
     bool? includeDetails,
     DateTime? lastUpdated,
   }) {
@@ -91,7 +98,10 @@ class DashboardLoaded extends DashboardState {
       auditProgress: auditProgress ?? this.auditProgress,
       currentPeriod: currentPeriod ?? this.currentPeriod,
       currentPlantFilter: currentPlantFilter ?? this.currentPlantFilter,
-      currentDeptFilter: currentDeptFilter ?? this.currentDeptFilter,
+      growthTrendDeptFilter:
+          growthTrendDeptFilter ?? this.growthTrendDeptFilter,
+      auditProgressDeptFilter:
+          auditProgressDeptFilter ?? this.auditProgressDeptFilter,
       includeDetails: includeDetails ?? this.includeDetails,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
@@ -105,7 +115,8 @@ class DashboardLoaded extends DashboardState {
     auditProgress,
     currentPeriod,
     currentPlantFilter,
-    currentDeptFilter,
+    growthTrendDeptFilter,
+    auditProgressDeptFilter,
     includeDetails,
     lastUpdated,
   ];

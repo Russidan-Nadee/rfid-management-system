@@ -21,7 +21,10 @@ class GetAssetDistributionUseCase {
       return Left(ValidationFailure(['Invalid plant code format']));
     }
 
-    return await repository.getAssetDistribution(params.plantCode);
+    return await repository.getAssetDistribution(
+      params.plantCode,
+      params.deptCode,
+    );
   }
 
   /// Validate plant code format
@@ -34,8 +37,9 @@ class GetAssetDistributionUseCase {
 
 class GetAssetDistributionParams {
   final String? plantCode;
+  final String? deptCode;
 
-  const GetAssetDistributionParams({this.plantCode});
+  const GetAssetDistributionParams({this.plantCode, this.deptCode});
 
   /// Factory constructor for all plants
   factory GetAssetDistributionParams.all() {

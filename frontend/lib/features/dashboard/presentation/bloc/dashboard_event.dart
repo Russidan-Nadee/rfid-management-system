@@ -21,8 +21,9 @@ class LoadDashboardStats extends DashboardEvent {
 /// Event to load asset distribution
 class LoadAssetDistribution extends DashboardEvent {
   final String? plantCode;
+  final String? deptCode;
 
-  const LoadAssetDistribution({this.plantCode});
+  const LoadAssetDistribution({this.plantCode, this.deptCode});
 
   @override
   List<Object?> get props => [plantCode];
