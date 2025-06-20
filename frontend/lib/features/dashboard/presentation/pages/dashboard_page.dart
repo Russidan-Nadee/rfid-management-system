@@ -240,20 +240,23 @@ class _DashboardPageContent extends StatelessWidget {
             // Location Growth Trend Chart (NEW)
             if (loadedState.locationAnalytics != null)
               LocationGrowthTrendWidget(
-                locationAnalytics: loadedState.locationAnalytics!,
-                selectedLocationCode:
+                growthTrend: loadedState.growthTrend!,
+              selectedLocationCode:
                     loadedState.locationAnalyticsLocationFilter,
                 availableLocations: _getAllLocations(loadedState),
                 onLocationChanged: (locationCode) {
+                  // เรียก LoadGrowthTrends พร้อม locationCode parameter
                   context.read<DashboardBloc>().add(
-                    LoadLocationAnalytics(locationCode: locationCode),
+                    LoadGrowthTrends(
+                      locationCode: locationCode, // เพิ่ม parameter นี้
+                      period: 'Q2',
+                    ),
                   );
                 },
                 isLoading:
                     state is DashboardPartialLoading &&
-                    state.loadingType == 'location_analytics',
+                    state.loadingType == 'trends',
               ),
-
             const SizedBox(height: 24),
 
             // Last Updated Info

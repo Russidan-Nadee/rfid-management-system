@@ -11,104 +11,164 @@ class LocationAnalyticsModel {
   });
 
   factory LocationAnalyticsModel.fromJson(Map<String, dynamic> json) {
-    // เพิ่ม debug โดยละเอียด
-    print('🔍 Location Analytics JSON keys: ${json.keys.toList()}');
-    print('🔍 JSON length: ${json.toString().length} chars');
-
-    // เช็คว่ามี key อะไรบ้างที่อาจเป็น trends
-    json.keys.forEach((key) {
-      final value = json[key];
-      print(
-        '🔍 Key "$key": ${value.runtimeType} - ${value is List ? 'List length: ${value.length}' : value}',
-      );
-    });
+    print('🔍 Raw JSON: ${json.toString()}');
+    print('🔍 Available keys: ${json.keys.toList()}');
 
     try {
-      // ลองใช้ format เหมือน GrowthTrendModel ก่อน
-      final trendsData = json['trends'] as List<dynamic>?;
-      print('🔍 Simple format - trends: ${trendsData?.length ?? 'null'}');
+      List<LocationTrendDataModel> trends = [];
+      Map<String, dynamic> periodInfo = {};
+      Map<String, dynamic> summaryData = {};
 
-      return LocationAnalyticsModel(
-        locationTrends:
-            trendsData
-                ?.map(
-                  (e) => LocationTrendDataModel.fromJson(
-                    e as Map<String, dynamic>,
-                  ),
-                )
-                .toList() ??
-            [],
-        periodInfo: LocationTrendPeriodInfoModel.fromJson(
-          json['period_info'] ?? {},
-        ),
-        summary: LocationTrendSummaryModel.fromJson(json['summary'] ?? {}),
-      );
-    } catch (e) {
-      print('❌ Simple format failed: $e');
-      print('🔄 Trying complex format...');
-
-      // fallback ไปใช้ format เดิม
-      final growthTrends = json['growth_trends'];
-      final periodInfo = json['period_info'] ?? {};
-
-      print('🔍 Complex format - growth_trends: ${growthTrends?.runtimeType}');
-      if (growthTrends is Map) {
-        print(
-          '🔍 Complex format - growth_trends keys: ${growthTrends.keys.toList()}',
-        );
+      // วิธีที่ 1: ตรวจสอบ format เหมือน GrowthTrendModel (Simple format)
+      if (json['trends'] != null && json['trends'] is List) {
+        print('✅ Using simple format (trends array)');
+        trends = (json['trends'] as List<dynamic>)
+            .map(
+              (e) => LocationTrendDataModel.fromJson(e as Map<String, dynamic>),
+            )
+            .toList();
+        periodInfo = json['period_info'] ?? {};
+        summaryData = json['summary'] ?? {};
       }
+      // วิธีที่ 2: ตรวจสอบ format ซับซ้อน (Complex format)
+      else if (json['growth_trends'] != null) {
+        print('✅ Using complex format (growth_trends object)');
+        final growthTrends = json['growth_trends'] as Map<String, dynamic>;
 
-      if (growthTrends != null && growthTrends['location_trends'] != null) {
-        final locationTrendsData =
-            growthTrends['location_trends'] as List<dynamic>?;
-        print(
-          '🔍 Complex format - location_trends: ${locationTrendsData?.length ?? 'null'}',
-        );
-
-        return LocationAnalyticsModel(
-          locationTrends:
-              locationTrendsData
-                  ?.map(
-                    (e) => LocationTrendDataModel.fromJson(
-                      e as Map<String, dynamic>,
-                    ),
-                  )
-                  .toList() ??
-              [],
-          periodInfo: LocationTrendPeriodInfoModel.fromJson(
-            growthTrends['period_info'] ?? periodInfo,
-          ),
-          summary: LocationTrendSummaryModel.fromJson({
-            'total_periods': locationTrendsData?.length ?? 0,
-            'total_growth': _calculateTotalGrowth(locationTrendsData),
-            'average_growth': _calculateAverageGrowth(locationTrendsData),
-          }),
-        );
-      } else {
-        print('❌ Both formats failed, checking other possible keys...');
-
-        // เช็ค key อื่นๆ ที่อาจเป็น location data
-        final possibleKeys = [
-          'location_analytics',
-          'analytics_summary',
-          'data',
-          'results',
-        ];
-        for (final key in possibleKeys) {
-          if (json[key] != null) {
-            print(
-              '🔍 Found potential data in key "$key": ${json[key].runtimeType}',
-            );
-          }
+        if (growthTrends['location_trends'] != null) {
+          trends = (growthTrends['location_trends'] as List<dynamic>)
+              .map(
+                (e) =>
+                    LocationTrendDataModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
         }
 
-        return LocationAnalyticsModel(
-          locationTrends: [],
-          periodInfo: LocationTrendPeriodInfoModel.fromJson(periodInfo),
-          summary: LocationTrendSummaryModel.fromJson({}),
+        periodInfo = growthTrends['period_info'] ?? json['period_info'] ?? {};
+        summaryData = json['summary'] ?? _calculateSummaryFromTrends(trends);
+      }
+      // วิธีที่ 3: ตรวจสอบ location_analytics array format
+      else if (json['location_analytics'] != null &&
+          json['location_analytics'] is List) {
+        print('✅ Using location_analytics array format');
+        // แปลงข้อมูล location analytics เป็น trend format
+        final locationAnalytics = json['location_analytics'] as List<dynamic>;
+        trends = locationAnalytics
+            .map((e) => _convertLocationDataToTrend(e as Map<String, dynamic>))
+            .toList();
+
+        periodInfo = json['period_info'] ?? {};
+        summaryData =
+            json['analytics_summary'] ?? _calculateSummaryFromTrends(trends);
+      }
+      // วิธีที่ 4: ไม่มีข้อมูล trends แต่มี location_analytics object
+      else if (json['location_analytics'] != null &&
+          json['location_analytics'] is Map) {
+        print('✅ Using single location_analytics object format');
+        final locationData = json['location_analytics'] as Map<String, dynamic>;
+        trends = [_convertLocationDataToTrend(locationData)];
+
+        periodInfo = json['period_info'] ?? {};
+        summaryData =
+            json['analytics_summary'] ?? _calculateSummaryFromTrends(trends);
+      } else {
+        print('❌ No recognizable location data format found');
+        // ไม่ส่งข้อมูล mock กลับไป แต่ส่ง empty list
+        trends = [];
+        periodInfo = {};
+        summaryData = {
+          'total_periods': 0,
+          'total_growth': 0,
+          'average_growth': 0,
+        };
+      }
+
+      print('📊 Final trends count: ${trends.length}');
+      for (int i = 0; i < trends.length && i < 3; i++) {
+        print(
+          '📊 Trend $i: ${trends[i].locationCode} - ${trends[i].assetCount} assets',
         );
       }
+
+      return LocationAnalyticsModel(
+        locationTrends: trends,
+        periodInfo: LocationTrendPeriodInfoModel.fromJson(periodInfo),
+        summary: LocationTrendSummaryModel.fromJson(summaryData),
+      );
+    } catch (e, stackTrace) {
+      print('❌ Error parsing location analytics: $e');
+      print('📍 Stack trace: $stackTrace');
+      // ส่งข้อมูลว่างกลับไปแทน mock
+      return LocationAnalyticsModel(
+        locationTrends: [],
+        periodInfo: LocationTrendPeriodInfoModel.fromJson({}),
+        summary: LocationTrendSummaryModel.fromJson({
+          'total_periods': 0,
+          'total_growth': 0,
+          'average_growth': 0,
+        }),
+      );
     }
+  }
+
+  // แปลงข้อมูล location analytics เป็น trend format
+  static LocationTrendDataModel _convertLocationDataToTrend(
+    Map<String, dynamic> data,
+  ) {
+    print('🔄 Converting location data: ${data.keys.toList()}');
+
+    return LocationTrendDataModel(
+      monthYear:
+          data['month_year'] ??
+          data['period'] ??
+          '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}',
+      assetCount: _parseIntSafely(
+        data['total_assets'] ?? data['asset_count'] ?? 0,
+      ),
+      activeCount: _parseIntSafely(
+        data['active_assets'] ?? data['active_count'] ?? 0,
+      ),
+      growthPercentage: _parseIntSafely(data['growth_percentage'] ?? 0),
+      locationCode: data['location_code'] ?? 'UNKNOWN',
+      locationDescription:
+          data['location_description'] ??
+          data['description'] ??
+          'Unknown Location',
+      plantCode: data['plant_code'],
+      plantDescription: data['plant_description'],
+    );
+  }
+
+  // คำนวณ summary จาก trends ที่มี
+  static Map<String, dynamic> _calculateSummaryFromTrends(
+    List<LocationTrendDataModel> trends,
+  ) {
+    if (trends.isEmpty) {
+      return {'total_periods': 0, 'total_growth': 0, 'average_growth': 0};
+    }
+
+    final totalGrowth = trends.fold<int>(
+      0,
+      (sum, trend) => sum + trend.assetCount,
+    );
+    final averageGrowth =
+        trends.fold<int>(0, (sum, trend) => sum + trend.growthPercentage) ~/
+        trends.length;
+
+    return {
+      'total_periods': trends.length,
+      'total_growth': totalGrowth,
+      'average_growth': averageGrowth,
+    };
+  }
+
+  // Parse integer อย่างปลอดภัย
+  static int _parseIntSafely(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 
   Map<String, dynamic> toJson() {
@@ -117,47 +177,6 @@ class LocationAnalyticsModel {
       'period_info': periodInfo.toJson(),
       'summary': summary.toJson(),
     };
-  }
-
-  // Helper methods for calculating summary
-  static int _calculateTotalGrowth(dynamic locationTrends) {
-    if (locationTrends is! List || locationTrends.isEmpty) return 0;
-
-    try {
-      int total = 0;
-      for (final trend in locationTrends) {
-        if (trend is Map<String, dynamic>) {
-          final assetCount = trend['asset_count'] ?? 0;
-          total += (assetCount is int)
-              ? assetCount
-              : int.tryParse(assetCount.toString()) ?? 0;
-        }
-      }
-      return total;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  static int _calculateAverageGrowth(dynamic locationTrends) {
-    if (locationTrends is! List || locationTrends.isEmpty) return 0;
-
-    try {
-      int totalGrowth = 0;
-      int count = 0;
-      for (final trend in locationTrends) {
-        if (trend is Map<String, dynamic>) {
-          final growthPercentage = trend['growth_percentage'] ?? 0;
-          totalGrowth += (growthPercentage is int)
-              ? growthPercentage
-              : int.tryParse(growthPercentage.toString()) ?? 0;
-          count++;
-        }
-      }
-      return count > 0 ? (totalGrowth / count).round() : 0;
-    } catch (e) {
-      return 0;
-    }
   }
 }
 
@@ -184,12 +203,21 @@ class LocationTrendDataModel {
 
   factory LocationTrendDataModel.fromJson(Map<String, dynamic> json) {
     return LocationTrendDataModel(
-      monthYear: json['month_year'] ?? '',
-      assetCount: int.tryParse(json['asset_count']?.toString() ?? '0') ?? 0,
-      activeCount: int.tryParse(json['active_count']?.toString() ?? '0') ?? 0,
-      growthPercentage: json['growth_percentage'] ?? 0,
-      locationCode: json['location_code'] ?? '',
-      locationDescription: json['location_description'] ?? '',
+      monthYear:
+          json['month_year'] ??
+          json['period'] ??
+          '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}',
+      assetCount: LocationAnalyticsModel._parseIntSafely(
+        json['asset_count'] ?? 0,
+      ),
+      activeCount: LocationAnalyticsModel._parseIntSafely(
+        json['active_count'] ?? 0,
+      ),
+      growthPercentage: LocationAnalyticsModel._parseIntSafely(
+        json['growth_percentage'] ?? 0,
+      ),
+      locationCode: json['location_code'] ?? 'UNKNOWN',
+      locationDescription: json['location_description'] ?? 'Unknown Location',
       plantCode: json['plant_code'],
       plantDescription: json['plant_description'],
     );
@@ -258,9 +286,15 @@ class LocationTrendSummaryModel {
 
   factory LocationTrendSummaryModel.fromJson(Map<String, dynamic> json) {
     return LocationTrendSummaryModel(
-      totalPeriods: json['total_periods'] ?? 0,
-      totalGrowth: json['total_growth'] ?? 0,
-      averageGrowth: json['average_growth'] ?? 0,
+      totalPeriods: LocationAnalyticsModel._parseIntSafely(
+        json['total_periods'] ?? 0,
+      ),
+      totalGrowth: LocationAnalyticsModel._parseIntSafely(
+        json['total_growth'] ?? 0,
+      ),
+      averageGrowth: LocationAnalyticsModel._parseIntSafely(
+        json['average_growth'] ?? 0,
+      ),
     );
   }
 

@@ -840,45 +840,73 @@ const dashboardController = {
     * Get growth trends by department/location (Line Chart data)  
     * GET /api/v1/dashboard/growth-trends?dept_code=xxx&period=Q2&year=2024
     */
+   // Path: backend/src/controllers/dashboardController.js
+   // แก้ไข getGrowthTrends method
+
    async getGrowthTrends(req, res) {
       try {
          const {
             dept_code,
+            location_code, // เพิ่ม parameter นี้
             period = 'Q2',
             year,
             start_date,
-            end_date
+            end_date,
+            group_by = 'day'
          } = req.query;
 
-         const yearToUse = year ? parseInt(year) : new Date().getFullYear();
+         // Validate parameters
+         if (dept_code && location_code) {
+            return sendResponse(res, 400, false, 'Cannot filter by both department and location simultaneously');
+         }
 
          let trendsData;
          if (period === 'custom' && start_date && end_date) {
-            // Custom date range
-            trendsData = await departmentService.getAssetGrowthTrends(
-               dept_code,
-               period,
-               yearToUse,
-               start_date,
-               end_date
-            );
+            if (location_code) {
+               // ใช้ location-specific method
+               trendsData = await departmentService.getLocationAssetGrowthTrends(
+                  location_code,
+                  period,
+                  year,
+                  start_date,
+                  end_date
+               );
+            } else {
+               // ใช้ department method เดิม
+               trendsData = await departmentService.getAssetGrowthTrends(
+                  dept_code,
+                  period,
+                  year,
+                  start_date,
+                  end_date
+               );
+            }
          } else {
-            // Predefined periods (Q1, Q2, Q3, Q4, 1Y)
-            trendsData = await departmentService.getAssetGrowthTrends(
-               dept_code,
-               period,
-               yearToUse
-            );
+            if (location_code) {
+               trendsData = await departmentService.getLocationAssetGrowthTrends(
+                  location_code,
+                  period,
+                  year
+               );
+            } else {
+               trendsData = await departmentService.getAssetGrowthTrends(
+                  dept_code,
+                  period,
+                  year
+               );
+            }
          }
 
          // Process trends for line chart
          const lineChartData = trendsData.trends.map(trend => ({
-            period: trend.month_year || `${yearToUse}-${trend.quarter || 'Q1'}`,
+            period: trend.month_year || `${year || new Date().getFullYear()}-${trend.quarter || 'Q1'}`,
             asset_count: trend.asset_count || 0,
             growth_percentage: trend.growth_percentage || 0,
             cumulative_count: trend.cumulative_count || 0,
-            dept_code: trend.dept_code,
-            dept_description: trend.dept_description
+            dept_code: trend.dept_code || '',
+            dept_description: trend.dept_description || '',
+            location_code: trend.location_code || '', // เพิ่มข้อมูล location
+            location_description: trend.location_description || ''
          }));
 
          const responseData = {
@@ -899,8 +927,7 @@ const dashboardController = {
          console.error('Get growth trends error:', error);
          return sendResponse(res, 500, false, error.message);
       }
-   },
-
+   }
    /**
     * Get location analytics and utilization data
     * GET /api/v1/dashboard/location-analytics?location_code=xxx&include_trends=true

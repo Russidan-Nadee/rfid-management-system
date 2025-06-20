@@ -151,6 +151,85 @@ class DepartmentService {
          throw new Error(`Error fetching asset growth trends: ${error.message}`);
       }
    }
+   // Path: backend/src/services/departmentService.js
+   // เพิ่ม methods สำหรับ location growth trends
+
+   async getLocationAssetGrowthTrends(locationCode = null, period = 'Q2', year = null, startDate = null, endDate = null) {
+      try {
+         let dateRange;
+
+         if (period === 'custom' && startDate && endDate) {
+            dateRange = {
+               startDate: new Date(startDate),
+               endDate: new Date(endDate)
+            };
+         } else {
+            dateRange = this.parsePeriod(period, year);
+         }
+
+         // แก้ query ให้ filter by location แทน department
+         const trends = await this.model.executeQuery(`
+      SELECT 
+        period,
+        CAST(SUM(daily_count) OVER (ORDER BY period) AS UNSIGNED) as asset_count,
+        location_code,
+        location_description
+      FROM (
+        SELECT 
+          DATE_FORMAT(a.created_at, '%Y-%m') as period,
+          COUNT(*) as daily_count,
+          l.location_code,
+          l.description as location_description
+        FROM asset_master a
+        LEFT JOIN mst_location l ON a.location_code = l.location_code
+        WHERE a.created_at >= ? AND a.created_at <= ?
+        ${locationCode ? 'AND a.location_code = ?' : ''}
+        GROUP BY DATE_FORMAT(a.created_at, '%Y-%m'), l.location_code, l.description
+      ) daily_counts
+      ORDER BY period, location_code
+    `, locationCode ? [dateRange.startDate, dateRange.endDate, locationCode] : [dateRange.startDate, dateRange.endDate]);
+
+         // Calculate growth percentages for location trends
+         const processedTrends = [];
+         let previousCount = 0;
+
+         trends.forEach((trend, index) => {
+            const growthPercentage = index === 0 ? 0 :
+               this.calculateGrowthPercentage(trend.asset_count, previousCount);
+
+            processedTrends.push({
+               period: trend.period,
+               month_year: trend.period,
+               asset_count: trend.asset_count,
+               growth_percentage: growthPercentage,
+               cumulative_count: trend.asset_count,
+               location_code: trend.location_code,
+               location_description: trend.location_description,
+               // เพิ่ม dept_code และ dept_description เพื่อ compatibility
+               dept_code: trend.location_code,
+               dept_description: trend.location_description
+            });
+
+            previousCount = trend.asset_count;
+         });
+
+         return {
+            trends: processedTrends,
+            period_info: {
+               period,
+               year: year || new Date().getFullYear(),
+               start_date: dateRange.startDate.toISOString(),
+               end_date: dateRange.endDate.toISOString(),
+               total_growth: processedTrends.length > 0 ?
+                  processedTrends[processedTrends.length - 1].cumulative_count : 0,
+               filter_type: 'location',
+               filter_code: locationCode
+            }
+         };
+      } catch (error) {
+         throw new Error(`Error fetching location asset growth trends: ${error.message}`);
+      }
+   }
 
    async getQuarterlyGrowth(deptCode = null, year = new Date().getFullYear()) {
       try {

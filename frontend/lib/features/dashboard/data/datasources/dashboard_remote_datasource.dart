@@ -101,6 +101,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   @override
   Future<GrowthTrendModel> getGrowthTrends({
     String? deptCode,
+    String? locationCode, // เพิ่ม parameter นี้
     String period = 'Q2',
     int? year,
     String? startDate,
@@ -112,6 +113,10 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       if (deptCode != null && deptCode.isNotEmpty) {
         queryParams['dept_code'] = deptCode;
+      }
+
+      if (locationCode != null && locationCode.isNotEmpty) {
+        queryParams['location_code'] = locationCode; // เพิ่มบรรทัดนี้
       }
 
       if (year != null) {

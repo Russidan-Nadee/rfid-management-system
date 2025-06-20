@@ -32,6 +32,7 @@ class LoadAssetDistribution extends DashboardEvent {
 /// Event to load growth trends
 class LoadGrowthTrends extends DashboardEvent {
   final String? deptCode;
+  final String? locationCode; // เพิ่ม parameter นี้
   final String period;
   final int? year;
   final String? startDate;
@@ -40,6 +41,7 @@ class LoadGrowthTrends extends DashboardEvent {
 
   const LoadGrowthTrends({
     this.deptCode,
+    this.locationCode, // เพิ่ม parameter นี้
     this.period = 'Q2',
     this.year,
     this.startDate,
@@ -48,7 +50,14 @@ class LoadGrowthTrends extends DashboardEvent {
   });
 
   @override
-  List<Object?> get props => [deptCode, period, year, startDate, endDate];
+  List<Object?> get props => [
+    deptCode,
+    locationCode,
+    period,
+    year,
+    startDate,
+    endDate,
+  ];
 }
 
 /// Event to load audit progress
