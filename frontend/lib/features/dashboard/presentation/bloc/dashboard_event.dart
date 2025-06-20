@@ -137,3 +137,32 @@ class ResetFilters extends DashboardEvent {
 class LoadInitialDashboard extends DashboardEvent {
   const LoadInitialDashboard();
 }
+
+/// Event to load location analytics
+class LoadLocationAnalytics extends DashboardEvent {
+  final String? locationCode;
+  final String period;
+  final int? year;
+  final String? startDate;
+  final String? endDate;
+  final bool includeTrends;
+
+  const LoadLocationAnalytics({
+    this.locationCode,
+    this.period = 'Q2',
+    this.year,
+    this.startDate,
+    this.endDate,
+    this.includeTrends = true,
+  });
+
+  @override
+  List<Object?> get props => [
+    locationCode,
+    period,
+    year,
+    startDate,
+    endDate,
+    includeTrends,
+  ];
+}

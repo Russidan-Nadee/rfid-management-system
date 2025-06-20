@@ -132,11 +132,6 @@ class Helpers {
   }
 
   // Debounce helper
-  static void debounce(VoidCallback action, Duration delay) {
-    Timer? timer;
-    timer?.cancel();
-    timer = Timer(delay, action);
-  }
 
   // Loading state helper
   static Widget buildLoadingWidget({String? message}) {
@@ -260,8 +255,6 @@ class Helpers {
 
 // Timer utility for debouncing
 class Timer {
-  static Timer? _instance;
-
   Timer._(Duration duration, VoidCallback callback) {
     Future.delayed(duration, callback);
   }

@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/datasources/dashboard_remote_datasource.dart
+import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
+
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -25,6 +27,14 @@ abstract class DashboardRemoteDataSource {
     String? deptCode,
     bool includeDetails,
     String? auditStatus,
+  });
+  Future<LocationAnalyticsModel> getLocationAnalytics({
+    String? locationCode,
+    String period,
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends,
   });
 }
 
@@ -169,6 +179,51 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         rethrow;
       }
       throw NetworkException('Failed to get audit progress: $e');
+    }
+  }
+
+  @override
+  Future<LocationAnalyticsModel> getLocationAnalytics({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
+  }) async {
+    try {
+      final queryParams = <String, String>{'period': period};
+
+      if (locationCode != null && locationCode.isNotEmpty) {
+        queryParams['location_code'] = locationCode;
+      }
+
+      if (year != null) {
+        queryParams['year'] = year.toString();
+      }
+
+      if (period == 'custom') {
+        if (startDate != null) queryParams['start_date'] = startDate;
+        if (endDate != null) queryParams['end_date'] = endDate;
+      }
+
+      queryParams['include_trends'] = includeTrends.toString();
+
+      final response = await apiService.get<Map<String, dynamic>>(
+        ApiConstants.dashboardLocationAnalytics,
+        queryParams: queryParams,
+      );
+
+      if (response.success && response.data != null) {
+        return LocationAnalyticsModel.fromJson(response.data!);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      if (e is AppException) {
+        rethrow;
+      }
+      throw NetworkException('Failed to get location analytics: $e');
     }
   }
 }

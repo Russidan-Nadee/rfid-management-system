@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/bloc/dashboard_state.dart
 import 'package:equatable/equatable.dart';
+import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset_distribution.dart';
 import '../../domain/entities/growth_trend.dart';
@@ -33,11 +34,13 @@ class DashboardLoaded extends DashboardState {
   final AssetDistribution? distribution;
   final GrowthTrend? growthTrend;
   final AuditProgress? auditProgress;
+  final LocationAnalytics? locationAnalytics;
   final String currentPeriod;
   final String? currentPlantFilter;
   // แยก department filters สำหรับแต่ละ card
   final String? growthTrendDeptFilter; // สำหรับ Growth Trend Card
-  final String? auditProgressDeptFilter; // สำหรับ Audit Progress Card
+  final String? auditProgressDeptFilter;
+  final String? locationAnalyticsLocationFilter; // สำหรับ Audit Progress Card
   final bool includeDetails;
   final DateTime lastUpdated;
 
@@ -46,10 +49,12 @@ class DashboardLoaded extends DashboardState {
     this.distribution,
     this.growthTrend,
     this.auditProgress,
+    this.locationAnalytics,
     this.currentPeriod = 'today',
     this.currentPlantFilter,
     this.growthTrendDeptFilter,
     this.auditProgressDeptFilter,
+    this.locationAnalyticsLocationFilter,
     this.includeDetails = false,
     required this.lastUpdated,
   });
@@ -59,14 +64,16 @@ class DashboardLoaded extends DashboardState {
       stats != null ||
       distribution != null ||
       growthTrend != null ||
-      auditProgress != null;
+      auditProgress != null ||
+      locationAnalytics != null;
 
   /// Check if has complete dashboard data
   bool get hasCompleteData =>
       stats != null &&
       distribution != null &&
       growthTrend != null &&
-      auditProgress != null;
+      auditProgress != null &&
+      locationAnalytics != null;
 
   /// Check if data is recent (less than 5 minutes old)
   bool get isDataRecent => DateTime.now().difference(lastUpdated).inMinutes < 5;
@@ -76,6 +83,7 @@ class DashboardLoaded extends DashboardState {
       currentPlantFilter != null ||
       growthTrendDeptFilter != null ||
       auditProgressDeptFilter != null ||
+      locationAnalyticsLocationFilter != null ||
       includeDetails;
 
   /// Copy with method for state updates
@@ -84,6 +92,8 @@ class DashboardLoaded extends DashboardState {
     AssetDistribution? distribution,
     GrowthTrend? growthTrend,
     AuditProgress? auditProgress,
+    LocationAnalytics? locationAnalytics,
+    String? locationAnalyticsLocationFilter,
     String? currentPeriod,
     String? currentPlantFilter,
     String? growthTrendDeptFilter,
@@ -113,10 +123,12 @@ class DashboardLoaded extends DashboardState {
     distribution,
     growthTrend,
     auditProgress,
+    locationAnalytics,
     currentPeriod,
     currentPlantFilter,
     growthTrendDeptFilter,
     auditProgressDeptFilter,
+    locationAnalyticsLocationFilter,
     includeDetails,
     lastUpdated,
   ];

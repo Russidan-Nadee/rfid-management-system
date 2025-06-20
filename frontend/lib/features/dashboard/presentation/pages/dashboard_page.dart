@@ -11,6 +11,7 @@ import '../bloc/dashboard_state.dart';
 import '../widgets/summary_cards_widget.dart';
 import '../widgets/asset_distribution_chart_widget.dart';
 import '../widgets/growth_trend_chart_widget.dart';
+import '../widgets/location_growth_trend_widget.dart';
 import '../widgets/audit_progress_widget.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -176,42 +177,8 @@ class _DashboardPageContent extends StatelessWidget {
                     state is DashboardPartialLoading &&
                     state.loadingType == 'stats',
               ),
+            const SizedBox(height: 16),
 
-            const SizedBox(height: 24),
-
-            // Asset Distribution Chart
-            if (loadedState.distribution != null)
-              AssetDistributionChartWidget(
-                distribution: loadedState.distribution!,
-                isLoading:
-                    state is DashboardPartialLoading &&
-                    state.loadingType == 'distribution',
-              ),
-
-            const SizedBox(height: 24),
-
-            // Growth Trend Chart
-            if (loadedState.growthTrend != null)
-              GrowthTrendChartWidget(
-                growthTrend: loadedState.growthTrend!,
-                selectedDeptCode: loadedState
-                    .growthTrendDeptFilter, // ใช้ growthTrendDeptFilter
-                availableDepartments: _getAllDepartments(loadedState),
-                onDeptChanged: (deptCode) {
-                  context.read<DashboardBloc>().add(
-                    LoadGrowthTrends(
-                      deptCode: deptCode,
-                    ), // แยก event สำหรับ Growth Trend
-                  );
-                },
-                isLoading:
-                    state is DashboardPartialLoading &&
-                    state.loadingType == 'trends',
-              ),
-
-            const SizedBox(height: 24),
-
-            // Audit Progress
             if (loadedState.auditProgress != null)
               AuditProgressWidget(
                 auditProgress: loadedState.auditProgress!,
@@ -236,7 +203,58 @@ class _DashboardPageContent extends StatelessWidget {
                 },
               ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+
+            // Asset Distribution Chart
+            if (loadedState.distribution != null)
+              AssetDistributionChartWidget(
+                distribution: loadedState.distribution!,
+                isLoading:
+                    state is DashboardPartialLoading &&
+                    state.loadingType == 'distribution',
+              ),
+
+            const SizedBox(height: 24),
+
+            // Growth Trend Chart (Department)
+            if (loadedState.growthTrend != null)
+              GrowthTrendChartWidget(
+                growthTrend: loadedState.growthTrend!,
+                selectedDeptCode: loadedState
+                    .growthTrendDeptFilter, // ใช้ growthTrendDeptFilter
+                availableDepartments: _getAllDepartments(loadedState),
+                onDeptChanged: (deptCode) {
+                  context.read<DashboardBloc>().add(
+                    LoadGrowthTrends(
+                      deptCode: deptCode,
+                    ), // แยก event สำหรับ Growth Trend
+                  );
+                },
+                isLoading:
+                    state is DashboardPartialLoading &&
+                    state.loadingType == 'trends',
+              ),
+
+            const SizedBox(height: 24),
+
+            // Location Growth Trend Chart (NEW)
+            if (loadedState.locationAnalytics != null)
+              LocationGrowthTrendWidget(
+                locationAnalytics: loadedState.locationAnalytics!,
+                selectedLocationCode:
+                    loadedState.locationAnalyticsLocationFilter,
+                availableLocations: _getAllLocations(loadedState),
+                onLocationChanged: (locationCode) {
+                  context.read<DashboardBloc>().add(
+                    LoadLocationAnalytics(locationCode: locationCode),
+                  );
+                },
+                isLoading:
+                    state is DashboardPartialLoading &&
+                    state.loadingType == 'location_analytics',
+              ),
+
+            const SizedBox(height: 24),
 
             // Last Updated Info
             _buildLastUpdatedInfo(loadedState),
@@ -312,6 +330,37 @@ class _DashboardPageContent extends StatelessWidget {
     departments.sort((a, b) => a['name']!.compareTo(b['name']!));
 
     return departments;
+  }
+
+  // Helper method เพื่อรวม Location จากทุกแหล่ง
+  List<Map<String, String>> _getAllLocations(DashboardLoaded state) {
+    final Set<String> allLocationCodes = {};
+    final Map<String, String> locationMap = {};
+    print('🏢 Getting all locations...');
+    print(
+      '🏢 State has location analytics: ${state.locationAnalytics != null}',
+    );
+
+    // รวม Location จาก Location Analytics
+    if (state.locationAnalytics != null) {
+      print(
+        '🏢 Location trends count: ${state.locationAnalytics!.locationTrends.length}',
+      );
+      for (final trend in state.locationAnalytics!.locationTrends) {
+        allLocationCodes.add(trend.locationCode);
+        locationMap[trend.locationCode] = trend.locationDescription;
+      }
+    }
+
+    // Convert เป็น List และเรียงตามชื่อ
+    final List<Map<String, String>> locations = allLocationCodes
+        .map((code) => {'code': code, 'name': locationMap[code] ?? code})
+        .toList();
+
+    // เรียงตามชื่อ Location
+    locations.sort((a, b) => a['name']!.compareTo(b['name']!));
+
+    return locations;
   }
 
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {

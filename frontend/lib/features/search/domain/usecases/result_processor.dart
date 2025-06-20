@@ -1,6 +1,5 @@
 // Path: frontend/lib/features/search/domain/usecases/result_processor.dart
 import '../entities/search_result_entity.dart';
-import '../entities/search_filter_entity.dart';
 
 /// Processes and formats search results for optimal display
 /// Handles highlighting, grouping, aggregation, and export formatting

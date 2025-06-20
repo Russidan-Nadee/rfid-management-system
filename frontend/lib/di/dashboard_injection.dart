@@ -1,4 +1,6 @@
 // Path: frontend/lib/di/dashboard_injection.dart
+import 'package:frontend/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
+
 import '../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../features/dashboard/data/datasources/dashboard_cache_datasource.dart';
 import '../features/dashboard/data/repositories/dashboard_repository_impl.dart';
@@ -30,25 +32,30 @@ void configureDashboardDependencies() {
     ),
   );
 
-  // Use Cases
+  // Dashboard Use Cases
   getIt.registerLazySingleton<GetDashboardStatsUseCase>(
-    () => GetDashboardStatsUseCase(getIt<DashboardRepository>()),
+    () => GetDashboardStatsUseCase(getIt()),
   );
 
   getIt.registerLazySingleton<GetAssetDistributionUseCase>(
-    () => GetAssetDistributionUseCase(getIt<DashboardRepository>()),
+    () => GetAssetDistributionUseCase(getIt()),
   );
 
   getIt.registerLazySingleton<GetGrowthTrendsUseCase>(
-    () => GetGrowthTrendsUseCase(getIt<DashboardRepository>()),
+    () => GetGrowthTrendsUseCase(getIt()),
   );
 
   getIt.registerLazySingleton<GetAuditProgressUseCase>(
-    () => GetAuditProgressUseCase(getIt<DashboardRepository>()),
+    () => GetAuditProgressUseCase(getIt()),
+  );
+
+  // เพิ่มบรรทัดนี้
+  getIt.registerLazySingleton<GetLocationAnalyticsUseCase>(
+    () => GetLocationAnalyticsUseCase(getIt()),
   );
 
   getIt.registerLazySingleton<ClearDashboardCacheUseCase>(
-    () => ClearDashboardCacheUseCase(getIt<DashboardRepository>()),
+    () => ClearDashboardCacheUseCase(getIt()),
   );
 
   getIt.registerFactory<DashboardBloc>(
@@ -58,6 +65,7 @@ void configureDashboardDependencies() {
       getGrowthTrendsUseCase: getIt<GetGrowthTrendsUseCase>(),
       getAuditProgressUseCase: getIt<GetAuditProgressUseCase>(),
       clearDashboardCacheUseCase: getIt<ClearDashboardCacheUseCase>(),
+      getLocationAnalyticsUseCase: getIt<GetLocationAnalyticsUseCase>(),
     ),
   );
 }

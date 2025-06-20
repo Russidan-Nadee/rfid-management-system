@@ -1,3 +1,5 @@
+import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+
 import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/either.dart';
 import '../entities/dashboard_stats.dart';
@@ -26,6 +28,14 @@ abstract class DashboardRepository {
     String? deptCode,
     bool includeDetails = false,
     String? auditStatus,
+  });
+  Future<Either<Failure, LocationAnalytics>> getLocationAnalytics({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
   });
 
   Future<Either<Failure, Unit>> clearDashboardCache();

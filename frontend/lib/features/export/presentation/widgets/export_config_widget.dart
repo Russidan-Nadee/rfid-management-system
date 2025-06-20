@@ -26,7 +26,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    
 
     return BlocListener<ExportBloc, ExportState>(
       listener: (context, state) {

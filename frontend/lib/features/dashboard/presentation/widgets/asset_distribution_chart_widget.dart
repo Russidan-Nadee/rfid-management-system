@@ -53,7 +53,7 @@ class AssetDistributionChartWidget extends StatelessWidget {
             ),
           );
         }).toList(),
-        sectionsSpace: 0.8,
+        sectionsSpace: 0,
         centerSpaceRadius: 30,
         pieTouchData: charts.PieTouchData(
           touchCallback:

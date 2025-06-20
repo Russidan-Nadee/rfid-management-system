@@ -48,11 +48,6 @@ class CreateExportButton extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        state is ExportLoading
-                            ? state.message
-                            : 'Processing...',
-                      ),
                     ],
                   )
                 : const Text(

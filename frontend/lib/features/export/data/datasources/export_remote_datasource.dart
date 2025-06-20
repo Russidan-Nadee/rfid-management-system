@@ -78,17 +78,12 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         requiresAuth: true,
       );
 
-      print('🔍 Response success: ${response.success}');
-      print('🔍 Response data type: ${response.data.runtimeType}');
-      print('🔍 Response data: ${response.data}');
-
       if (response.success && response.data != null) {
         return ExportJobModel.fromJson(response.data!);
       } else {
         throw _createApiException('Export job not found', response.message);
       }
     } catch (e) {
-      print('💥 Error in getExportJobStatus: $e');
       throw _handleException(e, 'get export job status');
     }
   }
@@ -97,12 +92,9 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   Future<String> downloadExportFile(int exportId) async {
     try {
       // First verify the export is ready
-      print('🔍 Getting export job status...');
       final exportJob = await getExportJobStatus(exportId);
-      print('✅ Export job status: ${exportJob.status}');
 
       if (!exportJob.isCompleted) {
-        print('❌ Export not completed: ${exportJob.statusLabel}');
         throw ExportException(
           'Export is not completed yet. Current status: ${exportJob.statusLabel}',
           ExportErrorType.validation,
@@ -110,7 +102,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       }
 
       if (exportJob.isExpired) {
-        print('❌ Export expired');
         throw ExportException(
           'Export file has expired',
           ExportErrorType.validation,
@@ -120,7 +111,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       // Use HTTP client directly for file download with progress
       final downloadUrl =
           '${ApiConstants.baseUrl}${ApiConstants.exportDownload(exportId)}';
-      print('🌐 Download URL: $downloadUrl');
 
       // Get auth token for download
       final token = await apiService.getAuthToken();
@@ -162,8 +152,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     int limit = 20,
     String? status,
   }) async {
-    print('🔄 Starting getExportHistory request...');
-
     try {
       final queryParams = <String, String>{
         'page': page.toString(),
@@ -181,16 +169,11 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         requiresAuth: true,
       );
 
-      print('📥 Raw response: ${response.toString()}');
-      print('📊 Response success: ${response.success}');
-      print('📋 Response data: ${response.data}');
-
       if (response.success && response.data != null) {
         if (response.data is Map<String, dynamic>) {
           final historyResponse = ExportHistoryResponse.fromJson(
             response.data!,
           );
-          print('✅ Parsed ${historyResponse.exports.length} exports');
           return historyResponse.exports;
         } else if (response.data is List) {
           final exportsList = (response.data as List)
@@ -198,10 +181,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
                 (item) => ExportJobModel.fromJson(item as Map<String, dynamic>),
               )
               .toList();
-          print('✅ Parsed ${exportsList.length} exports from list');
-          print(
-            '🎯 Returning exports list: ${exportsList.map((e) => e.exportId).toList()}',
-          );
           return exportsList;
         } else {
           throw Exception(
@@ -209,15 +188,12 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
           );
         }
       } else {
-        print('❌ Response failed or no data');
         throw _createApiException(
           'Failed to get export history',
           response.message,
         );
       }
     } catch (e) {
-      print('💥 Exception in getExportHistory: $e');
-      print('💥 Exception type: ${e.runtimeType}');
       throw _handleException(e, 'get export history');
     }
   }

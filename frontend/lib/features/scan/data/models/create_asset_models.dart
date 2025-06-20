@@ -1,6 +1,5 @@
 // Path: lib/features/scan/data/models/create_asset_models.dart
 import '../../domain/entities/master_data_entity.dart';
-import '../../domain/entities/scanned_item_entity.dart';
 
 class PlantModel extends PlantEntity {
   const PlantModel({required super.plantCode, required super.description});

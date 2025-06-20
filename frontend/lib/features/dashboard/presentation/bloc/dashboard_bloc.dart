@@ -6,6 +6,8 @@ import 'package:frontend/features/dashboard/domain/entities/asset_distribution.d
 import 'package:frontend/features/dashboard/domain/entities/audit_progress.dart';
 import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:frontend/features/dashboard/domain/entities/growth_trend.dart';
+import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+import 'package:frontend/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_asset_distribution_usecase.dart';
 import '../../domain/usecases/get_growth_trends_usecase.dart';
@@ -19,13 +21,15 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetAssetDistributionUseCase getAssetDistributionUseCase;
   final GetGrowthTrendsUseCase getGrowthTrendsUseCase;
   final GetAuditProgressUseCase getAuditProgressUseCase;
+  final GetLocationAnalyticsUseCase
+  getLocationAnalyticsUseCase; // เพิ่มบรรทัดนี้
   final ClearDashboardCacheUseCase clearDashboardCacheUseCase;
-
   DashboardBloc({
     required this.getDashboardStatsUseCase,
     required this.getAssetDistributionUseCase,
     required this.getGrowthTrendsUseCase,
     required this.getAuditProgressUseCase,
+    required this.getLocationAnalyticsUseCase, // เพิ่มบรรทัดนี้
     required this.clearDashboardCacheUseCase,
   }) : super(const DashboardInitial()) {
     on<LoadInitialDashboard>(_onLoadInitialDashboard);
@@ -39,6 +43,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<ChangePlantFilter>(_onChangePlantFilter);
     on<ToggleDetailsView>(_onToggleDetailsView);
     on<ResetFilters>(_onResetFilters);
+    on<LoadLocationAnalytics>(_onLoadLocationAnalytics); // เพิ่มบรรทัดนี้
     // ลบ ChangeDepartmentFilter handler ออก
   }
 
@@ -68,12 +73,18 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       final Future<Either<Failure, AuditProgress>> auditResult =
           getAuditProgressUseCase(GetAuditProgressParams.overview());
 
+      final Future<Either<Failure, LocationAnalytics>> locationAnalyticsResult =
+          getLocationAnalyticsUseCase(
+            GetLocationAnalyticsParams.currentQuarter(),
+          );
+
       // Wait for all results
       final results = await Future.wait([
         statsResult,
         distributionResult,
         trendsResult,
         auditResult,
+        locationAnalyticsResult,
       ]);
 
       print(
@@ -87,6 +98,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       );
       print(
         '📋 Audit result: ${results[3].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+      );
+      print(
+        '📍 Location Analytics result: ${results[4].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
 
       // Check individual failures
@@ -135,6 +149,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             (l) => null,
             (r) => r as AuditProgress?,
           ),
+          locationAnalytics: results[4].fold(
+            (l) => null,
+            (r) => r as LocationAnalytics?,
+          ), // เพิ่มบรรทัดนี้
           lastUpdated: DateTime.now(),
         ),
       );
@@ -470,5 +488,80 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     add(const LoadInitialDashboard());
+  }
+
+  /// Load location analytics
+  Future<void> _onLoadLocationAnalytics(
+    LoadLocationAnalytics event,
+    Emitter<DashboardState> emit,
+  ) async {
+    final currentState = state;
+
+    if (currentState is DashboardLoaded) {
+      emit(
+        DashboardPartialLoading(
+          currentState: currentState,
+          loadingType: 'location_analytics',
+        ),
+      );
+    } else {
+      emit(
+        const DashboardLoading(loadingMessage: 'Loading location analytics...'),
+      );
+    }
+
+    final result = await getLocationAnalyticsUseCase(
+      GetLocationAnalyticsParams(
+        locationCode: event.locationCode,
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        includeTrends: event.includeTrends,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        print('❌ Location Analytics failure: ${failure.message}');
+        emit(
+          DashboardError(
+            message: 'Failed to load location analytics: ${failure.message}',
+            errorCode: 'LOCATION_ANALYTICS_ERROR',
+            previousState: currentState is DashboardLoaded
+                ? currentState
+                : null,
+          ),
+        );
+      },
+      (locationAnalytics) {
+        print('✅ Location Analytics success!');
+        print(
+          '📊 Location trends count: ${locationAnalytics.locationTrends.length}',
+        );
+        print('📊 Has data: ${locationAnalytics.hasData}');
+        print(
+          '📊 First trend: ${locationAnalytics.locationTrends.isNotEmpty ? locationAnalytics.locationTrends.first.locationCode : "none"}',
+        );
+
+        if (currentState is DashboardLoaded) {
+          emit(
+            currentState.copyWith(
+              locationAnalytics: locationAnalytics,
+              locationAnalyticsLocationFilter: event.locationCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        } else {
+          emit(
+            DashboardLoaded(
+              locationAnalytics: locationAnalytics,
+              locationAnalyticsLocationFilter: event.locationCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        }
+      },
+    );
   }
 }

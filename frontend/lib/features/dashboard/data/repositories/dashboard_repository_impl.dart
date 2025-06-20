@@ -1,4 +1,7 @@
 // Path: frontend/lib/features/dashboard/data/repositories/dashboard_repository_impl.dart
+import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
+import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/either.dart';
@@ -235,6 +238,73 @@ class DashboardRepositoryImpl implements DashboardRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, LocationAnalytics>> getLocationAnalytics({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
+  }) async {
+    try {
+      // Generate cache key
+      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
+          .generateLocationAnalyticsCacheKey(
+            locationCode: locationCode,
+            period: period,
+            year: year,
+            startDate: startDate,
+            endDate: endDate,
+            includeTrends: includeTrends,
+          );
+
+      // Try to get from cache first
+      final cachedAnalytics = await cacheDataSource.getCachedLocationAnalytics(
+        cacheKey,
+      );
+      if (cachedAnalytics != null) {
+        return Right(_mapLocationAnalyticsModelToEntity(cachedAnalytics));
+      }
+
+      // Fetch from remote if not in cache
+      final remoteAnalytics = await remoteDataSource.getLocationAnalytics(
+        locationCode: locationCode,
+        period: period,
+        year: year,
+        startDate: startDate,
+        endDate: endDate,
+        includeTrends: includeTrends,
+      );
+
+      // Cache the result
+      await cacheDataSource.cacheLocationAnalytics(cacheKey, remoteAnalytics);
+
+      return Right(_mapLocationAnalyticsModelToEntity(remoteAnalytics));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } on CacheException catch (e) {
+      // If cache fails, try remote anyway
+      try {
+        final remoteAnalytics = await remoteDataSource.getLocationAnalytics(
+          locationCode: locationCode,
+          period: period,
+          year: year,
+          startDate: startDate,
+          endDate: endDate,
+          includeTrends: includeTrends,
+        );
+        return Right(_mapLocationAnalyticsModelToEntity(remoteAnalytics));
+      } catch (remoteError) {
+        return Left(CacheFailure(e.message));
+      }
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
   // Private mapping methods to convert models to entities
   DashboardStats _mapDashboardStatsModelToEntity(model) {
     return DashboardStats(
@@ -406,6 +476,39 @@ class DashboardRepositoryImpl implements DashboardRepository {
           auditStatus: model.auditInfo.filtersApplied.auditStatus,
           includeDetails: model.auditInfo.filtersApplied.includeDetails,
         ),
+      ),
+    );
+  }
+
+  LocationAnalytics _mapLocationAnalyticsModelToEntity(
+    LocationAnalyticsModel model,
+  ) {
+    return LocationAnalytics(
+      locationTrends: model.locationTrends
+          .map<LocationTrendData>(
+            (trendModel) => LocationTrendData(
+              monthYear: trendModel.monthYear,
+              assetCount: trendModel.assetCount,
+              activeCount: trendModel.activeCount,
+              growthPercentage: trendModel.growthPercentage,
+              locationCode: trendModel.locationCode,
+              locationDescription: trendModel.locationDescription,
+              plantCode: trendModel.plantCode,
+              plantDescription: trendModel.plantDescription,
+            ),
+          )
+          .toList(),
+      periodInfo: LocationTrendPeriodInfo(
+        period: model.periodInfo.period,
+        year: model.periodInfo.year,
+        startDate: model.periodInfo.startDate,
+        endDate: model.periodInfo.endDate,
+        locationCode: model.periodInfo.locationCode,
+      ),
+      summary: LocationTrendSummary(
+        totalPeriods: model.summary.totalPeriods,
+        totalGrowth: model.summary.totalGrowth,
+        averageGrowth: model.summary.averageGrowth,
       ),
     );
   }

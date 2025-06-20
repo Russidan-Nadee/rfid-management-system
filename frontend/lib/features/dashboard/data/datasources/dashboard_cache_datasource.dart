@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/datasources/dashboard_cache_datasource.dart
+import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
+
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/dashboard_stats_model.dart';
@@ -19,6 +21,11 @@ abstract class DashboardCacheDataSource {
   Future<void> cacheAuditProgress(String key, AuditProgressModel progress);
   Future<AuditProgressModel?> getCachedAuditProgress(String key);
   Future<void> clearDashboardCache();
+  Future<void> cacheLocationAnalytics(
+    String key,
+    LocationAnalyticsModel analytics,
+  );
+  Future<LocationAnalyticsModel?> getCachedLocationAnalytics(String key);
   bool isCacheValid(String key, Duration maxAge);
   String generateDistributionCacheKey(String? plantCode, String? deptCode);
   String generateGrowthTrendsCacheKey({
@@ -33,6 +40,14 @@ abstract class DashboardCacheDataSource {
     bool includeDetails,
     String? auditStatus,
   });
+  String generateLocationAnalyticsCacheKey({
+    String? locationCode,
+    String period,
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends,
+  });
 }
 
 class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
@@ -44,6 +59,7 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
   static const String _growthTrendsPrefix = 'growth_trends_';
   static const String _auditProgressPrefix = 'audit_progress_';
   static const String _cacheTimestampSuffix = '_timestamp';
+  static const String _locationAnalyticsPrefix = 'location_analytics_';
 
   // Cache duration (5 minutes)
   static const Duration _defaultCacheDuration = Duration(minutes: 5);
@@ -209,6 +225,7 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
         _assetDistributionPrefix,
         _growthTrendsPrefix,
         _auditProgressPrefix,
+        _locationAnalyticsPrefix,
       ];
 
       // Clear known cache keys (this is a simplified approach)
@@ -302,6 +319,63 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
       'dept_code': deptCode ?? 'all',
       'include_details': includeDetails,
       'audit_status': auditStatus ?? 'all',
+    });
+  }
+
+  @override
+  Future<void> cacheLocationAnalytics(
+    String key,
+    LocationAnalyticsModel analytics,
+  ) async {
+    try {
+      final cacheKey = '$_locationAnalyticsPrefix$key';
+      final timestampKey = '$cacheKey$_cacheTimestampSuffix';
+
+      await storageService.setJson(cacheKey, analytics.toJson());
+      await storageService.setString(
+        timestampKey,
+        DateTime.now().toIso8601String(),
+      );
+    } catch (e) {
+      throw CacheException();
+    }
+  }
+
+  @override
+  Future<LocationAnalyticsModel?> getCachedLocationAnalytics(String key) async {
+    try {
+      final cacheKey = '$_locationAnalyticsPrefix$key';
+
+      if (!isCacheValid(cacheKey, _defaultCacheDuration)) {
+        return null;
+      }
+
+      final cachedData = storageService.getJson(cacheKey);
+      if (cachedData != null) {
+        return LocationAnalyticsModel.fromJson(cachedData);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  String generateLocationAnalyticsCacheKey({
+    String? locationCode,
+    String period = 'Q2',
+    int? year,
+    String? startDate,
+    String? endDate,
+    bool includeTrends = true,
+  }) {
+    return _generateCacheKey({
+      'location_code': locationCode ?? 'all',
+      'period': period,
+      'year': year ?? DateTime.now().year,
+      'start_date': startDate ?? '',
+      'end_date': endDate ?? '',
+      'include_trends': includeTrends,
     });
   }
 }
