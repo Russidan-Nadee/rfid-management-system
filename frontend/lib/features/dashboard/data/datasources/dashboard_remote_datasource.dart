@@ -10,6 +10,7 @@ import '../models/growth_trend_model.dart';
 import '../models/audit_progress_model.dart';
 
 abstract class DashboardRemoteDataSource {
+  Future<List<Map<String, dynamic>>> getLocations({String? plantCode});
   Future<DashboardStatsModel> getDashboardStats(String period);
   Future<AssetDistributionModel> getAssetDistribution(
     String? plantCode,
@@ -21,7 +22,7 @@ abstract class DashboardRemoteDataSource {
     int? year,
     String? startDate,
     String? endDate,
-    String groupBy, // เพิ่มบรรทัดนี้
+    String groupBy,
   });
   Future<AuditProgressModel> getAuditProgress({
     String? deptCode,
@@ -42,6 +43,38 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   final ApiService apiService;
 
   DashboardRemoteDataSourceImpl(this.apiService);
+  @override
+  Future<List<Map<String, dynamic>>> getLocations({String? plantCode}) async {
+    try {
+      final queryParams = <String, String>{};
+
+      if (plantCode != null && plantCode.isNotEmpty) {
+        queryParams['plant_code'] = plantCode;
+      }
+
+      final response = await apiService.get<Map<String, dynamic>>(
+        ApiConstants.dashboardLocations,
+        queryParams: queryParams.isNotEmpty ? queryParams : null,
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        final locations = data['locations'] as List<dynamic>?;
+
+        if (locations != null) {
+          return locations.cast<Map<String, dynamic>>();
+        }
+        return [];
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      if (e is AppException) {
+        rethrow;
+      }
+      throw NetworkException('Failed to get locations: $e');
+    }
+  }
 
   @override
   Future<DashboardStatsModel> getDashboardStats(String period) async {
@@ -101,7 +134,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   @override
   Future<GrowthTrendModel> getGrowthTrends({
     String? deptCode,
-    String? locationCode, // เพิ่ม parameter นี้
+    String? locationCode,
     String period = 'Q2',
     int? year,
     String? startDate,
@@ -116,7 +149,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       }
 
       if (locationCode != null && locationCode.isNotEmpty) {
-        queryParams['location_code'] = locationCode; // เพิ่มบรรทัดนี้
+        queryParams['location_code'] = locationCode;
       }
 
       if (year != null) {

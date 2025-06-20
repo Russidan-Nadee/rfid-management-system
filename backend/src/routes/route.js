@@ -50,7 +50,8 @@ const {
    assetsByDepartmentValidator,
    growthTrendsValidator,
    locationAnalyticsValidator,
-   auditProgressValidator
+   auditProgressValidator,
+   dashboardExportValidator
 } = require('../validators/dashboardValidator');
 
 // Import middleware
@@ -68,6 +69,11 @@ const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests
 const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests per 15 minutes
 
 // Dashboard Routes (ENHANCED - แทนที่ส่วนเดิม)
+router.get('/dashboard/locations',
+   generalRateLimit,
+   dashboardLocationsValidator,
+   dashboardController.getLocations
+);
 router.get('/dashboard/stats',
    generalRateLimit,
    dashboardStatsValidator,

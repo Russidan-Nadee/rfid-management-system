@@ -927,7 +927,7 @@ const dashboardController = {
          console.error('Get growth trends error:', error);
          return sendResponse(res, 500, false, error.message);
       }
-   }
+   },
    /**
     * Get location analytics and utilization data
     * GET /api/v1/dashboard/location-analytics?location_code=xxx&include_trends=true

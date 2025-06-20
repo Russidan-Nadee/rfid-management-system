@@ -169,6 +169,21 @@ const growthTrendsValidator = [
 
    handleValidationErrors
 ];
+/**
+ * Dashboard Locations Validator
+ * GET /api/v1/dashboard/locations?plant_code=xxx
+ */
+const dashboardLocationsValidator = [
+   query('plant_code')
+      .optional()
+      .trim()
+      .isLength({ min: 1, max: 10 })
+      .withMessage('Plant code must be between 1 and 10 characters')
+      .matches(/^[A-Za-z0-9_-]+$/)
+      .withMessage('Plant code must contain only alphanumeric characters, hyphens, and underscores'),
+
+   handleValidationErrors
+];
 
 /**
  * Location Analytics Validator
@@ -273,5 +288,6 @@ module.exports = {
    growthTrendsValidator,
    locationAnalyticsValidator,
    auditProgressValidator,
-   handleValidationErrors
+   handleValidationErrors,
+   dashboardAlertsValidator
 };

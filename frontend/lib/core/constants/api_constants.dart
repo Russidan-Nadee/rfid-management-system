@@ -30,6 +30,7 @@ class ApiConstants {
   static const String dashboardLocationAnalytics =
       '$dashboardBase/location-analytics';
   static const String dashboardAuditProgress = '$dashboardBase/audit-progress';
+  static const String dashboardLocations = '/dashboard/locations';
 
   // Master Data Endpoints
   static const String plants = '/plants';

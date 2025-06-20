@@ -239,6 +239,35 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
+  Future<Either<Failure, List<Map<String, String>>>> getLocations({
+    String? plantCode,
+  }) async {
+    try {
+      final locations = await remoteDataSource.getLocations(
+        plantCode: plantCode,
+      );
+
+      // แปลง Map<String, dynamic> เป็น Map<String, String>
+      final formattedLocations = locations
+          .map(
+            (location) => {
+              'code': location['code']?.toString() ?? '',
+              'name': location['name']?.toString() ?? '',
+            },
+          )
+          .toList();
+
+      return Right(formattedLocations);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, LocationAnalytics>> getLocationAnalytics({
     String? locationCode,
     String period = 'Q2',

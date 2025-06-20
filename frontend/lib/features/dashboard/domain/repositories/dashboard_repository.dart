@@ -38,5 +38,9 @@ abstract class DashboardRepository {
     bool includeTrends = true,
   });
 
+  Future<Either<Failure, List<Map<String, String>>>> getLocations({
+    String? plantCode,
+  });
+
   Future<Either<Failure, Unit>> clearDashboardCache();
 }
