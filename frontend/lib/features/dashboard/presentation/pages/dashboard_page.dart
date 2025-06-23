@@ -55,7 +55,6 @@ class _DashboardPageContent extends StatelessWidget {
                       RefreshDashboard(
                         period: state.currentPeriod,
                         plantCode: state.currentPlantFilter,
-                        deptCode: null, // ลบ deptCode เพราะมี 2 filters แยกกัน
                       ),
                     );
                   } else {
@@ -179,18 +178,16 @@ class _DashboardPageContent extends StatelessWidget {
               ),
             const SizedBox(height: 16),
 
+            // Audit Progress
             if (loadedState.auditProgress != null)
               AuditProgressWidget(
                 auditProgress: loadedState.auditProgress!,
                 includeDetails: loadedState.includeDetails,
-                selectedDeptCode: loadedState
-                    .auditProgressDeptFilter, // ใช้ auditProgressDeptFilter
+                selectedDeptCode: loadedState.auditProgressDeptFilter,
                 availableDepartments: _getAllDepartments(loadedState),
                 onDeptChanged: (deptCode) {
                   context.read<DashboardBloc>().add(
-                    LoadAuditProgress(
-                      deptCode: deptCode,
-                    ), // แยก event สำหรับ Audit Progress
+                    LoadAuditProgress(deptCode: deptCode),
                   );
                 },
                 isLoading:
@@ -216,45 +213,42 @@ class _DashboardPageContent extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Growth Trend Chart (Department)
-            if (loadedState.growthTrend != null)
+            // Department Growth Trend Chart
+            if (loadedState.departmentGrowthTrend != null)
               GrowthTrendChartWidget(
-                growthTrend: loadedState.growthTrend!,
-                selectedDeptCode: loadedState
-                    .growthTrendDeptFilter, // ใช้ growthTrendDeptFilter
+                growthTrend: loadedState.departmentGrowthTrend!,
+                selectedDeptCode: loadedState.departmentGrowthDeptFilter,
                 availableDepartments: _getAllDepartments(loadedState),
                 onDeptChanged: (deptCode) {
                   context.read<DashboardBloc>().add(
-                    LoadGrowthTrends(
-                      deptCode: deptCode,
-                    ), // แยก event สำหรับ Growth Trend
+                    LoadDepartmentGrowthTrends(deptCode: deptCode),
                   );
                 },
                 isLoading:
                     state is DashboardPartialLoading &&
-                    state.loadingType == 'trends',
+                    state.loadingType == 'department_trends',
               ),
 
             const SizedBox(height: 24),
 
-            if (loadedState.locationTrend != null)
+            if (loadedState.locationGrowthTrend != null)
               LocationGrowthTrendWidget(
-                growthTrend: loadedState.locationTrend!,
-                selectedLocationCode:
-                    loadedState.locationAnalyticsLocationFilter,
+                key: ValueKey(
+                  'location_${loadedState.locationGrowthLocationFilter}',
+                ),
+                growthTrend: loadedState.locationGrowthTrend!,
+                selectedLocationCode: loadedState.locationGrowthLocationFilter,
                 availableLocations: _getAllLocations(loadedState),
                 onLocationChanged: (locationCode) {
                   context.read<DashboardBloc>().add(
-                    LoadLocationGrowthTrends(
-                      locationCode: locationCode,
-                      period: 'Q2',
-                    ),
+                    LoadLocationGrowthTrends(locationCode: locationCode),
                   );
                 },
                 isLoading:
                     state is DashboardPartialLoading &&
                     state.loadingType == 'location_trends',
               ),
+
             const SizedBox(height: 24),
 
             // Last Updated Info
@@ -302,9 +296,9 @@ class _DashboardPageContent extends StatelessWidget {
       }
     }
 
-    // รวม Department จาก Growth Trend (ถ้ามี)
-    if (state.growthTrend != null) {
-      for (final trend in state.growthTrend!.trends) {
+    // รวม Department จาก Department Growth Trend
+    if (state.departmentGrowthTrend != null) {
+      for (final trend in state.departmentGrowthTrend!.trends) {
         if (trend.deptCode.isNotEmpty) {
           allDeptCodes.add(trend.deptCode);
           deptMap[trend.deptCode] = trend.deptDescription;
@@ -312,7 +306,7 @@ class _DashboardPageContent extends StatelessWidget {
       }
     }
 
-    // รวม Department จาก Asset Distribution (ถ้ามี)
+    // รวม Department จาก Asset Distribution
     if (state.distribution != null) {
       for (final item in state.distribution!.pieChartData) {
         if (item.deptCode.isNotEmpty) {
@@ -334,58 +328,22 @@ class _DashboardPageContent extends StatelessWidget {
   }
 
   // Helper method เพื่อรวม Location จากทุกแหล่ง
-  // Helper method เพื่อรวม Location จากทุกแหล่ง
   List<Map<String, String>> _getAllLocations(DashboardLoaded state) {
     final Set<String> allLocationCodes = {};
     final Map<String, String> locationMap = {};
 
-    print('🏢 Getting all locations...');
-    print(
-      '🏢 State has location analytics: ${state.locationAnalytics != null}',
-    );
-
-    // รวม Location จาก Location Analytics
     if (state.locationAnalytics != null) {
-      print(
-        '🏢 Location trends count: ${state.locationAnalytics!.locationTrends.length}',
-      );
       for (final trend in state.locationAnalytics!.locationTrends) {
         allLocationCodes.add(trend.locationCode);
         locationMap[trend.locationCode] = trend.locationDescription;
       }
     }
 
-    // รวม Location จาก LocationTrend (ใหม่)
-    if (state.locationTrend != null) {
-      print(
-        '🏢 Location trend data count: ${state.locationTrend!.trends.length}',
-      );
-      for (final trend in state.locationTrend!.trends) {
-        // ใช้ deptCode และ deptDescription เป็น location data (เพราะ reuse GrowthTrend)
-        if (trend.deptCode.isNotEmpty) {
-          allLocationCodes.add(trend.deptCode);
-          locationMap[trend.deptCode] = trend.deptDescription;
-        }
-      }
-    }
-
-    // เพิ่ม default locations ถ้าไม่มีข้อมูล
-    if (allLocationCodes.isEmpty) {
-      allLocationCodes.addAll(['30-OFF-002', '30-CUR-00', 'LOC-001']);
-      locationMap['30-OFF-002'] = 'Office 002';
-      locationMap['30-CUR-00'] = 'Curriculum Office';
-      locationMap['LOC-001'] = 'Location 001';
-    }
-
-    // Convert เป็น List และเรียงตามชื่อ
     final List<Map<String, String>> locations = allLocationCodes
         .map((code) => {'code': code, 'name': locationMap[code] ?? code})
         .toList();
 
-    // เรียงตามชื่อ Location
     locations.sort((a, b) => a['name']!.compareTo(b['name']!));
-
-    print('🏢 Final locations: ${locations.map((l) => l['code']).toList()}');
     return locations;
   }
 

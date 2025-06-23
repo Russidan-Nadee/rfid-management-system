@@ -32,29 +32,31 @@ class DashboardLoading extends DashboardState {
 class DashboardLoaded extends DashboardState {
   final DashboardStats? stats;
   final AssetDistribution? distribution;
-  final GrowthTrend? growthTrend;
-  final GrowthTrend? locationTrend; // เพิ่มบรรทัดนี้
+  final GrowthTrend? departmentGrowthTrend; // แยกสำหรับ Department
+  final GrowthTrend? locationGrowthTrend; // แยกสำหรับ Location
   final AuditProgress? auditProgress;
   final LocationAnalytics? locationAnalytics;
   final String currentPeriod;
   final String? currentPlantFilter;
-  // แยก department filters สำหรับแต่ละ card
-  final String? growthTrendDeptFilter; // สำหรับ Growth Trend Card
-  final String? auditProgressDeptFilter;
-  final String? locationAnalyticsLocationFilter; // สำหรับ Audit Progress Card
+  // แยก filters สำหรับแต่ละ component
+  final String? departmentGrowthDeptFilter; // สำหรับ Department Growth
+  final String? locationGrowthLocationFilter; // สำหรับ Location Growth
+  final String? auditProgressDeptFilter; // สำหรับ Audit Progress
+  final String? locationAnalyticsLocationFilter;
   final bool includeDetails;
   final DateTime lastUpdated;
 
   const DashboardLoaded({
     this.stats,
     this.distribution,
-    this.growthTrend,
-    this.locationTrend, // เพิ่มบรรทัดนี้
+    this.departmentGrowthTrend,
+    this.locationGrowthTrend,
     this.auditProgress,
     this.locationAnalytics,
     this.currentPeriod = 'today',
     this.currentPlantFilter,
-    this.growthTrendDeptFilter,
+    this.departmentGrowthDeptFilter,
+    this.locationGrowthLocationFilter,
     this.auditProgressDeptFilter,
     this.locationAnalyticsLocationFilter,
     this.includeDetails = false,
@@ -65,8 +67,8 @@ class DashboardLoaded extends DashboardState {
   bool get hasAnyData =>
       stats != null ||
       distribution != null ||
-      growthTrend != null ||
-      locationTrend != null || // เพิ่มบรรทัดนี้
+      departmentGrowthTrend != null ||
+      locationGrowthTrend != null ||
       auditProgress != null ||
       locationAnalytics != null;
 
@@ -74,8 +76,8 @@ class DashboardLoaded extends DashboardState {
   bool get hasCompleteData =>
       stats != null &&
       distribution != null &&
-      growthTrend != null &&
-      locationTrend != null && // เพิ่มบรรทัดนี้
+      departmentGrowthTrend != null &&
+      locationGrowthTrend != null &&
       auditProgress != null &&
       locationAnalytics != null;
 
@@ -85,7 +87,8 @@ class DashboardLoaded extends DashboardState {
   /// Check if has active filters
   bool get hasActiveFilters =>
       currentPlantFilter != null ||
-      growthTrendDeptFilter != null ||
+      departmentGrowthDeptFilter != null ||
+      locationGrowthLocationFilter != null ||
       auditProgressDeptFilter != null ||
       locationAnalyticsLocationFilter != null ||
       includeDetails;
@@ -94,30 +97,38 @@ class DashboardLoaded extends DashboardState {
   DashboardLoaded copyWith({
     DashboardStats? stats,
     AssetDistribution? distribution,
-    GrowthTrend? growthTrend,
-    GrowthTrend? locationTrend, // เพิ่มบรรทัดนี้
+    GrowthTrend? departmentGrowthTrend,
+    GrowthTrend? locationGrowthTrend,
     AuditProgress? auditProgress,
     LocationAnalytics? locationAnalytics,
-    String? locationAnalyticsLocationFilter,
     String? currentPeriod,
     String? currentPlantFilter,
-    String? growthTrendDeptFilter,
+    String? departmentGrowthDeptFilter,
+    String? locationGrowthLocationFilter,
     String? auditProgressDeptFilter,
+    String? locationAnalyticsLocationFilter,
     bool? includeDetails,
     DateTime? lastUpdated,
   }) {
     return DashboardLoaded(
       stats: stats ?? this.stats,
       distribution: distribution ?? this.distribution,
-      growthTrend: growthTrend ?? this.growthTrend,
-      locationTrend: locationTrend ?? this.locationTrend, // เพิ่มบรรทัดนี้
+      departmentGrowthTrend:
+          departmentGrowthTrend ?? this.departmentGrowthTrend,
+      locationGrowthTrend: locationGrowthTrend ?? this.locationGrowthTrend,
       auditProgress: auditProgress ?? this.auditProgress,
+      locationAnalytics: locationAnalytics ?? this.locationAnalytics,
       currentPeriod: currentPeriod ?? this.currentPeriod,
       currentPlantFilter: currentPlantFilter ?? this.currentPlantFilter,
-      growthTrendDeptFilter:
-          growthTrendDeptFilter ?? this.growthTrendDeptFilter,
+      departmentGrowthDeptFilter:
+          departmentGrowthDeptFilter ?? this.departmentGrowthDeptFilter,
+      locationGrowthLocationFilter:
+          locationGrowthLocationFilter ?? this.locationGrowthLocationFilter,
       auditProgressDeptFilter:
           auditProgressDeptFilter ?? this.auditProgressDeptFilter,
+      locationAnalyticsLocationFilter:
+          locationAnalyticsLocationFilter ??
+          this.locationAnalyticsLocationFilter,
       includeDetails: includeDetails ?? this.includeDetails,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
@@ -127,13 +138,14 @@ class DashboardLoaded extends DashboardState {
   List<Object?> get props => [
     stats,
     distribution,
-    growthTrend,
-    locationTrend, // เพิ่มบรรทัดนี้
+    departmentGrowthTrend,
+    locationGrowthTrend,
     auditProgress,
     locationAnalytics,
     currentPeriod,
     currentPlantFilter,
-    growthTrendDeptFilter,
+    departmentGrowthDeptFilter,
+    locationGrowthLocationFilter,
     auditProgressDeptFilter,
     locationAnalyticsLocationFilter,
     includeDetails,
@@ -167,7 +179,8 @@ class DashboardError extends DashboardState {
 /// Partial loading state (when some data is already loaded)
 class DashboardPartialLoading extends DashboardState {
   final DashboardLoaded currentState;
-  final String loadingType; // 'stats', 'distribution', 'trends', 'audit'
+  final String
+  loadingType; // 'stats', 'distribution', 'department_trends', 'location_trends', 'audit'
 
   const DashboardPartialLoading({
     required this.currentState,

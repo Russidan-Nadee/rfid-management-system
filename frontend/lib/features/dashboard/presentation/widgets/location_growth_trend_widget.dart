@@ -1,14 +1,11 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/location_growth_trend_widget.dart
-// แก้ไข constructor และ properties
-
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/growth_trend.dart'; // ใช้ GrowthTrend แทน LocationAnalytics
+import '../../domain/entities/growth_trend.dart';
 
 class LocationGrowthTrendWidget extends StatefulWidget {
-  final GrowthTrend
-  growthTrend; // เปลี่ยนจาก locationAnalytics เป็น growthTrend
+  final GrowthTrend growthTrend; // ใช้ GrowthTrend entity
   final bool isLoading;
   final String? selectedLocationCode;
   final List<Map<String, String>> availableLocations;
@@ -16,7 +13,7 @@ class LocationGrowthTrendWidget extends StatefulWidget {
 
   const LocationGrowthTrendWidget({
     super.key,
-    required this.growthTrend, // เปลี่ยน parameter name
+    required this.growthTrend,
     this.isLoading = false,
     this.selectedLocationCode,
     this.availableLocations = const [],
@@ -64,10 +61,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           const SizedBox(height: 16),
           SizedBox(
             height: 200,
-            child:
-                widget
-                    .growthTrend
-                    .hasData // เปลี่ยนจาก locationAnalytics เป็น growthTrend
+            child: widget.growthTrend.hasData
                 ? _buildLineChart()
                 : _buildEmptyState(),
           ),
@@ -104,7 +98,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
-          value: validSelectedLocation, // ใช้ validated value
+          value: validSelectedLocation,
           hint: const Text('All Locations'),
           isExpanded: true,
           items: [
@@ -120,6 +114,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             ),
           ],
           onChanged: (String? newValue) {
+            print('🔥 Location filter changed to: $newValue');
             setState(() {
               _currentSelectedLocation = newValue;
             });
@@ -135,13 +130,10 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Period: ${widget.growthTrend.periodInfo.period}', // เปลี่ยนเป็น growthTrend
+          'Period: ${widget.growthTrend.periodInfo.period}',
           style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
         ),
-        if (widget
-            .growthTrend
-            .periodInfo
-            .isCurrentYear) // เปลี่ยนเป็น growthTrend
+        if (widget.growthTrend.periodInfo.isCurrentYear)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -163,7 +155,6 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
   Widget _buildLineChart() {
     final spots = widget.growthTrend.trends.asMap().entries.map((entry) {
-      // เปลี่ยนเป็น growthTrend
       return FlSpot(entry.key.toDouble(), entry.value.assetCount.toDouble());
     }).toList();
 
@@ -200,14 +191,10 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < widget.growthTrend.trends.length) {
-                  // เปลี่ยนเป็น growthTrend
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      widget
-                          .growthTrend
-                          .trends[index]
-                          .period, // เปลี่ยนเป็น growthTrend
+                      widget.growthTrend.trends[index].period,
                       style: const TextStyle(fontSize: 10),
                     ),
                   );
@@ -233,10 +220,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               show: true,
               getDotPainter: (spot, percent, barData, index) {
                 if (index < widget.growthTrend.trends.length) {
-                  // เปลี่ยนเป็น growthTrend
-                  final trend = widget
-                      .growthTrend
-                      .trends[index]; // เปลี่ยนเป็น growthTrend
+                  final trend = widget.growthTrend.trends[index];
                   return FlDotCirclePainter(
                     radius: 4,
                     color: trend.isPositiveGrowth
@@ -268,10 +252,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               return touchedBarSpots.map((barSpot) {
                 final index = barSpot.x.toInt();
                 if (index < widget.growthTrend.trends.length) {
-                  // เปลี่ยนเป็น growthTrend
-                  final trend = widget
-                      .growthTrend
-                      .trends[index]; // เปลี่ยนเป็น growthTrend
+                  final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
                     '${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
                     const TextStyle(
@@ -303,28 +284,23 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
         children: [
           _buildSummaryItem(
             'Total Growth',
-            widget.growthTrend.summary.totalGrowth
-                .toString(), // เปลี่ยนเป็น growthTrend
+            widget.growthTrend.summary.totalGrowth.toString(),
             Icons.trending_up,
-            widget
-                    .growthTrend
-                    .hasPositiveGrowth // เปลี่ยนเป็น growthTrend
+            widget.growthTrend.hasPositiveGrowth
                 ? AppColors.trendUp
                 : AppColors.trendDown,
           ),
           Container(width: 1, height: 30, color: Colors.grey.shade300),
           _buildSummaryItem(
             'Average Growth',
-            widget.growthTrend.summary.averageGrowth
-                .toString(), // เปลี่ยนเป็น growthTrend
+            widget.growthTrend.summary.averageGrowth.toString(),
             Icons.analytics,
             Colors.orange,
           ),
           Container(width: 1, height: 30, color: Colors.grey.shade300),
           _buildSummaryItem(
             'Periods',
-            widget.growthTrend.summary.totalPeriods
-                .toString(), // เปลี่ยนเป็น growthTrend
+            widget.growthTrend.summary.totalPeriods.toString(),
             Icons.calendar_today,
             AppColors.textSecondary,
           ),
@@ -367,7 +343,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           Icon(Icons.show_chart, size: 48, color: Colors.grey.shade400),
           const SizedBox(height: 8),
           Text(
-            'No trend data available',
+            'No location trend data available',
             style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
           ),
         ],

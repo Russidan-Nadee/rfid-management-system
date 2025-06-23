@@ -21,21 +21,22 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetAssetDistributionUseCase getAssetDistributionUseCase;
   final GetGrowthTrendsUseCase getGrowthTrendsUseCase;
   final GetAuditProgressUseCase getAuditProgressUseCase;
-  final GetLocationAnalyticsUseCase
-  getLocationAnalyticsUseCase; // เพิ่มบรรทัดนี้
+  final GetLocationAnalyticsUseCase getLocationAnalyticsUseCase;
   final ClearDashboardCacheUseCase clearDashboardCacheUseCase;
+
   DashboardBloc({
     required this.getDashboardStatsUseCase,
     required this.getAssetDistributionUseCase,
     required this.getGrowthTrendsUseCase,
     required this.getAuditProgressUseCase,
-    required this.getLocationAnalyticsUseCase, // เพิ่มบรรทัดนี้
+    required this.getLocationAnalyticsUseCase,
     required this.clearDashboardCacheUseCase,
   }) : super(const DashboardInitial()) {
     on<LoadInitialDashboard>(_onLoadInitialDashboard);
     on<LoadDashboardStats>(_onLoadDashboardStats);
     on<LoadAssetDistribution>(_onLoadAssetDistribution);
-    on<LoadGrowthTrends>(_onLoadGrowthTrends);
+    on<LoadDepartmentGrowthTrends>(_onLoadDepartmentGrowthTrends);
+    on<LoadLocationGrowthTrends>(_onLoadLocationGrowthTrends);
     on<LoadAuditProgress>(_onLoadAuditProgress);
     on<RefreshDashboard>(_onRefreshDashboard);
     on<ClearDashboardCache>(_onClearDashboardCache);
@@ -44,8 +45,72 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<ToggleDetailsView>(_onToggleDetailsView);
     on<ResetFilters>(_onResetFilters);
     on<LoadLocationAnalytics>(_onLoadLocationAnalytics);
-    on<LoadLocationGrowthTrends>(_onLoadLocationGrowthTrends);
-    // ลบ ChangeDepartmentFilter handler ออก
+  }
+
+  /// Load department growth trends
+  Future<void> _onLoadDepartmentGrowthTrends(
+    LoadDepartmentGrowthTrends event,
+    Emitter<DashboardState> emit,
+  ) async {
+    final currentState = state;
+
+    if (currentState is DashboardLoaded) {
+      emit(
+        DashboardPartialLoading(
+          currentState: currentState,
+          loadingType: 'department_trends',
+        ),
+      );
+    } else {
+      emit(
+        const DashboardLoading(loadingMessage: 'Loading department trends...'),
+      );
+    }
+
+    final result = await getGrowthTrendsUseCase(
+      GetGrowthTrendsParams(
+        deptCode: event.deptCode,
+        locationCode: null, // ไม่ส่ง location สำหรับ department trends
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        groupBy: event.groupBy,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        emit(
+          DashboardError(
+            message: 'Failed to load department trends: ${failure.message}',
+            errorCode: 'DEPARTMENT_TRENDS_ERROR',
+            previousState: currentState is DashboardLoaded
+                ? currentState
+                : null,
+          ),
+        );
+      },
+      (trends) {
+        if (currentState is DashboardLoaded) {
+          emit(
+            currentState.copyWith(
+              departmentGrowthTrend: trends,
+              departmentGrowthDeptFilter: event.deptCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        } else {
+          emit(
+            DashboardLoaded(
+              departmentGrowthTrend: trends,
+              departmentGrowthDeptFilter: event.deptCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        }
+      },
+    );
   }
 
   /// Load location growth trends
@@ -53,6 +118,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     LoadLocationGrowthTrends event,
     Emitter<DashboardState> emit,
   ) async {
+    print('🔥 BLoC received locationCode: ${event.locationCode}');
+
     final currentState = state;
 
     if (currentState is DashboardLoaded) {
@@ -68,6 +135,12 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       );
     }
 
+    print('🔥 API call with params: locationCode=${event.locationCode}');
+
+    print('🔍 About to call getGrowthTrendsUseCase with:');
+    print('🔍 - locationCode: ${event.locationCode}');
+    print('🔍 - period: ${event.period}');
+
     final result = await getGrowthTrendsUseCase(
       GetGrowthTrendsParams(
         deptCode: null,
@@ -80,8 +153,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       ),
     );
 
+    print('🔍 getGrowthTrendsUseCase completed');
+
     result.fold(
       (failure) {
+        print('🔥 API failed: ${failure.message}');
         emit(
           DashboardError(
             message: 'Failed to load location trends: ${failure.message}',
@@ -93,86 +169,38 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         );
       },
       (trends) {
-        if (currentState is DashboardLoaded) {
-          emit(
-            currentState.copyWith(
-              locationTrend: trends,
-              locationAnalyticsLocationFilter: event.locationCode,
-              lastUpdated: DateTime.now(),
-            ),
-          );
-        } else {
-          emit(
-            DashboardLoaded(
-              locationTrend: trends,
-              locationAnalyticsLocationFilter: event.locationCode,
-              lastUpdated: DateTime.now(),
-            ),
+        print('🔥 API success: ${trends.trends.length} trends found');
+        if (trends.trends.isNotEmpty) {
+          print(
+            '🔥 First trend: ${trends.trends.first.period} - ${trends.trends.first.assetCount} assets',
           );
         }
-      },
-    );
-  }
 
-  /// Load growth trends
-  Future<void> _onLoadGrowthTrends(
-    LoadGrowthTrends event,
-    Emitter<DashboardState> emit,
-  ) async {
-    final currentState = state;
-
-    if (currentState is DashboardLoaded) {
-      emit(
-        DashboardPartialLoading(
-          currentState: currentState,
-          loadingType: 'trends',
-        ),
-      );
-    } else {
-      emit(const DashboardLoading(loadingMessage: 'Loading trends...'));
-    }
-
-    final result = await getGrowthTrendsUseCase(
-      GetGrowthTrendsParams(
-        deptCode: event.deptCode,
-        locationCode: event.locationCode, // เพิ่มบรรทัดนี้
-        period: event.period,
-        year: event.year,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        groupBy: event.groupBy,
-      ),
-    );
-
-    result.fold(
-      (failure) {
-        emit(
-          DashboardError(
-            message: 'Failed to load trends: ${failure.message}',
-            errorCode: 'TRENDS_ERROR',
-            previousState: currentState is DashboardLoaded
-                ? currentState
-                : null,
-          ),
-        );
-      },
-      (trends) {
         if (currentState is DashboardLoaded) {
+          print('🔥 Emitting new state with locationGrowthTrend updated');
+          print(
+            '🔥 Old trends count: ${currentState.locationGrowthTrend?.trends.length ?? 0}',
+          );
+          print('🔥 New trends count: ${trends.trends.length}');
+
           emit(
             currentState.copyWith(
-              growthTrend: trends,
-              growthTrendDeptFilter: event.deptCode,
+              locationGrowthTrend: trends,
+              locationGrowthLocationFilter: event.locationCode,
               lastUpdated: DateTime.now(),
             ),
           );
+          print('🔥 State emitted successfully');
         } else {
+          print('🔥 Creating new DashboardLoaded state');
           emit(
             DashboardLoaded(
-              growthTrend: trends,
-              growthTrendDeptFilter: event.deptCode,
+              locationGrowthTrend: trends,
+              locationGrowthLocationFilter: event.locationCode,
               lastUpdated: DateTime.now(),
             ),
           );
+          print('🔥 New state created successfully');
         }
       },
     );
@@ -198,7 +226,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       final Future<Either<Failure, AssetDistribution>> distributionResult =
           getAssetDistributionUseCase(GetAssetDistributionParams.all());
 
-      final Future<Either<Failure, GrowthTrend>> trendsResult =
+      final Future<Either<Failure, GrowthTrend>> departmentTrendsResult =
+          getGrowthTrendsUseCase(
+            GetGrowthTrendsParams(
+              deptCode: null,
+              locationCode: null,
+              period: 'Q2',
+              year: DateTime.now().year,
+            ),
+          );
+
+      final Future<Either<Failure, GrowthTrend>> locationTrendsResult =
           getGrowthTrendsUseCase(
             GetGrowthTrendsParams(
               deptCode: null,
@@ -216,25 +254,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             GetLocationAnalyticsParams.allLocations(),
           );
 
-      // เพิ่ม location trends (แยกจาก department trends)
-      final Future<Either<Failure, GrowthTrend>> locationTrendsResult =
-          getGrowthTrendsUseCase(
-            GetGrowthTrendsParams(
-              deptCode: null,
-              locationCode: null,
-              period: 'Q2',
-              year: DateTime.now().year,
-            ),
-          );
-
-      // Wait for all results (เปลี่ยนจาก 5 เป็น 6)
+      // Wait for all results
       final results = await Future.wait([
         statsResult,
         distributionResult,
-        trendsResult,
+        departmentTrendsResult,
+        locationTrendsResult,
         auditResult,
         locationAnalyticsResult,
-        locationTrendsResult, // เพิ่มบรรทัดนี้
       ]);
 
       print(
@@ -244,38 +271,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         '📈 Distribution result: ${results[1].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
       print(
-        '📉 Trends result: ${results[2].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+        '📉 Department trends result: ${results[2].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
       print(
-        '📋 Audit result: ${results[3].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+        '🏢 Location trends result: ${results[3].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
       print(
-        '📍 Location Analytics result: ${results[4].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+        '📋 Audit result: ${results[4].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
       print(
-        '🏢 Location Trends result: ${results[5].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+        '📍 Location Analytics result: ${results[5].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
-
-      // Check individual failures
-      if (results[0].isLeft) {
-        final failure = (results[0] as Left).left;
-        print('❌ Stats error: ${failure.message}');
-      }
-
-      if (results[1].isLeft) {
-        final failure = (results[1] as Left).left;
-        print('❌ Distribution error: ${failure.message}');
-      }
-
-      if (results[2].isLeft) {
-        final failure = (results[2] as Left).left;
-        print('❌ Trends error: ${failure.message}');
-      }
-
-      if (results[3].isLeft) {
-        final failure = (results[3] as Left).left;
-        print('❌ Audit error: ${failure.message}');
-      }
 
       // Check if any critical data failed to load
       if (results[0].isLeft) {
@@ -297,19 +303,22 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             (l) => null,
             (r) => r as AssetDistribution?,
           ),
-          growthTrend: results[2].fold((l) => null, (r) => r as GrowthTrend?),
-          auditProgress: results[3].fold(
+          departmentGrowthTrend: results[2].fold(
+            (l) => null,
+            (r) => r as GrowthTrend?,
+          ),
+          locationGrowthTrend: results[3].fold(
+            (l) => null,
+            (r) => r as GrowthTrend?,
+          ),
+          auditProgress: results[4].fold(
             (l) => null,
             (r) => r as AuditProgress?,
           ),
-          locationAnalytics: results[4].fold(
+          locationAnalytics: results[5].fold(
             (l) => null,
             (r) => r as LocationAnalytics?,
           ),
-          locationTrend: results[5].fold(
-            (l) => null,
-            (r) => r as GrowthTrend?,
-          ), // เพิ่มบรรทัดนี้
           lastUpdated: DateTime.now(),
         ),
       );
@@ -482,8 +491,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             currentState.copyWith(
               auditProgress: audit,
-              auditProgressDeptFilter:
-                  event.deptCode, // ใช้ auditProgressDeptFilter
+              auditProgressDeptFilter: event.deptCode,
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
             ),
@@ -492,8 +500,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           emit(
             DashboardLoaded(
               auditProgress: audit,
-              auditProgressDeptFilter:
-                  event.deptCode, // ใช้ auditProgressDeptFilter
+              auditProgressDeptFilter: event.deptCode,
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
             ),
@@ -555,8 +562,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     add(LoadAssetDistribution(plantCode: event.plantCode));
   }
 
-  // ลบ _onChangeDepartmentFilter method ออก
-
   /// Toggle details view
   Future<void> _onToggleDetailsView(
     ToggleDetailsView event,
@@ -566,8 +571,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     if (currentState is DashboardLoaded) {
       add(
         LoadAuditProgress(
-          deptCode: currentState
-              .auditProgressDeptFilter, // ใช้ auditProgressDeptFilter
+          deptCode: currentState.auditProgressDeptFilter,
           includeDetails: event.includeDetails,
         ),
       );
@@ -632,9 +636,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           '📊 Location trends count: ${locationAnalytics.locationTrends.length}',
         );
         print('📊 Has data: ${locationAnalytics.hasData}');
-        print(
-          '📊 First trend: ${locationAnalytics.locationTrends.isNotEmpty ? locationAnalytics.locationTrends.first.locationCode : "none"}',
-        );
 
         if (currentState is DashboardLoaded) {
           emit(

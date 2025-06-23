@@ -24,6 +24,7 @@ class GetGrowthTrendsUseCase {
 
     return await repository.getGrowthTrends(
       deptCode: params.deptCode,
+      locationCode: params.locationCode,
       period: params.period,
       year: params.year,
       startDate: params.startDate,

@@ -29,19 +29,17 @@ class LoadAssetDistribution extends DashboardEvent {
   List<Object?> get props => [plantCode];
 }
 
-/// Event to load growth trends
-class LoadGrowthTrends extends DashboardEvent {
+/// Event to load department growth trends
+class LoadDepartmentGrowthTrends extends DashboardEvent {
   final String? deptCode;
-  final String? locationCode; // เพิ่ม parameter นี้
   final String period;
   final int? year;
   final String? startDate;
   final String? endDate;
   final String groupBy;
 
-  const LoadGrowthTrends({
+  const LoadDepartmentGrowthTrends({
     this.deptCode,
-    this.locationCode, // เพิ่ม parameter นี้
     this.period = 'Q2',
     this.year,
     this.startDate,
@@ -52,11 +50,40 @@ class LoadGrowthTrends extends DashboardEvent {
   @override
   List<Object?> get props => [
     deptCode,
+    period,
+    year,
+    startDate,
+    endDate,
+    groupBy,
+  ];
+}
+
+/// Event to load location growth trends
+class LoadLocationGrowthTrends extends DashboardEvent {
+  final String? locationCode;
+  final String period;
+  final int? year;
+  final String? startDate;
+  final String? endDate;
+  final String groupBy;
+
+  const LoadLocationGrowthTrends({
+    this.locationCode,
+    this.period = 'Q2',
+    this.year,
+    this.startDate,
+    this.endDate,
+    this.groupBy = 'day',
+  });
+
+  @override
+  List<Object?> get props => [
     locationCode,
     period,
     year,
     startDate,
     endDate,
+    groupBy,
   ];
 }
 
@@ -80,16 +107,11 @@ class LoadAuditProgress extends DashboardEvent {
 class RefreshDashboard extends DashboardEvent {
   final String period;
   final String? plantCode;
-  final String? deptCode;
 
-  const RefreshDashboard({
-    this.period = 'today',
-    this.plantCode,
-    this.deptCode,
-  });
+  const RefreshDashboard({this.period = 'today', this.plantCode});
 
   @override
-  List<Object?> get props => [period, plantCode, deptCode];
+  List<Object?> get props => [period, plantCode];
 }
 
 /// Event to clear dashboard cache
@@ -115,16 +137,6 @@ class ChangePlantFilter extends DashboardEvent {
 
   @override
   List<Object?> get props => [plantCode];
-}
-
-/// Event to change department filter
-class ChangeDepartmentFilter extends DashboardEvent {
-  final String? deptCode;
-
-  const ChangeDepartmentFilter(this.deptCode);
-
-  @override
-  List<Object?> get props => [deptCode];
 }
 
 /// Event to toggle details view
@@ -173,34 +185,5 @@ class LoadLocationAnalytics extends DashboardEvent {
     startDate,
     endDate,
     includeTrends,
-  ];
-}
-
-/// Event to load location growth trends (เพิ่มใหม่)
-class LoadLocationGrowthTrends extends DashboardEvent {
-  final String? locationCode;
-  final String period;
-  final int? year;
-  final String? startDate;
-  final String? endDate;
-  final String groupBy;
-
-  const LoadLocationGrowthTrends({
-    this.locationCode,
-    this.period = 'Q2',
-    this.year,
-    this.startDate,
-    this.endDate,
-    this.groupBy = 'day',
-  });
-
-  @override
-  List<Object?> get props => [
-    locationCode,
-    period,
-    year,
-    startDate,
-    endDate,
-    groupBy,
   ];
 }
