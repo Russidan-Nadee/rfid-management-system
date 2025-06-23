@@ -51,6 +51,7 @@ const {
    growthTrendsValidator,
    locationAnalyticsValidator,
    auditProgressValidator,
+   dashboardLocationsValidator,
    dashboardExportValidator
 } = require('../validators/dashboardValidator');
 
@@ -72,7 +73,7 @@ const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests 
 router.get('/dashboard/locations',
    generalRateLimit,
    dashboardLocationsValidator,
-   dashboardController.getLocations
+   locationController.getLocations
 );
 router.get('/dashboard/stats',
    generalRateLimit,

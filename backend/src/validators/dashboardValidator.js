@@ -289,5 +289,6 @@ module.exports = {
    locationAnalyticsValidator,
    auditProgressValidator,
    handleValidationErrors,
-   dashboardAlertsValidator
+   dashboardAlertsValidator,
+   dashboardLocationsValidator
 };

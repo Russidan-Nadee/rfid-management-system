@@ -71,6 +71,19 @@ class LocationAnalyticsModel {
         periodInfo = json['period_info'] ?? {};
         summaryData =
             json['analytics_summary'] ?? _calculateSummaryFromTrends(trends);
+      }
+      // วิธีที่ 5: ตรวจสอบ location_trends array format (Direct location trends)
+      else if (json['location_trends'] != null &&
+          json['location_trends'] is List) {
+        print('✅ Using direct location_trends array format');
+        trends = (json['location_trends'] as List<dynamic>)
+            .map(
+              (e) => LocationTrendDataModel.fromJson(e as Map<String, dynamic>),
+            )
+            .toList();
+
+        periodInfo = json['period_info'] ?? {};
+        summaryData = json['summary'] ?? _calculateSummaryFromTrends(trends);
       } else {
         print('❌ No recognizable location data format found');
         // ไม่ส่งข้อมูล mock กลับไป แต่ส่ง empty list
@@ -110,7 +123,6 @@ class LocationAnalyticsModel {
       );
     }
   }
-
   // แปลงข้อมูล location analytics เป็น trend format
   static LocationTrendDataModel _convertLocationDataToTrend(
     Map<String, dynamic> data,

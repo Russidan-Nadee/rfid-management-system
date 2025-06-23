@@ -241,16 +241,12 @@ class _DashboardPageContent extends StatelessWidget {
             if (loadedState.locationAnalytics != null)
               LocationGrowthTrendWidget(
                 growthTrend: loadedState.growthTrend!,
-              selectedLocationCode:
+                selectedLocationCode:
                     loadedState.locationAnalyticsLocationFilter,
                 availableLocations: _getAllLocations(loadedState),
                 onLocationChanged: (locationCode) {
-                  // เรียก LoadGrowthTrends พร้อม locationCode parameter
                   context.read<DashboardBloc>().add(
-                    LoadGrowthTrends(
-                      locationCode: locationCode, // เพิ่ม parameter นี้
-                      period: 'Q2',
-                    ),
+                    LoadGrowthTrends(locationCode: locationCode, period: 'Q2'),
                   );
                 },
                 isLoading:

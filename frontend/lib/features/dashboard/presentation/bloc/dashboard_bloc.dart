@@ -75,7 +75,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
       final Future<Either<Failure, LocationAnalytics>> locationAnalyticsResult =
           getLocationAnalyticsUseCase(
-            GetLocationAnalyticsParams.currentQuarter(),
+            GetLocationAnalyticsParams.allLocations(),
           );
 
       // Wait for all results
