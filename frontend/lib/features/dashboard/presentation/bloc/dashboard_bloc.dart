@@ -43,8 +43,139 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     on<ChangePlantFilter>(_onChangePlantFilter);
     on<ToggleDetailsView>(_onToggleDetailsView);
     on<ResetFilters>(_onResetFilters);
-    on<LoadLocationAnalytics>(_onLoadLocationAnalytics); // เพิ่มบรรทัดนี้
+    on<LoadLocationAnalytics>(_onLoadLocationAnalytics);
+    on<LoadLocationGrowthTrends>(_onLoadLocationGrowthTrends);
     // ลบ ChangeDepartmentFilter handler ออก
+  }
+
+  /// Load location growth trends
+  Future<void> _onLoadLocationGrowthTrends(
+    LoadLocationGrowthTrends event,
+    Emitter<DashboardState> emit,
+  ) async {
+    final currentState = state;
+
+    if (currentState is DashboardLoaded) {
+      emit(
+        DashboardPartialLoading(
+          currentState: currentState,
+          loadingType: 'location_trends',
+        ),
+      );
+    } else {
+      emit(
+        const DashboardLoading(loadingMessage: 'Loading location trends...'),
+      );
+    }
+
+    final result = await getGrowthTrendsUseCase(
+      GetGrowthTrendsParams(
+        deptCode: null,
+        locationCode: event.locationCode,
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        groupBy: event.groupBy,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        emit(
+          DashboardError(
+            message: 'Failed to load location trends: ${failure.message}',
+            errorCode: 'LOCATION_TRENDS_ERROR',
+            previousState: currentState is DashboardLoaded
+                ? currentState
+                : null,
+          ),
+        );
+      },
+      (trends) {
+        if (currentState is DashboardLoaded) {
+          emit(
+            currentState.copyWith(
+              locationTrend: trends,
+              locationAnalyticsLocationFilter: event.locationCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        } else {
+          emit(
+            DashboardLoaded(
+              locationTrend: trends,
+              locationAnalyticsLocationFilter: event.locationCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  /// Load growth trends
+  Future<void> _onLoadGrowthTrends(
+    LoadGrowthTrends event,
+    Emitter<DashboardState> emit,
+  ) async {
+    final currentState = state;
+
+    if (currentState is DashboardLoaded) {
+      emit(
+        DashboardPartialLoading(
+          currentState: currentState,
+          loadingType: 'trends',
+        ),
+      );
+    } else {
+      emit(const DashboardLoading(loadingMessage: 'Loading trends...'));
+    }
+
+    final result = await getGrowthTrendsUseCase(
+      GetGrowthTrendsParams(
+        deptCode: event.deptCode,
+        locationCode: event.locationCode, // เพิ่มบรรทัดนี้
+        period: event.period,
+        year: event.year,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        groupBy: event.groupBy,
+      ),
+    );
+
+    result.fold(
+      (failure) {
+        emit(
+          DashboardError(
+            message: 'Failed to load trends: ${failure.message}',
+            errorCode: 'TRENDS_ERROR',
+            previousState: currentState is DashboardLoaded
+                ? currentState
+                : null,
+          ),
+        );
+      },
+      (trends) {
+        if (currentState is DashboardLoaded) {
+          emit(
+            currentState.copyWith(
+              growthTrend: trends,
+              growthTrendDeptFilter: event.deptCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        } else {
+          emit(
+            DashboardLoaded(
+              growthTrend: trends,
+              growthTrendDeptFilter: event.deptCode,
+              lastUpdated: DateTime.now(),
+            ),
+          );
+        }
+      },
+    );
   }
 
   /// Load initial dashboard data
@@ -68,7 +199,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           getAssetDistributionUseCase(GetAssetDistributionParams.all());
 
       final Future<Either<Failure, GrowthTrend>> trendsResult =
-          getGrowthTrendsUseCase(GetGrowthTrendsParams.currentQuarter());
+          getGrowthTrendsUseCase(
+            GetGrowthTrendsParams(
+              deptCode: null,
+              locationCode: null,
+              period: 'Q2',
+              year: DateTime.now().year,
+            ),
+          );
 
       final Future<Either<Failure, AuditProgress>> auditResult =
           getAuditProgressUseCase(GetAuditProgressParams.overview());
@@ -78,13 +216,25 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             GetLocationAnalyticsParams.allLocations(),
           );
 
-      // Wait for all results
+      // เพิ่ม location trends (แยกจาก department trends)
+      final Future<Either<Failure, GrowthTrend>> locationTrendsResult =
+          getGrowthTrendsUseCase(
+            GetGrowthTrendsParams(
+              deptCode: null,
+              locationCode: null,
+              period: 'Q2',
+              year: DateTime.now().year,
+            ),
+          );
+
+      // Wait for all results (เปลี่ยนจาก 5 เป็น 6)
       final results = await Future.wait([
         statsResult,
         distributionResult,
         trendsResult,
         auditResult,
         locationAnalyticsResult,
+        locationTrendsResult, // เพิ่มบรรทัดนี้
       ]);
 
       print(
@@ -101,6 +251,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       );
       print(
         '📍 Location Analytics result: ${results[4].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
+      );
+      print(
+        '🏢 Location Trends result: ${results[5].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
       );
 
       // Check individual failures
@@ -152,6 +305,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           locationAnalytics: results[4].fold(
             (l) => null,
             (r) => r as LocationAnalytics?,
+          ),
+          locationTrend: results[5].fold(
+            (l) => null,
+            (r) => r as GrowthTrend?,
           ), // เพิ่มบรรทัดนี้
           lastUpdated: DateTime.now(),
         ),
@@ -274,71 +431,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             DashboardLoaded(
               distribution: distribution,
               currentPlantFilter: event.plantCode,
-              lastUpdated: DateTime.now(),
-            ),
-          );
-        }
-      },
-    );
-  }
-
-  /// Load growth trends
-  Future<void> _onLoadGrowthTrends(
-    LoadGrowthTrends event,
-    Emitter<DashboardState> emit,
-  ) async {
-    final currentState = state;
-
-    if (currentState is DashboardLoaded) {
-      emit(
-        DashboardPartialLoading(
-          currentState: currentState,
-          loadingType: 'trends',
-        ),
-      );
-    } else {
-      emit(const DashboardLoading(loadingMessage: 'Loading trends...'));
-    }
-
-    final result = await getGrowthTrendsUseCase(
-      GetGrowthTrendsParams(
-        deptCode: event.deptCode,
-        period: event.period,
-        year: event.year,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        groupBy: event.groupBy,
-      ),
-    );
-
-    result.fold(
-      (failure) {
-        emit(
-          DashboardError(
-            message: 'Failed to load trends: ${failure.message}',
-            errorCode: 'TRENDS_ERROR',
-            previousState: currentState is DashboardLoaded
-                ? currentState
-                : null,
-          ),
-        );
-      },
-      (trends) {
-        if (currentState is DashboardLoaded) {
-          emit(
-            currentState.copyWith(
-              growthTrend: trends,
-              growthTrendDeptFilter:
-                  event.deptCode, // ใช้ growthTrendDeptFilter
-              lastUpdated: DateTime.now(),
-            ),
-          );
-        } else {
-          emit(
-            DashboardLoaded(
-              growthTrend: trends,
-              growthTrendDeptFilter:
-                  event.deptCode, // ใช้ growthTrendDeptFilter
               lastUpdated: DateTime.now(),
             ),
           );

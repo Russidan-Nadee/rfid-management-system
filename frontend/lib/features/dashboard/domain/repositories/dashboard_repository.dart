@@ -17,6 +17,7 @@ abstract class DashboardRepository {
 
   Future<Either<Failure, GrowthTrend>> getGrowthTrends({
     String? deptCode,
+    String? locationCode, // เพิ่มบรรทัดนี้
     String period = 'Q2',
     int? year,
     String? startDate,

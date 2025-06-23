@@ -85,6 +85,17 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       uniqueLocations[location['code']!] = location['name']!;
     }
 
+    // ตรวจสอบว่า currentSelectedLocation มีใน dropdown ไหม
+    String? validSelectedLocation = _currentSelectedLocation;
+    if (validSelectedLocation != null &&
+        !uniqueLocations.containsKey(validSelectedLocation)) {
+      print(
+        '🚨 Location $validSelectedLocation not found in dropdown, resetting to null',
+      );
+      validSelectedLocation = null;
+      _currentSelectedLocation = null;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -93,7 +104,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
-          value: _currentSelectedLocation,
+          value: validSelectedLocation, // ใช้ validated value
           hint: const Text('All Locations'),
           isExpanded: true,
           items: [

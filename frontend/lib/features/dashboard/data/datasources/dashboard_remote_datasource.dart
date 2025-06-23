@@ -18,6 +18,7 @@ abstract class DashboardRemoteDataSource {
   );
   Future<GrowthTrendModel> getGrowthTrends({
     String? deptCode,
+    String? locationCode,
     String period,
     int? year,
     String? startDate,

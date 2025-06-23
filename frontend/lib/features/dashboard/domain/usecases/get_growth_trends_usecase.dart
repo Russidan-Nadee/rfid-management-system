@@ -95,6 +95,7 @@ class GetGrowthTrendsUseCase {
 
 class GetGrowthTrendsParams {
   final String? deptCode;
+  final String? locationCode;
   final String period;
   final int? year;
   final String? startDate;
@@ -103,6 +104,7 @@ class GetGrowthTrendsParams {
 
   const GetGrowthTrendsParams({
     this.deptCode,
+    this.locationCode,
     required this.period,
     this.year,
     this.startDate,

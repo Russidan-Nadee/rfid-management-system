@@ -175,3 +175,32 @@ class LoadLocationAnalytics extends DashboardEvent {
     includeTrends,
   ];
 }
+
+/// Event to load location growth trends (เพิ่มใหม่)
+class LoadLocationGrowthTrends extends DashboardEvent {
+  final String? locationCode;
+  final String period;
+  final int? year;
+  final String? startDate;
+  final String? endDate;
+  final String groupBy;
+
+  const LoadLocationGrowthTrends({
+    this.locationCode,
+    this.period = 'Q2',
+    this.year,
+    this.startDate,
+    this.endDate,
+    this.groupBy = 'day',
+  });
+
+  @override
+  List<Object?> get props => [
+    locationCode,
+    period,
+    year,
+    startDate,
+    endDate,
+    groupBy,
+  ];
+}

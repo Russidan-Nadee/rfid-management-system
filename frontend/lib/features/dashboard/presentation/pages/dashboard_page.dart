@@ -237,21 +237,23 @@ class _DashboardPageContent extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Location Growth Trend Chart (NEW)
-            if (loadedState.locationAnalytics != null)
+            if (loadedState.locationTrend != null)
               LocationGrowthTrendWidget(
-                growthTrend: loadedState.growthTrend!,
+                growthTrend: loadedState.locationTrend!,
                 selectedLocationCode:
                     loadedState.locationAnalyticsLocationFilter,
                 availableLocations: _getAllLocations(loadedState),
                 onLocationChanged: (locationCode) {
                   context.read<DashboardBloc>().add(
-                    LoadGrowthTrends(locationCode: locationCode, period: 'Q2'),
+                    LoadLocationGrowthTrends(
+                      locationCode: locationCode,
+                      period: 'Q2',
+                    ),
                   );
                 },
                 isLoading:
                     state is DashboardPartialLoading &&
-                    state.loadingType == 'trends',
+                    state.loadingType == 'location_trends',
               ),
             const SizedBox(height: 24),
 
@@ -332,9 +334,11 @@ class _DashboardPageContent extends StatelessWidget {
   }
 
   // Helper method เพื่อรวม Location จากทุกแหล่ง
+  // Helper method เพื่อรวม Location จากทุกแหล่ง
   List<Map<String, String>> _getAllLocations(DashboardLoaded state) {
     final Set<String> allLocationCodes = {};
     final Map<String, String> locationMap = {};
+
     print('🏢 Getting all locations...');
     print(
       '🏢 State has location analytics: ${state.locationAnalytics != null}',
@@ -351,6 +355,28 @@ class _DashboardPageContent extends StatelessWidget {
       }
     }
 
+    // รวม Location จาก LocationTrend (ใหม่)
+    if (state.locationTrend != null) {
+      print(
+        '🏢 Location trend data count: ${state.locationTrend!.trends.length}',
+      );
+      for (final trend in state.locationTrend!.trends) {
+        // ใช้ deptCode และ deptDescription เป็น location data (เพราะ reuse GrowthTrend)
+        if (trend.deptCode.isNotEmpty) {
+          allLocationCodes.add(trend.deptCode);
+          locationMap[trend.deptCode] = trend.deptDescription;
+        }
+      }
+    }
+
+    // เพิ่ม default locations ถ้าไม่มีข้อมูล
+    if (allLocationCodes.isEmpty) {
+      allLocationCodes.addAll(['30-OFF-002', '30-CUR-00', 'LOC-001']);
+      locationMap['30-OFF-002'] = 'Office 002';
+      locationMap['30-CUR-00'] = 'Curriculum Office';
+      locationMap['LOC-001'] = 'Location 001';
+    }
+
     // Convert เป็น List และเรียงตามชื่อ
     final List<Map<String, String>> locations = allLocationCodes
         .map((code) => {'code': code, 'name': locationMap[code] ?? code})
@@ -359,6 +385,7 @@ class _DashboardPageContent extends StatelessWidget {
     // เรียงตามชื่อ Location
     locations.sort((a, b) => a['name']!.compareTo(b['name']!));
 
+    print('🏢 Final locations: ${locations.map((l) => l['code']).toList()}');
     return locations;
   }
 

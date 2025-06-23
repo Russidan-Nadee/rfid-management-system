@@ -33,6 +33,7 @@ class DashboardLoaded extends DashboardState {
   final DashboardStats? stats;
   final AssetDistribution? distribution;
   final GrowthTrend? growthTrend;
+  final GrowthTrend? locationTrend; // เพิ่มบรรทัดนี้
   final AuditProgress? auditProgress;
   final LocationAnalytics? locationAnalytics;
   final String currentPeriod;
@@ -48,6 +49,7 @@ class DashboardLoaded extends DashboardState {
     this.stats,
     this.distribution,
     this.growthTrend,
+    this.locationTrend, // เพิ่มบรรทัดนี้
     this.auditProgress,
     this.locationAnalytics,
     this.currentPeriod = 'today',
@@ -64,6 +66,7 @@ class DashboardLoaded extends DashboardState {
       stats != null ||
       distribution != null ||
       growthTrend != null ||
+      locationTrend != null || // เพิ่มบรรทัดนี้
       auditProgress != null ||
       locationAnalytics != null;
 
@@ -72,6 +75,7 @@ class DashboardLoaded extends DashboardState {
       stats != null &&
       distribution != null &&
       growthTrend != null &&
+      locationTrend != null && // เพิ่มบรรทัดนี้
       auditProgress != null &&
       locationAnalytics != null;
 
@@ -91,6 +95,7 @@ class DashboardLoaded extends DashboardState {
     DashboardStats? stats,
     AssetDistribution? distribution,
     GrowthTrend? growthTrend,
+    GrowthTrend? locationTrend, // เพิ่มบรรทัดนี้
     AuditProgress? auditProgress,
     LocationAnalytics? locationAnalytics,
     String? locationAnalyticsLocationFilter,
@@ -105,6 +110,7 @@ class DashboardLoaded extends DashboardState {
       stats: stats ?? this.stats,
       distribution: distribution ?? this.distribution,
       growthTrend: growthTrend ?? this.growthTrend,
+      locationTrend: locationTrend ?? this.locationTrend, // เพิ่มบรรทัดนี้
       auditProgress: auditProgress ?? this.auditProgress,
       currentPeriod: currentPeriod ?? this.currentPeriod,
       currentPlantFilter: currentPlantFilter ?? this.currentPlantFilter,
@@ -122,6 +128,7 @@ class DashboardLoaded extends DashboardState {
     stats,
     distribution,
     growthTrend,
+    locationTrend, // เพิ่มบรรทัดนี้
     auditProgress,
     locationAnalytics,
     currentPeriod,

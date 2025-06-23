@@ -110,17 +110,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<Either<Failure, GrowthTrend>> getGrowthTrends({
     String? deptCode,
+    String? locationCode, // เพิ่ม parameter นี้
     String period = 'Q2',
     int? year,
     String? startDate,
     String? endDate,
-    String groupBy = 'day', // เพิ่มบรรทัดนี้
+    String groupBy = 'day',
   }) async {
     try {
       // Generate cache key
       final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
           .generateGrowthTrendsCacheKey(
             deptCode: deptCode,
+            locationCode: locationCode, // เพิ่มบรรทัดนี้
             period: period,
             year: year,
             startDate: startDate,
@@ -138,11 +140,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
       // Fetch from remote if not in cache
       final remoteTrends = await remoteDataSource.getGrowthTrends(
         deptCode: deptCode,
+        locationCode: locationCode, // เพิ่มบรรทัดนี้
         period: period,
         year: year,
         startDate: startDate,
         endDate: endDate,
-        groupBy: groupBy, // เพิ่มบรรทัดนี้
+        groupBy: groupBy,
       );
 
       // Cache the result
@@ -158,11 +161,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
       try {
         final remoteTrends = await remoteDataSource.getGrowthTrends(
           deptCode: deptCode,
+          locationCode: locationCode, // เพิ่มบรรทัดนี้
           period: period,
           year: year,
           startDate: startDate,
           endDate: endDate,
-          groupBy: groupBy, // เพิ่มบรรทัดนี้
+          groupBy: groupBy,
         );
         return Right(_mapGrowthTrendModelToEntity(remoteTrends));
       } catch (remoteError) {

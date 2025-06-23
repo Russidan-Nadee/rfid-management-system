@@ -30,6 +30,7 @@ abstract class DashboardCacheDataSource {
   String generateDistributionCacheKey(String? plantCode, String? deptCode);
   String generateGrowthTrendsCacheKey({
     String? deptCode,
+    String? locationCode,
     String period,
     int? year,
     String? startDate,
@@ -295,6 +296,7 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
   @override
   String generateGrowthTrendsCacheKey({
     String? deptCode,
+    String? locationCode,
     String period = 'Q2',
     int? year,
     String? startDate,
@@ -302,6 +304,7 @@ class DashboardCacheDataSourceImpl implements DashboardCacheDataSource {
   }) {
     return _generateCacheKey({
       'dept_code': deptCode ?? 'all',
+      'location_code': locationCode ?? 'all',
       'period': period,
       'year': year ?? DateTime.now().year,
       'start_date': startDate ?? '',
