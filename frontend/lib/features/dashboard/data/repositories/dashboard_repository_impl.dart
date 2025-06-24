@@ -27,31 +27,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
     String period,
   ) async {
     try {
-      // Try to get from cache first
-      final cachedStats = await cacheDataSource.getCachedDashboardStats(period);
-      if (cachedStats != null) {
-        return Right(_mapDashboardStatsModelToEntity(cachedStats));
-      }
-
-      // Fetch from remote if not in cache
       final remoteStats = await remoteDataSource.getDashboardStats(period);
-
-      // Cache the result
-      await cacheDataSource.cacheDashboardStats(period, remoteStats);
-
       return Right(_mapDashboardStatsModelToEntity(remoteStats));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      // If cache fails, try remote anyway
-      try {
-        final remoteStats = await remoteDataSource.getDashboardStats(period);
-        return Right(_mapDashboardStatsModelToEntity(remoteStats));
-      } catch (remoteError) {
-        return Left(CacheFailure(e.message));
-      }
     } catch (e) {
       return Left(ServerFailure('Unexpected error: $e'));
     }
@@ -63,45 +44,15 @@ class DashboardRepositoryImpl implements DashboardRepository {
     String? deptCode,
   ) async {
     try {
-      // Generate cache key
-      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
-          .generateDistributionCacheKey(plantCode, deptCode);
-
-      // Try to get from cache first
-      final cachedDistribution = await cacheDataSource
-          .getCachedAssetDistribution(cacheKey);
-      if (cachedDistribution != null) {
-        return Right(_mapAssetDistributionModelToEntity(cachedDistribution));
-      }
-
-      // Fetch from remote if not in cache
       final remoteDistribution = await remoteDataSource.getAssetDistribution(
         plantCode,
         deptCode,
       );
-
-      // Cache the result
-      await cacheDataSource.cacheAssetDistribution(
-        cacheKey,
-        remoteDistribution,
-      );
-
       return Right(_mapAssetDistributionModelToEntity(remoteDistribution));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      // If cache fails, try remote anyway
-      try {
-        final remoteDistribution = await remoteDataSource.getAssetDistribution(
-          plantCode,
-          deptCode,
-        );
-        return Right(_mapAssetDistributionModelToEntity(remoteDistribution));
-      } catch (remoteError) {
-        return Left(CacheFailure(e.message));
-      }
     } catch (e) {
       return Left(ServerFailure('Unexpected error: $e'));
     }
@@ -110,7 +61,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
   @override
   Future<Either<Failure, GrowthTrend>> getGrowthTrends({
     String? deptCode,
-    String? locationCode, // เพิ่ม parameter นี้
+    String? locationCode,
     String period = 'Q2',
     int? year,
     String? startDate,
@@ -118,60 +69,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
     String groupBy = 'day',
   }) async {
     try {
-      // Generate cache key
-      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
-          .generateGrowthTrendsCacheKey(
-            deptCode: deptCode,
-            locationCode: locationCode, // เพิ่มบรรทัดนี้
-            period: period,
-            year: year,
-            startDate: startDate,
-            endDate: endDate,
-          );
-
-      // Try to get from cache first
-      final cachedTrends = await cacheDataSource.getCachedGrowthTrends(
-        cacheKey,
-      );
-      if (cachedTrends != null) {
-        return Right(_mapGrowthTrendModelToEntity(cachedTrends));
-      }
-
-      // Fetch from remote if not in cache
       final remoteTrends = await remoteDataSource.getGrowthTrends(
         deptCode: deptCode,
-        locationCode: locationCode, // เพิ่มบรรทัดนี้
+        locationCode: locationCode,
         period: period,
         year: year,
         startDate: startDate,
         endDate: endDate,
         groupBy: groupBy,
       );
-
-      // Cache the result
-      await cacheDataSource.cacheGrowthTrends(cacheKey, remoteTrends);
-
       return Right(_mapGrowthTrendModelToEntity(remoteTrends));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      // If cache fails, try remote anyway
-      try {
-        final remoteTrends = await remoteDataSource.getGrowthTrends(
-          deptCode: deptCode,
-          locationCode: locationCode, // เพิ่มบรรทัดนี้
-          period: period,
-          year: year,
-          startDate: startDate,
-          endDate: endDate,
-          groupBy: groupBy,
-        );
-        return Right(_mapGrowthTrendModelToEntity(remoteTrends));
-      } catch (remoteError) {
-        return Left(CacheFailure(e.message));
-      }
     } catch (e) {
       return Left(ServerFailure('Unexpected error: $e'));
     }
@@ -184,49 +95,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
     String? auditStatus,
   }) async {
     try {
-      // Generate cache key
-      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
-          .generateAuditProgressCacheKey(
-            deptCode: deptCode,
-            includeDetails: includeDetails,
-            auditStatus: auditStatus,
-          );
-
-      // Try to get from cache first
-      final cachedProgress = await cacheDataSource.getCachedAuditProgress(
-        cacheKey,
-      );
-      if (cachedProgress != null) {
-        return Right(_mapAuditProgressModelToEntity(cachedProgress));
-      }
-
-      // Fetch from remote if not in cache
       final remoteProgress = await remoteDataSource.getAuditProgress(
         deptCode: deptCode,
         includeDetails: includeDetails,
         auditStatus: auditStatus,
       );
-
-      // Cache the result
-      await cacheDataSource.cacheAuditProgress(cacheKey, remoteProgress);
-
       return Right(_mapAuditProgressModelToEntity(remoteProgress));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      // If cache fails, try remote anyway
-      try {
-        final remoteProgress = await remoteDataSource.getAuditProgress(
-          deptCode: deptCode,
-          includeDetails: includeDetails,
-          auditStatus: auditStatus,
-        );
-        return Right(_mapAuditProgressModelToEntity(remoteProgress));
-      } catch (remoteError) {
-        return Left(CacheFailure(e.message));
-      }
     } catch (e) {
       return Left(ServerFailure('Unexpected error: $e'));
     }
@@ -251,7 +129,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
         plantCode: plantCode,
       );
 
-      // แปลง Map<String, dynamic> เป็น Map<String, String>
       final formattedLocations = locations
           .map(
             (location) => {
@@ -281,26 +158,6 @@ class DashboardRepositoryImpl implements DashboardRepository {
     bool includeTrends = true,
   }) async {
     try {
-      // Generate cache key
-      final cacheKey = (cacheDataSource as DashboardCacheDataSourceImpl)
-          .generateLocationAnalyticsCacheKey(
-            locationCode: locationCode,
-            period: period,
-            year: year,
-            startDate: startDate,
-            endDate: endDate,
-            includeTrends: includeTrends,
-          );
-
-      // Try to get from cache first
-      final cachedAnalytics = await cacheDataSource.getCachedLocationAnalytics(
-        cacheKey,
-      );
-      if (cachedAnalytics != null) {
-        return Right(_mapLocationAnalyticsModelToEntity(cachedAnalytics));
-      }
-
-      // Fetch from remote if not in cache
       final remoteAnalytics = await remoteDataSource.getLocationAnalytics(
         locationCode: locationCode,
         period: period,
@@ -309,30 +166,11 @@ class DashboardRepositoryImpl implements DashboardRepository {
         endDate: endDate,
         includeTrends: includeTrends,
       );
-
-      // Cache the result
-      await cacheDataSource.cacheLocationAnalytics(cacheKey, remoteAnalytics);
-
       return Right(_mapLocationAnalyticsModelToEntity(remoteAnalytics));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      // If cache fails, try remote anyway
-      try {
-        final remoteAnalytics = await remoteDataSource.getLocationAnalytics(
-          locationCode: locationCode,
-          period: period,
-          year: year,
-          startDate: startDate,
-          endDate: endDate,
-          includeTrends: includeTrends,
-        );
-        return Right(_mapLocationAnalyticsModelToEntity(remoteAnalytics));
-      } catch (remoteError) {
-        return Left(CacheFailure(e.message));
-      }
     } catch (e) {
       return Left(ServerFailure('Unexpected error: $e'));
     }

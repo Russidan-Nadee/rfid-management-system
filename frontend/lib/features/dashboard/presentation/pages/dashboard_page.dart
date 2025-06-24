@@ -27,8 +27,49 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-class _DashboardPageContent extends StatelessWidget {
+class _DashboardPageContent extends StatefulWidget {
   const _DashboardPageContent();
+
+  @override
+  State<_DashboardPageContent> createState() => _DashboardPageContentState();
+}
+
+class _DashboardPageContentState extends State<_DashboardPageContent>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Refresh เมื่อกลับมาที่ tab Dashboard
+    if (state == AppLifecycleState.resumed) {
+      context.read<DashboardBloc>().add(const RefreshDashboard());
+    }
+  }
+
+  // Refresh เมื่อ Widget ถูกสร้างใหม่ (เปลี่ยน tab)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Refresh ทุกครั้งที่กลับมาที่ Dashboard tab
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<DashboardBloc>().add(const RefreshDashboard());
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,6 +222,7 @@ class _DashboardPageContent extends StatelessWidget {
             // Audit Progress
             if (loadedState.auditProgress != null)
               AuditProgressWidget(
+                key: ValueKey('audit_${DateTime.now().millisecondsSinceEpoch}'),
                 auditProgress: loadedState.auditProgress!,
                 includeDetails: loadedState.includeDetails,
                 selectedDeptCode: loadedState.auditProgressDeptFilter,
@@ -205,6 +247,9 @@ class _DashboardPageContent extends StatelessWidget {
             // Asset Distribution Chart
             if (loadedState.distribution != null)
               AssetDistributionChartWidget(
+                key: ValueKey(
+                  'distribution_${DateTime.now().millisecondsSinceEpoch}',
+                ),
                 distribution: loadedState.distribution!,
                 isLoading:
                     state is DashboardPartialLoading &&
@@ -216,6 +261,9 @@ class _DashboardPageContent extends StatelessWidget {
             // Department Growth Trend Chart
             if (loadedState.departmentGrowthTrend != null)
               GrowthTrendChartWidget(
+                key: ValueKey(
+                  'dept_growth_${DateTime.now().millisecondsSinceEpoch}',
+                ),
                 growthTrend: loadedState.departmentGrowthTrend!,
                 selectedDeptCode: loadedState.departmentGrowthDeptFilter,
                 availableDepartments: _getAllDepartments(loadedState),
@@ -234,7 +282,7 @@ class _DashboardPageContent extends StatelessWidget {
             if (loadedState.locationGrowthTrend != null)
               LocationGrowthTrendWidget(
                 key: ValueKey(
-                  'location_${loadedState.locationGrowthLocationFilter}',
+                  'location_${DateTime.now().millisecondsSinceEpoch}',
                 ),
                 growthTrend: loadedState.locationGrowthTrend!,
                 selectedLocationCode: loadedState.locationGrowthLocationFilter,
