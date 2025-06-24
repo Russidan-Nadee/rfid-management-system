@@ -263,6 +263,9 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
   }
 
   Widget _buildTrendSummary() {
+    int latestYearGrowth = _calculateLatestYearGrowth();
+    int correctedAverageGrowth = _calculateAverageGrowth();
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -274,17 +277,19 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem(
-            'Total Growth',
-            widget.growthTrend.summary.totalGrowth.toString(),
+            'Latest Year',
+            '${latestYearGrowth.toString()}%',
             Icons.trending_up,
-            widget.growthTrend.hasPositiveGrowth
+            latestYearGrowth > 0
                 ? AppColors.trendUp
-                : AppColors.trendDown,
+                : latestYearGrowth < 0
+                ? AppColors.trendDown
+                : AppColors.trendStable,
           ),
           Container(width: 1, height: 30, color: Colors.grey.shade300),
           _buildSummaryItem(
             'Average Growth',
-            widget.growthTrend.summary.averageGrowth.toString(),
+            '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
             AppColors.primary,
           ),
@@ -298,6 +303,48 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         ],
       ),
     );
+  }
+
+  int _calculateLatestYearGrowth() {
+    if (widget.growthTrend.trends.length < 2) return 0;
+
+    final latestYear = widget.growthTrend.trends.last;
+    final previousYear =
+        widget.growthTrend.trends[widget.growthTrend.trends.length - 2];
+
+    if (previousYear.assetCount == 0) return 100; // หลีกเลี่ยงหารด้วย 0
+
+    // คำนวณเปอร์เซ็นต์การเติบโต
+    return (((latestYear.assetCount - previousYear.assetCount) /
+                previousYear.assetCount) *
+            100)
+        .round();
+  }
+
+  int _calculateAverageGrowth() {
+    if (widget.growthTrend.trends.length < 2) return 0;
+
+    List<int> growthPercentages = [];
+
+    for (int i = 1; i < widget.growthTrend.trends.length; i++) {
+      final current = widget.growthTrend.trends[i];
+      final previous = widget.growthTrend.trends[i - 1];
+
+      if (previous.assetCount > 0) {
+        final growth =
+            (((current.assetCount - previous.assetCount) /
+                        previous.assetCount) *
+                    100)
+                .round();
+        growthPercentages.add(growth);
+      }
+    }
+
+    if (growthPercentages.isEmpty) return 0;
+
+    return (growthPercentages.reduce((a, b) => a + b) /
+            growthPercentages.length)
+        .round();
   }
 
   Widget _buildSummaryItem(

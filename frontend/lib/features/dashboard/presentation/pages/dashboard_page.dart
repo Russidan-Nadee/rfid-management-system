@@ -197,7 +197,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Overview this year',
+                  'Overview',
                   style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 20,

@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/auth/presentation/widgets/login_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/core/constants/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -180,7 +181,7 @@ class _LoginFormState extends State<LoginForm> {
     return ElevatedButton(
       onPressed: isLoading ? null : _handleLogin,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF4F46E5),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
