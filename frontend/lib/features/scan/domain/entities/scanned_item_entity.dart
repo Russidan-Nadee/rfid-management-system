@@ -1,4 +1,3 @@
-// Path: frontend/lib/features/scan/domain/entities/scanned_item_entity.dart
 import 'package:equatable/equatable.dart';
 
 class ScannedItemEntity extends Equatable {
@@ -12,10 +11,15 @@ class ScannedItemEntity extends Equatable {
   final DateTime? createdAt;
   final String status;
   final bool isUnknown;
-  // เพิ่ม location fields (optional เพื่อ backward compatibility)
   final String? plantCode;
   final String? locationCode;
   final String? locationName;
+  final String? deptCode;
+  final String? deptDescription;
+  final String? plantDescription;
+  final DateTime? lastScanAt;
+  final String? lastScannedBy;
+  final int? totalScans;
 
   const ScannedItemEntity({
     required this.assetNo,
@@ -28,10 +32,15 @@ class ScannedItemEntity extends Equatable {
     this.createdAt,
     required this.status,
     this.isUnknown = false,
-    // Location fields เป็น optional
     this.plantCode,
     this.locationCode,
     this.locationName,
+    this.deptCode,
+    this.deptDescription,
+    this.plantDescription,
+    this.lastScanAt,
+    this.lastScannedBy,
+    this.totalScans,
   });
 
   factory ScannedItemEntity.unknown(String assetNo, {String? locationName}) {
@@ -62,5 +71,11 @@ class ScannedItemEntity extends Equatable {
     plantCode,
     locationCode,
     locationName,
+    deptCode,
+    deptDescription,
+    plantDescription,
+    lastScanAt,
+    lastScannedBy,
+    totalScans,
   ];
 }

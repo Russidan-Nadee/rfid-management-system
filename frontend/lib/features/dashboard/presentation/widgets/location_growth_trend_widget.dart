@@ -188,6 +188,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < widget.growthTrend.trends.length) {
@@ -195,7 +196,10 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       widget.growthTrend.trends[index].period,
-                      style: const TextStyle(fontSize: 10),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   );
                 }
@@ -254,7 +258,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                 if (index < widget.growthTrend.trends.length) {
                   final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
-                    '${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
+                    'Year ${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
                     const TextStyle(
                       color: Colors.white,
                       fontSize: 12,

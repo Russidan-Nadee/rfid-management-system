@@ -277,15 +277,17 @@ class AssetModel extends BaseModel {
       const query = `
          INSERT INTO asset_master (
             asset_no, description, plant_code, location_code,
+            dept_code,
             serial_no, inventory_no, quantity, unit_code,
             status, created_by, created_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
          assetData.asset_no,
          assetData.description,
          assetData.plant_code,
          assetData.location_code,
+         assetData.dept_code,
          assetData.serial_no,
          assetData.inventory_no,
          assetData.quantity,
@@ -346,6 +348,50 @@ class AssetModel extends BaseModel {
          ORDER BY h.changed_at DESC
       `;
       return this.executeQuery(query, [assetNo]);
+   }
+   async getAssetWithDetails(assetNo) {
+      const query = `
+      SELECT 
+         a.*,
+         p.description as plant_description,
+         l.description as location_description,
+         d.dept_code,
+         d.description as dept_description,
+         u.name as unit_name,
+         usr.full_name as created_by_name,
+         last_scan.scanned_at as last_scan_at,
+         last_scan.scanned_by_name as last_scanned_by,
+         scan_count.total_scans
+      FROM asset_master a
+      LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
+      LEFT JOIN mst_location l ON a.location_code = l.location_code
+      LEFT JOIN mst_department d ON a.dept_code = d.dept_code
+      LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
+      LEFT JOIN mst_user usr ON a.created_by = usr.user_id
+      LEFT JOIN (
+         SELECT 
+            s.asset_no,
+            s.scanned_at,
+            u2.full_name as scanned_by_name
+         FROM asset_scan_log s
+         LEFT JOIN mst_user u2 ON s.scanned_by = u2.user_id
+         WHERE s.asset_no = ?
+         ORDER BY s.scanned_at DESC
+         LIMIT 1
+      ) last_scan ON a.asset_no = last_scan.asset_no
+      LEFT JOIN (
+         SELECT 
+            asset_no,
+            COUNT(*) as total_scans
+         FROM asset_scan_log
+         WHERE asset_no = ?
+         GROUP BY asset_no
+      ) scan_count ON a.asset_no = scan_count.asset_no
+      WHERE a.asset_no = ?
+   `;
+
+      const results = await this.executeQuery(query, [assetNo, assetNo, assetNo]);
+      return results[0] || null;
    }
 }
 

@@ -9,7 +9,8 @@ const {
    unitController,
    userController,
    assetController,
-   scanController
+   scanController,
+   departmentController
 } = require('../controllers/controller');
 
 // Import dashboard controller (separate file)
@@ -129,6 +130,10 @@ router.get('/dashboard/audit-progress',
    auditProgressValidator,
    dashboardController.getAuditProgress
 );
+
+// Department Routes
+router.get('/departments', generalRateLimit, departmentController.getDepartments);
+router.get('/departments/:dept_code', generalRateLimit, departmentController.getDepartmentByCode);
 
 // API Documentation สำหรับ Dashboard APIs (ENHANCED)
 router.get('/dashboard/docs', (req, res) => {

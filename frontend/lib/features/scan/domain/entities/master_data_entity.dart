@@ -45,12 +45,31 @@ class UnitEntity extends Equatable {
   String toString() => '$unitCode - $name';
 }
 
+class DepartmentEntity extends Equatable {
+  final String deptCode;
+  final String description;
+  final String? plantCode;
+
+  const DepartmentEntity({
+    required this.deptCode,
+    required this.description,
+    this.plantCode,
+  });
+
+  @override
+  List<Object?> get props => [deptCode, description, plantCode];
+
+  @override
+  String toString() => '$deptCode - $description';
+}
+
 class CreateAssetRequest extends Equatable {
   final String assetNo;
   final String description;
   final String plantCode;
   final String locationCode;
   final String unitCode;
+  final String? deptCode;
   final String? serialNo;
   final String? inventoryNo;
   final double? quantity;
@@ -62,6 +81,7 @@ class CreateAssetRequest extends Equatable {
     required this.plantCode,
     required this.locationCode,
     required this.unitCode,
+    this.deptCode,
     this.serialNo,
     this.inventoryNo,
     this.quantity,
@@ -75,6 +95,7 @@ class CreateAssetRequest extends Equatable {
     plantCode,
     locationCode,
     unitCode,
+    deptCode,
     serialNo,
     inventoryNo,
     quantity,

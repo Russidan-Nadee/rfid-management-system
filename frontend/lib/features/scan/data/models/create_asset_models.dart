@@ -39,6 +39,22 @@ class UnitModel extends UnitEntity {
   }
 }
 
+class DepartmentModel extends DepartmentEntity {
+  const DepartmentModel({
+    required super.deptCode,
+    required super.description,
+    super.plantCode,
+  });
+
+  factory DepartmentModel.fromJson(Map<String, dynamic> json) {
+    return DepartmentModel(
+      deptCode: json['dept_code'] ?? '',
+      description: json['description'] ?? '',
+      plantCode: json['plant_code'],
+    );
+  }
+}
+
 class CreateAssetRequestModel {
   final CreateAssetRequest request;
 
@@ -54,6 +70,7 @@ class CreateAssetRequestModel {
       'created_by': request.createdBy,
     };
 
+    if (request.deptCode != null) json['dept_code'] = request.deptCode;
     if (request.serialNo != null) json['serial_no'] = request.serialNo;
     if (request.inventoryNo != null) json['inventory_no'] = request.inventoryNo;
     if (request.quantity != null) json['quantity'] = request.quantity;

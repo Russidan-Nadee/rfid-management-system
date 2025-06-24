@@ -17,6 +17,27 @@ class ScanRepositoryImpl implements ScanRepository {
     required this.apiService,
     required this.mockRfidDataSource,
   });
+  @override
+  Future<List<DepartmentEntity>> getDepartments() async {
+    try {
+      final response = await apiService.get<List<dynamic>>(
+        '/departments',
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!
+            .map(
+              (json) => DepartmentModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception('Failed to fetch departments');
+      }
+    } catch (e) {
+      throw Exception('Failed to get departments: $e');
+    }
+  }
 
   // Modified method to include cached location data
   @override

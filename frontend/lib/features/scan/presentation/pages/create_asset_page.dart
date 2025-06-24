@@ -65,6 +65,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
   String? _selectedPlant;
   String? _selectedLocation;
   String? _selectedUnit;
+  String? _selectedDepartment;
 
   bool get _hasLocationData => widget.locationCode != null;
 
@@ -413,6 +414,33 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                               value == null ? 'Please select a location' : null,
                         ),
                       ],
+
+                      const SizedBox(height: 16),
+
+                      // Department Dropdown
+                      _buildDropdownField<String>(
+                        value: _selectedDepartment,
+                        label: 'Department',
+                        icon: Icons.corporate_fare,
+                        isRequired: false,
+                        items: state.departments
+                            .map(
+                              (department) => DropdownMenuItem(
+                                value: department.deptCode,
+                                child: Text(department.toString()),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedDepartment = value);
+                          if (value != null) {
+                            context.read<AssetCreationBloc>().add(
+                              DepartmentSelected(value),
+                            );
+                          }
+                        },
+                        validator: null, // Optional field
+                      ),
                     ],
                   ),
 
@@ -780,6 +808,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           plantCode: _selectedPlant!,
           locationCode: widget.locationCode ?? _selectedLocation!,
           unitCode: _selectedUnit!,
+          deptCode: _selectedDepartment, // เพิ่มนี้
           serialNo: _serialController.text.isNotEmpty
               ? _serialController.text
               : null,

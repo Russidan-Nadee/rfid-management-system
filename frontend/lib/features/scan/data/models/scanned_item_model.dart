@@ -1,4 +1,3 @@
-// Path: frontend/lib/features/scan/data/models/scanned_item_model.dart
 import '../../domain/entities/scanned_item_entity.dart';
 
 class ScannedItemModel extends ScannedItemEntity {
@@ -13,10 +12,17 @@ class ScannedItemModel extends ScannedItemEntity {
     super.createdAt,
     required super.status,
     super.isUnknown,
-    // เพิ่ม location parameters
+
     super.plantCode,
     super.locationCode,
     super.locationName,
+
+    super.deptCode,
+    super.deptDescription,
+    super.plantDescription,
+    super.lastScanAt,
+    super.lastScannedBy,
+    super.totalScans,
   });
 
   factory ScannedItemModel.fromJson(Map<String, dynamic> json) {
@@ -32,10 +38,21 @@ class ScannedItemModel extends ScannedItemEntity {
           ? DateTime.tryParse(json['created_at'])
           : null,
       status: json['status'] ?? 'A',
-      // เพิ่ม location parsing (ตรงกับ Backend)
+
       plantCode: json['plant_code'],
       locationCode: json['location_code'],
-      locationName: json['location_description'], // แก้ให้ตรงกับ Backend
+      locationName: json['location_description'],
+
+      deptCode: json['dept_code'],
+      deptDescription: json['dept_description'],
+      plantDescription: json['plant_description'],
+      lastScanAt: json['last_scan_at'] != null
+          ? DateTime.tryParse(json['last_scan_at'])
+          : null,
+      lastScannedBy: json['last_scanned_by'],
+      totalScans: json['total_scans'] != null
+          ? int.tryParse(json['total_scans'].toString())
+          : null,
     );
   }
 
@@ -70,10 +87,17 @@ class ScannedItemModel extends ScannedItemEntity {
       'status': status,
     };
 
-    // เพิ่ม location ถ้ามี
     if (plantCode != null) json['plant_code'] = plantCode;
     if (locationCode != null) json['location_code'] = locationCode;
     if (locationName != null) json['location_name'] = locationName;
+
+    if (deptCode != null) json['dept_code'] = deptCode;
+    if (deptDescription != null) json['dept_description'] = deptDescription;
+    if (plantDescription != null) json['plant_description'] = plantDescription;
+    if (lastScanAt != null)
+      json['last_scan_at'] = lastScanAt!.toIso8601String();
+    if (lastScannedBy != null) json['last_scanned_by'] = lastScannedBy;
+    if (totalScans != null) json['total_scans'] = totalScans;
 
     return json;
   }

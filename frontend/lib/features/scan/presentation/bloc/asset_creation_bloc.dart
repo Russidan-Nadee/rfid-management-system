@@ -22,6 +22,13 @@ class PlantSelected extends AssetCreationEvent {
   List<Object> get props => [plantCode];
 }
 
+class DepartmentSelected extends AssetCreationEvent {
+  final String deptCode;
+  DepartmentSelected(this.deptCode);
+  @override
+  List<Object> get props => [deptCode];
+}
+
 class CreateAssetSubmitted extends AssetCreationEvent {
   final CreateAssetRequest request;
   CreateAssetSubmitted(this.request);
@@ -43,15 +50,17 @@ class MasterDataLoaded extends AssetCreationState {
   final List<PlantEntity> plants;
   final List<LocationEntity> locations;
   final List<UnitEntity> units;
+  final List<DepartmentEntity> departments;
 
   MasterDataLoaded({
     required this.plants,
     required this.locations,
     required this.units,
+    required this.departments,
   });
 
   @override
-  List<Object> get props => [plants, locations, units];
+  List<Object> get props => [plants, locations, units, departments];
 }
 
 class AssetCreating extends AssetCreationState {}
@@ -83,6 +92,7 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
   }) : super(AssetCreationInitial()) {
     on<LoadMasterData>(_onLoadMasterData);
     on<PlantSelected>(_onPlantSelected);
+    on<DepartmentSelected>(_onDepartmentSelected);
     on<CreateAssetSubmitted>(_onCreateAssetSubmitted);
   }
 
@@ -94,8 +104,16 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
     try {
       final plants = await getMasterDataUseCase.getPlants();
       final units = await getMasterDataUseCase.getUnits();
+      final departments = await getMasterDataUseCase.getDepartments();
 
-      emit(MasterDataLoaded(plants: plants, locations: [], units: units));
+      emit(
+        MasterDataLoaded(
+          plants: plants,
+          locations: [],
+          units: units,
+          departments: departments,
+        ),
+      );
     } catch (e) {
       emit(AssetCreationError('Failed to load master data: $e'));
     }
@@ -116,11 +134,31 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
             plants: currentState.plants,
             locations: locations,
             units: currentState.units,
+            departments: currentState.departments,
           ),
         );
       } catch (e) {
         emit(AssetCreationError('Failed to load locations: $e'));
       }
+    }
+  }
+
+  Future<void> _onDepartmentSelected(
+    DepartmentSelected event,
+    Emitter<AssetCreationState> emit,
+  ) async {
+    // Handle department selection if needed
+    // For now, just maintain current state
+    if (state is MasterDataLoaded) {
+      final currentState = state as MasterDataLoaded;
+      emit(
+        MasterDataLoaded(
+          plants: currentState.plants,
+          locations: currentState.locations,
+          units: currentState.units,
+          departments: currentState.departments,
+        ),
+      );
     }
   }
 

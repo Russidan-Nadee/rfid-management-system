@@ -13,9 +13,10 @@ abstract class ScanRepository {
   );
   Future<void> logAssetScan(String assetNo, String scannedBy);
 
-  // New methods for asset creation
+  // Asset creation methods
   Future<ScannedItemEntity> createAsset(CreateAssetRequest request);
   Future<List<PlantEntity>> getPlants();
   Future<List<LocationEntity>> getLocationsByPlant(String plantCode);
   Future<List<UnitEntity>> getUnits();
+  Future<List<DepartmentEntity>> getDepartments();
 }

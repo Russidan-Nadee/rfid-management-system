@@ -1,5 +1,7 @@
 // Path: backend/src/controllers/controller.js
-const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../services/service');
+const { PlantService, LocationService, UnitService, UserService, AssetService, DepartmentService } = require('../services/service');
+
+const departmentService = new DepartmentService();
 
 // Initialize services
 const plantService = new PlantService();
@@ -7,6 +9,47 @@ const locationService = new LocationService();
 const unitService = new UnitService();
 const userService = new UserService();
 const assetService = new AssetService();
+
+// Department Controller
+const departmentController = {
+   async getDepartments(req, res) {
+      try {
+         const { page = 1, limit = 50, plant_code } = req.query;
+
+         let departments;
+         let totalCount;
+
+         if (plant_code) {
+            departments = await departmentService.getDepartmentsByPlant(plant_code);
+            totalCount = departments.length;
+         } else {
+            departments = await departmentService.getDepartmentsWithPlant();
+            totalCount = departments.length;
+         }
+
+         const paginatedDepartments = applyPagination(departments, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
+
+         return sendResponse(res, 200, true, 'Departments retrieved successfully', paginatedDepartments, meta);
+      } catch (error) {
+         console.error('Get departments error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   async getDepartmentByCode(req, res) {
+      try {
+         const { dept_code } = req.params;
+         const department = await departmentService.getDepartmentByCode(dept_code);
+
+         return sendResponse(res, 200, true, 'Department retrieved successfully', department);
+      } catch (error) {
+         console.error('Get department by code error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   }
+};
 
 // Response helper function
 const sendResponse = (res, statusCode, success, message, data = null, meta = null) => {
@@ -445,6 +488,7 @@ const assetController = {
             description,
             plant_code,
             location_code,
+            dept_code,
             serial_no,
             inventory_no,
             quantity = 1,
@@ -488,6 +532,7 @@ const assetController = {
             description,
             plant_code,
             location_code,
+            dept_code,
             serial_no,
             inventory_no,
             quantity,
@@ -620,5 +665,6 @@ module.exports = {
    userController,
    assetController,
    dashboardController,
-   scanController
+   scanController,
+   departmentController
 };

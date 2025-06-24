@@ -107,6 +107,38 @@ class AssetDetailView extends StatelessWidget {
 
               const SizedBox(height: 16),
 
+              // Location Information
+              _buildSectionCard(
+                theme: theme,
+                title: 'Location Information',
+                icon: Icons.location_on,
+                children: [
+                  _buildDetailRow(
+                    theme,
+                    'Plant',
+                    item.plantDescription != null
+                        ? item.plantDescription ?? '-'
+                        : item.plantCode ?? '-',
+                  ),
+                  _buildDetailRow(
+                    theme,
+                    'Location',
+                    item.locationName != null
+                        ? item.locationName ?? '-'
+                        : item.locationCode ?? '-',
+                  ),
+                  _buildDetailRow(
+                    theme,
+                    'Department',
+                    item.deptDescription != null
+                        ? item.deptDescription ?? '-'
+                        : item.deptCode ?? '-',
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
               // Quantity Information
               _buildSectionCard(
                 theme: theme,
@@ -119,6 +151,29 @@ class AssetDetailView extends StatelessWidget {
                     item.quantity != null ? '${item.quantity}' : '-',
                   ),
                   _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Scan Activity Information
+              _buildSectionCard(
+                theme: theme,
+                title: 'Scan Activity',
+                icon: Icons.qr_code_scanner,
+                children: [
+                  _buildDetailRow(
+                    theme,
+                    'Last Scan',
+                    item.lastScanAt != null
+                        ? Helpers.formatDateTime(item.lastScanAt)
+                        : 'Never scanned',
+                  ),
+                  _buildDetailRow(
+                    theme,
+                    'Scanned By',
+                    item.lastScannedBy ?? '-',
+                  ),
                 ],
               ),
 

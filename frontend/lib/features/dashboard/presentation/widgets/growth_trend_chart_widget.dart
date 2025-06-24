@@ -175,6 +175,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
+              reservedSize: 30,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < widget.growthTrend.trends.length) {
@@ -182,7 +183,10 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       widget.growthTrend.trends[index].period,
-                      style: const TextStyle(fontSize: 10),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   );
                 }
@@ -206,7 +210,6 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             dotData: FlDotData(
               show: true,
               getDotPainter: (spot, percent, barData, index) {
-                // เพิ่ม check index ก่อนใช้
                 if (index < widget.growthTrend.trends.length) {
                   final trend = widget.growthTrend.trends[index];
                   return FlDotCirclePainter(
@@ -220,7 +223,6 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                     strokeColor: Colors.white,
                   );
                 }
-                // fallback ถ้า index เกิน
                 return FlDotCirclePainter(
                   radius: 4,
                   color: AppColors.primary,
@@ -243,7 +245,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 if (index < widget.growthTrend.trends.length) {
                   final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
-                    '${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
+                    'Year ${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
                     const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
