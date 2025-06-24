@@ -109,80 +109,83 @@ class DepartmentService {
          const startYear = currentYear - 4; // 5 ปีย้อนหลัง (รวมปีปัจจุบัน)
          const endYear = currentYear;
 
-         // Query เพื่อนับจำนวน assets ที่สร้างในแต่ละปี (ไม่ใช่สะสม)
-         let yearlyCountQuery = `
-      SELECT 
-        year_data.year,
-        COALESCE(COUNT(a.asset_no), 0) as yearly_count,
-        d.dept_code,
-        d.description as dept_description
-      FROM (
-        SELECT ${startYear} as year
-        UNION SELECT ${startYear + 1}
-        UNION SELECT ${startYear + 2}
-        UNION SELECT ${startYear + 3}
-        UNION SELECT ${startYear + 4}
-      ) year_data
-      LEFT JOIN asset_master a ON YEAR(a.created_at) = year_data.year
-    `;
+         // Query เพื่อดึงข้อมูลสะสมสำหรับแต่ละปี
+         const trends = await this.model.executeQuery(`
+         SELECT 
+            year_range.year,
+            COALESCE(COUNT(a.asset_no), 0) as asset_count,
+            d.dept_code,
+            d.description as dept_description
+         FROM (
+            SELECT ${startYear} as year
+            UNION SELECT ${startYear + 1}
+            UNION SELECT ${startYear + 2}
+            UNION SELECT ${startYear + 3}
+            UNION SELECT ${startYear + 4}
+         ) year_range
+         LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
+         ${deptCode ? 'AND a.dept_code = ?' : ''}
+         LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
+         ${deptCode ? 'WHERE a.dept_code = ?' : ''}
+         GROUP BY year_range.year, d.dept_code, d.description
+         ORDER BY year_range.year
+      `, deptCode ? [deptCode, deptCode] : []);
 
-         const params = [];
+         // กรณีที่ไม่มี department code หรือไม่มีข้อมูล ให้ใช้ query แบบง่าย
+         let finalTrends = [];
+         if (!deptCode || trends.length === 0) {
+            // Query สำหรับ all departments หรือกรณีไม่มีข้อมูล
+            const allAssetTrends = await this.model.executeQuery(`
+            SELECT 
+               year_range.year,
+               COALESCE(COUNT(a.asset_no), 0) as asset_count
+            FROM (
+               SELECT ${startYear} as year
+               UNION SELECT ${startYear + 1}
+               UNION SELECT ${startYear + 2}
+               UNION SELECT ${startYear + 3}
+               UNION SELECT ${startYear + 4}
+            ) year_range
+            LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
+            ${deptCode ? 'AND a.dept_code = ?' : ''}
+            GROUP BY year_range.year
+            ORDER BY year_range.year
+         `, deptCode ? [deptCode] : []);
 
-         if (deptCode) {
-            yearlyCountQuery += ` AND a.dept_code = ?`;
-            params.push(deptCode);
+            finalTrends = allAssetTrends;
+         } else {
+            finalTrends = trends;
          }
 
-         yearlyCountQuery += `
-      LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
-    `;
-
-         if (deptCode) {
-            yearlyCountQuery += ` WHERE d.dept_code = ?`;
-            params.push(deptCode);
-         }
-
-         yearlyCountQuery += `
-      GROUP BY year_data.year, d.dept_code, d.description
-      ORDER BY year_data.year
-    `;
-
-         const yearlyData = await this.model.executeQuery(yearlyCountQuery, params);
-
-         // คำนวณข้อมูลสะสมและ growth percentage
+         // สร้างข้อมูลสำหรับแต่ละปี
          const processedTrends = [];
-         let cumulativeCount = 0;
-         let previousCumulativeCount = 0;
+         let previousCount = 0;
 
          for (let currentYearLoop = startYear; currentYearLoop <= endYear; currentYearLoop++) {
             // หาข้อมูลของปีนี้
-            const yearData = yearlyData.find(item => item.year === currentYearLoop) || {
+            const yearData = finalTrends.find(trend => trend.year === currentYearLoop) || {
                year: currentYearLoop,
-               yearly_count: 0,
+               asset_count: 0,
                dept_code: deptCode || '',
                dept_description: ''
             };
 
-            // คำนวณจำนวนสะสม
-            cumulativeCount += (yearData.yearly_count || 0);
-
-            // คำนวณ growth percentage เทียบกับปีก่อนหน้า
+            // คำนวณ growth percentage (เปรียบเทียบกับปีก่อนหน้า)
+            const currentCount = yearData.asset_count || 0;
             const growthPercentage = currentYearLoop === startYear ? 0 :
-               previousCumulativeCount === 0 ?
-                  (cumulativeCount > 0 ? 100 : 0) :
-                  this.calculateGrowthPercentage(cumulativeCount, previousCumulativeCount);
+               this.calculateGrowthPercentage(currentCount, previousCount);
 
             processedTrends.push({
-               period: currentYearLoop.toString(),
+               period: currentYearLoop.toString(), // แสดงเป็นปี เช่น "2021", "2022"
                month_year: currentYearLoop.toString(),
-               asset_count: cumulativeCount, // จำนวนสะสมถึงปีนี้
+               asset_count: currentCount, // จำนวนสะสมถึงปีนี้
                growth_percentage: growthPercentage,
-               cumulative_count: cumulativeCount,
+               cumulative_count: currentCount, // เหมือนกับ asset_count สำหรับ yearly
                dept_code: yearData.dept_code || '',
                dept_description: yearData.dept_description || ''
             });
 
-            previousCumulativeCount = cumulativeCount;
+            previousCount = currentCount;
          }
 
          return {
