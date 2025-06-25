@@ -1,9 +1,9 @@
-// Path: src/services/departmentService.js
+// Path: backend/src/services/departmentService.js
 const prisma = require('../lib/prisma');
 
 class DepartmentService {
    constructor() {
-      // No need for separate model, use Prisma directly
+      // ใช้ Prisma โดยตรง ไม่ต้องใช้ model แยก
    }
 
    async getAllDepartments() {
@@ -45,45 +45,52 @@ class DepartmentService {
       try {
          return await prisma.mst_department.findMany({
             include: {
-               // Note: Need to add relation in schema first
-               // For now, use raw query
+               mst_plant: {
+                  select: {
+                     description: true
+                  }
+               }
             },
             orderBy: { dept_code: 'asc' }
          });
       } catch (error) {
-         // Fallback to raw query since relation might not exist
-         try {
-            return await prisma.$queryRaw`
-               SELECT d.*, p.description as plant_description 
-               FROM mst_department d
-               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
-               ORDER BY d.dept_code
-            `;
-         } catch (rawError) {
-            throw new Error(`Error fetching departments with plant details: ${rawError.message}`);
-         }
+         throw new Error(`Error fetching departments with plant details: ${error.message}`);
       }
    }
 
    async getDepartmentStats() {
       try {
-         // Use raw query for complex aggregation
-         return await prisma.$queryRaw`
-            SELECT 
-               d.dept_code,
-               d.description as dept_description,
-               d.plant_code,
-               p.description as plant_description,
-               COUNT(a.asset_no) as asset_count,
-               SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as active_assets,
-               SUM(CASE WHEN a.status = 'I' THEN 1 ELSE 0 END) as inactive_assets,
-               SUM(CASE WHEN a.status = 'C' THEN 1 ELSE 0 END) as created_assets
-            FROM mst_department d
-            LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
-            LEFT JOIN asset_master a ON d.dept_code = a.dept_code
-            GROUP BY d.dept_code, d.description, d.plant_code, p.description
-            ORDER BY d.dept_code
-         `;
+         const departments = await prisma.mst_department.findMany({
+            select: {
+               dept_code: true,
+               description: true,
+               plant_code: true,
+               mst_plant: {
+                  select: {
+                     description: true
+                  }
+               },
+               asset_master: {
+                  select: {
+                     asset_no: true,
+                     status: true
+                  }
+               }
+            },
+            orderBy: { dept_code: 'asc' }
+         });
+
+         // Process the data to match expected format
+         return departments.map(dept => ({
+            dept_code: dept.dept_code,
+            dept_description: dept.description,
+            plant_code: dept.plant_code,
+            plant_description: dept.mst_plant?.description,
+            asset_count: dept.asset_master.length,
+            active_assets: dept.asset_master.filter(a => a.status === 'A').length,
+            inactive_assets: dept.asset_master.filter(a => a.status === 'I').length,
+            created_assets: dept.asset_master.filter(a => a.status === 'C').length
+         }));
       } catch (error) {
          throw new Error(`Error fetching department statistics: ${error.message}`);
       }
@@ -149,7 +156,7 @@ class DepartmentService {
          const endYear = currentYear;
 
          // Use raw query for complex year-based aggregation
-         const query = `
+         let query = `
             SELECT 
                year_range.year,
                COALESCE(COUNT(a.asset_no), 0) as asset_count,
@@ -163,14 +170,28 @@ class DepartmentService {
                UNION SELECT ${startYear + 4}
             ) year_range
             LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-            ${deptCode ? 'AND a.dept_code = ?' : ''}
+         `;
+
+         const params = [];
+         if (deptCode) {
+            query += ` AND a.dept_code = ?`;
+            params.push(deptCode);
+         }
+
+         query += `
             LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
-            ${deptCode ? 'WHERE d.dept_code = ?' : ''}
+         `;
+
+         if (deptCode) {
+            query += ` WHERE d.dept_code = ?`;
+            params.push(deptCode);
+         }
+
+         query += `
             GROUP BY year_range.year, d.dept_code, d.description
             ORDER BY year_range.year
          `;
 
-         const params = deptCode ? [deptCode, deptCode] : [];
          const yearlyData = await prisma.$queryRawUnsafe(query, ...params);
 
          // Process trends for growth calculations
@@ -230,7 +251,7 @@ class DepartmentService {
          const startYear = currentYear - 4;
          const endYear = currentYear;
 
-         const query = `
+         let query = `
             SELECT 
                year_range.year,
                COALESCE(COUNT(a.asset_no), 0) as asset_count,
@@ -247,15 +268,29 @@ class DepartmentService {
                UNION SELECT ${startYear + 4}
             ) year_range
             LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-            ${locationCode ? 'AND a.location_code = ?' : ''}
+         `;
+
+         const params = [];
+         if (locationCode) {
+            query += ` AND a.location_code = ?`;
+            params.push(locationCode);
+         }
+
+         query += `
             LEFT JOIN mst_location l ON ${locationCode ? 'a.location_code = l.location_code' : 'l.location_code IS NOT NULL'}
             LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-            ${locationCode ? 'WHERE a.location_code = ?' : ''}
+         `;
+
+         if (locationCode) {
+            query += ` WHERE a.location_code = ?`;
+            params.push(locationCode);
+         }
+
+         query += `
             GROUP BY year_range.year, l.location_code, l.description, p.plant_code, p.description
             ORDER BY year_range.year
          `;
 
-         const params = locationCode ? [locationCode, locationCode] : [];
          const trends = await prisma.$queryRawUnsafe(query, ...params);
 
          const processedTrends = [];
@@ -316,7 +351,7 @@ class DepartmentService {
 
    async getQuarterlyGrowth(deptCode = null, year = new Date().getFullYear()) {
       try {
-         const query = `
+         let query = `
             SELECT 
                QUARTER(a.created_at) as quarter,
                COUNT(*) as asset_count,
@@ -325,12 +360,19 @@ class DepartmentService {
             FROM asset_master a
             LEFT JOIN mst_department d ON a.dept_code = d.dept_code
             WHERE YEAR(a.created_at) = ?
-            ${deptCode ? 'AND a.dept_code = ?' : ''}
+         `;
+
+         const params = [year];
+         if (deptCode) {
+            query += ` AND a.dept_code = ?`;
+            params.push(deptCode);
+         }
+
+         query += `
             GROUP BY QUARTER(a.created_at), d.dept_code, d.description
             ORDER BY quarter, d.dept_code
          `;
 
-         const params = deptCode ? [year, deptCode] : [year];
          const quarterlyData = await prisma.$queryRawUnsafe(query, ...params);
 
          // Process quarterly data with growth calculations
@@ -376,7 +418,7 @@ class DepartmentService {
 
    async getLocationAnalytics(locationCode = null) {
       try {
-         const query = `
+         let query = `
             SELECT 
                l.location_code,
                l.description as location_description,
@@ -393,12 +435,19 @@ class DepartmentService {
             LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
             LEFT JOIN asset_master a ON l.location_code = a.location_code
             LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no
-            ${locationCode ? 'WHERE l.location_code = ?' : ''}
+         `;
+
+         const params = [];
+         if (locationCode) {
+            query += ` WHERE l.location_code = ?`;
+            params.push(locationCode);
+         }
+
+         query += `
             GROUP BY l.location_code, l.description, l.plant_code, p.description
             ORDER BY l.location_code
          `;
 
-         const params = locationCode ? [locationCode] : [];
          const locationStats = await prisma.$queryRawUnsafe(query, ...params);
 
          // Calculate analytics metrics
@@ -492,7 +541,7 @@ class DepartmentService {
 
    async getAuditProgress(deptCode = null) {
       try {
-         const query = `
+         let query = `
             SELECT 
                d.dept_code,
                d.description as dept_description,
@@ -505,12 +554,19 @@ class DepartmentService {
                ) as completion_percentage
             FROM mst_department d
             LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
-            ${deptCode ? 'WHERE d.dept_code = ?' : ''}
+         `;
+
+         const params = [];
+         if (deptCode) {
+            query += ` WHERE d.dept_code = ?`;
+            params.push(deptCode);
+         }
+
+         query += `
             GROUP BY d.dept_code, d.description
             ORDER BY d.dept_code
          `;
 
-         const params = deptCode ? [deptCode] : [];
          const auditData = await prisma.$queryRawUnsafe(query, ...params);
 
          // Convert BigInt values to numbers
@@ -550,7 +606,7 @@ class DepartmentService {
 
    async getDetailedAuditProgress(deptCode = null, auditStatus = null) {
       try {
-         const query = `
+         let query = `
             SELECT 
                a.asset_no,
                a.description as asset_description,
@@ -567,15 +623,26 @@ class DepartmentService {
             LEFT JOIN mst_department d ON a.dept_code = d.dept_code
             LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no
             WHERE a.status IN ('A', 'C')
-            ${deptCode ? 'AND a.dept_code = ?' : ''}
-            GROUP BY a.asset_no, a.description, a.dept_code, d.description
-            ${auditStatus ? 'HAVING audit_status = ?' : ''}
-            ORDER BY audit_status, days_since_audit DESC
          `;
 
          const params = [];
-         if (deptCode) params.push(deptCode);
-         if (auditStatus) params.push(auditStatus);
+         if (deptCode) {
+            query += ` AND a.dept_code = ?`;
+            params.push(deptCode);
+         }
+
+         query += `
+            GROUP BY a.asset_no, a.description, a.dept_code, d.description
+         `;
+
+         if (auditStatus) {
+            query += ` HAVING audit_status = ?`;
+            params.push(auditStatus);
+         }
+
+         query += `
+            ORDER BY audit_status, days_since_audit DESC
+         `;
 
          const detailedData = await prisma.$queryRawUnsafe(query, ...params);
 

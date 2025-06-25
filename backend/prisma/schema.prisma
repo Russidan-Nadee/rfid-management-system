@@ -22,16 +22,18 @@ model asset_master {
   created_by           String?                @db.VarChar(20)
   created_at           DateTime?              @db.DateTime(0)
   deactivated_at       DateTime?              @db.DateTime(0)
-  mst_plant            mst_plant?             @relation(fields: [plant_code], references: [plant_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_1")
-  mst_location         mst_location?          @relation(fields: [location_code], references: [location_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_2")
-  mst_unit             mst_unit?              @relation(fields: [unit_code], references: [unit_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_3")
+  mst_plant            mst_plant?             @relation(fields: [plant_code], references: [plant_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_1")
+  mst_location         mst_location?          @relation(fields: [location_code], references: [location_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_2")
+  mst_unit             mst_unit?              @relation(fields: [unit_code], references: [unit_code], onDelete: Restrict, onUpdate: Cascade, map: "asset_master_ibfk_3")
   mst_user             mst_user?              @relation(fields: [created_by], references: [user_id], onDelete: Restrict, map: "fk_asset_master_created_by")
+  mst_department       mst_department?        @relation(fields: [dept_code], references: [dept_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_dept_code")
   asset_scan_log       asset_scan_log[]
   asset_status_history asset_status_history[]
 
   @@index([unit_code], map: "fk_asset_master_unit_code")
   @@index([created_at], map: "idx_asset_master_created_at")
   @@index([created_by], map: "idx_asset_master_created_by")
+  @@index([dept_code], map: "idx_asset_master_dept_code")
   @@index([location_code], map: "idx_asset_master_location_code")
   @@index([plant_code], map: "idx_asset_master_plant_code")
   @@index([status], map: "idx_asset_master_status")
@@ -52,6 +54,7 @@ model asset_scan_log {
   @@index([asset_no], map: "fk_scan_asset")
   @@index([location_code], map: "fk_scan_location")
   @@index([scanned_by], map: "fk_scan_user")
+  @@index([scanned_at], map: "idx_asset_scan_log_scanned_at")
 }
 
 model asset_status_history {
@@ -66,6 +69,7 @@ model asset_status_history {
   mst_user     mst_user?     @relation(fields: [changed_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "asset_status_history_ibfk_2")
 
   @@index([asset_no], map: "asset_no")
+  @@index([changed_at], map: "idx_asset_status_history_changed_at")
   @@index([changed_by], map: "changed_by")
 }
 
@@ -91,9 +95,13 @@ model export_history {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model mst_department {
-  dept_code   String  @id @db.VarChar(10)
-  description String? @db.VarChar(255)
-  plant_code  String  @db.VarChar(10)
+  dept_code    String         @id @db.VarChar(10)
+  description  String?        @db.VarChar(255)
+  plant_code   String         @db.VarChar(10)
+  mst_plant    mst_plant      @relation(fields: [plant_code], references: [plant_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_mst_department_plant_code")
+  asset_master asset_master[]
+
+  @@index([plant_code], map: "idx_mst_department_plant_code")
 }
 
 model mst_location {
@@ -102,16 +110,18 @@ model mst_location {
   plant_code     String?          @db.VarChar(10)
   asset_master   asset_master[]
   asset_scan_log asset_scan_log[]
-  mst_plant      mst_plant?       @relation(fields: [plant_code], references: [plant_code], onDelete: NoAction, onUpdate: NoAction, map: "mst_location_ibfk_1")
+  mst_plant      mst_plant?       @relation(fields: [plant_code], references: [plant_code], onDelete: Restrict, onUpdate: Cascade, map: "mst_location_ibfk_1")
 
   @@index([plant_code], map: "plant_code")
+  @@index([plant_code], map: "idx_mst_location_plant_code")
 }
 
 model mst_plant {
-  plant_code   String         @id @db.VarChar(10)
-  description  String?        @db.VarChar(255)
-  asset_master asset_master[]
-  mst_location mst_location[]
+  plant_code     String           @id @db.VarChar(10)
+  description    String?          @db.VarChar(255)
+  asset_master   asset_master[]
+  mst_location   mst_location[]
+  mst_department mst_department[]
 
   @@index([description], map: "idx_mst_plant_description")
 }
@@ -160,6 +170,8 @@ model user_login_log {
   success    Boolean?                   @default(true)
   mst_user   mst_user?                  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_login_log_user")
 
+  @@index([event_type], map: "idx_user_login_log_event_type")
+  @@index([timestamp], map: "idx_user_login_log_timestamp")
   @@index([user_id], map: "fk_user_login_log_user")
 }
 

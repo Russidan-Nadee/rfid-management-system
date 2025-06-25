@@ -2,6 +2,7 @@
 const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../services/service');
 const DepartmentService = require('../services/departmentService');
 const ExportModel = require('../models/exportModel');
+const prisma = require('../lib/prisma');
 
 // Initialize services
 const plantService = new PlantService();
@@ -53,10 +54,14 @@ const getDateRange = (period = 'today') => {
    return { startDate, endDate };
 };
 
-// Calculate percentage change helper
+// Calculate percentage change helper - แก้ BigInt issue
 const calculatePercentageChange = (current, previous) => {
-   if (previous === 0) return current > 0 ? 100 : 0;
-   return Math.round(((current - previous) / previous) * 100);
+   // Convert BigInt to Number
+   const currentNum = typeof current === 'bigint' ? Number(current) : current;
+   const previousNum = typeof previous === 'bigint' ? Number(previous) : previous;
+
+   if (previousNum === 0) return currentNum > 0 ? 100 : 0;
+   return Math.round(((currentNum - previousNum) / previousNum) * 100);
 };
 
 // Standalone helper functions (moved outside object to avoid binding issues)
@@ -149,16 +154,15 @@ const dashboardController = {
             totalUsers
          ] = await Promise.all([
             // Asset counts (asset_master table)
-            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master'),
-            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['A']),
-            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['I']),
-            assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE YEAR(created_at) = YEAR(NOW())'),
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master`,
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE status = 'A'`,
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE status = 'I'`,
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE YEAR(created_at) = YEAR(NOW())`,
 
             // Current period - Scans (asset_scan_log table)
-            assetService.model.executeQuery(
-               'SELECT COUNT(*) as count FROM asset_scan_log WHERE scanned_at >= ? AND scanned_at <= ?',
-               [startDate, endDate]
-            ),
+            prisma.$queryRaw`
+               SELECT COUNT(*) as count FROM asset_scan_log 
+               WHERE scanned_at >= ${startDate} AND scanned_at <= ${endDate}`,
 
             // Current period - Exports (export_history table)
             exportModel.executeQuery(
@@ -171,10 +175,9 @@ const dashboardController = {
             ),
 
             // Previous period - Scans
-            assetService.model.executeQuery(
-               'SELECT COUNT(*) as count FROM asset_scan_log WHERE scanned_at >= ? AND scanned_at <= ?',
-               [prevStartDate, prevEndDate]
-            ),
+            prisma.$queryRaw`
+               SELECT COUNT(*) as count FROM asset_scan_log 
+               WHERE scanned_at >= ${prevStartDate} AND scanned_at <= ${prevEndDate}`,
 
             // Previous period - Exports
             exportModel.executeQuery(
@@ -187,12 +190,10 @@ const dashboardController = {
             ),
 
             // Chart data - Asset status breakdown
-            assetService.model.executeQuery(
-               'SELECT status, COUNT(*) as count FROM asset_master GROUP BY status'
-            ),
+            prisma.$queryRaw`SELECT status, COUNT(*) as count FROM asset_master GROUP BY status`,
 
             // Scan trend data (last 7 days)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   DATE(scanned_at) as scan_date,
                   COUNT(*) as scan_count
@@ -201,23 +202,23 @@ const dashboardController = {
                GROUP BY DATE(scanned_at)
                ORDER BY scan_date DESC
                LIMIT 7
-            `),
+            `,
 
             // Additional master data counts
-            plantService.model.executeQuery('SELECT COUNT(*) as count FROM mst_plant'),
-            locationService.model.executeQuery('SELECT COUNT(*) as count FROM mst_location'),
-            userService.model.executeQuery('SELECT COUNT(*) as count FROM mst_user')
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM mst_plant`,
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM mst_location`,
+            prisma.$queryRaw`SELECT COUNT(*) as count FROM mst_user`
          ]);
 
-         // Process current period results
-         const currentScansCount = currentScans[0]?.count || 0;
-         const currentExportSuccessCount = currentExportSuccess[0]?.count || 0;
-         const currentExportFailedCount = currentExportFailed[0]?.count || 0;
+         // Process current period results - Convert BigInt
+         const currentScansCount = Number(currentScans[0]?.count || 0);
+         const currentExportSuccessCount = Number(currentExportSuccess[0]?.count || 0);
+         const currentExportFailedCount = Number(currentExportFailed[0]?.count || 0);
 
-         // Process previous period results
-         const prevScansCount = prevScans[0]?.count || 0;
-         const prevExportSuccessCount = prevExportSuccess[0]?.count || 0;
-         const prevExportFailedCount = prevExportFailed[0]?.count || 0;
+         // Process previous period results - Convert BigInt
+         const prevScansCount = Number(prevScans[0]?.count || 0);
+         const prevExportSuccessCount = Number(prevExportSuccess[0]?.count || 0);
+         const prevExportFailedCount = Number(prevExportFailed[0]?.count || 0);
 
          // Calculate percentage changes
          const scansChange = calculatePercentageChange(currentScansCount, prevScansCount);
@@ -227,10 +228,11 @@ const dashboardController = {
          // Process asset status breakdown
          const statusBreakdown = { active: 0, inactive: 0, created: 0 };
          assetStatusBreakdown.forEach(item => {
+            const count = Number(item.count);
             switch (item.status) {
-               case 'A': statusBreakdown.active = item.count; break;
-               case 'I': statusBreakdown.inactive = item.count; break;
-               case 'C': statusBreakdown.created = item.count; break;
+               case 'A': statusBreakdown.active = count; break;
+               case 'I': statusBreakdown.inactive = count; break;
+               case 'C': statusBreakdown.created = count; break;
             }
          });
 
@@ -247,7 +249,7 @@ const dashboardController = {
 
             scanTrend.push({
                date: dateStr,
-               count: dayData ? dayData.scan_count : 0,
+               count: dayData ? Number(dayData.scan_count) : 0,
                day_name: date.toLocaleDateString('en-US', { weekday: 'short' })
             });
          }
@@ -256,22 +258,22 @@ const dashboardController = {
          const dashboardData = {
             overview: {
                total_assets: {
-                  value: totalAssets[0]?.count || 0,
+                  value: Number(totalAssets[0]?.count || 0),
                   change_percent: 0, // Asset totals don't change frequently
                   trend: 'stable'
                },
                active_assets: {
-                  value: activeAssets[0]?.count || 0,
+                  value: Number(activeAssets[0]?.count || 0),
                   change_percent: 0,
                   trend: 'stable'
                },
                inactive_assets: {
-                  value: inactiveAssets[0]?.count || 0,
+                  value: Number(inactiveAssets[0]?.count || 0),
                   change_percent: 0,
                   trend: 'stable'
                },
                created_assets: {
-                  value: createdAssets[0]?.count || 0,
+                  value: Number(createdAssets[0]?.count || 0),
                   change_percent: 0,
                   trend: 'stable'
                },
@@ -293,16 +295,16 @@ const dashboardController = {
                   trend: exportFailedChange > 0 ? 'up' : exportFailedChange < 0 ? 'down' : 'stable',
                   previous_value: prevExportFailedCount
                },
-               total_plants: totalPlants[0]?.count || 0,
-               total_locations: totalLocations[0]?.count || 0,
-               total_users: totalUsers[0]?.count || 0
+               total_plants: Number(totalPlants[0]?.count || 0),
+               total_locations: Number(totalLocations[0]?.count || 0),
+               total_users: Number(totalUsers[0]?.count || 0)
             },
             charts: {
                asset_status_pie: {
                   active: statusBreakdown.active,
                   inactive: statusBreakdown.inactive,
                   created: statusBreakdown.created,
-                  total: totalAssets[0]?.count || 0
+                  total: Number(totalAssets[0]?.count || 0)
                },
                scan_trend_7d: scanTrend
             },
@@ -339,29 +341,29 @@ const dashboardController = {
             ['F']
          );
 
-         if (failedExports[0]?.count > 0) {
+         if (Number(failedExports[0]?.count || 0) > 0) {
             alerts.push({
                id: 'failed-exports',
                type: 'export',
-               message: `${failedExports[0].count} export job(s) failed in the last 24 hours`,
+               message: `${Number(failedExports[0].count)} export job(s) failed in the last 24 hours`,
                severity: 'warning',
-               count: failedExports[0].count,
+               count: Number(failedExports[0].count),
                created_at: new Date().toISOString()
             });
          }
 
          // Check for inactive assets (asset_master table)
-         const inactiveAssets = await assetService.model.executeQuery(
-            'SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['I']
-         );
+         const inactiveAssets = await prisma.$queryRaw`
+            SELECT COUNT(*) as count FROM asset_master WHERE status = 'I'
+         `;
 
-         if (inactiveAssets[0]?.count > 0) {
+         if (Number(inactiveAssets[0]?.count || 0) > 0) {
             alerts.push({
                id: 'inactive-assets',
                type: 'asset',
-               message: `${inactiveAssets[0].count} asset(s) are currently inactive`,
+               message: `${Number(inactiveAssets[0].count)} asset(s) are currently inactive`,
                severity: 'info',
-               count: inactiveAssets[0].count,
+               count: Number(inactiveAssets[0].count),
                created_at: new Date().toISOString()
             });
          }
@@ -372,66 +374,66 @@ const dashboardController = {
             ['P']
          );
 
-         if (stuckExports[0]?.count > 0) {
+         if (Number(stuckExports[0]?.count || 0) > 0) {
             alerts.push({
                id: 'stuck-exports',
                type: 'export',
-               message: `${stuckExports[0].count} export job(s) have been pending for over 1 hour`,
+               message: `${Number(stuckExports[0].count)} export job(s) have been pending for over 1 hour`,
                severity: 'error',
-               count: stuckExports[0].count,
+               count: Number(stuckExports[0].count),
                created_at: new Date().toISOString()
             });
          }
 
          // Check for low scan activity (asset_scan_log table)
-         const todayScans = await assetService.model.executeQuery(
-            'SELECT COUNT(*) as count FROM asset_scan_log WHERE DATE(scanned_at) = CURDATE()'
-         );
+         const todayScans = await prisma.$queryRaw`
+            SELECT COUNT(*) as count FROM asset_scan_log WHERE DATE(scanned_at) = CURDATE()
+         `;
 
-         if (todayScans[0]?.count < 10) {
+         if (Number(todayScans[0]?.count || 0) < 10) {
             alerts.push({
                id: 'low-scan-activity',
                type: 'scan',
-               message: `Low scan activity today: only ${todayScans[0]?.count || 0} scans recorded`,
+               message: `Low scan activity today: only ${Number(todayScans[0]?.count || 0)} scans recorded`,
                severity: 'warning',
-               count: todayScans[0]?.count || 0,
+               count: Number(todayScans[0]?.count || 0),
                created_at: new Date().toISOString()
             });
          }
 
          // Check for assets without recent scans (asset_scan_log + asset_master)
-         const unscannedAssets = await assetService.model.executeQuery(`
+         const unscannedAssets = await prisma.$queryRaw`
             SELECT COUNT(DISTINCT a.asset_no) as count
             FROM asset_master a
             LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no 
                AND s.scanned_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             WHERE a.status = 'A' AND s.asset_no IS NULL
-         `);
+         `;
 
-         if (unscannedAssets[0]?.count > 0) {
+         if (Number(unscannedAssets[0]?.count || 0) > 0) {
             alerts.push({
                id: 'unscanned-assets',
                type: 'asset',
-               message: `${unscannedAssets[0].count} active asset(s) haven't been scanned in 30+ days`,
+               message: `${Number(unscannedAssets[0].count)} active asset(s) haven't been scanned in 30+ days`,
                severity: 'warning',
-               count: unscannedAssets[0].count,
+               count: Number(unscannedAssets[0].count),
                created_at: new Date().toISOString()
             });
          }
 
          // Check for assets with null location or plant (data quality alert)
-         const orphanedAssets = await assetService.model.executeQuery(
-            'SELECT COUNT(*) as count FROM asset_master WHERE (plant_code IS NULL OR location_code IS NULL) AND status = ?',
-            ['A']
-         );
+         const orphanedAssets = await prisma.$queryRaw`
+            SELECT COUNT(*) as count FROM asset_master 
+            WHERE (plant_code IS NULL OR location_code IS NULL) AND status = 'A'
+         `;
 
-         if (orphanedAssets[0]?.count > 0) {
+         if (Number(orphanedAssets[0]?.count || 0) > 0) {
             alerts.push({
                id: 'orphaned-assets',
                type: 'data_quality',
-               message: `${orphanedAssets[0].count} active asset(s) have missing plant or location information`,
+               message: `${Number(orphanedAssets[0].count)} active asset(s) have missing plant or location information`,
                severity: 'warning',
-               count: orphanedAssets[0].count,
+               count: Number(orphanedAssets[0].count),
                created_at: new Date().toISOString()
             });
          }
@@ -471,47 +473,47 @@ const dashboardController = {
 
          const [recentScans, recentExports] = await Promise.all([
             // Recent scans (asset_scan_log with joins)
-            assetService.model.executeQuery(`
-            SELECT 
-               s.scan_id,
-               s.asset_no,
-               s.scanned_at,
-               s.ip_address,
-               a.description as asset_description,
-               u.full_name as scanned_by_name,
-               l.description as location_description,
-               p.description as plant_description
-            FROM asset_scan_log s
-            LEFT JOIN asset_master a ON s.asset_no = a.asset_no
-            LEFT JOIN mst_user u ON s.scanned_by = u.user_id
-            LEFT JOIN mst_location l ON s.location_code = l.location_code
-            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-            WHERE s.scanned_at >= ?
-            ORDER BY s.scanned_at DESC
-            LIMIT 5
-         `, [startDate]),
+            prisma.$queryRaw`
+               SELECT 
+                  s.scan_id,
+                  s.asset_no,
+                  s.scanned_at,
+                  s.ip_address,
+                  a.description as asset_description,
+                  u.full_name as scanned_by_name,
+                  l.description as location_description,
+                  p.description as plant_description
+               FROM asset_scan_log s
+               LEFT JOIN asset_master a ON s.asset_no = a.asset_no
+               LEFT JOIN mst_user u ON s.scanned_by = u.user_id
+               LEFT JOIN mst_location l ON s.location_code = l.location_code
+               LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
+               WHERE s.scanned_at >= ${startDate}
+               ORDER BY s.scanned_at DESC
+               LIMIT 5
+            `,
 
             // Recent exports (export_history with user join)
             exportModel.executeQuery(`
-            SELECT 
-               e.export_id,
-               e.export_type,
-               e.status,
-               e.total_records,
-               e.created_at,
-               e.file_size,
-               u.full_name as user_name
-            FROM export_history e
-            LEFT JOIN mst_user u ON e.user_id = u.user_id
-            WHERE e.created_at >= ?
-            ORDER BY e.created_at DESC
-            LIMIT 5
-         `, [startDate])
+               SELECT 
+                  e.export_id,
+                  e.export_type,
+                  e.status,
+                  e.total_records,
+                  e.created_at,
+                  e.file_size,
+                  u.full_name as user_name
+               FROM export_history e
+               LEFT JOIN mst_user u ON e.user_id = u.user_id
+               WHERE e.created_at >= ?
+               ORDER BY e.created_at DESC
+               LIMIT 5
+            `, [startDate])
          ]);
 
          // Format recent scans using standalone helper functions
          const formattedScans = recentScans.map(scan => ({
-            id: scan.scan_id,
+            id: Number(scan.scan_id),
             asset_no: scan.asset_no,
             asset_description: scan.asset_description || 'Unknown Asset',
             scanned_at: scan.scanned_at,
@@ -530,7 +532,7 @@ const dashboardController = {
             status: exportJob.status,
             status_label: getStatusLabel(exportJob.status),
             total_records: exportJob.total_records || 0,
-            file_size: exportJob.file_size ? formatFileSize(exportJob.file_size) : null,
+            file_size: exportJob.file_size ? formatFileSize(Number(exportJob.file_size)) : null,
             created_at: exportJob.created_at,
             user_name: exportJob.user_name || 'Unknown User',
             formatted_time: new Date(exportJob.created_at).toLocaleString()
@@ -572,7 +574,7 @@ const dashboardController = {
             statusHistoryData
          ] = await Promise.all([
             // Assets by plant (mst_plant + asset_master)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   p.plant_code,
                   p.description as plant_description,
@@ -581,10 +583,10 @@ const dashboardController = {
                LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status IN ('A', 'C')
                GROUP BY p.plant_code, p.description
                ORDER BY p.plant_code
-            `),
+            `,
 
             // Assets by location (mst_location + asset_master + mst_plant)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   l.location_code,
                   l.description as location_description,
@@ -596,10 +598,10 @@ const dashboardController = {
                LEFT JOIN asset_master a ON l.location_code = a.location_code AND a.status IN ('A', 'C')
                GROUP BY l.location_code, l.description, l.plant_code, p.description
                ORDER BY l.location_code
-            `),
+            `,
 
             // Recent assets (asset_master with joins)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   a.*,
                   p.description as plant_description,
@@ -614,43 +616,49 @@ const dashboardController = {
                WHERE a.status IN ('A', 'C')
                ORDER BY a.created_at DESC
                LIMIT 5
-            `),
+            `,
 
             // Scan trend data for the selected period (asset_scan_log)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   DATE(scanned_at) as scan_date,
                   COUNT(*) as scan_count
                FROM asset_scan_log
-               WHERE scanned_at >= ?
+               WHERE scanned_at >= ${startDate}
                GROUP BY DATE(scanned_at)
                ORDER BY scan_date DESC
-            `, [startDate]),
+            `,
 
             // Status change activity (asset_status_history)
-            assetService.model.executeQuery(`
+            prisma.$queryRaw`
                SELECT 
                   DATE(changed_at) as change_date,
                   COUNT(*) as change_count
                FROM asset_status_history
-               WHERE changed_at >= ?
+               WHERE changed_at >= ${startDate}
                GROUP BY DATE(changed_at)
                ORDER BY change_date DESC
                LIMIT 7
-            `, [startDate])
+            `
          ]);
 
          const overviewData = {
-            assets_by_plant: assetsByPlant,
-            assets_by_location: assetsByLocation,
+            assets_by_plant: assetsByPlant.map(item => ({
+               ...item,
+               asset_count: Number(item.asset_count)
+            })),
+            assets_by_location: assetsByLocation.map(item => ({
+               ...item,
+               asset_count: Number(item.asset_count)
+            })),
             recent_assets: recentAssets,
             scan_trend: scanTrendData.map(item => ({
                date: item.scan_date.toISOString().split('T')[0],
-               count: item.scan_count
+               count: Number(item.scan_count)
             })),
             status_change_activity: statusHistoryData.map(item => ({
                date: item.change_date.toISOString().split('T')[0],
-               count: item.change_count
+               count: Number(item.change_count)
             })),
             period_info: {
                period,
@@ -683,17 +691,17 @@ const dashboardController = {
          ] = await Promise.all([
             // Asset statistics (asset_master)
             Promise.all([
-               assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master'),
-               assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['A']),
-               assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['I']),
-               assetService.model.executeQuery('SELECT COUNT(*) as count FROM asset_master WHERE status = ?', ['C'])
+               prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master`,
+               prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE status = 'A'`,
+               prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE status = 'I'`,
+               prisma.$queryRaw`SELECT COUNT(*) as count FROM asset_master WHERE status = 'C'`
             ]),
 
             // Period-specific scan stats (asset_scan_log)
-            assetService.model.executeQuery(
-               'SELECT COUNT(*) as period_scans FROM asset_scan_log WHERE scanned_at >= ? AND scanned_at <= ?',
-               [startDate, endDate]
-            ),
+            prisma.$queryRaw`
+               SELECT COUNT(*) as period_scans FROM asset_scan_log 
+               WHERE scanned_at >= ${startDate} AND scanned_at <= ${endDate}
+            `,
 
             // Period-specific export stats (export_history)
             Promise.all([
@@ -712,32 +720,32 @@ const dashboardController = {
             ]),
 
             // User activity stats (user_login_log)
-            assetService.model.executeQuery(
-               'SELECT COUNT(DISTINCT user_id) as active_users FROM user_login_log WHERE timestamp >= ? AND timestamp <= ? AND event_type = ?',
-               [startDate, endDate, 'login']
-            )
+            prisma.$queryRaw`
+               SELECT COUNT(DISTINCT user_id) as active_users FROM user_login_log 
+               WHERE timestamp >= ${startDate} AND timestamp <= ${endDate} AND event_type = 'login'
+            `
          ]);
 
          const quickStats = {
             assets: {
-               total: assetStats[0][0]?.count || 0,
-               active: assetStats[1][0]?.count || 0,
-               inactive: assetStats[2][0]?.count || 0,
-               created: assetStats[3][0]?.count || 0
+               total: Number(assetStats[0][0]?.count || 0),
+               active: Number(assetStats[1][0]?.count || 0),
+               inactive: Number(assetStats[2][0]?.count || 0),
+               created: Number(assetStats[3][0]?.count || 0)
             },
             scans: {
-               period_count: scanStats[0]?.period_scans || 0,
+               period_count: Number(scanStats[0]?.period_scans || 0),
                period: period
             },
             exports: {
-               pending: exportStats[0][0]?.count || 0,
-               completed: exportStats[1][0]?.count || 0,
-               failed: exportStats[2][0]?.count || 0,
-               total: (exportStats[0][0]?.count || 0) + (exportStats[1][0]?.count || 0) + (exportStats[2][0]?.count || 0),
+               pending: Number(exportStats[0][0]?.count || 0),
+               completed: Number(exportStats[1][0]?.count || 0),
+               failed: Number(exportStats[2][0]?.count || 0),
+               total: Number(exportStats[0][0]?.count || 0) + Number(exportStats[1][0]?.count || 0) + Number(exportStats[2][0]?.count || 0),
                period: period
             },
             users: {
-               active_in_period: userActivityStats[0]?.active_users || 0,
+               active_in_period: Number(userActivityStats[0]?.active_users || 0),
                period: period
             },
             period_info: {
@@ -764,49 +772,67 @@ const dashboardController = {
          const { plant_code, dept_code } = req.query;
 
          let departmentStats;
-         let whereConditions = [];
-         let params = [];
 
-         // Build WHERE conditions based on filters
-         if (plant_code) {
-            whereConditions.push('d.plant_code = ?');
-            params.push(plant_code);
+         if (plant_code || dept_code) {
+            // Use departmentService with filters
+            let whereConditions = [];
+            let params = [];
+
+            if (plant_code) {
+               whereConditions.push('d.plant_code = ?');
+               params.push(plant_code);
+            }
+
+            if (dept_code) {
+               whereConditions.push('d.dept_code = ?');
+               params.push(dept_code);
+            }
+
+            const whereClause = whereConditions.length > 0
+               ? `WHERE ${whereConditions.join(' AND ')}`
+               : '';
+
+            departmentStats = await prisma.$queryRawUnsafe(`
+               SELECT 
+                  d.dept_code,
+                  d.description as dept_description,
+                  d.plant_code,
+                  p.description as plant_description,
+                  COUNT(a.asset_no) as asset_count,
+                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+               FROM mst_department d
+               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+               ${whereClause}
+               GROUP BY d.dept_code, d.description, d.plant_code, p.description
+               ORDER BY asset_count DESC
+            `, ...params);
+         } else {
+            // Get all departments
+            departmentStats = await prisma.$queryRaw`
+               SELECT 
+                  d.dept_code,
+                  d.description as dept_description,
+                  d.plant_code,
+                  p.description as plant_description,
+                  COUNT(a.asset_no) as asset_count,
+                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+               FROM mst_department d
+               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+               LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+               GROUP BY d.dept_code, d.description, d.plant_code, p.description
+               ORDER BY asset_count DESC
+            `;
          }
-
-         if (dept_code) {
-            whereConditions.push('d.dept_code = ?');
-            params.push(dept_code);
-         }
-
-         const whereClause = whereConditions.length > 0
-            ? `WHERE ${whereConditions.join(' AND ')}`
-            : '';
-
-         // Get departments with asset counts and percentages
-         departmentStats = await departmentService.model.executeQuery(`
-         SELECT 
-            d.dept_code,
-            d.description as dept_description,
-            d.plant_code,
-            p.description as plant_description,
-            COUNT(a.asset_no) as asset_count,
-            ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
-         FROM mst_department d
-         LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
-         LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
-         ${whereClause}
-         GROUP BY d.dept_code, d.description, d.plant_code, p.description
-         ORDER BY asset_count DESC
-      `, params);
 
          // Calculate summary
-         const totalAssets = departmentStats.reduce((sum, dept) => sum + (dept.asset_count || 0), 0);
+         const totalAssets = departmentStats.reduce((sum, dept) => sum + Number(dept.asset_count || 0), 0);
          const totalDepartments = departmentStats.length;
 
          const pieChartData = departmentStats.map(dept => ({
             name: dept.dept_description || dept.dept_code,
-            value: dept.asset_count || 0,
-            percentage: dept.percentage || 0,
+            value: Number(dept.asset_count || 0),
+            percentage: Number(dept.percentage || 0),
             dept_code: dept.dept_code,
             plant_code: dept.plant_code,
             plant_description: dept.plant_description
@@ -840,14 +866,11 @@ const dashboardController = {
     * Get growth trends by department/location (Line Chart data)  
     * GET /api/v1/dashboard/growth-trends?dept_code=xxx&period=Q2&year=2024
     */
-   // Path: backend/src/controllers/dashboardController.js
-   // แก้ไข getGrowthTrends method
-
    async getGrowthTrends(req, res) {
       try {
          const {
             dept_code,
-            location_code, // เพิ่ม parameter นี้
+            location_code,
             period = 'Q2',
             year,
             start_date,
@@ -863,7 +886,6 @@ const dashboardController = {
          let trendsData;
          if (period === 'custom' && start_date && end_date) {
             if (location_code) {
-               // ใช้ location-specific method
                trendsData = await departmentService.getLocationAssetGrowthTrends(
                   location_code,
                   period,
@@ -872,7 +894,6 @@ const dashboardController = {
                   end_date
                );
             } else {
-               // ใช้ department method เดิม
                trendsData = await departmentService.getAssetGrowthTrends(
                   dept_code,
                   period,
@@ -905,7 +926,7 @@ const dashboardController = {
             cumulative_count: trend.cumulative_count || 0,
             dept_code: trend.dept_code || '',
             dept_description: trend.dept_description || '',
-            location_code: trend.location_code || '', // เพิ่มข้อมูล location
+            location_code: trend.location_code || '',
             location_description: trend.location_description || ''
          }));
 
@@ -928,6 +949,7 @@ const dashboardController = {
          return sendResponse(res, 500, false, error.message);
       }
    },
+
    /**
     * Get location analytics and utilization data
     * GET /api/v1/dashboard/location-analytics?location_code=xxx&include_trends=true

@@ -9,6 +9,31 @@ class ExportController {
    }
 
    /**
+    * Helper function to convert BigInt to Number in nested objects
+    */
+   convertBigIntToNumber(obj) {
+      if (obj === null || obj === undefined) return obj;
+
+      if (typeof obj === 'bigint') {
+         return Number(obj);
+      }
+
+      if (Array.isArray(obj)) {
+         return obj.map(item => this.convertBigIntToNumber(item));
+      }
+
+      if (typeof obj === 'object') {
+         const converted = {};
+         for (const [key, value] of Object.entries(obj)) {
+            converted[key] = this.convertBigIntToNumber(value);
+         }
+         return converted;
+      }
+
+      return obj;
+   }
+
+   /**
     * สร้าง export job ใหม่
     * POST /api/v1/export/assets
     */
@@ -43,15 +68,18 @@ class ExportController {
             exportConfig: JSON.stringify(exportConfig)
          });
 
+         // Convert BigInt before sending response
+         const convertedJob = this.convertBigIntToNumber(exportJob);
+
          res.status(201).json({
             success: true,
             message: 'Export job created successfully',
             data: {
-               export_id: exportJob.export_id,
-               export_type: exportJob.export_type,
-               status: exportJob.status,
-               created_at: exportJob.created_at,
-               expires_at: exportJob.expires_at
+               export_id: convertedJob.export_id,
+               export_type: convertedJob.export_type,
+               status: convertedJob.status,
+               created_at: convertedJob.created_at,
+               expires_at: convertedJob.expires_at
             },
             timestamp: new Date().toISOString()
          });
@@ -97,20 +125,23 @@ class ExportController {
             });
          }
 
+         // Convert BigInt before sending response
+         const convertedJob = this.convertBigIntToNumber(exportJob);
+
          res.status(200).json({
             success: true,
             message: 'Export job retrieved successfully',
             data: {
-               export_id: exportJob.export_id,
-               export_type: exportJob.export_type,
-               status: exportJob.status,
-               total_records: exportJob.total_records,
-               file_size: exportJob.file_size,
-               created_at: exportJob.created_at,
-               expires_at: exportJob.expires_at,
-               error_message: exportJob.error_message,
-               download_url: exportJob.status === 'C' && exportJob.file_path
-                  ? `/api/v1/export/download/${exportJob.export_id}`
+               export_id: convertedJob.export_id,
+               export_type: convertedJob.export_type,
+               status: convertedJob.status,
+               total_records: convertedJob.total_records,
+               file_size: convertedJob.file_size,
+               created_at: convertedJob.created_at,
+               expires_at: convertedJob.expires_at,
+               error_message: convertedJob.error_message,
+               download_url: convertedJob.status === 'C' && convertedJob.file_path
+                  ? `/api/v1/export/download/${convertedJob.export_id}`
                   : null
             },
             timestamp: new Date().toISOString()
@@ -205,7 +236,15 @@ class ExportController {
 
          res.setHeader('Content-Type', contentType);
          res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-         res.setHeader('Content-Length', exportJob.file_size);
+
+         // Convert BigInt to Number for file_size
+         const fileSize = typeof exportJob.file_size === 'bigint'
+            ? Number(exportJob.file_size)
+            : exportJob.file_size;
+
+         if (fileSize) {
+            res.setHeader('Content-Length', fileSize);
+         }
 
          // Stream ไฟล์ไปยัง client
          const fileStream = require('fs').createReadStream(exportJob.file_path);
@@ -250,19 +289,22 @@ class ExportController {
 
          const history = await this.exportService.getUserExportHistory(userId, options);
 
-         // แปลงข้อมูลให้เหมาะสำหรับ frontend
-         const formattedHistory = history.map(item => ({
-            export_id: item.export_id,
-            export_type: item.export_type,
-            status: item.status,
-            total_records: item.total_records,
-            file_size: item.file_size,
-            created_at: item.created_at,
-            expires_at: item.expires_at,
-            download_url: item.status === 'C' && item.file_path
-               ? `/api/v1/export/download/${item.export_id}`
-               : null
-         }));
+         // แปลงข้อมูลให้เหมาะสำหรับ frontend และ convert BigInt
+         const formattedHistory = history.map(item => {
+            const converted = this.convertBigIntToNumber(item);
+            return {
+               export_id: converted.export_id,
+               export_type: converted.export_type,
+               status: converted.status,
+               total_records: converted.total_records,
+               file_size: converted.file_size,
+               created_at: converted.created_at,
+               expires_at: converted.expires_at,
+               download_url: converted.status === 'C' && converted.file_path
+                  ? `/api/v1/export/download/${converted.export_id}`
+                  : null
+            };
+         });
 
          res.status(200).json({
             success: true,
@@ -368,37 +410,6 @@ class ExportController {
     * ทำความสะอาดไฟล์หมดอายุ (Admin only)
     * POST /api/v1/export/cleanup
     */
-   async cleanupExpiredFiles(req, res) {
-      try {
-         const { role } = req.user;
-
-         // ตรวจสอบสิทธิ์ admin
-         if (role !== 'admin') {
-            return res.status(403).json({
-               success: false,
-               message: 'Admin access required',
-               timestamp: new Date().toISOString()
-            });
-         }
-
-         const deletedCount = await this.exportService.cleanupExpiredFiles();
-
-         res.status(200).json({
-            success: true,
-            message: `Cleanup completed. ${deletedCount} files deleted.`,
-            data: { deleted_count: deletedCount },
-            timestamp: new Date().toISOString()
-         });
-
-      } catch (error) {
-         console.error('Cleanup expired files error:', error);
-         res.status(500).json({
-            success: false,
-            message: error.message,
-            timestamp: new Date().toISOString()
-         });
-      }
-   }
    async cleanupExpiredFiles(req, res) {
       try {
          const { role } = req.user;
@@ -540,111 +551,6 @@ class ExportController {
             message: error.message,
             timestamp: new Date().toISOString()
          });
-      }
-   }
-
-   /**
-    * สร้าง export job ใหม่ (อัพเดทเพื่อลบไฟล์เก่าหลังสร้างใหม่)
-    */
-   async createExport(req, res) {
-      try {
-         const { exportType, exportConfig } = req.body;
-         const { userId } = req.user;
-
-         // Validate export type
-         const validTypes = ['assets', 'scan_logs', 'status_history'];
-         if (!validTypes.includes(exportType)) {
-            return res.status(400).json({
-               success: false,
-               message: 'Invalid export type',
-               timestamp: new Date().toISOString()
-            });
-         }
-
-         // Validate export config
-         if (!exportConfig || typeof exportConfig !== 'object') {
-            return res.status(400).json({
-               success: false,
-               message: 'Export configuration is required',
-               timestamp: new Date().toISOString()
-            });
-         }
-
-         // ตรวจสอบและลบไฟล์เก่าของ user นี้ (optional)
-         await this._cleanupUserOldFiles(userId);
-
-         // สร้าง export job
-         const exportJob = await this.exportService.createExportJob({
-            userId,
-            exportType,
-            exportConfig: JSON.stringify(exportConfig)
-         });
-
-         res.status(201).json({
-            success: true,
-            message: 'Export job created successfully',
-            data: {
-               export_id: exportJob.export_id,
-               export_type: exportJob.export_type,
-               status: exportJob.status,
-               created_at: exportJob.created_at,
-               expires_at: exportJob.expires_at
-            },
-            timestamp: new Date().toISOString()
-         });
-
-      } catch (error) {
-         console.error('Create export error:', error);
-
-         const statusCode = error.message.includes('pending') ? 409 : 500;
-
-         res.status(statusCode).json({
-            success: false,
-            message: error.message,
-            timestamp: new Date().toISOString()
-         });
-      }
-   }
-
-   /**
-    * ลบไฟล์เก่าของ user (เก็บไว้แค่ 3 ไฟล์ล่าสุด)
-    * @private
-    */
-   async _cleanupUserOldFiles(userId) {
-      try {
-         const query = `
-            SELECT export_id, file_path 
-            FROM export_history 
-            WHERE user_id = ? 
-            AND status = 'C' 
-            AND file_path IS NOT NULL
-            ORDER BY created_at DESC
-            LIMIT 999 OFFSET 3
-         `;
-
-         const oldExports = await this.exportService.exportModel.executeQuery(query, [userId]);
-
-         for (const exportJob of oldExports) {
-            try {
-               // ลบไฟล์
-               if (exportJob.file_path) {
-                  await fs.unlink(exportJob.file_path);
-               }
-
-               // อัพเดท record ให้ file_path เป็น null
-               await this.exportService.exportModel.updateExportJob(exportJob.export_id, {
-                  file_path: null,
-                  file_size: null
-               });
-
-               console.log(`Cleaned up old export file: ${exportJob.file_path}`);
-            } catch (error) {
-               console.error(`Failed to cleanup export ${exportJob.export_id}:`, error);
-            }
-         }
-      } catch (error) {
-         console.error('Failed to cleanup user old files:', error);
-         // ไม่ throw error เพราะไม่ควรขัดขวางการสร้าง export ใหม่
       }
    }
 }

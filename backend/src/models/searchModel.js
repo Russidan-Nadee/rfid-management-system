@@ -1,18 +1,17 @@
-// Path: src/models/searchModel.js
-const { BaseModel } = require('./model');
-const SearchUtils = require('../utils/searchUtils');
+// Path: backend/src/models/searchModel.js
 const prisma = require('../lib/prisma');
+const SearchUtils = require('../utils/searchUtils');
 
 /**
  * 🔍 SEARCH MODEL
  * จัดการ database queries สำหรับ search functionality
  * - Optimized สำหรับความเร็ว
  * - Support หลาย entity types
- * - มี caching strategy
+ * - ใช้ Prisma แทน raw SQL
  */
-class SearchModel extends BaseModel {
+class SearchModel {
    constructor() {
-      super(''); // ไม่ระบุ table เพราะจะค้นหาหลาย tables
+      // ไม่ระบุ table เพราะจะค้นหาหลาย tables
    }
 
    /**
@@ -541,50 +540,17 @@ class SearchModel extends BaseModel {
 
    /**
     * 📊 SEARCH ANALYTICS METHODS
-    * สำหรับ tracking และ improvement
+    * Mock implementations (ไม่ใช้ search_activity_log table)
     */
 
    /**
-    * บันทึก search activity (ใช้ raw query เพราะไม่มี table search_activity_log)
+    * บันทึก search activity (mock implementation)
     * @param {Object} searchData - ข้อมูลการค้นหา
     * @returns {Promise<boolean>} สำเร็จหรือไม่
     */
    async logSearchActivity(searchData) {
-      try {
-         // ใช้ raw query เพราะไม่มี search_activity_log table
-         await prisma.$queryRaw`
-            INSERT IGNORE INTO search_activity_log (
-               user_id, search_query, search_type, entities_searched,
-               results_count, duration_ms, ip_address, user_agent,
-               created_at
-            ) VALUES (
-               ${searchData.userId || null},
-               ${SearchUtils.sanitizeSearchTerm(searchData.query)},
-               ${searchData.searchType || 'instant'},
-               ${Array.isArray(searchData.entities) ? searchData.entities.join(',') : 'assets'},
-               ${searchData.resultsCount || 0},
-               ${searchData.duration || 0},
-               ${searchData.ipAddress || 'unknown'},
-               ${searchData.userAgent || 'unknown'},
-               NOW()
-            )
-         `;
-
-         return true;
-      } catch (error) {
-         console.error('Log search activity error:', error);
-         return false;
-      }
-   }
-
-   /**
-    * Raw query execution for backward compatibility
-    * @param {string} query - SQL query
-    * @param {Array} params - Query parameters
-    * @returns {Promise<Array>} Query results
-    */
-   async executeQuery(query, params = []) {
-      return await prisma.$queryRawUnsafe(query, ...params);
+      // Mock implementation - ไม่บันทึกลง database
+      return true;
    }
 
    /**
@@ -593,17 +559,12 @@ class SearchModel extends BaseModel {
     * @returns {Promise<Array>} popular searches
     */
    async getPopularSearches(options = {}) {
-      try {
-         // Mock data since search_activity_log table might not exist
-         return [
-            { query: 'pump', count: 25, avgResults: 15, avgDuration: 120 },
-            { query: 'motor', count: 18, avgResults: 12, avgDuration: 95 },
-            { query: 'valve', count: 12, avgResults: 8, avgDuration: 110 }
-         ];
-      } catch (error) {
-         console.error('Get popular searches error:', error);
-         return [];
-      }
+      // Mock data
+      return [
+         { query: 'pump', count: 25, avgResults: 15, avgDuration: 120 },
+         { query: 'motor', count: 18, avgResults: 12, avgDuration: 95 },
+         { query: 'valve', count: 12, avgResults: 8, avgDuration: 110 }
+      ];
    }
 
    /**
@@ -613,13 +574,8 @@ class SearchModel extends BaseModel {
     * @returns {Promise<Array>} recent searches
     */
    async getUserRecentSearches(userId, options = {}) {
-      try {
-         // Mock data since search_activity_log table might not exist
-         return [];
-      } catch (error) {
-         console.error('Get user recent searches error:', error);
-         return [];
-      }
+      // Mock empty array
+      return [];
    }
 
    /**
@@ -628,13 +584,8 @@ class SearchModel extends BaseModel {
     * @returns {Promise<boolean>} สำเร็จหรือไม่
     */
    async clearUserSearchHistory(userId) {
-      try {
-         // Mock implementation
-         return true;
-      } catch (error) {
-         console.error('Clear user search history error:', error);
-         return false;
-      }
+      // Mock success
+      return true;
    }
 
    /**
@@ -643,31 +594,17 @@ class SearchModel extends BaseModel {
     * @returns {Promise<Object>} statistics
     */
    async getSearchStatistics(options = {}) {
-      try {
-         // Mock data
-         return {
-            period: options.period || 'week',
-            totalSearches: 0,
-            uniqueUsers: 0,
-            uniqueQueries: 0,
-            avgDuration: 0,
-            avgResults: 0,
-            searchTypes: {},
-            topQueries: []
-         };
-      } catch (error) {
-         console.error('Get search statistics error:', error);
-         return {
-            period: options.period || 'week',
-            totalSearches: 0,
-            uniqueUsers: 0,
-            uniqueQueries: 0,
-            avgDuration: 0,
-            avgResults: 0,
-            searchTypes: {},
-            topQueries: []
-         };
-      }
+      // Mock data
+      return {
+         period: options.period || 'week',
+         totalSearches: 0,
+         uniqueUsers: 0,
+         uniqueQueries: 0,
+         avgDuration: 0,
+         avgResults: 0,
+         searchTypes: {},
+         topQueries: []
+      };
    }
 
    /**
@@ -676,13 +613,8 @@ class SearchModel extends BaseModel {
     * @returns {Promise<number>} จำนวน records ที่ลบ
     */
    async cleanupOldSearchLogs(daysToKeep = 90) {
-      try {
-         // Mock implementation
-         return 0;
-      } catch (error) {
-         console.error('Cleanup old search logs error:', error);
-         return 0;
-      }
+      // Mock implementation
+      return 0;
    }
 
    /**
@@ -690,14 +622,9 @@ class SearchModel extends BaseModel {
     * @returns {Promise<boolean>} สำเร็จหรือไม่
     */
    async createSearchIndexes() {
-      try {
-         // Indexes should be defined in Prisma schema
-         console.log('Search indexes are managed by Prisma schema');
-         return true;
-      } catch (error) {
-         console.error('Create search indexes error:', error);
-         return false;
-      }
+      // Indexes are managed by Prisma schema
+      console.log('Search indexes are managed by Prisma schema');
+      return true;
    }
 
    /**
@@ -735,6 +662,25 @@ class SearchModel extends BaseModel {
             overall: 'Error',
             error: error.message
          };
+      }
+   }
+
+   /**
+    * Raw query execution for backward compatibility
+    * @param {string} query - SQL query
+    * @param {Array} params - Query parameters
+    * @returns {Promise<Array>} Query results
+    */
+   async executeQuery(query, params = []) {
+      try {
+         const result = await prisma.$queryRawUnsafe(query, ...params);
+
+         // Convert BigInt to Number for JSON serialization
+         return JSON.parse(JSON.stringify(result, (key, value) =>
+            typeof value === 'bigint' ? Number(value) : value
+         ));
+      } catch (error) {
+         throw new Error(`Database query error: ${error.message}`);
       }
    }
 }
