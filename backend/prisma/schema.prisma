@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model asset_master {
+  asset_no             String                 @id @db.VarChar(20)
+  description          String?                @db.VarChar(255)
+  plant_code           String?                @db.VarChar(10)
+  location_code        String?                @db.VarChar(10)
+  dept_code            String?                @db.VarChar(10)
+  serial_no            String?                @unique(map: "serial_no") @db.VarChar(50)
+  inventory_no         String?                @unique(map: "inventory_no") @db.VarChar(50)
+  quantity             Decimal?               @db.Decimal(10, 2)
+  unit_code            String?                @db.VarChar(10)
+  status               asset_master_status?   @default(C)
+  created_by           String?                @db.VarChar(20)
+  created_at           DateTime?              @db.DateTime(0)
+  deactivated_at       DateTime?              @db.DateTime(0)
+  mst_plant            mst_plant?             @relation(fields: [plant_code], references: [plant_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_1")
+  mst_location         mst_location?          @relation(fields: [location_code], references: [location_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_2")
+  mst_unit             mst_unit?              @relation(fields: [unit_code], references: [unit_code], onDelete: NoAction, onUpdate: NoAction, map: "asset_master_ibfk_3")
+  mst_user             mst_user?              @relation(fields: [created_by], references: [user_id], onDelete: Restrict, map: "fk_asset_master_created_by")
+  asset_scan_log       asset_scan_log[]
+  asset_status_history asset_status_history[]
+
+  @@index([unit_code], map: "fk_asset_master_unit_code")
+  @@index([created_at], map: "idx_asset_master_created_at")
+  @@index([created_by], map: "idx_asset_master_created_by")
+  @@index([location_code], map: "idx_asset_master_location_code")
+  @@index([plant_code], map: "idx_asset_master_plant_code")
+  @@index([status], map: "idx_asset_master_status")
+}
+
+model asset_scan_log {
+  scan_id       Int           @id @default(autoincrement())
+  asset_no      String?       @db.VarChar(20)
+  scanned_by    String?       @db.VarChar(20)
+  location_code String?       @db.VarChar(10)
+  ip_address    String?       @db.VarChar(45)
+  user_agent    String?       @db.Text
+  scanned_at    DateTime?     @default(now()) @db.Timestamp(0)
+  asset_master  asset_master? @relation(fields: [asset_no], references: [asset_no], onDelete: NoAction, onUpdate: NoAction, map: "fk_scan_asset")
+  mst_location  mst_location? @relation(fields: [location_code], references: [location_code], onDelete: NoAction, onUpdate: NoAction, map: "fk_scan_location")
+  mst_user      mst_user?     @relation(fields: [scanned_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_scan_user")
+
+  @@index([asset_no], map: "fk_scan_asset")
+  @@index([location_code], map: "fk_scan_location")
+  @@index([scanned_by], map: "fk_scan_user")
+}
+
+model asset_status_history {
+  history_id   Int           @id @default(autoincrement())
+  asset_no     String?       @db.VarChar(20)
+  old_status   String?       @db.VarChar(50)
+  new_status   String?       @db.VarChar(50)
+  changed_at   DateTime?     @db.DateTime(0)
+  changed_by   String?       @db.VarChar(20)
+  remarks      String?       @db.Text
+  asset_master asset_master? @relation(fields: [asset_no], references: [asset_no], onDelete: NoAction, onUpdate: NoAction, map: "asset_status_history_ibfk_1")
+  mst_user     mst_user?     @relation(fields: [changed_by], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "asset_status_history_ibfk_2")
+
+  @@index([asset_no], map: "asset_no")
+  @@index([changed_by], map: "changed_by")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model export_history {
+  export_id     Int                        @id @default(autoincrement())
+  user_id       String                     @db.VarChar(20)
+  export_type   export_history_export_type
+  status        String                     @default("P") @db.Char(1)
+  export_config Json
+  file_path     String?                    @db.VarChar(500)
+  file_size     BigInt?
+  total_records Int?
+  created_at    DateTime                   @default(now()) @db.DateTime(0)
+  expires_at    DateTime?                  @db.DateTime(0)
+  error_message String?                    @db.Text
+  mst_user      mst_user                   @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_export_user")
+
+  @@index([expires_at, status], map: "idx_cleanup")
+  @@index([created_at], map: "idx_created_at")
+  @@index([user_id, status, created_at], map: "idx_user_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model mst_department {
+  dept_code   String  @id @db.VarChar(10)
+  description String? @db.VarChar(255)
+  plant_code  String  @db.VarChar(10)
+}
+
+model mst_location {
+  location_code  String           @id @db.VarChar(10)
+  description    String?          @db.VarChar(255)
+  plant_code     String?          @db.VarChar(10)
+  asset_master   asset_master[]
+  asset_scan_log asset_scan_log[]
+  mst_plant      mst_plant?       @relation(fields: [plant_code], references: [plant_code], onDelete: NoAction, onUpdate: NoAction, map: "mst_location_ibfk_1")
+
+  @@index([plant_code], map: "plant_code")
+}
+
+model mst_plant {
+  plant_code   String         @id @db.VarChar(10)
+  description  String?        @db.VarChar(255)
+  asset_master asset_master[]
+  mst_location mst_location[]
+
+  @@index([description], map: "idx_mst_plant_description")
+}
+
+model mst_unit {
+  unit_code    String         @id @db.VarChar(10)
+  name         String?        @db.VarChar(50)
+  asset_master asset_master[]
+
+  @@index([name], map: "idx_mst_unit_name")
+}
+
+model mst_user {
+  user_id              String                 @id @db.VarChar(20)
+  username             String?                @unique(map: "uk_mst_user_username") @db.VarChar(100)
+  full_name            String?                @db.VarChar(255)
+  password             String                 @default("1234") @db.VarChar(255)
+  role                 mst_user_role          @default(user)
+  created_at           DateTime?              @default(now()) @db.DateTime(0)
+  updated_at           DateTime?              @default(now()) @db.DateTime(0)
+  last_login           DateTime?              @db.DateTime(0)
+  asset_master         asset_master[]
+  asset_scan_log       asset_scan_log[]
+  asset_status_history asset_status_history[]
+  export_history       export_history[]
+  user_login_log       user_login_log[]
+
+  @@index([full_name], map: "idx_mst_user_full_name")
+  @@index([role], map: "idx_mst_user_role")
+  @@index([username], map: "idx_mst_user_username")
+}
+
+model sequelizemeta {
+  name String @id @unique(map: "name") @db.VarChar(255)
+}
+
+model user_login_log {
+  log_id     Int                        @id @default(autoincrement())
+  user_id    String?                    @db.VarChar(20)
+  username   String?                    @db.VarChar(100)
+  event_type user_login_log_event_type?
+  timestamp  DateTime?                  @default(now()) @db.DateTime(0)
+  ip_address String?                    @db.VarChar(50)
+  user_agent String?                    @db.Text
+  session_id String?                    @db.VarChar(255)
+  success    Boolean?                   @default(true)
+  mst_user   mst_user?                  @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_login_log_user")
+
+  @@index([user_id], map: "fk_user_login_log_user")
+}
+
+enum export_history_export_type {
+  assets
+  scan_logs
+  status_history
+}
+
+enum user_login_log_event_type {
+  login
+  logout
+  failed_login
+  password_change
+}
+
+enum mst_user_role {
+  admin
+  manager
+  user
+  viewer
+}
+
+enum asset_master_status {
+  A
+  C
+  I
+}

@@ -1,6 +1,7 @@
-// Path: backend/src/services/service.js
+// Path: src/services/service.js
 const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../models/model');
 const DepartmentService = require('./departmentService');
+const prisma = require('../lib/prisma');
 
 class BaseService {
    constructor(model) {
@@ -249,16 +250,18 @@ class AssetService extends BaseService {
 
    async getAssetStats() {
       try {
-         const totalAssets = await this.model.count();
-         const activeAssets = await this.model.count({ status: 'A' });
-         const createdAssets = await this.model.count({ status: 'C' });
-         const inactiveAssets = await this.model.count({ status: 'I' });
+         const [total, active, created, inactive] = await Promise.all([
+            prisma.asset_master.count(),
+            prisma.asset_master.count({ where: { status: 'A' } }),
+            prisma.asset_master.count({ where: { status: 'C' } }),
+            prisma.asset_master.count({ where: { status: 'I' } })
+         ]);
 
          return {
-            total: totalAssets,
-            active: activeAssets,
-            created: createdAssets,
-            inactive: inactiveAssets
+            total,
+            active,
+            created,
+            inactive
          };
       } catch (error) {
          throw new Error(`Error fetching asset statistics: ${error.message}`);
@@ -267,17 +270,23 @@ class AssetService extends BaseService {
 
    async getAssetStatsByPlant() {
       try {
-         const query = `
-                SELECT 
-                    p.plant_code,
-                    p.description as plant_description,
-                    COUNT(a.asset_no) as asset_count
-                FROM mst_plant p
-                LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status IN ('A', 'C')
-                GROUP BY p.plant_code, p.description
-                ORDER BY p.plant_code
-            `;
-         return await this.model.executeQuery(query);
+         const stats = await prisma.mst_plant.findMany({
+            select: {
+               plant_code: true,
+               description: true,
+               asset_master: {
+                  where: {
+                     status: { in: ['A', 'C'] }
+                  }
+               }
+            }
+         });
+
+         return stats.map(plant => ({
+            plant_code: plant.plant_code,
+            plant_description: plant.description,
+            asset_count: plant.asset_master.length
+         }));
       } catch (error) {
          throw new Error(`Error fetching asset statistics by plant: ${error.message}`);
       }
@@ -285,20 +294,29 @@ class AssetService extends BaseService {
 
    async getAssetStatsByLocation() {
       try {
-         const query = `
-                SELECT 
-                    l.location_code,
-                    l.description as location_description,
-                    l.plant_code,
-                    p.description as plant_description,
-                    COUNT(a.asset_no) as asset_count
-                FROM mst_location l
-                LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-                LEFT JOIN asset_master a ON l.location_code = a.location_code AND a.status IN ('A', 'C')
-                GROUP BY l.location_code, l.description, l.plant_code, p.description
-                ORDER BY l.location_code
-            `;
-         return await this.model.executeQuery(query);
+         const stats = await prisma.mst_location.findMany({
+            select: {
+               location_code: true,
+               description: true,
+               plant_code: true,
+               mst_plant: {
+                  select: { description: true }
+               },
+               asset_master: {
+                  where: {
+                     status: { in: ['A', 'C'] }
+                  }
+               }
+            }
+         });
+
+         return stats.map(location => ({
+            location_code: location.location_code,
+            location_description: location.description,
+            plant_code: location.plant_code,
+            plant_description: location.mst_plant?.description,
+            asset_count: location.asset_master.length
+         }));
       } catch (error) {
          throw new Error(`Error fetching asset statistics by location: ${error.message}`);
       }
@@ -306,15 +324,14 @@ class AssetService extends BaseService {
 
    async getAssetNumbers(limit = 5) {
       try {
-         const query = `
-         SELECT asset_no 
-         FROM asset_master 
-         WHERE status = 'A' 
-         ORDER BY RAND()
-         LIMIT ${parseInt(limit)}
-      `;
-         const result = await this.model.executeQuery(query);
-         return result.map(row => row.asset_no);
+         const assets = await prisma.asset_master.findMany({
+            where: { status: 'A' },
+            select: { asset_no: true },
+            take: parseInt(limit),
+            orderBy: { asset_no: 'asc' }
+         });
+
+         return assets.map(asset => asset.asset_no);
       } catch (error) {
          throw new Error(`Error fetching asset numbers: ${error.message}`);
       }
@@ -388,47 +405,35 @@ class AssetService extends BaseService {
          const currentAsset = await this.getAssetByNo(assetNo);
          const oldStatus = currentAsset.status;
 
-         const updateData = { status };
-
-         if (status === 'I') {
-            updateData.deactivated_at = new Date();
-         }
-
-         // Begin transaction
-         const connection = await this.model.pool.getConnection();
-
-         try {
-            await connection.beginTransaction();
+         // Use Prisma transaction
+         const result = await prisma.$transaction(async (tx) => {
+            const updateData = { status };
+            if (status === 'I') {
+               updateData.deactivated_at = new Date();
+            }
 
             // Update asset status
-            const updateQuery = `
-            UPDATE asset_master 
-            SET ${Object.keys(updateData).map(key => `${key} = ?`).join(', ')}
-            WHERE asset_no = ?
-         `;
-            const updateParams = [...Object.values(updateData), assetNo];
-            await connection.execute(updateQuery, updateParams);
+            await tx.asset_master.update({
+               where: { asset_no: assetNo },
+               data: updateData
+            });
 
             // Insert status history
-            const historyQuery = `
-            INSERT INTO asset_status_history (
-               asset_no, old_status, new_status, 
-               changed_at, changed_by, remarks
-            ) VALUES (?, ?, ?, NOW(), ?, ?)
-         `;
-            await connection.execute(historyQuery, [
-               assetNo, oldStatus, status, updatedBy, remarks
-            ]);
+            await tx.asset_status_history.create({
+               data: {
+                  asset_no: assetNo,
+                  old_status: oldStatus,
+                  new_status: status,
+                  changed_at: new Date(),
+                  changed_by: updatedBy,
+                  remarks: remarks
+               }
+            });
 
-            await connection.commit();
-            return await this.getAssetWithDetails(assetNo);
+            return true;
+         });
 
-         } catch (error) {
-            await connection.rollback();
-            throw error;
-         } finally {
-            connection.release();
-         }
+         return await this.getAssetWithDetails(assetNo);
 
       } catch (error) {
          throw new Error(`Error updating asset status: ${error.message}`);
@@ -445,14 +450,17 @@ class AssetService extends BaseService {
 
    async logAssetScan(assetNo, scannedBy, locationCode, ipAddress, userAgent) {
       try {
-         const query = `
-            INSERT INTO asset_scan_log (
-               asset_no, scanned_by, location_code, 
-               ip_address, user_agent, scanned_at
-            ) VALUES (?, ?, ?, ?, ?, NOW())
-         `;
+         await prisma.asset_scan_log.create({
+            data: {
+               asset_no: assetNo,
+               scanned_by: scannedBy,
+               location_code: locationCode,
+               ip_address: ipAddress,
+               user_agent: userAgent,
+               scanned_at: new Date()
+            }
+         });
 
-         await this.model.executeQuery(query, [assetNo, scannedBy, locationCode, ipAddress, userAgent]);
          return { success: true };
       } catch (error) {
          throw new Error(`Error logging asset scan: ${error.message}`);
@@ -461,31 +469,22 @@ class AssetService extends BaseService {
 
    async getMockScanAssets(count = 7) {
       try {
-         const query = `
-            SELECT 
-               a.asset_no,
-               a.description,
-               a.serial_no,
-               a.inventory_no,
-               a.quantity,
-               u.name as unit_name,
-               usr.full_name as created_by_name,
-               a.created_at,
-               a.status,
-               CASE 
-                  WHEN RAND() < 0.1 THEN 'Unknown'
-                  WHEN RAND() < 0.2 THEN 'Checked'
-                  ELSE 'Available'
-               END as scan_status
-            FROM asset_master a
-            LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-            LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-            WHERE a.status = 'A'
-            ORDER BY RAND()
-            LIMIT ?
-         `;
+         const assets = await prisma.asset_master.findMany({
+            where: { status: 'A' },
+            include: {
+               mst_unit: true,
+               mst_user: true
+            },
+            take: parseInt(count)
+         });
 
-         return await this.model.executeQuery(query, [count]);
+         return assets.map(asset => ({
+            ...asset,
+            unit_name: asset.mst_unit?.name,
+            created_by_name: asset.mst_user?.full_name,
+            scan_status: Math.random() < 0.1 ? 'Unknown' :
+               Math.random() < 0.2 ? 'Checked' : 'Available'
+         }));
       } catch (error) {
          throw new Error(`Error getting mock scan assets: ${error.message}`);
       }

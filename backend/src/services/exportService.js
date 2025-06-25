@@ -1,6 +1,6 @@
-// Path: backend/src/services/exportService.js
+// Path: src/services/exportService.js
 const ExportModel = require('../models/exportModel');
-const { AssetModel, PlantModel, LocationModel, UnitModel, UserModel } = require('../models/model');
+const prisma = require('../lib/prisma');
 const path = require('path');
 const fs = require('fs').promises;
 const XLSX = require('xlsx');
@@ -9,7 +9,6 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 class ExportService {
    constructor() {
       this.exportModel = new ExportModel();
-      this.assetModel = new AssetModel();
    }
 
    /**
@@ -92,8 +91,6 @@ class ExportService {
     */
    async _fetchExportData(exportJob) {
       const { export_type, export_config } = exportJob;
-
-      // MySQL JSON column returns object directly
       const config = export_config || {};
 
       switch (export_type) {
@@ -117,62 +114,56 @@ class ExportService {
    async _fetchAssetData(config) {
       const { filters = {}, columns = [] } = config;
 
-      // สร้าง WHERE clause จาก filters - Default to active assets only
-      // ใหม่ - export ทุก status
-      let whereClause = "1=1";
-      const params = [];
+      // Build where conditions
+      const whereConditions = {};
 
       if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereClause += ` AND a.plant_code IN (${filters.plant_codes.map(() => '?').join(',')})`;
-         params.push(...filters.plant_codes);
+         whereConditions.plant_code = { in: filters.plant_codes };
       }
 
       if (filters.location_codes && filters.location_codes.length > 0) {
-         whereClause += ` AND a.location_code IN (${filters.location_codes.map(() => '?').join(',')})`;
-         params.push(...filters.location_codes);
+         whereConditions.location_code = { in: filters.location_codes };
       }
 
-      // Override status filter only if explicitly provided
       if (filters.status && filters.status.length > 0) {
-         whereClause += ` AND a.status IN (${filters.status.map(() => '?').join(',')})`;
-         params.push(...filters.status);
+         whereConditions.status = { in: filters.status };
       }
 
       if (filters.date_range) {
+         whereConditions.created_at = {};
          if (filters.date_range.from) {
-            whereClause += ` AND a.created_at >= ?`;
-            params.push(filters.date_range.from);
+            whereConditions.created_at.gte = new Date(filters.date_range.from);
          }
          if (filters.date_range.to) {
-            whereClause += ` AND a.created_at <= ?`;
-            params.push(filters.date_range.to);
+            whereConditions.created_at.lte = new Date(filters.date_range.to);
          }
       }
 
-      // สร้าง SELECT columns
-      const defaultColumns = [
-         'a.asset_no', 'a.description', 'a.serial_no', 'a.inventory_no',
-         'a.quantity', 'a.status', 'a.created_at',
-         'p.description as plant_description',
-         'l.description as location_description',
-         'u.name as unit_name',
-         'usr.full_name as created_by_name'
-      ];
+      const assets = await prisma.asset_master.findMany({
+         where: whereConditions,
+         include: {
+            mst_plant: { select: { description: true } },
+            mst_location: { select: { description: true } },
+            mst_unit: { select: { name: true } },
+            mst_user: { select: { full_name: true } }
+         },
+         orderBy: { asset_no: 'asc' }
+      });
 
-      const selectColumns = columns.length > 0 ? columns : defaultColumns;
-
-      const query = `
-         SELECT ${selectColumns.join(', ')}
-         FROM asset_master a
-         LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-         LEFT JOIN mst_location l ON a.location_code = l.location_code
-         LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-         LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-         WHERE ${whereClause}
-         ORDER BY a.asset_no
-      `;
-
-      return this.exportModel.executeQuery(query, params);
+      // Format response to match original structure
+      return assets.map(asset => ({
+         asset_no: asset.asset_no,
+         description: asset.description,
+         serial_no: asset.serial_no,
+         inventory_no: asset.inventory_no,
+         quantity: asset.quantity,
+         status: asset.status,
+         created_at: asset.created_at,
+         plant_description: asset.mst_plant?.description,
+         location_description: asset.mst_location?.description,
+         unit_name: asset.mst_unit?.name,
+         created_by_name: asset.mst_user?.full_name
+      }));
    }
 
    /**
@@ -184,42 +175,53 @@ class ExportService {
    async _fetchScanLogData(config) {
       const { filters = {} } = config;
 
-      let whereClause = "1=1";
-      const params = [];
+      const whereConditions = {};
 
       if (filters.date_range) {
+         whereConditions.scanned_at = {};
          if (filters.date_range.from) {
-            whereClause += ` AND s.scanned_at >= ?`;
-            params.push(filters.date_range.from);
+            whereConditions.scanned_at.gte = new Date(filters.date_range.from);
          }
          if (filters.date_range.to) {
-            whereClause += ` AND s.scanned_at <= ?`;
-            params.push(filters.date_range.to);
+            whereConditions.scanned_at.lte = new Date(filters.date_range.to);
          }
       }
 
       if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereClause += ` AND a.plant_code IN (${filters.plant_codes.map(() => '?').join(',')})`;
-         params.push(...filters.plant_codes);
+         whereConditions.asset_master = {
+            plant_code: { in: filters.plant_codes }
+         };
       }
 
-      const query = `
-         SELECT 
-            s.scan_id, s.asset_no, s.scanned_at,
-            a.description as asset_description,
-            u.full_name as scanned_by_name,
-            l.description as location_description,
-            p.description as plant_description
-         FROM asset_scan_log s
-         LEFT JOIN asset_master a ON s.asset_no = a.asset_no
-         LEFT JOIN mst_user u ON s.scanned_by = u.user_id
-         LEFT JOIN mst_location l ON s.location_code = l.location_code
-         LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-         WHERE ${whereClause}
-         ORDER BY s.scanned_at DESC
-      `;
+      const scanLogs = await prisma.asset_scan_log.findMany({
+         where: whereConditions,
+         include: {
+            asset_master: {
+               select: { description: true }
+            },
+            mst_user: {
+               select: { full_name: true }
+            },
+            mst_location: {
+               include: {
+                  mst_plant: {
+                     select: { description: true }
+                  }
+               }
+            }
+         },
+         orderBy: { scanned_at: 'desc' }
+      });
 
-      return this.exportModel.executeQuery(query, params);
+      return scanLogs.map(log => ({
+         scan_id: log.scan_id,
+         asset_no: log.asset_no,
+         scanned_at: log.scanned_at,
+         asset_description: log.asset_master?.description,
+         scanned_by_name: log.mst_user?.full_name,
+         location_description: log.mst_location?.description,
+         plant_description: log.mst_location?.mst_plant?.description
+      }));
    }
 
    /**
@@ -231,43 +233,52 @@ class ExportService {
    async _fetchStatusHistoryData(config) {
       const { filters = {} } = config;
 
-      let whereClause = "1=1";
-      const params = [];
+      const whereConditions = {};
 
       if (filters.date_range) {
+         whereConditions.changed_at = {};
          if (filters.date_range.from) {
-            whereClause += ` AND h.changed_at >= ?`;
-            params.push(filters.date_range.from);
+            whereConditions.changed_at.gte = new Date(filters.date_range.from);
          }
          if (filters.date_range.to) {
-            whereClause += ` AND h.changed_at <= ?`;
-            params.push(filters.date_range.to);
+            whereConditions.changed_at.lte = new Date(filters.date_range.to);
          }
       }
 
       if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereClause += ` AND a.plant_code IN (${filters.plant_codes.map(() => '?').join(',')})`;
-         params.push(...filters.plant_codes);
+         whereConditions.asset_master = {
+            plant_code: { in: filters.plant_codes }
+         };
       }
 
-      const query = `
-         SELECT 
-            h.history_id, h.asset_no, h.old_status, h.new_status,
-            h.changed_at, h.remarks,
-            a.description as asset_description,
-            u.full_name as changed_by_name,
-            p.description as plant_description,
-            l.description as location_description
-         FROM asset_status_history h
-         LEFT JOIN asset_master a ON h.asset_no = a.asset_no
-         LEFT JOIN mst_user u ON h.changed_by = u.user_id
-         LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-         LEFT JOIN mst_location l ON a.location_code = l.location_code
-         WHERE ${whereClause}
-         ORDER BY h.changed_at DESC
-      `;
+      const statusHistory = await prisma.asset_status_history.findMany({
+         where: whereConditions,
+         include: {
+            asset_master: {
+               include: {
+                  mst_plant: { select: { description: true } },
+                  mst_location: { select: { description: true } }
+               }
+            },
+            mst_user: {
+               select: { full_name: true }
+            }
+         },
+         orderBy: { changed_at: 'desc' }
+      });
 
-      return this.assetModel.executeQuery(query, params);
+      return statusHistory.map(history => ({
+         history_id: history.history_id,
+         asset_no: history.asset_no,
+         old_status: history.old_status,
+         new_status: history.new_status,
+         changed_at: history.changed_at,
+         remarks: history.remarks,
+         asset_description: history.asset_master?.description,
+         changed_by_name: history.mst_user?.full_name,
+         plant_description: history.asset_master?.mst_plant?.description,
+         location_description: history.asset_master?.mst_location?.description
+      }));
    }
 
    /**
@@ -278,12 +289,11 @@ class ExportService {
     * @private
     */
    async _generateExportFile(exportJob, data) {
-      // MySQL JSON column returns object directly
       const config = exportJob.export_config || {};
       const format = config.format || 'xlsx';
 
-      console.log('Export format:', format);           // ✅ เพิ่มบรรทัดนี้
-      console.log('Export config:', config);          // ✅ เพิ่มบรรทัดนี้
+      console.log('Export format:', format);
+      console.log('Export config:', config);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${exportJob.export_type}_${exportJob.export_id}_${timestamp}.${format}`;
@@ -400,7 +410,9 @@ class ExportService {
       for (const job of expiredJobs) {
          try {
             // ลบไฟล์
-            await fs.unlink(job.file_path);
+            if (job.file_path) {
+               await fs.unlink(job.file_path);
+            }
 
             // ลบ record จาก database
             await this.exportModel.deleteExportJob(job.export_id);

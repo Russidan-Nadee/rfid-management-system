@@ -1,7 +1,6 @@
-// =======================
-// 5. backend/src/models/loginLogModel.js
-// =======================
+// Path: src/models/loginLogModel.js
 const { BaseModel } = require('./model');
+const prisma = require('../lib/prisma');
 
 class LoginLogModel extends BaseModel {
    constructor() {
@@ -9,56 +8,61 @@ class LoginLogModel extends BaseModel {
    }
 
    async logLoginAttempt(logData) {
-      const query = `
-            INSERT INTO user_login_log (
-                user_id, username, event_type, timestamp, 
-                ip_address, user_agent, session_id, success
-            ) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?)
-        `;
-      const params = [
-         logData.user_id,
-         logData.username,
-         logData.event_type,
-         logData.ip_address,
-         logData.user_agent,
-         logData.session_id,
-         logData.success
-      ];
-      return this.executeQuery(query, params);
+      return await prisma.user_login_log.create({
+         data: {
+            user_id: logData.user_id,
+            username: logData.username,
+            event_type: logData.event_type,
+            timestamp: new Date(),
+            ip_address: logData.ip_address,
+            user_agent: logData.user_agent,
+            session_id: logData.session_id,
+            success: logData.success
+         }
+      });
    }
 
    async getFailedLoginAttempts(username, timeWindow = 30) {
-      const query = `
-            SELECT COUNT(*) as attempts 
-            FROM user_login_log 
-            WHERE username = ? 
-            AND event_type = 'failed_login' 
-            AND timestamp > DATE_SUB(NOW(), INTERVAL ? MINUTE)
-        `;
-      const results = await this.executeQuery(query, [username, timeWindow]);
-      return results[0]?.attempts || 0;
+      const timeAgo = new Date();
+      timeAgo.setMinutes(timeAgo.getMinutes() - timeWindow);
+
+      const count = await prisma.user_login_log.count({
+         where: {
+            username: username,
+            event_type: 'failed_login',
+            timestamp: {
+               gt: timeAgo
+            }
+         }
+      });
+
+      return count || 0;
    }
 
    async getUserLoginHistory(userId, limit = 50) {
-      const query = `
-            SELECT * FROM user_login_log 
-            WHERE user_id = ? 
-            ORDER BY timestamp DESC 
-            LIMIT ?
-        `;
-      return this.executeQuery(query, [userId, limit]);
+      return await prisma.user_login_log.findMany({
+         where: { user_id: userId },
+         orderBy: { timestamp: 'desc' },
+         take: limit
+      });
    }
 
    async getActiveSessionsCount(userId) {
-      const query = `
-            SELECT COUNT(DISTINCT session_id) as sessions
-            FROM user_login_log 
-            WHERE user_id = ? 
-            AND event_type = 'login' 
-            AND timestamp > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-        `;
-      const results = await this.executeQuery(query, [userId]);
-      return results[0]?.sessions || 0;
+      const oneDayAgo = new Date();
+      oneDayAgo.setHours(oneDayAgo.getHours() - 24);
+
+      const count = await prisma.user_login_log.count({
+         where: {
+            user_id: userId,
+            event_type: 'login',
+            timestamp: {
+               gt: oneDayAgo
+            }
+         },
+         distinct: ['session_id']
+      });
+
+      return count || 0;
    }
 
    async logLogout(userId, sessionId, ipAddress) {

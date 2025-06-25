@@ -1,397 +1,321 @@
-// Path: backend/src/models/model.js
-const mysql = require('mysql2/promise');
+// Path: src/models/model.js
+const prisma = require('../lib/prisma');
 
-// Database connection configuration
-const dbConfig = {
-   host: process.env.DB_HOST || 'localhost',
-   user: process.env.DB_USER || 'root',
-   password: process.env.DB_PASSWORD || '',
-   database: process.env.DB_NAME || 'rfidassetdb',
-   waitForConnections: true,
-   connectionLimit: 10,
-   queueLimit: 0,
-   acquireTimeout: 60000,
-   timeout: 60000
-};
-
-// Create connection pool
-const pool = mysql.createPool(dbConfig);
-
+// Base Model Class for common operations
 class BaseModel {
-   constructor(tableName) {
-      this.tableName = tableName;
-      this.pool = pool;
+   constructor(modelName) {
+      this.modelName = modelName;
+      this.prisma = prisma;
    }
 
    async executeQuery(query, params = []) {
-      try {
-         const [rows] = await this.pool.execute(query, params);
-         return rows;
-      } catch (error) {
-         console.error(`Database query error: ${error.message}`);
-         throw error;
-      }
+      // For backwards compatibility - convert to Prisma raw query
+      return await this.prisma.$queryRawUnsafe(query, ...params);
    }
 
    async findAll(conditions = {}, orderBy = null, limit = null) {
-      let query = `SELECT * FROM ${this.tableName}`;
-      const params = [];
+      const model = this.prisma[this.modelName];
+      const options = {
+         where: conditions
+      };
 
-      // Add WHERE conditions
-      if (Object.keys(conditions).length > 0) {
-         const whereClause = Object.keys(conditions)
-            .map(key => `${key} = ?`)
-            .join(' AND ');
-         query += ` WHERE ${whereClause}`;
-         params.push(...Object.values(conditions));
-      }
-
-      // Add ORDER BY
       if (orderBy) {
-         query += ` ORDER BY ${orderBy}`;
+         options.orderBy = { [orderBy]: 'asc' };
       }
 
-      // Add LIMIT
       if (limit) {
-         query += ` LIMIT ${limit}`;
+         options.take = limit;
       }
 
-      return this.executeQuery(query, params);
+      return await model.findMany(options);
    }
 
    async findById(id, idField = 'id') {
-      const query = `SELECT * FROM ${this.tableName} WHERE ${idField} = ?`;
-      const results = await this.executeQuery(query, [id]);
-      return results[0] || null;
+      const model = this.prisma[this.modelName];
+      return await model.findUnique({
+         where: { [idField]: id }
+      });
    }
 
    async count(conditions = {}) {
-      let query = `SELECT COUNT(*) as total FROM ${this.tableName}`;
-      const params = [];
-
-      if (Object.keys(conditions).length > 0) {
-         const whereClause = Object.keys(conditions)
-            .map(key => `${key} = ?`)
-            .join(' AND ');
-         query += ` WHERE ${whereClause}`;
-         params.push(...Object.values(conditions));
-      }
-
-      const result = await this.executeQuery(query, params);
-      return result[0].total;
+      const model = this.prisma[this.modelName];
+      return await model.count({
+         where: conditions
+      });
    }
 }
 
-// Plant Model - No status field
+// Plant Model
 class PlantModel extends BaseModel {
    constructor() {
       super('mst_plant');
    }
 
    async getAllPlants() {
-      return this.findAll({}, 'plant_code');
+      return await this.prisma.mst_plant.findMany({
+         orderBy: { plant_code: 'asc' }
+      });
    }
 
    async getPlantByCode(plantCode) {
-      return this.findById(plantCode, 'plant_code');
+      return await this.prisma.mst_plant.findUnique({
+         where: { plant_code: plantCode }
+      });
    }
 }
 
-// Location Model - No status field
+// Location Model
 class LocationModel extends BaseModel {
    constructor() {
       super('mst_location');
    }
 
    async getAllLocations() {
-      return this.findAll({}, 'location_code');
+      return await this.prisma.mst_location.findMany({
+         orderBy: { location_code: 'asc' }
+      });
    }
 
    async getLocationsByPlant(plantCode) {
-      return this.findAll({ plant_code: plantCode }, 'location_code');
+      return await this.prisma.mst_location.findMany({
+         where: { plant_code: plantCode },
+         orderBy: { location_code: 'asc' }
+      });
    }
 
    async getLocationByCode(locationCode) {
-      return this.findById(locationCode, 'location_code');
+      return await this.prisma.mst_location.findUnique({
+         where: { location_code: locationCode }
+      });
    }
 
    async getLocationsWithPlant() {
-      const query = `
-            SELECT l.*, p.description as plant_description 
-            FROM mst_location l
-            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-            ORDER BY l.location_code
-        `;
-      return this.executeQuery(query);
+      return await this.prisma.mst_location.findMany({
+         include: {
+            mst_plant: true
+         },
+         orderBy: { location_code: 'asc' }
+      });
    }
 }
 
-// Unit Model - No status field
+// Unit Model
 class UnitModel extends BaseModel {
    constructor() {
       super('mst_unit');
    }
 
    async getAllUnits() {
-      return this.findAll({}, 'unit_code');
+      return await this.prisma.mst_unit.findMany({
+         orderBy: { unit_code: 'asc' }
+      });
    }
 
    async getUnitByCode(unitCode) {
-      return this.findById(unitCode, 'unit_code');
+      return await this.prisma.mst_unit.findUnique({
+         where: { unit_code: unitCode }
+      });
    }
 }
 
-// User Model - No status field
+// User Model
 class UserModel extends BaseModel {
    constructor() {
       super('mst_user');
    }
 
    async getAllUsers() {
-      return this.findAll({}, 'user_id');
+      return await this.prisma.mst_user.findMany({
+         orderBy: { user_id: 'asc' }
+      });
    }
 
    async getUserById(userId) {
-      return this.findById(userId, 'user_id');
+      return await this.prisma.mst_user.findUnique({
+         where: { user_id: userId }
+      });
    }
 
    async getUserByUsername(username) {
-      const results = await this.findAll({ username: username });
-      return results[0] || null;
+      return await this.prisma.mst_user.findUnique({
+         where: { username: username }
+      });
    }
 }
 
-// Asset Model - Has status field
+// Asset Model
 class AssetModel extends BaseModel {
    constructor() {
       super('asset_master');
    }
 
    async getActiveAssets() {
-      return this.findAll({ status: 'A' }, 'asset_no');
+      return await this.prisma.asset_master.findMany({
+         where: { status: 'A' },
+         orderBy: { asset_no: 'asc' }
+      });
    }
 
    async getAssetByNo(assetNo) {
-      return this.findById(assetNo, 'asset_no');
+      return await this.prisma.asset_master.findUnique({
+         where: { asset_no: assetNo }
+      });
    }
 
    async getAssetsByPlant(plantCode) {
-      return this.findAll({ plant_code: plantCode, status: 'A' }, 'asset_no');
+      return await this.prisma.asset_master.findMany({
+         where: {
+            plant_code: plantCode,
+            status: 'A'
+         },
+         orderBy: { asset_no: 'asc' }
+      });
    }
 
    async getAssetsByLocation(locationCode) {
-      return this.findAll({ location_code: locationCode, status: 'A' }, 'asset_no');
+      return await this.prisma.asset_master.findMany({
+         where: {
+            location_code: locationCode,
+            status: 'A'
+         },
+         orderBy: { asset_no: 'asc' }
+      });
    }
 
    async getAssetsWithDetails() {
-      const query = `
-            SELECT 
-                a.*,
-                p.description as plant_description,
-                l.description as location_description,
-                u.name as unit_name,
-                usr.full_name as created_by_name
-            FROM asset_master a
-            LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-            LEFT JOIN mst_location l ON a.location_code = l.location_code
-            LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-            LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-            WHERE a.status = 'A'
-            ORDER BY a.asset_no
-        `;
-      return this.executeQuery(query);
+      return await this.prisma.asset_master.findMany({
+         where: { status: 'A' },
+         include: {
+            mst_plant: true,
+            mst_location: true,
+            mst_unit: true,
+            mst_user: true
+         },
+         orderBy: { asset_no: 'asc' }
+      });
    }
 
    async getAssetWithDetails(assetNo) {
-      const query = `
-      SELECT 
-         a.*,
-         p.description as plant_description,
-         l.description as location_description,
-         u.name as unit_name,
-         usr.full_name as created_by_name
-      FROM asset_master a
-      LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-      LEFT JOIN mst_location l ON a.location_code = l.location_code
-      LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-      LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-      WHERE a.asset_no = ?
-   `;
-      const results = await this.executeQuery(query, [assetNo]);
-      console.log('Asset query result:', results[0]);
-      return results[0] || null;
+      const asset = await this.prisma.asset_master.findUnique({
+         where: { asset_no: assetNo },
+         include: {
+            mst_plant: true,
+            mst_location: true,
+            mst_unit: true,
+            mst_user: true,
+            asset_scan_log: {
+               take: 1,
+               orderBy: { scanned_at: 'desc' },
+               include: {
+                  mst_user: true
+               }
+            }
+         }
+      });
+
+      if (!asset) return null;
+
+      // Add scan count
+      const scanCount = await this.prisma.asset_scan_log.count({
+         where: { asset_no: assetNo }
+      });
+
+      // Format response to match original structure
+      return {
+         ...asset,
+         plant_description: asset.mst_plant?.description,
+         location_description: asset.mst_location?.description,
+         unit_name: asset.mst_unit?.name,
+         created_by_name: asset.mst_user?.full_name,
+         last_scan_at: asset.asset_scan_log[0]?.scanned_at,
+         last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
+         total_scans: scanCount
+      };
    }
 
    async searchAssets(searchTerm, filters = {}) {
-      let query = `
-            SELECT 
-                a.*,
-                p.description as plant_description,
-                l.description as location_description,
-                u.name as unit_name,
-                usr.full_name as created_by_name
-            FROM asset_master a
-            LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-            LEFT JOIN mst_location l ON a.location_code = l.location_code
-            LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-            LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-            WHERE a.status = 'A'
-        `;
-      const params = [];
+      const whereConditions = {
+         status: filters.status || 'A'
+      };
 
-      // Add search term
+      // Add search conditions
       if (searchTerm) {
-         query += ` AND (a.asset_no LIKE ? OR a.description LIKE ? OR a.serial_no LIKE ? OR a.inventory_no LIKE ?)`;
-         const searchPattern = `%${searchTerm}%`;
-         params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+         whereConditions.OR = [
+            { asset_no: { contains: searchTerm } },
+            { description: { contains: searchTerm } },
+            { serial_no: { contains: searchTerm } },
+            { inventory_no: { contains: searchTerm } }
+         ];
       }
 
-      // Add filters
+      // Add filter conditions
       if (filters.plant_code) {
-         query += ` AND a.plant_code = ?`;
-         params.push(filters.plant_code);
+         whereConditions.plant_code = filters.plant_code;
       }
-
       if (filters.location_code) {
-         query += ` AND a.location_code = ?`;
-         params.push(filters.location_code);
+         whereConditions.location_code = filters.location_code;
       }
-
       if (filters.unit_code) {
-         query += ` AND a.unit_code = ?`;
-         params.push(filters.unit_code);
+         whereConditions.unit_code = filters.unit_code;
       }
 
-      // Allow status filter override
-      if (filters.status) {
-         query = query.replace("WHERE a.status = 'A'", `WHERE a.status = '${filters.status}'`);
-      }
-
-      query += ` ORDER BY a.asset_no`;
-
-      return this.executeQuery(query, params);
+      return await this.prisma.asset_master.findMany({
+         where: whereConditions,
+         include: {
+            mst_plant: true,
+            mst_location: true,
+            mst_unit: true,
+            mst_user: true
+         },
+         orderBy: { asset_no: 'asc' }
+      });
    }
 
-   // Asset creation and update methods
    async createAsset(assetData) {
-      const query = `
-         INSERT INTO asset_master (
-            asset_no, description, plant_code, location_code,
-            dept_code,
-            serial_no, inventory_no, quantity, unit_code,
-            status, created_by, created_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      const params = [
-         assetData.asset_no,
-         assetData.description,
-         assetData.plant_code,
-         assetData.location_code,
-         assetData.dept_code,
-         assetData.serial_no,
-         assetData.inventory_no,
-         assetData.quantity,
-         assetData.unit_code,
-         assetData.status,
-         assetData.created_by,
-         assetData.created_at
-      ];
-
-      await this.executeQuery(query, params);
-      return this.getAssetWithDetails(assetData.asset_no);
+      const newAsset = await this.prisma.asset_master.create({
+         data: assetData
+      });
+      return this.getAssetWithDetails(newAsset.asset_no);
    }
 
    async checkSerialExists(serialNo) {
-      const query = `SELECT asset_no FROM asset_master WHERE serial_no = ?`;
-      const result = await this.executeQuery(query, [serialNo]);
-      return result.length > 0;
+      const asset = await this.prisma.asset_master.findUnique({
+         where: { serial_no: serialNo }
+      });
+      return !!asset;
    }
 
    async checkInventoryExists(inventoryNo) {
-      const query = `SELECT asset_no FROM asset_master WHERE inventory_no = ?`;
-      const result = await this.executeQuery(query, [inventoryNo]);
-      return result.length > 0;
+      const asset = await this.prisma.asset_master.findUnique({
+         where: { inventory_no: inventoryNo }
+      });
+      return !!asset;
    }
 
    async updateAsset(assetNo, updateData) {
-      const setClause = Object.keys(updateData)
-         .map(key => `${key} = ?`)
-         .join(', ');
-
-      const query = `UPDATE asset_master SET ${setClause} WHERE asset_no = ?`;
-      const params = [...Object.values(updateData), assetNo];
-
-      await this.executeQuery(query, params);
+      await this.prisma.asset_master.update({
+         where: { asset_no: assetNo },
+         data: updateData
+      });
       return this.getAssetWithDetails(assetNo);
    }
 
    async updateAssetStatus(assetNo, updateData) {
-      const setClause = Object.keys(updateData)
-         .map(key => `${key} = ?`)
-         .join(', ');
-
-      const query = `UPDATE asset_master SET ${setClause} WHERE asset_no = ?`;
-      const params = [...Object.values(updateData), assetNo];
-
-      await this.executeQuery(query, params);
+      await this.prisma.asset_master.update({
+         where: { asset_no: assetNo },
+         data: updateData
+      });
       return this.getAssetWithDetails(assetNo);
    }
 
    async getAssetStatusHistory(assetNo) {
-      const query = `
-         SELECT 
-            h.*,
-            u.full_name as changed_by_name
-         FROM asset_status_history h
-         LEFT JOIN mst_user u ON h.changed_by = u.user_id
-         WHERE h.asset_no = ?
-         ORDER BY h.changed_at DESC
-      `;
-      return this.executeQuery(query, [assetNo]);
-   }
-   async getAssetWithDetails(assetNo) {
-      const query = `
-      SELECT 
-         a.*,
-         p.description as plant_description,
-         l.description as location_description,
-         d.dept_code,
-         d.description as dept_description,
-         u.name as unit_name,
-         usr.full_name as created_by_name,
-         last_scan.scanned_at as last_scan_at,
-         last_scan.scanned_by_name as last_scanned_by,
-         scan_count.total_scans
-      FROM asset_master a
-      LEFT JOIN mst_plant p ON a.plant_code = p.plant_code
-      LEFT JOIN mst_location l ON a.location_code = l.location_code
-      LEFT JOIN mst_department d ON a.dept_code = d.dept_code
-      LEFT JOIN mst_unit u ON a.unit_code = u.unit_code
-      LEFT JOIN mst_user usr ON a.created_by = usr.user_id
-      LEFT JOIN (
-         SELECT 
-            s.asset_no,
-            s.scanned_at,
-            u2.full_name as scanned_by_name
-         FROM asset_scan_log s
-         LEFT JOIN mst_user u2 ON s.scanned_by = u2.user_id
-         WHERE s.asset_no = ?
-         ORDER BY s.scanned_at DESC
-         LIMIT 1
-      ) last_scan ON a.asset_no = last_scan.asset_no
-      LEFT JOIN (
-         SELECT 
-            asset_no,
-            COUNT(*) as total_scans
-         FROM asset_scan_log
-         WHERE asset_no = ?
-         GROUP BY asset_no
-      ) scan_count ON a.asset_no = scan_count.asset_no
-      WHERE a.asset_no = ?
-   `;
-
-      const results = await this.executeQuery(query, [assetNo, assetNo, assetNo]);
-      return results[0] || null;
+      return await this.prisma.asset_status_history.findMany({
+         where: { asset_no: assetNo },
+         include: {
+            mst_user: true
+         },
+         orderBy: { changed_at: 'desc' }
+      });
    }
 }
 

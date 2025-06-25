@@ -1,5 +1,4 @@
-// Path: backend/src/services/searchService.js
-
+// Path: src/services/searchService.js
 const SearchModel = require('../models/searchModel');
 const SearchUtils = require('../utils/searchUtils');
 

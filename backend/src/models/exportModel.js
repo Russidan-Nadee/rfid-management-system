@@ -1,5 +1,6 @@
-// Path: backend/src/models/exportModel.js
+// Path: src/models/exportModel.js
 const { BaseModel } = require('./model');
+const prisma = require('../lib/prisma');
 
 class ExportModel extends BaseModel {
    constructor() {
@@ -12,26 +13,19 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Object>} export job ที่สร้างแล้ว
     */
    async createExportJob(exportData) {
-      const query = `
-         INSERT INTO export_history (
-            user_id, export_type, status, export_config,
-            total_records, created_at, expires_at
-         ) VALUES (?, ?, ?, ?, ?, NOW(), ?)
-      `;
+      const newExport = await prisma.export_history.create({
+         data: {
+            user_id: exportData.user_id,
+            export_type: exportData.export_type,
+            status: exportData.status || 'P',
+            export_config: exportData.export_config, // Prisma handles JSON automatically
+            total_records: exportData.total_records || 0,
+            created_at: new Date(),
+            expires_at: exportData.expires_at
+         }
+      });
 
-      const configJson = exportData.export_config;
-
-      const params = [
-         exportData.user_id,
-         exportData.export_type,
-         exportData.status || 'P',
-         configJson,
-         exportData.total_records || 0,
-         exportData.expires_at
-      ];
-
-      const result = await this.executeQuery(query, params);
-      return this.getExportJobById(result.insertId);
+      return this.getExportJobById(newExport.export_id);
    }
 
    /**
@@ -40,15 +34,16 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Object|null>} export job หรือ null
     */
    async getExportJobById(exportId) {
-      const query = `
-         SELECT e.*, u.full_name as user_name 
-         FROM export_history e
-         LEFT JOIN mst_user u ON e.user_id = u.user_id
-         WHERE e.export_id = ?
-      `;
-
-      const results = await this.executeQuery(query, [exportId]);
-      return results[0] || null;
+      return await prisma.export_history.findUnique({
+         where: { export_id: exportId },
+         include: {
+            mst_user: {
+               select: {
+                  full_name: true
+               }
+            }
+         }
+      });
    }
 
    /**
@@ -58,14 +53,11 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Object>} export job ที่อัพเดทแล้ว
     */
    async updateExportJob(exportId, updateData) {
-      const setClause = Object.keys(updateData)
-         .map(key => `${key} = ?`)
-         .join(', ');
+      await prisma.export_history.update({
+         where: { export_id: exportId },
+         data: updateData
+      });
 
-      const query = `UPDATE export_history SET ${setClause} WHERE export_id = ?`;
-      const params = [...Object.values(updateData), exportId];
-
-      await this.executeQuery(query, params);
       return this.getExportJobById(exportId);
    }
 
@@ -78,24 +70,24 @@ class ExportModel extends BaseModel {
    async getUserExportHistory(userId, options = {}) {
       const { limit = 50, offset = 0, status } = options;
 
-      let query = `
-      SELECT e.*, u.full_name as user_name
-      FROM export_history e
-      LEFT JOIN mst_user u ON e.user_id = u.user_id
-      WHERE e.user_id = ?
-   `;
-
-      const params = [userId];
-
+      const whereConditions = { user_id: userId };
       if (status) {
-         query += ` AND e.status = ?`;
-         params.push(status);
+         whereConditions.status = status;
       }
 
-      // แก้ไขตรงนี้ - ใช้ string interpolation แทน parameter binding
-      query += ` ORDER BY e.created_at DESC LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`;
-
-      return this.executeQuery(query, params);
+      return await prisma.export_history.findMany({
+         where: whereConditions,
+         include: {
+            mst_user: {
+               select: {
+                  full_name: true
+               }
+            }
+         },
+         orderBy: { created_at: 'desc' },
+         skip: offset,
+         take: limit
+      });
    }
 
    /**
@@ -103,12 +95,10 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Array>} รายการ jobs ที่ status = 'P'
     */
    async getPendingJobs() {
-      const query = `
-         SELECT * FROM export_history 
-         WHERE status = 'P' 
-         ORDER BY created_at ASC
-      `;
-      return this.executeQuery(query);
+      return await prisma.export_history.findMany({
+         where: { status: 'P' },
+         orderBy: { created_at: 'asc' }
+      });
    }
 
    /**
@@ -116,13 +106,17 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Array>} รายการ jobs ที่หมดอายุ
     */
    async getExpiredJobs() {
-      const query = `
-         SELECT * FROM export_history 
-         WHERE expires_at < NOW() 
-         AND status = 'C'
-         AND file_path IS NOT NULL
-      `;
-      return this.executeQuery(query);
+      return await prisma.export_history.findMany({
+         where: {
+            expires_at: {
+               lt: new Date()
+            },
+            status: 'C',
+            file_path: {
+               not: null
+            }
+         }
+      });
    }
 
    /**
@@ -131,9 +125,17 @@ class ExportModel extends BaseModel {
     * @returns {Promise<boolean>} สำเร็จหรือไม่
     */
    async deleteExportJob(exportId) {
-      const query = `DELETE FROM export_history WHERE export_id = ?`;
-      const result = await this.executeQuery(query, [exportId]);
-      return result.affectedRows > 0;
+      try {
+         await prisma.export_history.delete({
+            where: { export_id: exportId }
+         });
+         return true;
+      } catch (error) {
+         if (error.code === 'P2025') { // Record not found
+            return false;
+         }
+         throw error;
+      }
    }
 
    /**
@@ -142,31 +144,25 @@ class ExportModel extends BaseModel {
     * @returns {Promise<Object>} จำนวนแยกตาม status
     */
    async getExportStats(userId = null) {
-      let query = `
-         SELECT 
-            status,
-            COUNT(*) as count
-         FROM export_history
-      `;
+      const whereConditions = userId ? { user_id: userId } : {};
 
-      const params = [];
+      const [pending, completed, failed] = await Promise.all([
+         prisma.export_history.count({
+            where: { ...whereConditions, status: 'P' }
+         }),
+         prisma.export_history.count({
+            where: { ...whereConditions, status: 'C' }
+         }),
+         prisma.export_history.count({
+            where: { ...whereConditions, status: 'F' }
+         })
+      ]);
 
-      if (userId) {
-         query += ` WHERE user_id = ?`;
-         params.push(userId);
-      }
-
-      query += ` GROUP BY status`;
-
-      const results = await this.executeQuery(query, params);
-
-      // แปลงเป็น object
-      const stats = { P: 0, C: 0, F: 0 };
-      results.forEach(row => {
-         stats[row.status] = row.count;
-      });
-
-      return stats;
+      return {
+         P: pending,
+         C: completed,
+         F: failed
+      };
    }
 
    /**
@@ -175,14 +171,24 @@ class ExportModel extends BaseModel {
     * @returns {Promise<boolean>} มี pending jobs หรือไม่
     */
    async hasPendingJobs(userId) {
-      const query = `
-         SELECT COUNT(*) as count 
-         FROM export_history 
-         WHERE user_id = ? AND status = 'P'
-      `;
+      const count = await prisma.export_history.count({
+         where: {
+            user_id: userId,
+            status: 'P'
+         }
+      });
 
-      const result = await this.executeQuery(query, [userId]);
-      return result[0].count > 0;
+      return count > 0;
+   }
+
+   /**
+    * Raw query execution for backward compatibility
+    * @param {string} query - SQL query
+    * @param {Array} params - Query parameters
+    * @returns {Promise<Array>} Query results
+    */
+   async executeQuery(query, params = []) {
+      return await prisma.$queryRawUnsafe(query, ...params);
    }
 }
 

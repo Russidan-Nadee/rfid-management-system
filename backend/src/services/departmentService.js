@@ -1,14 +1,16 @@
-// Path: backend/src/services/departmentService.js
-const DepartmentModel = require('../models/departmentModel');
+// Path: src/services/departmentService.js
+const prisma = require('../lib/prisma');
 
 class DepartmentService {
    constructor() {
-      this.model = new DepartmentModel();
+      // No need for separate model, use Prisma directly
    }
 
    async getAllDepartments() {
       try {
-         return await this.model.getAllDepartments();
+         return await prisma.mst_department.findMany({
+            orderBy: { dept_code: 'asc' }
+         });
       } catch (error) {
          throw new Error(`Error fetching departments: ${error.message}`);
       }
@@ -16,7 +18,9 @@ class DepartmentService {
 
    async getDepartmentByCode(deptCode) {
       try {
-         const department = await this.model.getDepartmentByCode(deptCode);
+         const department = await prisma.mst_department.findUnique({
+            where: { dept_code: deptCode }
+         });
          if (!department) {
             throw new Error('Department not found');
          }
@@ -28,7 +32,10 @@ class DepartmentService {
 
    async getDepartmentsByPlant(plantCode) {
       try {
-         return await this.model.getDepartmentsByPlant(plantCode);
+         return await prisma.mst_department.findMany({
+            where: { plant_code: plantCode },
+            orderBy: { dept_code: 'asc' }
+         });
       } catch (error) {
          throw new Error(`Error fetching departments by plant: ${error.message}`);
       }
@@ -36,15 +43,47 @@ class DepartmentService {
 
    async getDepartmentsWithPlant() {
       try {
-         return await this.model.getDepartmentsWithPlant();
+         return await prisma.mst_department.findMany({
+            include: {
+               // Note: Need to add relation in schema first
+               // For now, use raw query
+            },
+            orderBy: { dept_code: 'asc' }
+         });
       } catch (error) {
-         throw new Error(`Error fetching departments with plant details: ${error.message}`);
+         // Fallback to raw query since relation might not exist
+         try {
+            return await prisma.$queryRaw`
+               SELECT d.*, p.description as plant_description 
+               FROM mst_department d
+               LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+               ORDER BY d.dept_code
+            `;
+         } catch (rawError) {
+            throw new Error(`Error fetching departments with plant details: ${rawError.message}`);
+         }
       }
    }
 
    async getDepartmentStats() {
       try {
-         return await this.model.getDepartmentStats();
+         // Use raw query for complex aggregation
+         return await prisma.$queryRaw`
+            SELECT 
+               d.dept_code,
+               d.description as dept_description,
+               d.plant_code,
+               p.description as plant_description,
+               COUNT(a.asset_no) as asset_count,
+               SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as active_assets,
+               SUM(CASE WHEN a.status = 'I' THEN 1 ELSE 0 END) as inactive_assets,
+               SUM(CASE WHEN a.status = 'C' THEN 1 ELSE 0 END) as created_assets
+            FROM mst_department d
+            LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
+            LEFT JOIN asset_master a ON d.dept_code = a.dept_code
+            GROUP BY d.dept_code, d.description, d.plant_code, p.description
+            ORDER BY d.dept_code
+         `;
       } catch (error) {
          throw new Error(`Error fetching department statistics: ${error.message}`);
       }
@@ -52,7 +91,9 @@ class DepartmentService {
 
    async count(filters = {}) {
       try {
-         return await this.model.count(filters);
+         return await prisma.mst_department.count({
+            where: filters
+         });
       } catch (error) {
          throw new Error(`Error counting departments: ${error.message}`);
       }
@@ -100,8 +141,6 @@ class DepartmentService {
       return Math.round(((current - previous) / previous) * 100);
    }
 
-   // Path: backend/src/services/departmentService.js - getAssetGrowthTrends method
-
    async getAssetGrowthTrends(deptCode = null, period = 'Q2', year = null, startDate = null, endDate = null) {
       try {
          // สำหรับ yearly comparison - ใช้ 5 ปีย้อนหลัง
@@ -109,36 +148,13 @@ class DepartmentService {
          const startYear = currentYear - 4; // 5 ปีย้อนหลัง (รวมปีปัจจุบัน)
          const endYear = currentYear;
 
-         // Query เพื่อดึงข้อมูลสะสมสำหรับแต่ละปี
-         const trends = await this.model.executeQuery(`
-         SELECT 
-            year_range.year,
-            COALESCE(COUNT(a.asset_no), 0) as asset_count,
-            d.dept_code,
-            d.description as dept_description
-         FROM (
-            SELECT ${startYear} as year
-            UNION SELECT ${startYear + 1}
-            UNION SELECT ${startYear + 2}
-            UNION SELECT ${startYear + 3}
-            UNION SELECT ${startYear + 4}
-         ) year_range
-         LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-         ${deptCode ? 'AND a.dept_code = ?' : ''}
-         LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
-         ${deptCode ? 'WHERE a.dept_code = ?' : ''}
-         GROUP BY year_range.year, d.dept_code, d.description
-         ORDER BY year_range.year
-      `, deptCode ? [deptCode, deptCode] : []);
-
-         // กรณีที่ไม่มี department code หรือไม่มีข้อมูล ให้ใช้ query แบบง่าย
-         let finalTrends = [];
-         if (!deptCode || trends.length === 0) {
-            // Query สำหรับ all departments หรือกรณีไม่มีข้อมูล
-            const allAssetTrends = await this.model.executeQuery(`
+         // Use raw query for complex year-based aggregation
+         const query = `
             SELECT 
                year_range.year,
-               COALESCE(COUNT(a.asset_no), 0) as asset_count
+               COALESCE(COUNT(a.asset_no), 0) as asset_count,
+               d.dept_code,
+               d.description as dept_description
             FROM (
                SELECT ${startYear} as year
                UNION SELECT ${startYear + 1}
@@ -148,44 +164,46 @@ class DepartmentService {
             ) year_range
             LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
             ${deptCode ? 'AND a.dept_code = ?' : ''}
-            GROUP BY year_range.year
+            LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
+            ${deptCode ? 'WHERE d.dept_code = ?' : ''}
+            GROUP BY year_range.year, d.dept_code, d.description
             ORDER BY year_range.year
-         `, deptCode ? [deptCode] : []);
+         `;
 
-            finalTrends = allAssetTrends;
-         } else {
-            finalTrends = trends;
-         }
+         const params = deptCode ? [deptCode, deptCode] : [];
+         const yearlyData = await prisma.$queryRawUnsafe(query, ...params);
 
-         // สร้างข้อมูลสำหรับแต่ละปี
+         // Process trends for growth calculations
          const processedTrends = [];
-         let previousCount = 0;
+         let cumulativeCount = 0;
+         let previousCumulativeCount = 0;
 
          for (let currentYearLoop = startYear; currentYearLoop <= endYear; currentYearLoop++) {
-            // หาข้อมูลของปีนี้
-            const yearData = finalTrends.find(trend => trend.year === currentYearLoop) || {
+            const yearData = yearlyData.find(item => Number(item.year) === currentYearLoop) || {
                year: currentYearLoop,
                asset_count: 0,
                dept_code: deptCode || '',
                dept_description: ''
             };
 
-            // คำนวณ growth percentage (เปรียบเทียบกับปีก่อนหน้า)
-            const currentCount = yearData.asset_count || 0;
+            cumulativeCount += Number(yearData.asset_count) || 0;
+
             const growthPercentage = currentYearLoop === startYear ? 0 :
-               this.calculateGrowthPercentage(currentCount, previousCount);
+               previousCumulativeCount === 0 ?
+                  (cumulativeCount > 0 ? 100 : 0) :
+                  this.calculateGrowthPercentage(cumulativeCount, previousCumulativeCount);
 
             processedTrends.push({
-               period: currentYearLoop.toString(), // แสดงเป็นปี เช่น "2021", "2022"
+               period: currentYearLoop.toString(),
                month_year: currentYearLoop.toString(),
-               asset_count: currentCount, // จำนวนสะสมถึงปีนี้
+               asset_count: cumulativeCount,
                growth_percentage: growthPercentage,
-               cumulative_count: currentCount, // เหมือนกับ asset_count สำหรับ yearly
+               cumulative_count: cumulativeCount,
                dept_code: yearData.dept_code || '',
                dept_description: yearData.dept_description || ''
             });
 
-            previousCount = currentCount;
+            previousCumulativeCount = cumulativeCount;
          }
 
          return {
@@ -206,50 +224,21 @@ class DepartmentService {
       }
    }
 
-   // Path: backend/src/services/departmentService.js - getLocationAssetGrowthTrends method
-
    async getLocationAssetGrowthTrends(locationCode = null, period = 'Q2', year = null, startDate = null, endDate = null) {
       try {
-         // สำหรับ yearly comparison - ใช้ 5 ปีย้อนหลัง
          const currentYear = new Date().getFullYear();
-         const startYear = currentYear - 4; // 5 ปีย้อนหลัง (รวมปีปัจจุบัน)
+         const startYear = currentYear - 4;
          const endYear = currentYear;
 
-         // Query เพื่อดึงข้อมูลสะสมสำหรับแต่ละปี โดย filter ตาม location
-         const trends = await this.model.executeQuery(`
-         SELECT 
-            year_range.year,
-            COALESCE(COUNT(a.asset_no), 0) as asset_count,
-            COALESCE(SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END), 0) as active_count,
-            l.location_code,
-            l.description as location_description,
-            p.plant_code,
-            p.description as plant_description
-         FROM (
-            SELECT ${startYear} as year
-            UNION SELECT ${startYear + 1}
-            UNION SELECT ${startYear + 2}
-            UNION SELECT ${startYear + 3}
-            UNION SELECT ${startYear + 4}
-         ) year_range
-         LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-         ${locationCode ? 'AND a.location_code = ?' : ''}
-         LEFT JOIN mst_location l ON ${locationCode ? 'a.location_code = l.location_code' : 'l.location_code IS NOT NULL'}
-         LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-         ${locationCode ? 'WHERE a.location_code = ?' : ''}
-         GROUP BY year_range.year, l.location_code, l.description, p.plant_code, p.description
-         ORDER BY year_range.year
-      `, locationCode ? [locationCode, locationCode] : []);
-
-         // กรณีที่ไม่มี location code หรือไม่มีข้อมูล ให้ใช้ query แบบง่าย
-         let finalTrends = [];
-         if (!locationCode || trends.length === 0) {
-            // Query สำหรับ all locations หรือกรณีไม่มีข้อมูล
-            const allAssetTrends = await this.model.executeQuery(`
+         const query = `
             SELECT 
                year_range.year,
                COALESCE(COUNT(a.asset_no), 0) as asset_count,
-               COALESCE(SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END), 0) as active_count
+               COALESCE(SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END), 0) as active_count,
+               l.location_code,
+               l.description as location_description,
+               p.plant_code,
+               p.description as plant_description
             FROM (
                SELECT ${startYear} as year
                UNION SELECT ${startYear + 1}
@@ -259,22 +248,21 @@ class DepartmentService {
             ) year_range
             LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
             ${locationCode ? 'AND a.location_code = ?' : ''}
-            GROUP BY year_range.year
+            LEFT JOIN mst_location l ON ${locationCode ? 'a.location_code = l.location_code' : 'l.location_code IS NOT NULL'}
+            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
+            ${locationCode ? 'WHERE a.location_code = ?' : ''}
+            GROUP BY year_range.year, l.location_code, l.description, p.plant_code, p.description
             ORDER BY year_range.year
-         `, locationCode ? [locationCode] : []);
+         `;
 
-            finalTrends = allAssetTrends;
-         } else {
-            finalTrends = trends;
-         }
+         const params = locationCode ? [locationCode, locationCode] : [];
+         const trends = await prisma.$queryRawUnsafe(query, ...params);
 
-         // สร้างข้อมูลสำหรับแต่ละปี
          const processedTrends = [];
          let previousCount = 0;
 
          for (let currentYearLoop = startYear; currentYearLoop <= endYear; currentYearLoop++) {
-            // หาข้อมูลของปีนี้
-            const yearData = finalTrends.find(trend => trend.year === currentYearLoop) || {
+            const yearData = trends.find(trend => Number(trend.year) === currentYearLoop) || {
                year: currentYearLoop,
                asset_count: 0,
                active_count: 0,
@@ -284,23 +272,21 @@ class DepartmentService {
                plant_description: ''
             };
 
-            // คำนวณ growth percentage (เปรียบเทียบกับปีก่อนหน้า)
-            const currentCount = yearData.asset_count || 0;
+            const currentCount = Number(yearData.asset_count) || 0;
             const growthPercentage = currentYearLoop === startYear ? 0 :
                this.calculateGrowthPercentage(currentCount, previousCount);
 
             processedTrends.push({
-               period: currentYearLoop.toString(), // แสดงเป็นปี เช่น "2021", "2022"
+               period: currentYearLoop.toString(),
                month_year: currentYearLoop.toString(),
-               asset_count: currentCount, // จำนวนสะสมถึงปีนี้
-               active_count: yearData.active_count || 0,
+               asset_count: currentCount,
+               active_count: Number(yearData.active_count) || 0,
                growth_percentage: growthPercentage,
-               cumulative_count: currentCount, // เหมือนกับ asset_count สำหรับ yearly
+               cumulative_count: currentCount,
                location_code: yearData.location_code || '',
                location_description: yearData.location_description || '',
                plant_code: yearData.plant_code || '',
                plant_description: yearData.plant_description || '',
-               // เพิ่มข้อมูล dept สำหรับ compatibility
                dept_code: yearData.location_code || '',
                dept_description: yearData.location_description || ''
             });
@@ -327,16 +313,32 @@ class DepartmentService {
          throw new Error(`Error fetching location asset growth trends: ${error.message}`);
       }
    }
+
    async getQuarterlyGrowth(deptCode = null, year = new Date().getFullYear()) {
       try {
-         const quarterlyData = await this.model.getQuarterlyGrowth(deptCode, year);
+         const query = `
+            SELECT 
+               QUARTER(a.created_at) as quarter,
+               COUNT(*) as asset_count,
+               d.dept_code,
+               d.description as dept_description
+            FROM asset_master a
+            LEFT JOIN mst_department d ON a.dept_code = d.dept_code
+            WHERE YEAR(a.created_at) = ?
+            ${deptCode ? 'AND a.dept_code = ?' : ''}
+            GROUP BY QUARTER(a.created_at), d.dept_code, d.description
+            ORDER BY quarter, d.dept_code
+         `;
+
+         const params = deptCode ? [year, deptCode] : [year];
+         const quarterlyData = await prisma.$queryRawUnsafe(query, ...params);
 
          // Process quarterly data with growth calculations
          const processedData = [];
          let previousQuarterCount = 0;
 
          for (let quarter = 1; quarter <= 4; quarter++) {
-            const quarterData = quarterlyData.find(q => q.quarter === quarter) || {
+            const quarterData = quarterlyData.find(q => Number(q.quarter) === quarter) || {
                quarter,
                asset_count: 0,
                dept_code: deptCode,
@@ -344,17 +346,17 @@ class DepartmentService {
             };
 
             const growthPercentage = quarter === 1 ? 0 :
-               this.calculateGrowthPercentage(quarterData.asset_count, previousQuarterCount);
+               this.calculateGrowthPercentage(Number(quarterData.asset_count), previousQuarterCount);
 
             processedData.push({
                quarter: `Q${quarter}`,
-               asset_count: quarterData.asset_count,
+               asset_count: Number(quarterData.asset_count),
                growth_percentage: growthPercentage,
                dept_code: quarterData.dept_code,
                dept_description: quarterData.dept_description
             });
 
-            previousQuarterCount = quarterData.asset_count;
+            previousQuarterCount = Number(quarterData.asset_count);
          }
 
          return {
@@ -374,15 +376,44 @@ class DepartmentService {
 
    async getLocationAnalytics(locationCode = null) {
       try {
-         const locationStats = await this.model.getLocationAssetStats(locationCode);
+         const query = `
+            SELECT 
+               l.location_code,
+               l.description as location_description,
+               l.plant_code,
+               p.description as plant_description,
+               COUNT(a.asset_no) as total_assets,
+               SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as active_assets,
+               SUM(CASE WHEN a.status = 'I' THEN 1 ELSE 0 END) as inactive_assets,
+               SUM(CASE WHEN a.status = 'C' THEN 1 ELSE 0 END) as created_assets,
+               COUNT(DISTINCT a.dept_code) as department_count,
+               COUNT(s.scan_id) as total_scans,
+               MAX(s.scanned_at) as last_scan_date
+            FROM mst_location l
+            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
+            LEFT JOIN asset_master a ON l.location_code = a.location_code
+            LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no
+            ${locationCode ? 'WHERE l.location_code = ?' : ''}
+            GROUP BY l.location_code, l.description, l.plant_code, p.description
+            ORDER BY l.location_code
+         `;
+
+         const params = locationCode ? [locationCode] : [];
+         const locationStats = await prisma.$queryRawUnsafe(query, ...params);
 
          // Calculate analytics metrics
          const analytics = locationStats.map(location => ({
             ...location,
-            utilization_rate: location.total_assets > 0 ?
-               Math.round((location.active_assets / location.total_assets) * 100) : 0,
-            scan_frequency: location.total_scans > 0 && location.total_assets > 0 ?
-               Math.round(location.total_scans / location.total_assets) : 0,
+            total_assets: Number(location.total_assets),
+            active_assets: Number(location.active_assets),
+            inactive_assets: Number(location.inactive_assets),
+            created_assets: Number(location.created_assets),
+            department_count: Number(location.department_count),
+            total_scans: Number(location.total_scans),
+            utilization_rate: Number(location.total_assets) > 0 ?
+               Math.round((Number(location.active_assets) / Number(location.total_assets)) * 100) : 0,
+            scan_frequency: Number(location.total_scans) > 0 && Number(location.total_assets) > 0 ?
+               Math.round(Number(location.total_scans) / Number(location.total_assets)) : 0,
             days_since_last_scan: location.last_scan_date ?
                Math.floor((new Date() - new Date(location.last_scan_date)) / (1000 * 60 * 60 * 24)) : null
          }));
@@ -406,11 +437,23 @@ class DepartmentService {
             dateRange = this.parsePeriod(period, year);
          }
 
-         const trends = await this.model.getLocationGrowthTrends(
-            locationCode,
-            dateRange.startDate,
-            dateRange.endDate
-         );
+         const query = `
+            SELECT 
+               DATE_FORMAT(a.created_at, '%Y-%m') as month_year,
+               COUNT(*) as asset_count,
+               SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END) as active_count,
+               l.location_code,
+               l.description as location_description
+            FROM asset_master a
+            JOIN mst_location l ON a.location_code = l.location_code
+            WHERE a.location_code = ? 
+              AND a.created_at >= ? 
+              AND a.created_at <= ?
+            GROUP BY DATE_FORMAT(a.created_at, '%Y-%m'), l.location_code, l.description
+            ORDER BY month_year
+         `;
+
+         const trends = await prisma.$queryRawUnsafe(query, locationCode, dateRange.startDate, dateRange.endDate);
 
          // Calculate growth percentages for location trends
          const processedTrends = [];
@@ -418,16 +461,18 @@ class DepartmentService {
 
          trends.forEach((trend, index) => {
             const growthPercentage = index === 0 ? 0 :
-               this.calculateGrowthPercentage(trend.asset_count, previousCount);
+               this.calculateGrowthPercentage(Number(trend.asset_count), previousCount);
 
             processedTrends.push({
                ...trend,
+               asset_count: Number(trend.asset_count),
+               active_count: Number(trend.active_count),
                growth_percentage: growthPercentage,
                active_growth_percentage: index === 0 ? 0 :
-                  this.calculateGrowthPercentage(trend.active_count, trends[index - 1]?.active_count || 0)
+                  this.calculateGrowthPercentage(Number(trend.active_count), Number(trends[index - 1]?.active_count) || 0)
             });
 
-            previousCount = trend.asset_count;
+            previousCount = Number(trend.asset_count);
          });
 
          return {
@@ -447,13 +492,41 @@ class DepartmentService {
 
    async getAuditProgress(deptCode = null) {
       try {
-         const auditData = await this.model.getAuditProgress(deptCode);
+         const query = `
+            SELECT 
+               d.dept_code,
+               d.description as dept_description,
+               COUNT(DISTINCT a.asset_no) as total_assets,
+               COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) as audited_assets,
+               COUNT(DISTINCT CASE WHEN a.status = 'A' THEN a.asset_no END) as pending_audit,
+               ROUND(
+                  (COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) * 100.0 / 
+                   COUNT(DISTINCT a.asset_no)), 2
+               ) as completion_percentage
+            FROM mst_department d
+            LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
+            ${deptCode ? 'WHERE d.dept_code = ?' : ''}
+            GROUP BY d.dept_code, d.description
+            ORDER BY d.dept_code
+         `;
+
+         const params = deptCode ? [deptCode] : [];
+         const auditData = await prisma.$queryRawUnsafe(query, ...params);
+
+         // Convert BigInt values to numbers
+         const processedData = auditData.map(item => ({
+            ...item,
+            total_assets: Number(item.total_assets),
+            audited_assets: Number(item.audited_assets),
+            pending_audit: Number(item.pending_audit),
+            completion_percentage: Number(item.completion_percentage)
+         }));
 
          // Calculate overall progress if multiple departments
          let overallProgress = null;
-         if (!deptCode && auditData.length > 1) {
-            const totalAssets = auditData.reduce((sum, dept) => sum + (dept.total_assets || 0), 0);
-            const totalAudited = auditData.reduce((sum, dept) => sum + (dept.audited_assets || 0), 0);
+         if (!deptCode && processedData.length > 1) {
+            const totalAssets = processedData.reduce((sum, dept) => sum + (dept.total_assets || 0), 0);
+            const totalAudited = processedData.reduce((sum, dept) => sum + (dept.audited_assets || 0), 0);
 
             overallProgress = {
                total_assets: totalAssets,
@@ -465,7 +538,7 @@ class DepartmentService {
          }
 
          return {
-            department_progress: auditData,
+            department_progress: processedData,
             overall_progress: overallProgress,
             audit_period: 'Last 12 months',
             generated_at: new Date().toISOString()
@@ -477,26 +550,47 @@ class DepartmentService {
 
    async getDetailedAuditProgress(deptCode = null, auditStatus = null) {
       try {
-         const detailedData = await this.model.getDetailedAuditProgress(deptCode);
+         const query = `
+            SELECT 
+               a.asset_no,
+               a.description as asset_description,
+               a.dept_code,
+               d.description as dept_description,
+               MAX(s.scanned_at) as last_audit_date,
+               CASE 
+                  WHEN MAX(s.scanned_at) >= DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN 'audited'
+                  WHEN MAX(s.scanned_at) IS NULL THEN 'never_audited'
+                  ELSE 'overdue'
+               END as audit_status,
+               DATEDIFF(NOW(), MAX(s.scanned_at)) as days_since_audit
+            FROM asset_master a
+            LEFT JOIN mst_department d ON a.dept_code = d.dept_code
+            LEFT JOIN asset_scan_log s ON a.asset_no = s.asset_no
+            WHERE a.status IN ('A', 'C')
+            ${deptCode ? 'AND a.dept_code = ?' : ''}
+            GROUP BY a.asset_no, a.description, a.dept_code, d.description
+            ${auditStatus ? 'HAVING audit_status = ?' : ''}
+            ORDER BY audit_status, days_since_audit DESC
+         `;
 
-         // Filter by audit status if specified
-         let filteredData = detailedData;
-         if (auditStatus) {
-            filteredData = detailedData.filter(asset => asset.audit_status === auditStatus);
-         }
+         const params = [];
+         if (deptCode) params.push(deptCode);
+         if (auditStatus) params.push(auditStatus);
+
+         const detailedData = await prisma.$queryRawUnsafe(query, ...params);
 
          // Group by audit status
          const groupedData = {
-            audited: filteredData.filter(asset => asset.audit_status === 'audited'),
-            never_audited: filteredData.filter(asset => asset.audit_status === 'never_audited'),
-            overdue: filteredData.filter(asset => asset.audit_status === 'overdue')
+            audited: detailedData.filter(asset => asset.audit_status === 'audited'),
+            never_audited: detailedData.filter(asset => asset.audit_status === 'never_audited'),
+            overdue: detailedData.filter(asset => asset.audit_status === 'overdue')
          };
 
          return {
-            detailed_audit_data: filteredData,
+            detailed_audit_data: detailedData,
             grouped_by_status: groupedData,
             summary: {
-               total_assets: filteredData.length,
+               total_assets: detailedData.length,
                audited_count: groupedData.audited.length,
                never_audited_count: groupedData.never_audited.length,
                overdue_count: groupedData.overdue.length

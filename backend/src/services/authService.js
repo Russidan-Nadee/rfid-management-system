@@ -1,6 +1,4 @@
-// =======================
-// 6. backend/src/services/authService.js
-// =======================
+// Path: src/services/authService.js
 const AuthModel = require('../models/authModel');
 const LoginLogModel = require('../models/loginLogModel');
 const { hashPassword, comparePassword } = require('../utils/passwordUtils');
@@ -108,7 +106,7 @@ class AuthService {
 
    async changePassword(userId, currentPassword, newPassword) {
       try {
-         const user = await this.authModel.findUserById(userId);
+         const user = await this.authModel.findUserByUsername(userId);
          if (!user) {
             throw new Error('User not found');
          }
