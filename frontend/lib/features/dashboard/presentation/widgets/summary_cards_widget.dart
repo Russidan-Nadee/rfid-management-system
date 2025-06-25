@@ -1,6 +1,11 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/summary_cards_widget.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
+import 'package:frontend/features/dashboard/presentation/widgets/common/loading_skeleton.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_typography.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -22,24 +27,100 @@ class SummaryCardsWidget extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: AppSpacing.screenPaddingHorizontal,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // คำนวณจำนวน columns ตามขนาดหน้าจอ
+          return _buildResponsiveGrid(context, constraints);
+        },
+      ),
+    );
+  }
+
+  Widget _buildResponsiveGrid(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
+    final screenWidth = constraints.maxWidth;
+    int crossAxisCount;
+    double childAspectRatio;
+
+    if (screenWidth > AppConstants.desktopBreakpoint) {
+      // Desktop - 4 columns
+      crossAxisCount = 4;
+      childAspectRatio = 1.3;
+    } else if (screenWidth > AppConstants.tabletBreakpoint) {
+      // Tablet - 2 columns
+      crossAxisCount = 2;
+      childAspectRatio = 1.4;
+    } else {
+      // Mobile - 2 columns
+      crossAxisCount = 2;
+      childAspectRatio = 1.2;
+    }
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: crossAxisCount,
+      childAspectRatio: childAspectRatio,
+      crossAxisSpacing: AppSpacing.medium,
+      mainAxisSpacing: AppSpacing.medium,
+      children: [
+        _buildStatCard(
+          icon: LucideIcons.boxes,
+          iconColor: AppColors.primary,
+          title: 'All Assets',
+          value: Helpers.formatNumber(stats.overview.totalAssets.value),
+          trend: stats.overview.totalAssets.trend,
+          trendColor: _getTrendColor(stats.overview.totalAssets.trend),
+        ),
+        _buildStatCard(
+          icon: LucideIcons.packagePlus,
+          iconColor: AppColors.assetActive,
+          title: 'New Assets',
+          value: Helpers.formatNumber(stats.overview.createdAssets.value),
+          trend: stats.overview.createdAssets.trend,
+          trendColor: _getTrendColor(stats.overview.createdAssets.trend),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String value,
+    required String trend,
+    required Color trendColor,
+  }) {
+    return StatCard(
+      icon: icon,
+      iconColor: iconColor,
+      title: title,
+      value: value,
+      valueColor: iconColor,
+      trend: trend,
+      trendColor: trendColor,
+    );
+  }
+
+  Widget _buildLoadingCards(BuildContext context) {
+    return Padding(
+      padding: AppSpacing.screenPaddingHorizontal,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
           int crossAxisCount;
           double childAspectRatio;
 
-          if (screenWidth > 800) {
-            // Desktop/Tablet landscape - 4 columns
+          if (screenWidth > AppConstants.desktopBreakpoint) {
             crossAxisCount = 4;
             childAspectRatio = 1.3;
-          } else if (screenWidth > 600) {
-            // Tablet portrait - 2 columns
+          } else if (screenWidth > AppConstants.tabletBreakpoint) {
             crossAxisCount = 2;
             childAspectRatio = 1.4;
           } else {
-            // Mobile - 2 columns
             crossAxisCount = 2;
             childAspectRatio = 1.2;
           }
@@ -49,10 +130,74 @@ class SummaryCardsWidget extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+            crossAxisSpacing: AppSpacing.medium,
+            mainAxisSpacing: AppSpacing.medium,
+            children: List.generate(
+              2, // Show 2 loading cards
+              (index) => const SkeletonStatCard(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Color _getTrendColor(String trend) {
+    if (trend.startsWith('+')) {
+      return AppColors.trendUp;
+    } else if (trend.startsWith('-')) {
+      return AppColors.trendDown;
+    } else {
+      return AppColors.trendStable;
+    }
+  }
+}
+
+// Legacy component for backward compatibility (if needed)
+class LegacySummaryCardsWidget extends StatelessWidget {
+  final DashboardStats stats;
+  final bool isLoading;
+
+  const LegacySummaryCardsWidget({
+    super.key,
+    required this.stats,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return _buildLoadingCards(context);
+    }
+
+    return Padding(
+      padding: AppSpacing.screenPaddingHorizontal,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          int crossAxisCount;
+          double childAspectRatio;
+
+          if (screenWidth > AppConstants.desktopBreakpoint) {
+            crossAxisCount = 4;
+            childAspectRatio = 1.3;
+          } else if (screenWidth > AppConstants.tabletBreakpoint) {
+            crossAxisCount = 2;
+            childAspectRatio = 1.4;
+          } else {
+            crossAxisCount = 2;
+            childAspectRatio = 1.2;
+          }
+
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+            crossAxisSpacing: AppSpacing.medium,
+            mainAxisSpacing: AppSpacing.medium,
             children: [
-              _SummaryCard(
+              _LegacySummaryCard(
                 icon: LucideIcons.boxes,
                 iconColor: AppColors.primary,
                 label: 'All Assets',
@@ -61,7 +206,7 @@ class SummaryCardsWidget extends StatelessWidget {
                 valueColor: AppColors.primary,
                 trend: stats.overview.totalAssets.trend,
               ),
-              _SummaryCard(
+              _LegacySummaryCard(
                 icon: LucideIcons.packagePlus,
                 iconColor: AppColors.assetActive,
                 labelColor: AppColors.assetActive,
@@ -79,32 +224,28 @@ class SummaryCardsWidget extends StatelessWidget {
 
   Widget _buildLoadingCards(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: AppSpacing.screenPaddingHorizontal,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
           int crossAxisCount;
           double childAspectRatio;
 
-          if (screenWidth > 800) {
+          if (screenWidth > AppConstants.desktopBreakpoint) {
             crossAxisCount = 4;
-            childAspectRatio = 1.1;
-          } else if (screenWidth > 600) {
+            childAspectRatio = 1.3;
+          } else if (screenWidth > AppConstants.tabletBreakpoint) {
             crossAxisCount = 2;
-            childAspectRatio = 1.2;
+            childAspectRatio = 1.4;
           } else {
             crossAxisCount = 2;
-            childAspectRatio = 1.0;
+            childAspectRatio = 1.2;
           }
 
-          return GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+          return SkeletonGrid(
+            itemCount: 2,
             crossAxisCount: crossAxisCount,
             childAspectRatio: childAspectRatio,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            children: List.generate(4, (index) => _LoadingSummaryCard()),
           );
         },
       ),
@@ -112,7 +253,7 @@ class SummaryCardsWidget extends StatelessWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+class _LegacySummaryCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
@@ -121,7 +262,7 @@ class _SummaryCard extends StatelessWidget {
   final Color? labelColor;
   final String trend;
 
-  const _SummaryCard({
+  const _LegacySummaryCard({
     required this.icon,
     required this.label,
     required this.value,
@@ -134,118 +275,38 @@ class _SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+
+    return DashboardCard(
+      decoration: theme.cardTheme.shape != null
+          ? BoxDecoration(
+              color: theme.cardColor,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(16), // Use AppBorders.xl
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            )
+          : null,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, size: 24, color: iconColor),
-          const SizedBox(height: 12),
+          AppSpacing.verticalSpaceMedium,
           Text(
             value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: valueColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 28,
-            ),
+            style: AppTextStyles.statValue.copyWith(color: valueColor),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSmall,
           Text(
             label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: labelColor,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
-            ),
+            style: AppTextStyles.statLabel.copyWith(color: labelColor),
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoadingSummaryCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const Spacer(),
-              Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            height: 20,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            width: 60,
-            height: 12,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: 80,
-            height: 13,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
-            ),
           ),
         ],
       ),

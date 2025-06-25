@@ -2,7 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_typography.dart';
+import '../../../../core/constants/app_decorations.dart';
 import '../../domain/entities/growth_trend.dart';
+import 'common/dashboard_card.dart';
+import 'common/empty_state.dart';
+import 'common/loading_skeleton.dart';
 
 class GrowthTrendChartWidget extends StatefulWidget {
   final GrowthTrend growthTrend;
@@ -49,25 +55,22 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
       return _buildLoadingWidget();
     }
 
-    return _DashboardCard(
+    return ChartCard(
       title: 'Asset Growth Department',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      filters: _buildDepartmentFilter(),
+      chart: Column(
         children: [
-          _buildDepartmentFilter(),
-          const SizedBox(height: 16),
           _buildPeriodInfo(),
-          const SizedBox(height: 16),
+          AppSpacing.verticalSpaceMedium,
           SizedBox(
             height: 200,
             child: widget.growthTrend.hasData
                 ? _buildLineChart()
                 : _buildEmptyState(),
           ),
-          const SizedBox(height: 16),
-          _buildTrendSummary(),
         ],
       ),
+      legend: widget.growthTrend.hasData ? _buildTrendSummary() : null,
     );
   }
 
@@ -79,25 +82,27 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(6),
+      padding: AppSpacing.paddingHorizontalMedium.add(
+        AppSpacing.paddingVerticalSmall,
       ),
+      decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _currentSelectedDept,
-          hint: const Text('All Departments'),
+          hint: Text(
+            'All Departments',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+          ),
           isExpanded: true,
           items: [
-            const DropdownMenuItem<String?>(
+            DropdownMenuItem<String?>(
               value: null,
-              child: Text('All Departments'),
+              child: Text('All Departments', style: AppTextStyles.body2),
             ),
             ...uniqueDepts.entries.map(
               (entry) => DropdownMenuItem<String?>(
                 value: entry.key,
-                child: Text(entry.value),
+                child: Text(entry.value, style: AppTextStyles.body2),
               ),
             ),
           ],
@@ -118,19 +123,20 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
       children: [
         Text(
           'Period: ${widget.growthTrend.periodInfo.period}',
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w500),
         ),
         if (widget.growthTrend.periodInfo.isCurrentYear)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
+            padding: AppSpacing.paddingHorizontalSmall.add(
+              AppSpacing.paddingVerticalXS,
+            ),
+            decoration: AppDecorations.chip.copyWith(
               color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
             child: Text(
               'Current Year',
-              style: TextStyle(
-                fontSize: 10,
+              style: AppTextStyles.overline.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),
@@ -153,10 +159,10 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
           horizontalInterval: 5,
           verticalInterval: 1,
           getDrawingHorizontalLine: (value) {
-            return FlLine(color: Colors.grey.shade300, strokeWidth: 1);
+            return FlLine(color: AppColors.divider, strokeWidth: 1);
           },
           getDrawingVerticalLine: (value) {
-            return FlLine(color: Colors.grey.shade300, strokeWidth: 1);
+            return FlLine(color: AppColors.divider, strokeWidth: 1);
           },
         ),
         titlesData: FlTitlesData(
@@ -165,10 +171,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
               showTitles: true,
               reservedSize: 50,
               getTitlesWidget: (value, meta) {
-                return Text(
-                  '${value.toInt()}',
-                  style: const TextStyle(fontSize: 10),
-                );
+                return Text('${value.toInt()}', style: AppTextStyles.overline);
               },
             ),
           ),
@@ -180,11 +183,10 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 final index = value.toInt();
                 if (index >= 0 && index < widget.growthTrend.trends.length) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: AppSpacing.paddingVerticalSmall,
                     child: Text(
                       widget.growthTrend.trends[index].period,
-                      style: const TextStyle(
-                        fontSize: 11,
+                      style: AppTextStyles.chartLabel.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -199,7 +201,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.divider),
         ),
         lineBarsData: [
           LineChartBarData(
@@ -246,9 +248,8 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                   final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
                     'Year ${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
-                    const TextStyle(
+                    AppTextStyles.caption.copyWith(
                       color: Colors.white,
-                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   );
@@ -267,12 +268,8 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
     int correctedAverageGrowth = _calculateAverageGrowth();
 
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      padding: AppSpacing.paddingMedium,
+      decoration: AppDecorations.chip,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -286,14 +283,14 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 ? AppColors.trendDown
                 : AppColors.trendStable,
           ),
-          Container(width: 1, height: 30, color: Colors.grey.shade300),
+          _buildDivider(),
           _buildSummaryItem(
             'Average Growth',
             '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
             AppColors.primary,
           ),
-          Container(width: 1, height: 30, color: Colors.grey.shade300),
+          _buildDivider(),
           _buildSummaryItem(
             'Periods',
             widget.growthTrend.summary.totalPeriods.toString(),
@@ -303,6 +300,37 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildSummaryItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Icon(icon, size: 16, color: color),
+        AppSpacing.verticalSpaceXS,
+        Text(
+          value,
+          style: AppTextStyles.body2.copyWith(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: AppTextStyles.overline.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 30, color: AppColors.divider);
   }
 
   int _calculateLatestYearGrowth() {
@@ -347,90 +375,18 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         .round();
   }
 
-  Widget _buildSummaryItem(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Column(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-        ),
-      ],
-    );
-  }
-
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.show_chart, size: 48, color: Colors.grey.shade400),
-          const SizedBox(height: 8),
-          Text(
-            'No trend data available',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-          ),
-        ],
-      ),
+    return CompactEmptyState(
+      icon: Icons.show_chart,
+      message: 'No trend data available',
     );
   }
 
   Widget _buildLoadingWidget() {
-    return _DashboardCard(
+    return DashboardCard(
       title: 'Asset Growth Department',
-      child: Container(
-        height: 200,
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-    );
-  }
-}
-
-class _DashboardCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _DashboardCard({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
+      isLoading: true,
+      child: const SkeletonChart(height: 200, hasLegend: true),
     );
   }
 }

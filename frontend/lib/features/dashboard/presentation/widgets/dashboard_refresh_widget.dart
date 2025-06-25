@@ -1,6 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/dashboard_refresh_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_typography.dart';
+import '../../../../core/constants/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 
 class DashboardRefreshWidget extends StatelessWidget {
@@ -24,7 +27,7 @@ class DashboardRefreshWidget extends StatelessWidget {
         if (lastRefresh != null && !isLoading)
           _LastRefreshIndicator(lastRefresh: lastRefresh!),
 
-        const SizedBox(width: 8),
+        AppSpacing.horizontalSpaceSmall,
 
         // Refresh button
         _RefreshButton(
@@ -47,16 +50,17 @@ class _LastRefreshIndicator extends StatelessWidget {
     final isRecent = DateTime.now().difference(lastRefresh).inMinutes < 5;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
+      padding: AppSpacing.paddingHorizontalSmall.add(
+        AppSpacing.paddingVerticalXS,
+      ),
+      decoration: AppDecorations.chip.copyWith(
         color: isRecent
-            ? Colors.green.withOpacity(0.1)
-            : Colors.grey.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+            ? AppColors.success.withOpacity(0.1)
+            : AppColors.backgroundSecondary,
         border: Border.all(
           color: isRecent
-              ? Colors.green.withOpacity(0.3)
-              : Colors.grey.withOpacity(0.3),
+              ? AppColors.success.withOpacity(0.3)
+              : AppColors.divider,
         ),
       ),
       child: Row(
@@ -65,14 +69,13 @@ class _LastRefreshIndicator extends StatelessWidget {
           Icon(
             Icons.access_time,
             size: 12,
-            color: isRecent ? Colors.green : Colors.grey.shade600,
+            color: isRecent ? AppColors.success : AppColors.textSecondary,
           ),
-          const SizedBox(width: 4),
+          AppSpacing.horizontalSpaceXS,
           Text(
             timeAgo,
-            style: TextStyle(
-              fontSize: 10,
-              color: isRecent ? Colors.green : Colors.grey.shade600,
+            style: AppTextStyles.overline.copyWith(
+              color: isRecent ? AppColors.success : AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -92,9 +95,9 @@ class _RefreshButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: AppBorders.medium,
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: AppSpacing.paddingSmall,
         child: isLoading
             ? SizedBox(
                 width: 16,
@@ -109,7 +112,7 @@ class _RefreshButton extends StatelessWidget {
                 size: 16,
                 color: onPressed != null
                     ? AppColors.primary
-                    : Colors.grey.shade400,
+                    : AppColors.textTertiary,
               ),
       ),
     );
@@ -181,7 +184,7 @@ class _DashboardRefreshEnhancedState extends State<DashboardRefreshEnhanced>
         if (widget.lastRefresh != null)
           _DataFreshnessIndicator(lastRefresh: widget.lastRefresh!),
 
-        const SizedBox(width: 8),
+        AppSpacing.horizontalSpaceSmall,
 
         // Refresh controls
         if (widget.showMenu) ...[
@@ -220,15 +223,15 @@ class _DataFreshnessIndicator extends StatelessWidget {
     String status;
 
     if (isFresh) {
-      indicatorColor = Colors.green;
+      indicatorColor = AppColors.success;
       indicatorIcon = Icons.check_circle;
       status = 'Fresh';
     } else if (isStale) {
-      indicatorColor = Colors.orange;
+      indicatorColor = AppColors.warning;
       indicatorIcon = Icons.warning;
       status = 'Stale';
     } else {
-      indicatorColor = Colors.blue;
+      indicatorColor = AppColors.info;
       indicatorIcon = Icons.info;
       status = 'OK';
     }
@@ -236,21 +239,21 @@ class _DataFreshnessIndicator extends StatelessWidget {
     return Tooltip(
       message: 'Last updated: ${Helpers.formatDateTime(lastRefresh)}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
+        padding: AppSpacing.paddingHorizontalSmall.add(
+          AppSpacing.paddingVerticalXS,
+        ),
+        decoration: AppDecorations.chip.copyWith(
           color: indicatorColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: indicatorColor.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(indicatorIcon, size: 12, color: indicatorColor),
-            const SizedBox(width: 4),
+            AppSpacing.horizontalSpaceXS,
             Text(
               status,
-              style: TextStyle(
-                fontSize: 10,
+              style: AppTextStyles.overline.copyWith(
                 color: indicatorColor,
                 fontWeight: FontWeight.w600,
               ),
@@ -291,7 +294,7 @@ class _RefreshMenuButton extends StatelessWidget {
                   ? AppColors.primary
                   : onRefresh != null
                   ? AppColors.primary
-                  : Colors.grey.shade400,
+                  : AppColors.textTertiary,
             ),
           );
         },
@@ -300,22 +303,22 @@ class _RefreshMenuButton extends StatelessWidget {
         PopupMenuItem(
           value: 'refresh',
           enabled: onRefresh != null,
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.refresh, size: 16),
-              SizedBox(width: 8),
-              Text('Refresh Data'),
+              const Icon(Icons.refresh, size: 16),
+              AppSpacing.horizontalSpaceSmall,
+              const Text('Refresh Data'),
             ],
           ),
         ),
         if (onClearCache != null)
           PopupMenuItem(
             value: 'clear_cache',
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.clear_all, size: 16),
-                SizedBox(width: 8),
-                Text('Clear Cache'),
+                const Icon(Icons.clear_all, size: 16),
+                AppSpacing.horizontalSpaceSmall,
+                const Text('Clear Cache'),
               ],
             ),
           ),
@@ -369,12 +372,12 @@ class _SimpleRefreshButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.primary.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: AppBorders.medium,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppBorders.medium,
         child: Padding(
-          padding: const EdgeInsets.all(8),
+          padding: AppSpacing.paddingSmall,
           child: AnimatedBuilder(
             animation: rotationAnimation,
             builder: (context, child) {
@@ -385,7 +388,7 @@ class _SimpleRefreshButton extends StatelessWidget {
                   size: 16,
                   color: onPressed != null
                       ? AppColors.primary
-                      : Colors.grey.shade400,
+                      : AppColors.textTertiary,
                 ),
               );
             },
@@ -426,17 +429,17 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
             activeColor: AppColors.primary,
           ),
 
-          const SizedBox(height: 16),
+          AppSpacing.verticalSpaceMedium,
 
           // Interval selection
           if (_isEnabled) ...[
-            const Text(
+            Text(
               'Refresh Interval:',
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: AppTextStyles.body2.copyWith(fontWeight: FontWeight.w500),
             ),
-            const SizedBox(height: 8),
+            AppSpacing.verticalSpaceSmall,
             Wrap(
-              spacing: 8,
+              spacing: AppSpacing.small,
               children: _intervals.map((interval) {
                 final isSelected = _selectedInterval == interval;
                 return ChoiceChip(
@@ -456,30 +459,21 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
               }).toList(),
             ),
 
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
 
             // Warning note
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.withOpacity(0.3)),
-              ),
+              padding: AppSpacing.paddingMedium,
+              decoration: AppDecorations.warning,
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Colors.amber.shade700,
-                  ),
-                  const SizedBox(width: 8),
+                  Icon(Icons.info_outline, size: 16, color: AppColors.warning),
+                  AppSpacing.horizontalSpaceSmall,
                   Expanded(
                     child: Text(
                       'Auto refresh will consume more battery and data.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.amber.shade700,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.warning,
                       ),
                     ),
                   ),
@@ -524,7 +518,9 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
               : 'Auto refresh disabled',
         ),
         duration: const Duration(seconds: 2),
-        backgroundColor: _isEnabled ? Colors.green : Colors.grey,
+        backgroundColor: _isEnabled
+            ? AppColors.success
+            : AppColors.textSecondary,
       ),
     );
   }
@@ -562,109 +558,6 @@ class DashboardFloatingRefresh extends StatelessWidget {
                 ),
               )
             : const Icon(Icons.refresh, size: 20),
-      ),
-    );
-  }
-}
-
-// Pull-to-Refresh Wrapper
-class DashboardPullRefresh extends StatelessWidget {
-  final Widget child;
-  final Future<void> Function() onRefresh;
-  final bool enabled;
-
-  const DashboardPullRefresh({
-    super.key,
-    required this.child,
-    required this.onRefresh,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (!enabled) return child;
-
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      color: AppColors.primary,
-      backgroundColor: Colors.white,
-      strokeWidth: 2.5,
-      child: child,
-    );
-  }
-}
-
-// Refresh Status Banner
-class RefreshStatusBanner extends StatelessWidget {
-  final bool isRefreshing;
-  final String? message;
-  final bool hasError;
-
-  const RefreshStatusBanner({
-    super.key,
-    this.isRefreshing = false,
-    this.message,
-    this.hasError = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (!isRefreshing && message == null) {
-      return const SizedBox.shrink();
-    }
-
-    Color backgroundColor;
-    IconData icon;
-    Color iconColor;
-
-    if (hasError) {
-      backgroundColor = AppColors.error.withOpacity(0.1);
-      icon = Icons.error_outline;
-      iconColor = AppColors.error;
-    } else if (isRefreshing) {
-      backgroundColor = AppColors.primary.withOpacity(0.1);
-      icon = Icons.refresh;
-      iconColor = AppColors.primary;
-    } else {
-      backgroundColor = Colors.green.withOpacity(0.1);
-      icon = Icons.check_circle_outline;
-      iconColor = Colors.green;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      height: isRefreshing || message != null ? 40 : 0,
-      child: Container(
-        width: double.infinity,
-        color: backgroundColor,
-        child: Row(
-          children: [
-            const SizedBox(width: 16),
-            if (isRefreshing)
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(iconColor),
-                ),
-              )
-            else
-              Icon(icon, size: 16, color: iconColor),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message ?? (isRefreshing ? 'Refreshing dashboard...' : ''),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: iconColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-          ],
-        ),
       ),
     );
   }

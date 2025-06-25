@@ -1,7 +1,12 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/audit_progress_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_typography.dart';
+import '../../../../core/constants/app_decorations.dart';
+import 'common/dashboard_card.dart';
 import '../../domain/entities/audit_progress.dart';
+import 'common/loading_skeleton.dart';
 
 class AuditProgressWidget extends StatefulWidget {
   final AuditProgress auditProgress;
@@ -52,21 +57,21 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       return _buildLoadingWidget();
     }
 
-    return _DashboardCard(
+    return ProgressCard(
       title: _getCardTitle(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      progress: _getProgressValue(),
+      progressText: _getProgressText(),
+      subtitle: _getSubtitle(),
+      progressColor: _getProgressColor(),
+      details: Column(
         children: [
           _buildDepartmentFilter(),
-          const SizedBox(height: 20),
-          _buildProgressCircle(),
-          const SizedBox(height: 20),
+          AppSpacing.verticalSpaceLarge,
           _buildProgressDetails(),
           if (widget.auditProgress.hasRecommendations) ...[
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
             _buildRecommendations(),
           ],
-          const SizedBox(height: 16),
         ],
       ),
     );
@@ -85,6 +90,33 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     return 'Audit Progress - ${selectedDept['name']}';
   }
 
+  double _getProgressValue() {
+    final overallProgress = widget.auditProgress.overallProgress;
+    final completionPercentage =
+        overallProgress?.completionPercentage ??
+        widget.auditProgress.averageCompletionPercentage;
+    return completionPercentage / 100;
+  }
+
+  String _getProgressText() {
+    final overallProgress = widget.auditProgress.overallProgress;
+    final completionPercentage =
+        overallProgress?.completionPercentage ??
+        widget.auditProgress.averageCompletionPercentage;
+    return '${completionPercentage.toStringAsFixed(0)}%';
+  }
+
+  String? _getSubtitle() {
+    return _currentSelectedDept == null ? 'Overall Progress' : null;
+  }
+
+  Color _getProgressColor() {
+    final completionPercentage = _getProgressValue() * 100;
+    if (completionPercentage >= 80) return AppColors.success;
+    if (completionPercentage >= 50) return AppColors.warning;
+    return AppColors.error;
+  }
+
   Widget _buildDepartmentFilter() {
     final Map<String, String> uniqueDepts = {};
 
@@ -93,25 +125,27 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(6),
+      padding: AppSpacing.paddingHorizontalMedium.add(
+        AppSpacing.paddingVerticalSmall,
       ),
+      decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _currentSelectedDept,
-          hint: const Text('All Departments'),
+          hint: Text(
+            'All Departments',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+          ),
           isExpanded: true,
           items: [
-            const DropdownMenuItem<String?>(
+            DropdownMenuItem<String?>(
               value: null,
-              child: Text('All Departments'),
+              child: Text('All Departments', style: AppTextStyles.body2),
             ),
             ...uniqueDepts.entries.map(
               (entry) => DropdownMenuItem<String?>(
                 value: entry.key,
-                child: Text(entry.value),
+                child: Text(entry.value, style: AppTextStyles.body2),
               ),
             ),
           ],
@@ -122,49 +156,6 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             widget.onDeptChanged(newValue);
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildProgressCircle() {
-    final overallProgress = widget.auditProgress.overallProgress;
-    final completionPercentage =
-        overallProgress?.completionPercentage ??
-        widget.auditProgress.averageCompletionPercentage;
-
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: CircularProgressIndicator(
-              value: completionPercentage / 100,
-              strokeWidth: 12,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _getProgressColor(completionPercentage),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Text(
-                '${completionPercentage.toStringAsFixed(0)}%',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: _getProgressColor(completionPercentage),
-                ),
-              ),
-              const Text(
-                'Checked',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -184,15 +175,15 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             _buildProgressStat(
               'Checked',
               selectedDeptProgress.auditedAssets.toString(),
-              Colors.green,
+              AppColors.success,
             ),
-            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildDivider(),
             _buildProgressStat(
               'Pending',
               selectedDeptProgress.pendingAudit.toString(),
-              Colors.orange,
+              AppColors.warning,
             ),
-            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildDivider(),
             _buildProgressStat(
               'Total',
               selectedDeptProgress.totalAssets.toString(),
@@ -212,15 +203,15 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           _buildProgressStat(
             'Checked',
             overallProgress.auditedAssets.toString(),
-            Colors.green,
+            AppColors.success,
           ),
-          Container(width: 1, height: 40, color: Colors.grey.shade300),
+          _buildDivider(),
           _buildProgressStat(
             'Pending',
             overallProgress.pendingAudit.toString(),
-            Colors.orange,
+            AppColors.warning,
           ),
-          Container(width: 1, height: 40, color: Colors.grey.shade300),
+          _buildDivider(),
           _buildProgressStat(
             'Total',
             overallProgress.totalAssets.toString(),
@@ -235,27 +226,27 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       children: [
         Text(
           'Department Summary',
-          style: TextStyle(
+          style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade700,
+            color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 8),
+        AppSpacing.verticalSpaceSmall,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildProgressStat(
               'Completed',
               widget.auditProgress.completedDepartments.length.toString(),
-              Colors.green,
+              AppColors.success,
             ),
-            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildDivider(),
             _buildProgressStat(
               'Critical',
               widget.auditProgress.criticalDepartments.length.toString(),
-              Colors.red,
+              AppColors.error,
             ),
-            Container(width: 1, height: 40, color: Colors.grey.shade300),
+            _buildDivider(),
             _buildProgressStat(
               'Total Depts',
               widget.auditProgress.auditProgress.length.toString(),
@@ -272,15 +263,18 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       children: [
         Text(
           value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          style: AppTextStyles.statValue.copyWith(fontSize: 18, color: color),
         ),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          label,
+          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+        ),
       ],
     );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 40, color: AppColors.divider);
   }
 
   Widget _buildRecommendations() {
@@ -288,30 +282,24 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     final warningRecs = widget.auditProgress.warningRecommendations;
 
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
+      padding: AppSpacing.paddingMedium,
+      decoration: AppDecorations.chip,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 16,
-                color: Colors.amber.shade700,
-              ),
-              const SizedBox(width: 6),
-              const Text(
+              Icon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
+              AppSpacing.horizontalSpaceXS,
+              Text(
                 'Recommendations',
-                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                style: AppTextStyles.body2.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSmall,
           if (criticalRecs.isNotEmpty) ...[
             ...criticalRecs.take(2).map((rec) => _buildRecommendationItem(rec)),
           ],
@@ -321,9 +309,8 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           if (widget.auditProgress.recommendations.length > 3)
             Text(
               '+ ${widget.auditProgress.recommendations.length - 3} more recommendations',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -334,7 +321,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
 
   Widget _buildRecommendationItem(Recommendation recommendation) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -343,11 +330,11 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             size: 12,
             color: _getRecommendationColor(recommendation.type),
           ),
-          const SizedBox(width: 6),
+          AppSpacing.horizontalSpaceXS,
           Expanded(
             child: Text(
               recommendation.message,
-              style: const TextStyle(fontSize: 12),
+              style: AppTextStyles.caption,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -358,19 +345,11 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   }
 
   Widget _buildLoadingWidget() {
-    return _DashboardCard(
+    return DashboardCard(
       title: 'Audit Progress',
-      child: Container(
-        height: 200,
-        child: const Center(child: CircularProgressIndicator()),
-      ),
+      isLoading: true,
+      child: const SkeletonChart(height: 200),
     );
-  }
-
-  Color _getProgressColor(double percentage) {
-    if (percentage >= 80) return Colors.green;
-    if (percentage >= 50) return Colors.orange;
-    return Colors.red;
   }
 
   IconData _getRecommendationIcon(String type) {
@@ -389,48 +368,13 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Color _getRecommendationColor(String type) {
     switch (type) {
       case 'critical':
-        return Colors.red;
+        return AppColors.error;
       case 'warning':
-        return Colors.orange;
+        return AppColors.warning;
       case 'success':
-        return Colors.green;
+        return AppColors.success;
       default:
-        return AppColors.primary;
+        return AppColors.info;
     }
-  }
-}
-
-class _DashboardCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _DashboardCard({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
   }
 }

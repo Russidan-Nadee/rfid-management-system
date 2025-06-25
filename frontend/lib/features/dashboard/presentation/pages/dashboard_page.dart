@@ -1,8 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/pages/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/dashboard_refresh_widget.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_typography.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../bloc/dashboard_bloc.dart';
@@ -13,6 +14,7 @@ import '../widgets/asset_distribution_chart_widget.dart';
 import '../widgets/growth_trend_chart_widget.dart';
 import '../widgets/location_growth_trend_widget.dart';
 import '../widgets/audit_progress_widget.dart';
+import '../widgets/dashboard_refresh_widget.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -77,12 +79,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Dashboard',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
+          style: AppTextStyles.dashboardTitle,
         ),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
@@ -107,6 +106,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 isLoading:
                     state is DashboardLoading ||
                     state is DashboardPartialLoading,
+                lastRefresh: state is DashboardLoaded ? state.lastUpdated : null,
               );
             },
           ),
@@ -144,10 +144,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const CircularProgressIndicator(),
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
             Text(
               state.loadingMessage ?? 'Loading dashboard...',
-              style: const TextStyle(fontSize: 16),
+              style: AppTextStyles.body1,
             ),
           ],
         ),
@@ -160,13 +160,13 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
             Text(
               state.message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+              style: AppTextStyles.body1,
             ),
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
             ElevatedButton(
               onPressed: () {
                 context.read<DashboardBloc>().add(const LoadInitialDashboard());
@@ -188,7 +188,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           : (state as DashboardError).previousState!;
 
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screenPaddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -198,16 +198,14 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
               children: [
                 Text(
                   'Overview',
-                  style: TextStyle(
+                  style: AppTextStyles.headline4.copyWith(
                     color: AppColors.primary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
 
             // Summary Cards
             if (loadedState.stats != null)
@@ -217,7 +215,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state is DashboardPartialLoading &&
                     state.loadingType == 'stats',
               ),
-            const SizedBox(height: 16),
+            AppSpacing.verticalSpaceMedium,
 
             // Audit Progress
             if (loadedState.auditProgress != null)
@@ -242,7 +240,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 },
               ),
 
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceLarge,
 
             // Asset Distribution Chart
             if (loadedState.distribution != null)
@@ -256,7 +254,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'distribution',
               ),
 
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceLarge,
 
             // Department Growth Trend Chart
             if (loadedState.departmentGrowthTrend != null)
@@ -277,7 +275,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'department_trends',
               ),
 
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceLarge,
 
             if (loadedState.locationGrowthTrend != null)
               LocationGrowthTrendWidget(
@@ -297,12 +295,12 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'location_trends',
               ),
 
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceLarge,
 
             // Last Updated Info
             _buildLastUpdatedInfo(loadedState),
 
-            const SizedBox(height: 32),
+            AppSpacing.verticalSpaceXXL,
           ],
         ),
       );
@@ -314,12 +312,12 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.dashboard_outlined, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text(
+          AppSpacing.verticalSpaceMedium,
+          Text(
             'No dashboard data available',
-            style: TextStyle(fontSize: 16),
+            style: AppTextStyles.body1,
           ),
-          const SizedBox(height: 16),
+          AppSpacing.verticalSpaceMedium,
           ElevatedButton(
             onPressed: () {
               context.read<DashboardBloc>().add(const LoadInitialDashboard());
@@ -397,35 +395,36 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.paddingMedium,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: AppColors.backgroundSecondary,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
-          Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),
-          const SizedBox(width: 8),
+          Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+          AppSpacing.horizontalSpaceSmall,
           Text(
             'Last updated: ${Helpers.formatDateTime(state.lastUpdated)}',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const Spacer(),
           if (state.hasActiveFilters) ...[
             Icon(Icons.filter_alt, size: 16, color: AppColors.primary),
-            const SizedBox(width: 4),
+            AppSpacing.horizontalSpaceXS,
             Text(
               'Filtered',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTextStyles.caption.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ],
           if (state.isDataRecent) ...[
-            const SizedBox(width: 8),
+            AppSpacing.horizontalSpaceSmall,
             Container(
               width: 8,
               height: 8,
@@ -434,11 +433,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 4),
-            const Text(
+            AppSpacing.horizontalSpaceXS,
+            Text(
               'Fresh',
-              style: TextStyle(
-                fontSize: 12,
+              style: AppTextStyles.caption.copyWith(
                 color: Colors.green,
                 fontWeight: FontWeight.w500,
               ),

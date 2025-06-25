@@ -1,7 +1,7 @@
 // Path: frontend/lib/app.dart
 import 'package:flutter/material.dart';
 import 'core/constants/app_theme.dart';
-import 'core/constants/app_colors.dart';
+import 'core/constants/app_constants.dart';
 import 'app/app_entry_point.dart';
 
 class AssetManagementApp extends StatelessWidget {
@@ -11,23 +11,14 @@ class AssetManagementApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Asset Management',
-      theme: appTheme.copyWith(
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          filled: true,
-          fillColor: AppColors.backgroundSecondary,
-        ),
-      ),
+      title: AppConstants.appName,
+
+      // ใช้ Enhanced Theme ที่สร้างไว้
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+
+      // Home page
       home: const AppEntryPoint(),
     );
   }
