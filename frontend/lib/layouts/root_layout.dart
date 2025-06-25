@@ -7,6 +7,7 @@ import 'package:frontend/features/setting/presentation/pages/settings_page.dart'
 import '../features/scan/presentation/pages/scan_page.dart';
 import '../core/constants/app_spacing.dart';
 import '../core/constants/app_constants.dart';
+import '../core/constants/app_colors.dart';
 
 class RootLayout extends StatefulWidget {
   const RootLayout({super.key});
@@ -27,28 +28,28 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation destinations data
   static const List<NavigationDestination> _destinations = [
     NavigationDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded),
       label: 'Dashboard',
     ),
     NavigationDestination(
       icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search),
+      selectedIcon: Icon(Icons.search_rounded),
       label: 'Search',
     ),
     NavigationDestination(
       icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner),
+      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
       label: 'Scan',
     ),
     NavigationDestination(
-      icon: Icon(Icons.upload_outlined),
-      selectedIcon: Icon(Icons.upload),
+      icon: Icon(Icons.download_outlined),
+      selectedIcon: Icon(Icons.download_rounded),
       label: 'Export',
     ),
     NavigationDestination(
-      icon: Icon(Icons.settings_outlined),
-      selectedIcon: Icon(Icons.settings),
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person_rounded),
       label: 'Settings',
     ),
   ];
@@ -56,28 +57,28 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation rail destinations
   static const List<NavigationRailDestination> _railDestinations = [
     NavigationRailDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard),
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded),
       label: Text('Dashboard'),
     ),
     NavigationRailDestination(
       icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search),
+      selectedIcon: Icon(Icons.search_rounded),
       label: Text('Search'),
     ),
     NavigationRailDestination(
       icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner),
+      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
       label: Text('Scan'),
     ),
     NavigationRailDestination(
-      icon: Icon(Icons.upload_outlined),
-      selectedIcon: Icon(Icons.upload),
+      icon: Icon(Icons.download_outlined),
+      selectedIcon: Icon(Icons.download_rounded),
       label: Text('Export'),
     ),
     NavigationRailDestination(
-      icon: Icon(Icons.settings_outlined),
-      selectedIcon: Icon(Icons.settings),
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person_rounded),
       label: Text('Settings'),
     ),
   ];
@@ -120,9 +121,7 @@ class _RootLayoutState extends State<RootLayout> {
       ),
 
       // Bottom Navigation Bar for narrow screens
-      bottomNavigationBar: _isWideScreen
-          ? null
-          : _buildBottomNavigationBar(theme),
+      bottomNavigationBar: _isWideScreen ? null : _buildCustomBottomNav(),
     );
   }
 
@@ -169,20 +168,50 @@ class _RootLayoutState extends State<RootLayout> {
     return null;
   }
 
-  Widget _buildBottomNavigationBar(ThemeData theme) {
-    return NavigationBar(
-      selectedIndex: _currentIndex,
-      onDestinationSelected: _onNavTap,
-      destinations: _destinations,
+  Widget _buildCustomBottomNav() {
+    return MediaQuery.removePadding(
+      context: context,
+      removeBottom: true,
+      child: Container(
+        height: 70,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade200, width: 0.5),
+          ),
+        ),
+        child: Row(
+          children: _destinations.asMap().entries.map((entry) {
+            final index = entry.key;
+            final destination = entry.value;
+            final isSelected = index == _currentIndex;
 
-      // Use theme values
-      backgroundColor: theme.navigationBarTheme.backgroundColor,
-      indicatorColor: theme.navigationBarTheme.indicatorColor,
-      surfaceTintColor: theme.navigationBarTheme.surfaceTintColor,
-      shadowColor: theme.navigationBarTheme.shadowColor,
-      elevation: theme.navigationBarTheme.elevation,
-      height: theme.navigationBarTheme.height,
-      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            return Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10), // ดัน icon ขึ้น
+                  child: InkResponse(
+                    onTap: () => _onNavTap(index),
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
+                    radius: 28,
+                    child: Icon(
+                      isSelected
+                          ? (destination.selectedIcon as Icon).icon
+                          : (destination.icon as Icon).icon,
+                      color: isSelected
+                          ? AppColors.primary
+                          : Colors.grey.shade600,
+                      size: isSelected ? 28 : 26,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 

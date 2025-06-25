@@ -100,7 +100,6 @@ class SummaryCardsWidget extends StatelessWidget {
       title: title,
       value: value,
       valueColor: iconColor,
-      trend: trend,
       trendColor: trendColor,
     );
   }
@@ -307,6 +306,8 @@ class _LegacySummaryCard extends StatelessWidget {
             label,
             style: AppTextStyles.statLabel.copyWith(color: labelColor),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

@@ -78,7 +78,7 @@ class AppBorders {
   static const BorderRadius medium = BorderRadius.all(Radius.circular(8));
   static const BorderRadius large = BorderRadius.all(Radius.circular(12));
   static const BorderRadius xl = BorderRadius.all(Radius.circular(16));
-  static const BorderRadius circular = BorderRadius.all(Radius.circular(50));
+  static const BorderRadius circular = BorderRadius.all(Radius.circular(8));
 
   // Custom Radius
   static BorderRadius custom(double radius) =>
@@ -239,13 +239,13 @@ class AppDecorations {
   // Filter/Chip Decorations
   static BoxDecoration get chip => BoxDecoration(
     color: AppColors.backgroundSecondary,
-    borderRadius: AppBorders.circular,
+    borderRadius: AppBorders.medium,
     border: AppBorders.allBorders,
   );
 
   static BoxDecoration get chipSelected => BoxDecoration(
     color: AppColors.primary.withOpacity(0.1),
-    borderRadius: AppBorders.circular,
+    borderRadius: AppBorders.medium,
     border: Border.all(color: AppColors.primary),
   );
 

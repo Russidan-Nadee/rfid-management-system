@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/constants/app_decorations.dart';
 import 'package:frontend/core/constants/app_spacing.dart';
-import 'package:frontend/core/constants/app_typography';
+import 'package:frontend/core/constants/app_typography.dart';
 
 class DashboardCard extends StatelessWidget {
   final String? title;
