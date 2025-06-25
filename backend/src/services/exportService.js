@@ -49,38 +49,79 @@ class ExportService {
     */
    async _processExportJob(exportId) {
       try {
+         console.log(`🔄 Processing export job ${exportId}`);
+
          const exportJob = await this.exportModel.getExportJobById(exportId);
          if (!exportJob) {
             throw new Error('Export job not found');
          }
 
-         console.log(`Processing export job ${exportId}...`);
+         // Ensure directory exists
+         const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');
+         await this._ensureDirectoryExists(uploadsDir);
 
-         // ดึงข้อมูลตาม export type
+         // Fetch data
          const data = await this._fetchExportData(exportJob);
+         console.log(`📊 Fetched ${data.length} records`);
 
-         // สร้างไฟล์
+         // Generate file
          const filePath = await this._generateExportFile(exportJob, data);
+         console.log(`💾 File created: ${filePath}`);
 
-         // อัพเดท job เป็น completed
+         // Verify file exists
+         const fileSize = await this._getFileSize(filePath);
+         if (fileSize === 0) {
+            throw new Error('Generated file is empty');
+         }
+
+         // Update job status
          await this.exportModel.updateExportJob(exportId, {
             status: 'C',
             file_path: filePath,
-            file_size: await this._getFileSize(filePath),
+            file_size: fileSize,
             total_records: data.length
          });
 
-         console.log(`Export job ${exportId} completed successfully`);
+         console.log(`✅ Export job ${exportId} completed`);
 
       } catch (error) {
-         console.error(`Export job ${exportId} failed:`, error);
+         console.error(`❌ Export job ${exportId} failed:`, error);
 
-         // อัพเดท job เป็น failed
          await this.exportModel.updateExportJob(exportId, {
             status: 'F',
             error_message: error.message
          });
       }
+   }
+
+   async _ensureDirectoryExists(dirPath) {
+      try {
+         await fs.access(dirPath);
+      } catch {
+         await fs.mkdir(dirPath, { recursive: true });
+         console.log(`📁 Created directory: ${dirPath}`);
+      }
+   }
+
+   async _generateExportFile(exportJob, data) {
+      const config = exportJob.export_config || {};
+      const format = config.format || 'xlsx';
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `${exportJob.export_type}_${exportJob.export_id}_${timestamp}.${format}`;
+
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');
+      const filePath = path.join(uploadsDir, fileName);
+
+      if (format === 'xlsx') {
+         await this._generateExcelFile(filePath, data);
+      } else if (format === 'csv') {
+         await this._generateCsvFile(filePath, data);
+      } else {
+         throw new Error(`Unsupported format: ${format}`);
+      }
+
+      return filePath;
    }
 
    /**

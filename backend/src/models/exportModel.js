@@ -39,6 +39,7 @@ class ExportModel extends BaseModel {
          include: {
             mst_user: {
                select: {
+                  user_id: true,
                   full_name: true
                }
             }

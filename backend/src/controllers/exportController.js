@@ -176,7 +176,7 @@ class ExportController {
             });
          }
 
-         // ตรวจสอบสิทธิ์
+         // Check ownership
          if (exportJob.user_id !== userId) {
             return res.status(403).json({
                success: false,
@@ -185,36 +185,58 @@ class ExportController {
             });
          }
 
-         // ตรวจสอบสถานะ
+         // Check status
+         if (exportJob.status === 'F') {
+            return res.status(400).json({
+               success: false,
+               message: `Export failed: ${exportJob.error_message || 'Unknown error'}`,
+               timestamp: new Date().toISOString()
+            });
+         }
+
+         if (exportJob.status === 'P') {
+            return res.status(202).json({
+               success: false,
+               message: 'Export is still processing, please wait',
+               timestamp: new Date().toISOString()
+            });
+         }
+
          if (exportJob.status !== 'C') {
             return res.status(400).json({
                success: false,
-               message: 'Export job is not completed yet',
+               message: `Export not ready. Status: ${exportJob.status}`,
                timestamp: new Date().toISOString()
             });
          }
 
-         // ตรวจสอบไฟล์
+         // Check file path
          if (!exportJob.file_path) {
             return res.status(404).json({
                success: false,
-               message: 'Export file not found',
+               message: 'Export file path not found',
                timestamp: new Date().toISOString()
             });
          }
 
-         // ตรวจสอบว่าไฟล์ยังมีอยู่หรือไม่
+         // Check file exists
          try {
             await fs.access(exportJob.file_path);
          } catch {
+            // Update job status to failed
+            await this.exportService.exportModel.updateExportJob(parseInt(jobId), {
+               status: 'F',
+               error_message: 'File not found on disk'
+            });
+
             return res.status(404).json({
                success: false,
-               message: 'Export file has been deleted or expired',
+               message: 'Export file not found on server',
                timestamp: new Date().toISOString()
             });
          }
 
-         // ตรวจสอบหมดอายุ
+         // Check expiry
          if (new Date() > new Date(exportJob.expires_at)) {
             return res.status(410).json({
                success: false,
@@ -223,7 +245,7 @@ class ExportController {
             });
          }
 
-         // ส่งไฟล์
+         // Send file
          const fileName = path.basename(exportJob.file_path);
          const fileExtension = path.extname(fileName).toLowerCase();
 
@@ -237,7 +259,6 @@ class ExportController {
          res.setHeader('Content-Type', contentType);
          res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
 
-         // Convert BigInt to Number for file_size
          const fileSize = typeof exportJob.file_size === 'bigint'
             ? Number(exportJob.file_size)
             : exportJob.file_size;
@@ -246,7 +267,7 @@ class ExportController {
             res.setHeader('Content-Length', fileSize);
          }
 
-         // Stream ไฟล์ไปยัง client
+         // Stream file
          const fileStream = require('fs').createReadStream(exportJob.file_path);
          fileStream.pipe(res);
 

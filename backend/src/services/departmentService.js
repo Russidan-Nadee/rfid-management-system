@@ -142,35 +142,34 @@ class DepartmentService {
       }
    }
 
-   // Calculate growth percentage
+
    calculateGrowthPercentage(current, previous) {
       if (previous === 0) return current > 0 ? 100 : 0;
       return Math.round(((current - previous) / previous) * 100);
    }
 
+
    async getAssetGrowthTrends(deptCode = null, period = 'Q2', year = null, startDate = null, endDate = null) {
       try {
-         // สำหรับ yearly comparison - ใช้ 5 ปีย้อนหลัง
          const currentYear = new Date().getFullYear();
-         const startYear = currentYear - 4; // 5 ปีย้อนหลัง (รวมปีปัจจุบัน)
+         const startYear = currentYear - 4;
          const endYear = currentYear;
 
-         // Use raw query for complex year-based aggregation
          let query = `
-            SELECT 
-               year_range.year,
-               COALESCE(COUNT(a.asset_no), 0) as asset_count,
-               d.dept_code,
-               d.description as dept_description
-            FROM (
-               SELECT ${startYear} as year
-               UNION SELECT ${startYear + 1}
-               UNION SELECT ${startYear + 2}
-               UNION SELECT ${startYear + 3}
-               UNION SELECT ${startYear + 4}
-            ) year_range
-            LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-         `;
+      SELECT 
+         year_range.year,
+         COALESCE(COUNT(a.asset_no), 0) as asset_count,
+         d.dept_code,
+         d.description as dept_description
+      FROM (
+         SELECT ${startYear} as year
+         UNION SELECT ${startYear + 1}
+         UNION SELECT ${startYear + 2}
+         UNION SELECT ${startYear + 3}
+         UNION SELECT ${startYear + 4}
+      ) year_range
+      LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
+    `;
 
          const params = [];
          if (deptCode) {
@@ -179,8 +178,8 @@ class DepartmentService {
          }
 
          query += `
-            LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
-         `;
+      LEFT JOIN mst_department d ON ${deptCode ? 'a.dept_code = d.dept_code' : 'd.dept_code IS NOT NULL'}
+    `;
 
          if (deptCode) {
             query += ` WHERE d.dept_code = ?`;
@@ -188,16 +187,14 @@ class DepartmentService {
          }
 
          query += `
-            GROUP BY year_range.year, d.dept_code, d.description
-            ORDER BY year_range.year
-         `;
+      GROUP BY year_range.year, d.dept_code, d.description
+      ORDER BY year_range.year
+    `;
 
          const yearlyData = await prisma.$queryRawUnsafe(query, ...params);
 
-         // Process trends for growth calculations
          const processedTrends = [];
-         let cumulativeCount = 0;
-         let previousCumulativeCount = 0;
+         let previousCount = 0;
 
          for (let currentYearLoop = startYear; currentYearLoop <= endYear; currentYearLoop++) {
             const yearData = yearlyData.find(item => Number(item.year) === currentYearLoop) || {
@@ -207,24 +204,24 @@ class DepartmentService {
                dept_description: ''
             };
 
-            cumulativeCount += Number(yearData.asset_count) || 0;
+            const currentCount = Number(yearData.asset_count) || 0;
 
             const growthPercentage = currentYearLoop === startYear ? 0 :
-               previousCumulativeCount === 0 ?
-                  (cumulativeCount > 0 ? 100 : 0) :
-                  this.calculateGrowthPercentage(cumulativeCount, previousCumulativeCount);
+               previousCount === 0 ?
+                  (currentCount > 0 ? 100 : 0) :
+                  this.calculateGrowthPercentage(currentCount, previousCount);
 
             processedTrends.push({
                period: currentYearLoop.toString(),
                month_year: currentYearLoop.toString(),
-               asset_count: cumulativeCount,
+               asset_count: currentCount,
                growth_percentage: growthPercentage,
-               cumulative_count: cumulativeCount,
+               cumulative_count: currentCount,
                dept_code: yearData.dept_code || '',
                dept_description: yearData.dept_description || ''
             });
 
-            previousCumulativeCount = cumulativeCount;
+            previousCount = currentCount;
          }
 
          return {
@@ -252,23 +249,23 @@ class DepartmentService {
          const endYear = currentYear;
 
          let query = `
-            SELECT 
-               year_range.year,
-               COALESCE(COUNT(a.asset_no), 0) as asset_count,
-               COALESCE(SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END), 0) as active_count,
-               l.location_code,
-               l.description as location_description,
-               p.plant_code,
-               p.description as plant_description
-            FROM (
-               SELECT ${startYear} as year
-               UNION SELECT ${startYear + 1}
-               UNION SELECT ${startYear + 2}
-               UNION SELECT ${startYear + 3}
-               UNION SELECT ${startYear + 4}
-            ) year_range
-            LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
-         `;
+      SELECT 
+         year_range.year,
+         COALESCE(COUNT(a.asset_no), 0) as asset_count,
+         COALESCE(SUM(CASE WHEN a.status = 'A' THEN 1 ELSE 0 END), 0) as active_count,
+         l.location_code,
+         l.description as location_description,
+         p.plant_code,
+         p.description as plant_description
+      FROM (
+         SELECT ${startYear} as year
+         UNION SELECT ${startYear + 1}
+         UNION SELECT ${startYear + 2}
+         UNION SELECT ${startYear + 3}
+         UNION SELECT ${startYear + 4}
+      ) year_range
+      LEFT JOIN asset_master a ON YEAR(a.created_at) <= year_range.year
+    `;
 
          const params = [];
          if (locationCode) {
@@ -277,9 +274,9 @@ class DepartmentService {
          }
 
          query += `
-            LEFT JOIN mst_location l ON ${locationCode ? 'a.location_code = l.location_code' : 'l.location_code IS NOT NULL'}
-            LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
-         `;
+      LEFT JOIN mst_location l ON ${locationCode ? 'a.location_code = l.location_code' : 'l.location_code IS NOT NULL'}
+      LEFT JOIN mst_plant p ON l.plant_code = p.plant_code
+    `;
 
          if (locationCode) {
             query += ` WHERE a.location_code = ?`;
@@ -287,9 +284,9 @@ class DepartmentService {
          }
 
          query += `
-            GROUP BY year_range.year, l.location_code, l.description, p.plant_code, p.description
-            ORDER BY year_range.year
-         `;
+      GROUP BY year_range.year, l.location_code, l.description, p.plant_code, p.description
+      ORDER BY year_range.year
+    `;
 
          const trends = await prisma.$queryRawUnsafe(query, ...params);
 
@@ -308,6 +305,7 @@ class DepartmentService {
             };
 
             const currentCount = Number(yearData.asset_count) || 0;
+
             const growthPercentage = currentYearLoop === startYear ? 0 :
                this.calculateGrowthPercentage(currentCount, previousCount);
 
