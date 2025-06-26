@@ -43,46 +43,50 @@ class SummaryCardsWidget extends StatelessWidget {
     final screenWidth = constraints.maxWidth;
     int crossAxisCount;
     double childAspectRatio;
+    EdgeInsets gridPadding;
 
     if (screenWidth > AppConstants.desktopBreakpoint) {
-      // Desktop - 4 columns
       crossAxisCount = 4;
-      childAspectRatio = 1.3;
-    } else if (screenWidth > AppConstants.tabletBreakpoint) {
-      // Tablet - 2 columns
-      crossAxisCount = 2;
       childAspectRatio = 1.4;
-    } else {
-      // Mobile - 2 columns
+      gridPadding = EdgeInsets.symmetric(horizontal: 32);
+    } else if (screenWidth > AppConstants.tabletBreakpoint) {
       crossAxisCount = 2;
-      childAspectRatio = 1.2;
+      childAspectRatio = 1.5;
+      gridPadding = EdgeInsets.symmetric(horizontal: 24);
+    } else {
+      crossAxisCount = 2;
+      childAspectRatio = 1.1;
+      gridPadding = EdgeInsets.symmetric(horizontal: 16); // เน้นตรงนี้
     }
 
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: crossAxisCount,
-      childAspectRatio: childAspectRatio,
-      crossAxisSpacing: AppSpacing.medium,
-      mainAxisSpacing: AppSpacing.medium,
-      children: [
-        _buildStatCard(
-          icon: LucideIcons.boxes,
-          iconColor: AppColors.primary,
-          title: 'All Assets',
-          value: Helpers.formatNumber(stats.overview.totalAssets.value),
-          trend: stats.overview.totalAssets.trend,
-          trendColor: _getTrendColor(stats.overview.totalAssets.trend),
-        ),
-        _buildStatCard(
-          icon: LucideIcons.packagePlus,
-          iconColor: AppColors.assetActive,
-          title: 'New Assets',
-          value: Helpers.formatNumber(stats.overview.createdAssets.value),
-          trend: stats.overview.createdAssets.trend,
-          trendColor: _getTrendColor(stats.overview.createdAssets.trend),
-        ),
-      ],
+    return Padding(
+      padding: gridPadding,
+      child: GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
+        crossAxisSpacing: AppSpacing.medium,
+        mainAxisSpacing: AppSpacing.medium,
+        children: [
+          _buildStatCard(
+            icon: LucideIcons.boxes,
+            iconColor: AppColors.primary,
+            title: 'All Assets',
+            value: Helpers.formatNumber(stats.overview.totalAssets.value),
+            trend: stats.overview.totalAssets.trend,
+            trendColor: _getTrendColor(stats.overview.totalAssets.trend),
+          ),
+          _buildStatCard(
+            icon: LucideIcons.packagePlus,
+            iconColor: AppColors.primary,
+            title: 'New Assets',
+            value: Helpers.formatNumber(stats.overview.createdAssets.value),
+            trend: stats.overview.createdAssets.trend,
+            trendColor: _getTrendColor(stats.overview.createdAssets.trend),
+          ),
+        ],
+      ),
     );
   }
 

@@ -125,9 +125,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     }
 
     return Container(
-      padding: AppSpacing.paddingHorizontalMedium.add(
-        AppSpacing.paddingVerticalSmall,
-      ),
+      padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),
       decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(

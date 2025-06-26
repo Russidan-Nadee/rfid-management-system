@@ -317,20 +317,18 @@ class _ScanListViewState extends State<ScanListView> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isAllLocations
-                    ? AppColors.chartGreen
-                    : theme.colorScheme.primary)
+              ? (isAllLocations ? AppColors.primary : theme.colorScheme.primary)
               : (isAllLocations
-                    ? AppColors.chartGreen.withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : theme.colorScheme.primary.withOpacity(0.1)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primary
                       : theme.colorScheme.primary)
                 : (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primary
                       : theme.colorScheme.primary),
             width: isSelected ? 2 : 1,
           ),
@@ -342,7 +340,7 @@ class _ScanListViewState extends State<ScanListView> {
               Icon(
                 Icons.public,
                 size: 16,
-                color: isSelected ? Colors.white : AppColors.chartGreen,
+                color: isSelected ? Colors.white : AppColors.primaryLight,
               ),
               const SizedBox(width: 6),
             ] else ...[
@@ -359,7 +357,7 @@ class _ScanListViewState extends State<ScanListView> {
                 color: isSelected
                     ? Colors.white
                     : (isAllLocations
-                          ? AppColors.chartGreen
+                          ? AppColors.primaryLight
                           : theme.colorScheme.primary),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -416,15 +414,15 @@ class _ScanListViewState extends State<ScanListView> {
   Color _getFilterColor(String label, ThemeData theme) {
     switch (label.toLowerCase()) {
       case 'all':
-        return AppColors.chartGreen;
-      case 'active':
         return theme.colorScheme.primary;
+      case 'active':
+        return AppColors.primaryLight;
       case 'checked':
-        return Colors.deepPurple;
+        return AppColors.primaryLight;
       case 'inactive':
         return AppColors.getStatusColor('I');
       case 'unknown':
-        return AppColors.error;
+        return AppColors.warning;
       default:
         return theme.colorScheme.primary;
     }

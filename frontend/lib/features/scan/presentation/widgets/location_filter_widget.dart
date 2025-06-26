@@ -79,19 +79,19 @@ class LocationFilterWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isAllLocations
-                    ? AppColors.chartGreen
+                    ? AppColors.primaryLight
                     : theme.colorScheme.primary)
               : (isAllLocations
-                    ? AppColors.chartGreen.withOpacity(0.1)
+                    ? AppColors.primaryLight.withOpacity(0.1)
                     : theme.colorScheme.primary.withOpacity(0.1)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primaryLight
                       : theme.colorScheme.primary)
                 : (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primaryLight
                       : theme.colorScheme.primary),
             width: isSelected ? 2 : 1,
           ),
@@ -103,7 +103,7 @@ class LocationFilterWidget extends StatelessWidget {
               Icon(
                 Icons.public,
                 size: 16,
-                color: isSelected ? Colors.white : AppColors.chartGreen,
+                color: isSelected ? Colors.white : AppColors.primaryLight,
               ),
               const SizedBox(width: 6),
             ] else ...[
@@ -120,7 +120,7 @@ class LocationFilterWidget extends StatelessWidget {
                 color: isSelected
                     ? Colors.white
                     : (isAllLocations
-                          ? AppColors.chartGreen
+                          ? AppColors.primaryLight
                           : theme.colorScheme.primary),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -245,19 +245,19 @@ class _LocationFilterWidgetWithContext extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isAllLocations
-                    ? AppColors.chartGreen
+                    ? AppColors.primaryLight
                     : theme.colorScheme.primary)
               : (isAllLocations
-                    ? AppColors.chartGreen.withOpacity(0.1)
+                    ? AppColors.primaryLight.withOpacity(0.1)
                     : theme.colorScheme.primary.withOpacity(0.1)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primaryLight
                       : theme.colorScheme.primary)
                 : (isAllLocations
-                      ? AppColors.chartGreen
+                      ? AppColors.primaryLight
                       : theme.colorScheme.primary),
             width: isSelected ? 2 : 1,
           ),
@@ -269,7 +269,7 @@ class _LocationFilterWidgetWithContext extends StatelessWidget {
               Icon(
                 Icons.public,
                 size: 16,
-                color: isSelected ? Colors.white : AppColors.chartGreen,
+                color: isSelected ? Colors.white : AppColors.primaryLight,
               ),
               const SizedBox(width: 6),
             ] else ...[
@@ -286,7 +286,7 @@ class _LocationFilterWidgetWithContext extends StatelessWidget {
                 color: isSelected
                     ? Colors.white
                     : (isAllLocations
-                          ? AppColors.chartGreen
+                          ? AppColors.primaryLight
                           : theme.colorScheme.primary),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

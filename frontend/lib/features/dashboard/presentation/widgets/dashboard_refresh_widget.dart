@@ -50,9 +50,7 @@ class _LastRefreshIndicator extends StatelessWidget {
     final isRecent = DateTime.now().difference(lastRefresh).inMinutes < 5;
 
     return Container(
-      padding: AppSpacing.paddingHorizontalSmall.add(
-        AppSpacing.paddingVerticalXS,
-      ),
+      padding: AppSpacing.paddingHorizontalSM.add(AppSpacing.paddingVerticalXS),
       decoration: AppDecorations.chip.copyWith(
         color: isRecent
             ? AppColors.success.withOpacity(0.1)
@@ -239,7 +237,7 @@ class _DataFreshnessIndicator extends StatelessWidget {
     return Tooltip(
       message: 'Last updated: ${Helpers.formatDateTime(lastRefresh)}',
       child: Container(
-        padding: AppSpacing.paddingHorizontalSmall.add(
+        padding: AppSpacing.paddingHorizontalSM.add(
           AppSpacing.paddingVerticalXS,
         ),
         decoration: AppDecorations.chip.copyWith(

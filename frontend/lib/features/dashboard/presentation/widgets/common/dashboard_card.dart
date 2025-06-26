@@ -54,7 +54,7 @@ class DashboardCard extends StatelessWidget {
 
   Widget _buildContent(ThemeData theme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (title != null || trailing != null) ...[
           _buildHeader(theme),
@@ -154,10 +154,11 @@ class StatCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(icon, size: 24, color: iconColor ?? theme.primaryColor),
-            AppSpacing.verticalSpaceMedium,
+            AppSpacing.verticalSpaceSmall,
           ],
           Text(
             value,
@@ -166,7 +167,7 @@ class StatCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          AppSpacing.verticalSpaceSmall,
+          AppSpacing.verticalSpaceXS,
           Text(
             title,
             style: AppTextStyles.statLabel.copyWith(
@@ -182,6 +183,8 @@ class StatCard extends StatelessWidget {
                 color: theme.textTheme.bodySmall?.color,
               ),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
           if (trend != null) ...[

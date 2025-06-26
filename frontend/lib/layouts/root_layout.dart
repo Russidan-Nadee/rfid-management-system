@@ -175,10 +175,8 @@ class _RootLayoutState extends State<RootLayout> {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            top: BorderSide(color: Colors.grey.shade200, width: 0.5),
-          ),
+          color: AppColors.primary,
+          border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
         ),
         child: Row(
           children: _destinations.asMap().entries.map((entry) {
@@ -190,7 +188,7 @@ class _RootLayoutState extends State<RootLayout> {
               child: Align(
                 alignment: Alignment.topCenter,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 10), // ดัน icon ขึ้น
+                  padding: const EdgeInsets.only(top: 10),
                   child: InkResponse(
                     onTap: () => _onNavTap(index),
                     splashColor: Colors.transparent,
@@ -201,8 +199,8 @@ class _RootLayoutState extends State<RootLayout> {
                           ? (destination.selectedIcon as Icon).icon
                           : (destination.icon as Icon).icon,
                       color: isSelected
-                          ? AppColors.primary
-                          : Colors.grey.shade600,
+                          ? AppColors.onPrimary
+                          : AppColors.onPrimary.withOpacity(0.6),
                       size: isSelected ? 28 : 26,
                     ),
                   ),

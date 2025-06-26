@@ -53,14 +53,20 @@ class AppSpacing {
   static const double fabSize = 56.0;
   static const double appBarElevation = 0.0; // Flat design
 
-  // Modern border radius - More rounded
+  // Modern border radius - Much more rounded like example app
   static const double radiusXS = 4.0;
-  static const double radiusSM = 6.0;
-  static const double radiusMD = 8.0;
-  static const double radiusLG = 12.0;
-  static const double radiusXL = 16.0;
-  static const double radiusXXL = 20.0;
-  static const double radiusXXXL = 24.0;
+  static const double radiusSM = 8.0;
+  static const double radiusMD = 16.0; // Increased from 8 to 16
+  static const double radiusLG = 20.0; // Increased from 12 to 20
+  static const double radiusXL = 24.0; // Increased from 16 to 24
+  static const double radiusXXL = 28.0; // Increased from 20 to 28
+  static const double radiusXXXL = 32.0; // Increased from 24 to 32
+
+  // Extra modern radius for special cases
+  static const double radiusRound = 16.0; // Standard modern round
+  static const double radiusExtraRound = 20.0; // Extra round like iOS
+  static const double radiusSuperRound = 24.0; // Super round for cards
+  static const double radiusUltraRound = 28.0; // Ultra round for modals
 
   // SizedBox helpers - Updated
   static const Widget verticalSpaceXS = SizedBox(height: xs);
@@ -135,10 +141,15 @@ class AppSpacing {
     vertical: xxl,
   );
 
-  // Legacy support
+  // Legacy support - Fixed naming issue
   static const EdgeInsets paddingSmall = paddingSM;
   static const EdgeInsets paddingMedium = paddingLG;
   static const EdgeInsets paddingLarge = paddingXXL;
+
+  // Missing padding helpers that were causing errors
+  static const EdgeInsets paddingHorizontalSmall = paddingHorizontalSM;
+  static const EdgeInsets paddingHorizontalMedium = paddingHorizontalLG;
+  static const EdgeInsets paddingVerticalSmall = paddingVerticalSM;
 
   // Screen padding - Enhanced
   static const EdgeInsets screenPaddingAll = EdgeInsets.all(screenPadding);
@@ -229,4 +240,36 @@ class AppSpacing {
   // Animation spacing
   static const double animationOffset = lg;
   static const double slideDistance = xxxl;
+
+  // Modern radius helpers for specific components
+  static double getCardRadius(String cardType) {
+    switch (cardType) {
+      case 'summary':
+        return radiusSuperRound; // 24px
+      case 'chart':
+        return radiusExtraRound; // 20px
+      case 'list':
+        return radiusRound; // 16px
+      case 'modal':
+        return radiusUltraRound; // 28px
+      default:
+        return radiusExtraRound; // 20px
+    }
+  }
+
+  // Modern padding helpers for specific components
+  static EdgeInsets getCardPadding(String cardType) {
+    switch (cardType) {
+      case 'summary':
+        return paddingXL; // 20px
+      case 'chart':
+        return paddingLG; // 16px
+      case 'compact':
+        return paddingMD; // 12px
+      case 'spacious':
+        return paddingXXL; // 24px
+      default:
+        return paddingLG; // 16px
+    }
+  }
 }

@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/asset_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
 import '../../domain/entities/scanned_item_entity.dart';
@@ -127,7 +128,7 @@ class AssetCard extends StatelessWidget {
               Icon(
                 item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
                 color: item.isUnknown
-                    ? Colors.green
+                    ? AppColors.warning
                     : theme.colorScheme.onSurface.withOpacity(0.4),
               ),
             ],
@@ -179,11 +180,11 @@ class AssetCard extends StatelessWidget {
       case 'C':
         return Colors.deepPurple;
       case 'I':
-        return Colors.grey;
+        return AppColors.error;
       case 'UNKNOWN':
-        return Colors.red;
+        return AppColors.warning;
       default:
-        return Colors.grey;
+        return theme.colorScheme.primary;
     }
   }
 

@@ -82,9 +82,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
     }
 
     return Container(
-      padding: AppSpacing.paddingHorizontalMedium.add(
-        AppSpacing.paddingVerticalSmall,
-      ),
+      padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),
       decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
@@ -127,7 +125,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
         ),
         if (widget.growthTrend.periodInfo.isCurrentYear)
           Container(
-            padding: AppSpacing.paddingHorizontalSmall.add(
+            padding: AppSpacing.paddingHorizontalSM.add(
               AppSpacing.paddingVerticalXS,
             ),
             decoration: AppDecorations.chip.copyWith(
@@ -183,7 +181,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 final index = value.toInt();
                 if (index >= 0 && index < widget.growthTrend.trends.length) {
                   return Padding(
-                    padding: AppSpacing.paddingVerticalSmall,
+                    padding: AppSpacing.paddingVerticalSM,
                     child: Text(
                       widget.growthTrend.trends[index].period,
                       style: AppTextStyles.chartLabel.copyWith(

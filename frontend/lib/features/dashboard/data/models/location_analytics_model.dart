@@ -127,7 +127,7 @@ class LocationAnalyticsModel {
   static LocationTrendDataModel _convertLocationDataToTrend(
     Map<String, dynamic> data,
   ) {
-    print('🔄 Converting location data: ${data.keys.toList()}');
+    // print('🔄 Converting location data: ${data.keys.toList()}');
 
     return LocationTrendDataModel(
       monthYear:
