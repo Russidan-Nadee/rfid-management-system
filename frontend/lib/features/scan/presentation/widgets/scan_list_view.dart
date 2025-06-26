@@ -2,11 +2,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/app/theme/app_colors.dart';
+import 'package:frontend/app/theme/app_spacing.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
+import 'package:frontend/app/theme/app_typography.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
 import 'asset_card.dart';
+
+// Theme Extension สำหรับ Filter Colors
+extension FilterTheme on ThemeData {
+  Color getFilterColor(String label) {
+    switch (label.toLowerCase()) {
+      case 'all':
+        return colorScheme.primary;
+      case 'active':
+        return colorScheme.primary;
+      case 'checked':
+        return colorScheme.tertiary;
+      case 'inactive':
+        return colorScheme.error;
+      case 'unknown':
+        return AppColors.warning; // เก็บไว้เพราะไม่มีใน Material theme
+      default:
+        return colorScheme.primary;
+    }
+  }
+
+  // Standard opacity levels
+  static const double surfaceOpacity = 0.1;
+  static const double borderOpacity = 0.3;
+  static const double textSecondaryOpacity = 0.6;
+  static const double textTertiaryOpacity = 0.5;
+}
+
+// UI Constants
+class ScanListConstants {
+  static const double maxLocationDisplayLength = 20.0;
+  static const double trimLocationLength = 17.0;
+  static const double iconContainerSize = 80.0;
+  static const double emptyStateIconSize = 40.0;
+  static const int borderWidthSelected = 2;
+  static const int borderWidthNormal = 1;
+}
 
 class ScanListView extends StatefulWidget {
   final List<ScannedItemEntity> scannedItems;
@@ -118,7 +157,11 @@ class _ScanListViewState extends State<ScanListView> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withOpacity(
+              FilterTheme.borderOpacity,
+            ),
+          ),
         ),
       ),
       child: Column(
@@ -129,7 +172,10 @@ class _ScanListViewState extends State<ScanListView> {
               () => _isLocationFilterExpanded = !_isLocationFilterExpanded,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: AppSpacing.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -137,12 +183,10 @@ class _ScanListViewState extends State<ScanListView> {
                     color: theme.colorScheme.primary,
                     size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  AppSpacing.horizontalSpaceSM,
                   Text(
                     'Filter by Location',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.filterLabel.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -166,13 +210,18 @@ class _ScanListViewState extends State<ScanListView> {
             height: _isLocationFilterExpanded ? null : 0,
             child: _isLocationFilterExpanded
                 ? Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                    ),
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: availableLocations.map((location) {
                           return Padding(
-                            padding: const EdgeInsets.only(right: 8),
+                            padding: AppSpacing.only(right: AppSpacing.sm),
                             child: _buildLocationChip(
                               context,
                               theme,
@@ -201,7 +250,11 @@ class _ScanListViewState extends State<ScanListView> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+          bottom: BorderSide(
+            color: theme.colorScheme.outline.withOpacity(
+              FilterTheme.borderOpacity,
+            ),
+          ),
         ),
       ),
       child: Column(
@@ -212,16 +265,17 @@ class _ScanListViewState extends State<ScanListView> {
               () => _isStatusFilterExpanded = !_isStatusFilterExpanded,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: AppSpacing.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
               child: Row(
                 children: [
                   Icon(Icons.filter_list, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
+                  AppSpacing.horizontalSpaceSM,
                   Text(
                     'Filter by Status',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.filterLabel.copyWith(
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -245,10 +299,15 @@ class _ScanListViewState extends State<ScanListView> {
             height: _isStatusFilterExpanded ? null : 0,
             child: _isStatusFilterExpanded
                 ? Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      0,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                    ),
                     child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
                       children: [
                         _buildFilterChip(
                           theme,
@@ -314,23 +373,34 @@ class _ScanListViewState extends State<ScanListView> {
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: AppSpacing.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isAllLocations ? AppColors.primary : theme.colorScheme.primary)
+              ? (isAllLocations
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primary)
               : (isAllLocations
-                    ? AppColors.primary.withOpacity(0.1)
-                    : theme.colorScheme.primary.withOpacity(0.1)),
-          borderRadius: BorderRadius.circular(16),
+                    ? theme.colorScheme.primary.withOpacity(
+                        FilterTheme.surfaceOpacity,
+                      )
+                    : theme.colorScheme.primary.withOpacity(
+                        FilterTheme.surfaceOpacity,
+                      )),
+          borderRadius: AppBorders.lg,
           border: Border.all(
             color: isSelected
                 ? (isAllLocations
-                      ? AppColors.primary
+                      ? theme.colorScheme.primary
                       : theme.colorScheme.primary)
                 : (isAllLocations
-                      ? AppColors.primary
+                      ? theme.colorScheme.primary
                       : theme.colorScheme.primary),
-            width: isSelected ? 2 : 1,
+            width: isSelected
+                ? ScanListConstants.borderWidthSelected.toDouble()
+                : ScanListConstants.borderWidthNormal.toDouble(),
           ),
         ),
         child: Row(
@@ -340,26 +410,27 @@ class _ScanListViewState extends State<ScanListView> {
               Icon(
                 Icons.public,
                 size: 16,
-                color: isSelected ? Colors.white : AppColors.primaryLight,
+                color: isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.primary,
               ),
-              const SizedBox(width: 6),
+              AppSpacing.horizontalSpaceXS,
             ] else ...[
               Icon(
                 Icons.location_on,
                 size: 16,
-                color: isSelected ? Colors.white : theme.colorScheme.primary,
+                color: isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.primary,
               ),
-              const SizedBox(width: 6),
+              AppSpacing.horizontalSpaceXS,
             ],
             Text(
               _getDisplayText(location),
-              style: TextStyle(
+              style: AppTextStyles.filterLabel.copyWith(
                 color: isSelected
-                    ? Colors.white
-                    : (isAllLocations
-                          ? AppColors.primaryLight
-                          : theme.colorScheme.primary),
-                fontSize: 14,
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.primary,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
@@ -377,7 +448,7 @@ class _ScanListViewState extends State<ScanListView> {
     BuildContext context,
   ) {
     final isSelected = selectedFilter == label;
-    final color = _getFilterColor(label, theme);
+    final color = theme.getFilterColor(label);
 
     return GestureDetector(
       onTap: () {
@@ -385,17 +456,26 @@ class _ScanListViewState extends State<ScanListView> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: AppSpacing.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? color : color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color, width: isSelected ? 2 : 1),
+          color: isSelected
+              ? color
+              : color.withOpacity(FilterTheme.surfaceOpacity),
+          borderRadius: AppBorders.lg,
+          border: Border.all(
+            color: color,
+            width: isSelected
+                ? ScanListConstants.borderWidthSelected.toDouble()
+                : ScanListConstants.borderWidthNormal.toDouble(),
+          ),
         ),
         child: Text(
           '$label ($count)',
-          style: TextStyle(
-            color: isSelected ? Colors.white : color,
-            fontSize: 14,
+          style: AppTextStyles.filterLabel.copyWith(
+            color: isSelected ? theme.colorScheme.onPrimary : color,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -405,27 +485,10 @@ class _ScanListViewState extends State<ScanListView> {
 
   String _getDisplayText(String location) {
     // ถ้าชื่อยาวเกินไป ให้ตัดให้สั้น
-    if (location.length > 20) {
-      return '${location.substring(0, 17)}...';
+    if (location.length > ScanListConstants.maxLocationDisplayLength) {
+      return '${location.substring(0, ScanListConstants.trimLocationLength.toInt())}...';
     }
     return location;
-  }
-
-  Color _getFilterColor(String label, ThemeData theme) {
-    switch (label.toLowerCase()) {
-      case 'all':
-        return theme.colorScheme.primary;
-      case 'active':
-        return AppColors.primaryLight;
-      case 'checked':
-        return AppColors.primaryLight;
-      case 'inactive':
-        return AppColors.getStatusColor('I');
-      case 'unknown':
-        return AppColors.warning;
-      default:
-        return theme.colorScheme.primary;
-    }
   }
 
   Widget _buildEmptyFilterState(
@@ -440,39 +503,44 @@ class _ScanListViewState extends State<ScanListView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: ScanListConstants.iconContainerSize,
+            height: ScanListConstants.iconContainerSize,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withOpacity(
+                FilterTheme.surfaceOpacity,
+              ),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isLocationFilter ? Icons.location_off : Icons.filter_list_off,
-              size: 40,
-              color: theme.colorScheme.primary.withOpacity(0.6),
+              size: ScanListConstants.emptyStateIconSize,
+              color: theme.colorScheme.primary.withOpacity(
+                FilterTheme.textSecondaryOpacity,
+              ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          AppSpacing.verticalSpaceLG,
 
           Text(
             isLocationFilter ? 'No items in $location' : 'No $filter items',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onBackground.withOpacity(
+                FilterTheme.textSecondaryOpacity,
+              ),
             ),
           ),
 
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSM,
 
           Text(
             isLocationFilter
                 ? 'Try selecting a different location or scan again'
                 : 'Try selecting a different filter or scan again',
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.onBackground.withOpacity(0.5),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onBackground.withOpacity(
+                FilterTheme.textTertiaryOpacity,
+              ),
             ),
             textAlign: TextAlign.center,
           ),
@@ -487,37 +555,42 @@ class _ScanListViewState extends State<ScanListView> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 80,
-            height: 80,
+            width: ScanListConstants.iconContainerSize,
+            height: ScanListConstants.iconContainerSize,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withOpacity(
+                FilterTheme.surfaceOpacity,
+              ),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.qr_code_scanner,
-              size: 40,
-              color: theme.colorScheme.primary.withOpacity(0.6),
+              size: ScanListConstants.emptyStateIconSize,
+              color: theme.colorScheme.primary.withOpacity(
+                FilterTheme.textSecondaryOpacity,
+              ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          AppSpacing.verticalSpaceLG,
 
           Text(
             'No scanned items',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onBackground.withOpacity(
+                FilterTheme.textSecondaryOpacity,
+              ),
             ),
           ),
 
-          const SizedBox(height: 8),
+          AppSpacing.verticalSpaceSM,
 
           Text(
             'Tap the scan button to start scanning RFID tags',
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.onBackground.withOpacity(0.5),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onBackground.withOpacity(
+                FilterTheme.textTertiaryOpacity,
+              ),
             ),
             textAlign: TextAlign.center,
           ),

@@ -40,7 +40,9 @@ class AssetDetailView extends StatelessWidget {
         // ตรวจสอบว่า asset ถูก update แล้วหรือยัง
         if (state is ScanSuccess) {
           final updatedItem = state.scannedItems.firstWhere(
-            (item) => item.assetNo == item.assetNo,
+            (scanItem) =>
+                scanItem.assetNo ==
+                item.assetNo, // ✅ แก้ไข bug: เปลี่ยนจาก item เป็น scanItem
             orElse: () => item,
           );
 

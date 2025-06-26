@@ -2,6 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:frontend/features/scan/presentation/widgets/create/basic_info_section.dart';
+import 'package:frontend/features/scan/presentation/widgets/create/create_asset_header.dart';
+import 'package:frontend/features/scan/presentation/widgets/create/location_info_section.dart';
+import 'package:frontend/features/scan/presentation/widgets/create/quantity_info_section.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../app/theme/app_colors.dart';
@@ -277,7 +281,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
       child: Column(
         children: [
           // Header Card
-          _buildHeaderCard(),
+          CreateAssetHeader(assetNo: widget.assetNo),
 
           // Form Content
           Expanded(
@@ -287,242 +291,66 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Basic Information Section
-                  _buildSectionCard(
-                    title: 'Basic Information',
-                    icon: Icons.inventory_2_outlined,
-                    color: AppColors.primary,
-                    children: [
-                      // Asset Number (Read-only)
-                      _buildReadOnlyField(
-                        label: 'Asset Number',
-                        value: widget.assetNo,
-                        icon: Icons.qr_code,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Description
-                      _buildTextFormField(
-                        controller: _descriptionController,
-                        label: 'Description',
-                        icon: Icons.description,
-                        isRequired: true,
-                        validator: Validators.description,
-                        hint: 'Enter asset description',
-                      ),
-                    ],
+                  BasicInfoSection(
+                    assetNo: widget.assetNo,
+                    descriptionController: _descriptionController,
+                    descriptionValidator: Validators.description,
                   ),
 
                   const SizedBox(height: 16),
 
                   // Location Information Section
-                  _buildSectionCard(
-                    title: 'Location Information',
-                    icon: Icons.location_on,
-                    color: AppColors.info,
-                    children: [
-                      if (_hasLocationData) ...[
-                        // Read-only ถ้ามี location data
-                        _buildDropdownField<String>(
-                          value: _selectedPlant,
-                          label: 'Plant',
-                          icon: Icons.business,
-                          isRequired: true,
-                          items: state.plants
-                              .map(
-                                (plant) => DropdownMenuItem(
-                                  value: plant.plantCode,
-                                  child: Text(plant.toString()),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedPlant = value;
-                              _selectedLocation = null;
-                            });
-                            if (value != null) {
-                              context.read<AssetCreationBloc>().add(
-                                PlantSelected(value),
-                              );
-                            }
-                          },
-                          validator: (value) =>
-                              value == null ? 'Please select a plant' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildReadOnlyField(
-                          label: 'Location Code',
-                          value: widget.locationCode!,
-                          icon: Icons.place,
-                        ),
-                        if (widget.locationName != null) ...[
-                          const SizedBox(height: 16),
-                          _buildReadOnlyField(
-                            label: 'Location Name',
-                            value: widget.locationName!,
-                            icon: Icons.location_city,
-                          ),
-                        ],
-                      ] else ...[
-                        // Dropdown ถ้าไม่มี location data
-                        _buildDropdownField<String>(
-                          value: _selectedPlant,
-                          label: 'Plant',
-                          icon: Icons.business,
-                          isRequired: true,
-                          items: state.plants
-                              .map(
-                                (plant) => DropdownMenuItem(
-                                  value: plant.plantCode,
-                                  child: Text(plant.toString()),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedPlant = value;
-                              _selectedLocation = null;
-                            });
-                            if (value != null) {
-                              context.read<AssetCreationBloc>().add(
-                                PlantSelected(value),
-                              );
-                            }
-                          },
-                          validator: (value) =>
-                              value == null ? 'Please select a plant' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Location Dropdown
-                        _buildDropdownField<String>(
-                          value: _selectedLocation,
-                          label: 'Location',
-                          icon: Icons.place,
-                          isRequired: true,
-                          items: state.locations
-                              .map(
-                                (location) => DropdownMenuItem(
-                                  value: location.locationCode,
-                                  child: Text(location.toString()),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) =>
-                              setState(() => _selectedLocation = value),
-                          validator: (value) =>
-                              value == null ? 'Please select a location' : null,
-                        ),
-                      ],
-
-                      const SizedBox(height: 16),
-
-                      // Department Dropdown
-                      _buildDropdownField<String>(
-                        value: _selectedDepartment,
-                        label: 'Department',
-                        icon: Icons.corporate_fare,
-                        isRequired: false,
-                        items: state.departments
-                            .map(
-                              (department) => DropdownMenuItem(
-                                value: department.deptCode,
-                                child: Text(department.toString()),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() => _selectedDepartment = value);
-                          if (value != null) {
-                            context.read<AssetCreationBloc>().add(
-                              DepartmentSelected(value),
-                            );
-                          }
-                        },
-                        validator: null, // Optional field
-                      ),
-                    ],
+                  LocationInfoSection(
+                    hasLocationData: _hasLocationData,
+                    locationCode: widget.locationCode,
+                    locationName: widget.locationName,
+                    selectedPlant: _selectedPlant,
+                    selectedLocation: _selectedLocation,
+                    selectedDepartment: _selectedDepartment,
+                    plants: state.plants,
+                    locations: state.locations,
+                    departments: state.departments,
+                    onPlantChanged: (value) {
+                      setState(() {
+                        _selectedPlant = value;
+                        _selectedLocation = null;
+                      });
+                      if (value != null) {
+                        context.read<AssetCreationBloc>().add(
+                          PlantSelected(value),
+                        );
+                      }
+                    },
+                    onLocationChanged: (value) =>
+                        setState(() => _selectedLocation = value),
+                    onDepartmentChanged: (value) {
+                      setState(() => _selectedDepartment = value);
+                      if (value != null) {
+                        context.read<AssetCreationBloc>().add(
+                          DepartmentSelected(value),
+                        );
+                      }
+                    },
+                    plantValidator: (value) =>
+                        value == null ? 'Please select a plant' : null,
+                    locationValidator: (value) =>
+                        value == null ? 'Please select a location' : null,
                   ),
 
                   const SizedBox(height: 16),
 
                   // Quantity Information Section
-                  _buildSectionCard(
-                    title: 'Quantity Information',
-                    icon: Icons.straighten,
-                    color: AppColors.warning,
-                    children: [
-                      Row(
-                        children: [
-                          // Unit Dropdown
-                          Expanded(
-                            flex: 2,
-                            child: _buildDropdownField<String>(
-                              value: _selectedUnit,
-                              label: 'Unit',
-                              icon: Icons.category,
-                              isRequired: true,
-                              items: state.units
-                                  .map(
-                                    (unit) => DropdownMenuItem(
-                                      value: unit.unitCode,
-                                      child: Text(unit.toString()),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) =>
-                                  setState(() => _selectedUnit = value),
-                              validator: (value) =>
-                                  value == null ? 'Please select a unit' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-
-                          // Quantity
-                          Expanded(
-                            child: _buildTextFormField(
-                              controller: _quantityController,
-                              label: 'Quantity',
-                              icon: Icons.numbers,
-                              keyboardType: TextInputType.number,
-                              validator: Validators.positiveNumber,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Optional Information Section
-                  _buildSectionCard(
-                    title: 'Optional Information',
-                    icon: Icons.info_outline,
-                    color: AppColors.textSecondary,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildTextFormField(
-                              controller: _serialController,
-                              label: 'Serial Number',
-                              icon: Icons.tag,
-                              hint: 'Optional',
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextFormField(
-                              controller: _inventoryController,
-                              label: 'Inventory Number',
-                              icon: Icons.inventory,
-                              hint: 'Optional',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  QuantityInfoSection(
+                    selectedUnit: _selectedUnit,
+                    quantityController: _quantityController,
+                    serialController: _serialController,
+                    inventoryController: _inventoryController,
+                    units: state.units,
+                    onUnitChanged: (value) =>
+                        setState(() => _selectedUnit = value),
+                    unitValidator: (value) =>
+                        value == null ? 'Please select a unit' : null,
+                    quantityValidator: Validators.positiveNumber,
                   ),
 
                   const SizedBox(height: 24),
@@ -532,267 +360,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           ),
 
           // Submit Button
-          _buildSubmitButton(),
+          SubmitButtonSection(onSubmit: _submitForm),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeaderCard() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.add_circle, color: AppColors.onPrimary, size: 48),
-          const SizedBox(height: 12),
-          Text(
-            'Creating Unknown Asset',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.onPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.onPrimary.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              widget.assetNo,
-              style: TextStyle(
-                color: AppColors.onPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required List<Widget> children,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: AppColors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onBackground,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.onBackground,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool isRequired = false,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
-    String? hint,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      validator: validator,
-      style: TextStyle(color: AppColors.onBackground),
-      decoration: InputDecoration(
-        labelText: isRequired ? '$label *' : label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        hintStyle: TextStyle(color: AppColors.textTertiary),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.cardBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.cardBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.error),
-        ),
-        filled: true,
-        fillColor: AppColors.surface,
-      ),
-    );
-  }
-
-  Widget _buildDropdownField<T>({
-    required T? value,
-    required String label,
-    required IconData icon,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-    bool isRequired = false,
-    String? Function(T?)? validator,
-  }) {
-    return DropdownButtonFormField<T>(
-      value: value,
-      items: items,
-      onChanged: onChanged,
-      validator: validator,
-      style: TextStyle(color: AppColors.onBackground),
-      decoration: InputDecoration(
-        labelText: isRequired ? '$label *' : label,
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        labelStyle: TextStyle(color: AppColors.textSecondary),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.cardBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.cardBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.error),
-        ),
-        filled: true,
-        fillColor: AppColors.surface,
-      ),
-      dropdownColor: AppColors.surface,
-      icon: Icon(Icons.arrow_drop_down, color: AppColors.primary),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textTertiary.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _submitForm,
-          icon: const Icon(Icons.save),
-          label: const Text(
-            'Create Asset',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.onPrimary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 3,
-          ),
-        ),
       ),
     );
   }
@@ -808,7 +377,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           plantCode: _selectedPlant!,
           locationCode: widget.locationCode ?? _selectedLocation!,
           unitCode: _selectedUnit!,
-          deptCode: _selectedDepartment, // เพิ่มนี้
+          deptCode: _selectedDepartment,
           serialNo: _serialController.text.isNotEmpty
               ? _serialController.text
               : null,

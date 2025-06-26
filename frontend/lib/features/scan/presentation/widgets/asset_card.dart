@@ -2,11 +2,70 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/app/theme/app_colors.dart';
+import 'package:frontend/app/theme/app_spacing.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../pages/asset_detail_page.dart';
 import '../pages/create_asset_page.dart';
+
+// Theme Extension สำหรับ Asset Status Colors
+extension AssetStatusTheme on ThemeData {
+  Color getAssetStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'A':
+        return colorScheme.primary;
+      case 'C':
+        return colorScheme.tertiary; // สีม่วงสำหรับ Checked
+      case 'I':
+        return colorScheme.error;
+      case 'UNKNOWN':
+        return AppColors.warning; // สีส้มสำหรับ Unknown
+      default:
+        return colorScheme.primary;
+    }
+  }
+
+  // เพิ่ม method สำหรับเช็ค Unknown โดยใช้ isUnknown flag
+  Color getAssetStatusColorByItem(ScannedItemEntity item) {
+    // ใช้ isUnknown flag เป็นหลักแทน status string
+    if (item.isUnknown == true) {
+      return AppColors.warning; // สีส้มสำหรับ Unknown items
+    }
+    return getAssetStatusColor(item.status);
+  }
+
+  IconData getAssetStatusIcon(String status) {
+    switch (status.toUpperCase()) {
+      case 'A':
+        return Icons.check_circle_outline;
+      case 'C':
+        return Icons.task_alt;
+      case 'I':
+        return Icons.disabled_by_default_outlined;
+      case 'UNKNOWN':
+        return Icons.help_outline;
+      default:
+        return Icons.inventory_2_outlined;
+    }
+  }
+
+  String getAssetStatusLabel(String status) {
+    switch (status.toUpperCase()) {
+      case 'A':
+        return 'Active';
+      case 'C':
+        return 'Checked';
+      case 'I':
+        return 'Inactive';
+      case 'UNKNOWN':
+        return 'Unknown';
+      default:
+        return status;
+    }
+  }
+}
 
 class AssetCard extends StatelessWidget {
   final ScannedItemEntity item;
@@ -18,119 +77,32 @@ class AssetCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: AppSpacing.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.sm,
+        bottom: AppSpacing.sm,
+      ),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
       color: theme.colorScheme.surface,
       child: InkWell(
         onTap: () => _navigateToDetail(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppBorders.medium,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.cardPaddingAll,
           child: Row(
             children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _getStatusColor(item.status, theme).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getStatusIcon(item.status),
-                  color: _getStatusColor(item.status, theme),
-                  size: 24,
-                ),
-              ),
+              // Icon Container
+              _buildStatusIcon(theme),
 
-              const SizedBox(width: 16),
+              AppSpacing.horizontalSpaceLG,
 
               // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
-                    Text(
-                      item.displayName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    // Asset Number
-                    Text(
-                      'Asset No: ${item.assetNo}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    // Status และ Location Row
-                    Row(
-                      children: [
-                        // Status
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(item.status, theme),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _getStatusLabel(item.status),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _getStatusColor(item.status, theme),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        // Location (ถ้ามี)
-                        if (item.locationName != null) ...[
-                          const SizedBox(width: 12),
-                          Icon(
-                            Icons.location_on,
-                            size: 12,
-                            color: theme.colorScheme.onSurface.withOpacity(0.5),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              item.locationName!,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.5,
-                                ),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              Expanded(child: _buildContent(theme)),
 
               // Arrow or Create Icon
-              Icon(
-                item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
-                color: item.isUnknown
-                    ? AppColors.warning
-                    : theme.colorScheme.onSurface.withOpacity(0.4),
-              ),
+              _buildActionIcon(theme),
             ],
           ),
         ),
@@ -138,12 +110,111 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  // แก้ไข _navigateToDetail method ส่ง location data
+  Widget _buildStatusIcon(ThemeData theme) {
+    final statusColor = theme.getAssetStatusColorByItem(item);
+    final statusIcon = theme.getAssetStatusIcon(item.status);
+
+    return Container(
+      width: 48.0,
+      height: 48.0,
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: AppBorders.medium,
+      ),
+      child: Icon(statusIcon, color: statusColor, size: 24.0),
+    );
+  }
+
+  Widget _buildContent(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title - ใช้สีตาม status เสมอ
+        Text(
+          item.displayName,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.getAssetStatusColorByItem(
+              item,
+            ), // ใช้สีตาม status เสมอ
+          ),
+        ),
+
+        AppSpacing.verticalSpaceXS,
+
+        // Asset Number - ใช้สีเทาเสมอ
+        Text(
+          'Asset No: ${item.assetNo}',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+
+        AppSpacing.verticalSpaceXS,
+
+        // Status และ Location Row
+        _buildStatusAndLocation(theme),
+      ],
+    );
+  }
+
+  Widget _buildStatusAndLocation(ThemeData theme) {
+    final statusColor = theme.getAssetStatusColorByItem(item);
+    final statusLabel = theme.getAssetStatusLabel(item.status);
+
+    return Row(
+      children: [
+        // Status Indicator
+        Container(
+          width: 8.0,
+          height: 8.0,
+          decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+        ),
+
+        AppSpacing.horizontalSpaceXS,
+
+        Text(
+          statusLabel,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: statusColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+
+        // Location (ถ้ามี) - ใช้สีเทาเสมอ
+        if (item.locationName != null) ...[
+          AppSpacing.horizontalSpaceMD,
+          Icon(
+            Icons.location_on,
+            size: 12.0,
+            color: theme.colorScheme.onSurface.withOpacity(0.5),
+          ),
+          AppSpacing.horizontalSpaceXS,
+          Expanded(
+            child: Text(
+              item.locationName!,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.5),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildActionIcon(ThemeData theme) {
+    return Icon(
+      item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
+      color: item.isUnknown
+          ? AppColors.warning
+          : theme.colorScheme.onSurface.withOpacity(0.4),
+    );
+  }
+
   void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
-      print('DEBUG: plantCode=${item.plantCode}');
-      print('DEBUG: locationCode=${item.locationCode}');
-      print('DEBUG: locationName=${item.locationName}');
       // Navigate to Create Asset Page for unknown items พร้อม location data
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
@@ -170,51 +241,6 @@ class AssetCard extends StatelessWidget {
           builder: (context) => AssetDetailPage(item: item, scanBloc: scanBloc),
         ),
       );
-    }
-  }
-
-  Color _getStatusColor(String status, ThemeData theme) {
-    switch (status.toUpperCase()) {
-      case 'A':
-        return theme.colorScheme.primary;
-      case 'C':
-        return Colors.deepPurple;
-      case 'I':
-        return AppColors.error;
-      case 'UNKNOWN':
-        return AppColors.warning;
-      default:
-        return theme.colorScheme.primary;
-    }
-  }
-
-  IconData _getStatusIcon(String status) {
-    switch (status.toUpperCase()) {
-      case 'A':
-        return Icons.check_circle_outline;
-      case 'C':
-        return Icons.task_alt;
-      case 'I':
-        return Icons.disabled_by_default_outlined;
-      case 'UNKNOWN':
-        return Icons.help_outline;
-      default:
-        return Icons.inventory_2_outlined;
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status.toUpperCase()) {
-      case 'A':
-        return 'Active';
-      case 'C':
-        return 'Checked';
-      case 'I':
-        return 'Inactive';
-      case 'UNKNOWN':
-        return 'Unknown';
-      default:
-        return status;
     }
   }
 }
