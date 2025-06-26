@@ -1,7 +1,7 @@
 // Path: frontend/lib/app.dart
 import 'package:flutter/material.dart';
-import 'core/constants/app_theme.dart';
-import 'core/constants/app_constants.dart';
+import 'app/theme/app_theme.dart';
+import 'app/app_constants.dart';
 import 'app/app_entry_point.dart';
 
 class AssetManagementApp extends StatelessWidget {

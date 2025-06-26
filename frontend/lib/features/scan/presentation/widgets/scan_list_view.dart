@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/scan_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';

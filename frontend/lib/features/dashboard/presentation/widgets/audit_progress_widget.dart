@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/audit_progress_widget.dart
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/constants/app_decorations.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import 'common/dashboard_card.dart';
 import '../../domain/entities/audit_progress.dart';
 import 'common/loading_skeleton.dart';

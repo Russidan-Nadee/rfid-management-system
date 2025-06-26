@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../di/injection.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';

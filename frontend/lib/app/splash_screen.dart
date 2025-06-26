@@ -1,10 +1,10 @@
 // Path: frontend/lib/app/splash_screen.dart
 import 'package:flutter/material.dart';
-import '../core/constants/app_colors.dart';
-import '../core/constants/app_typography.dart';
-import '../core/constants/app_spacing.dart';
-import '../core/constants/app_decorations.dart';
-import '../core/constants/app_constants.dart';
+import 'theme/app_colors.dart';
+import 'theme/app_typography.dart';
+import 'theme/app_spacing.dart';
+import 'theme/app_decorations.dart';
+import 'app_constants.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

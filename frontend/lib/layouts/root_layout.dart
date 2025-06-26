@@ -5,9 +5,9 @@ import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
-import '../core/constants/app_spacing.dart';
-import '../core/constants/app_constants.dart';
-import '../core/constants/app_colors.dart';
+import '../app/theme/app_spacing.dart';
+import '../app/app_constants.dart';
+import '../app/theme/app_colors.dart';
 
 class RootLayout extends StatefulWidget {
   const RootLayout({super.key});
@@ -28,8 +28,8 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation destinations data
   static const List<NavigationDestination> _destinations = [
     NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home_rounded),
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard_rounded),
       label: 'Dashboard',
     ),
     NavigationDestination(
@@ -43,8 +43,8 @@ class _RootLayoutState extends State<RootLayout> {
       label: 'Scan',
     ),
     NavigationDestination(
-      icon: Icon(Icons.download_outlined),
-      selectedIcon: Icon(Icons.download_rounded),
+      icon: Icon(Icons.upload_outlined),
+      selectedIcon: Icon(Icons.upload_rounded),
       label: 'Export',
     ),
     NavigationDestination(
@@ -57,7 +57,7 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation rail destinations
   static const List<NavigationRailDestination> _railDestinations = [
     NavigationRailDestination(
-      icon: Icon(Icons.home_outlined),
+      icon: Icon(Icons.dashboard_outlined),
       selectedIcon: Icon(Icons.home_rounded),
       label: Text('Dashboard'),
     ),
@@ -72,8 +72,8 @@ class _RootLayoutState extends State<RootLayout> {
       label: Text('Scan'),
     ),
     NavigationRailDestination(
-      icon: Icon(Icons.download_outlined),
-      selectedIcon: Icon(Icons.download_rounded),
+      icon: Icon(Icons.upload_outlined),
+      selectedIcon: Icon(Icons.upload_rounded),
       label: Text('Export'),
     ),
     NavigationRailDestination(

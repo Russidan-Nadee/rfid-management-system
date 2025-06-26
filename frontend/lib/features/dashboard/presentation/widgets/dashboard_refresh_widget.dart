@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/dashboard_refresh_widget.dart
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/constants/app_decorations.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 
 class DashboardRefreshWidget extends StatelessWidget {

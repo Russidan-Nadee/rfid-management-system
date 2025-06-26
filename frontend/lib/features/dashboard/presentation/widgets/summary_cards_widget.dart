@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
 import 'package:frontend/features/dashboard/presentation/widgets/common/loading_skeleton.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import 'package:lucide_icons/lucide_icons.dart';

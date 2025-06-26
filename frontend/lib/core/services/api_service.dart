@@ -20,13 +20,10 @@ class ApiService {
 
     if (requiresAuth) {
       final token = await _storage.getAuthToken();
-      // print('📡 REQUIRE AUTH: $requiresAuth');
-      // print('🔑 HEADER TOKEN: $token');
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
-        // print('✅ Authorization header added');
       } else {
-        print('❌ NO TOKEN - Request will fail');
+        print('NO TOKEN - Request will fail');
       }
     }
 

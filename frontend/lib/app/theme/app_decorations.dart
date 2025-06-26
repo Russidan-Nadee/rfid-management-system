@@ -1,7 +1,7 @@
 // Path: frontend/lib/core/constants/app_decorations.dart
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
-import 'app_constants.dart';
+import '../app_constants.dart';
 
 class AppShadows {
   // Base Shadows

@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/auth/presentation/widgets/login_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/constants/app_colors.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';

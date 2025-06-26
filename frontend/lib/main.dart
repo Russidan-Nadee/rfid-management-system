@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'di/injection.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
-import 'core/constants/app_colors.dart';
+import 'app/theme/app_colors.dart';
 import 'app.dart';
 
 void main() async {

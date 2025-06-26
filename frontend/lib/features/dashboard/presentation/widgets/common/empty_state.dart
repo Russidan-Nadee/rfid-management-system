@@ -1,9 +1,9 @@
 // Path: frontend/lib/core/widgets/common/empty_state.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/core/constants/app_colors.dart';
-import 'package:frontend/core/constants/app_decorations.dart';
-import 'package:frontend/core/constants/app_spacing.dart';
-import 'package:frontend/core/constants/app_typography.dart';
+import 'package:frontend/app/theme/app_colors.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
+import 'package:frontend/app/theme/app_spacing.dart';
+import 'package:frontend/app/theme/app_typography.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData? icon;

@@ -1,8 +1,8 @@
 // Path: frontend/lib/core/widgets/common/dashboard_card.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/core/constants/app_decorations.dart';
-import 'package:frontend/core/constants/app_spacing.dart';
-import 'package:frontend/core/constants/app_typography.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
+import 'package:frontend/app/theme/app_spacing.dart';
+import 'package:frontend/app/theme/app_typography.dart';
 
 class DashboardCard extends StatelessWidget {
   final String? title;

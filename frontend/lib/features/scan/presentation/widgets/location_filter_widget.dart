@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/location_filter_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 

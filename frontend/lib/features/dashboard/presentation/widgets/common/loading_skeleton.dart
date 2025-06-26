@@ -1,7 +1,7 @@
 // Path: frontend/lib/core/widgets/common/loading_skeleton.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/core/constants/app_decorations.dart';
-import 'package:frontend/core/constants/app_spacing.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
+import 'package:frontend/app/theme/app_spacing.dart';
 
 class SkeletonLoader extends StatefulWidget {
   final Widget child;

@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/pages/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/constants/app_typography.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../bloc/dashboard_bloc.dart';
@@ -79,10 +79,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Dashboard',
-          style: AppTextStyles.dashboardTitle,
-        ),
+        title: Text('Dashboard', style: AppTextStyles.dashboardTitle),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
         actions: [
@@ -106,7 +103,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 isLoading:
                     state is DashboardLoading ||
                     state is DashboardPartialLoading,
-                lastRefresh: state is DashboardLoaded ? state.lastUpdated : null,
+                lastRefresh: state is DashboardLoaded
+                    ? state.lastUpdated
+                    : null,
               );
             },
           ),
@@ -313,10 +312,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
         children: [
           const Icon(Icons.dashboard_outlined, size: 64, color: Colors.grey),
           AppSpacing.verticalSpaceMedium,
-          Text(
-            'No dashboard data available',
-            style: AppTextStyles.body1,
-          ),
+          Text('No dashboard data available', style: AppTextStyles.body1),
           AppSpacing.verticalSpaceMedium,
           ElevatedButton(
             onPressed: () {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/app_constants.dart';
+import '../../app/app_constants.dart';
 import '../errors/exceptions.dart';
 
 class StorageService {

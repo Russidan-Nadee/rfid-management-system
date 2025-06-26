@@ -1,10 +1,10 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/growth_trend_chart_widget.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/constants/app_typography.dart';
-import '../../../../core/constants/app_decorations.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../../domain/entities/growth_trend.dart';
 import 'common/dashboard_card.dart';
 import 'common/empty_state.dart';

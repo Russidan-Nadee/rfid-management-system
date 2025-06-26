@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/settings/presentation/widgets/app_info_widget.dart
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_constants.dart';
+import '../../../../app/app_constants.dart';
 
 class AppInfoWidget extends StatelessWidget {
   const AppInfoWidget({super.key});
