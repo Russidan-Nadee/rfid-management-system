@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../bloc/dashboard_bloc.dart';
@@ -54,18 +55,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // Refresh เมื่อกลับมาที่ tab Dashboard
     if (state == AppLifecycleState.resumed) {
       context.read<DashboardBloc>().add(const RefreshDashboard());
     }
   }
 
-  // Refresh เมื่อ Widget ถูกสร้างใหม่ (เปลี่ยน tab)
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // Refresh ทุกครั้งที่กลับมาที่ Dashboard tab
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<DashboardBloc>().add(const RefreshDashboard());
@@ -78,10 +76,20 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: Text('Dashboard', style: AppTextStyles.dashboardTitle),
+        title: Text(
+          'Dashboard',
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primary,
+          ),
+        ),
         backgroundColor: theme.colorScheme.surface,
         foregroundColor: theme.colorScheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 1,
         actions: [
           BlocBuilder<DashboardBloc, DashboardState>(
             builder: (context, state) {
@@ -125,6 +133,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             onRefresh: () async {
               context.read<DashboardBloc>().add(const RefreshDashboard());
             },
+            color: AppColors.primary,
+            backgroundColor: theme.colorScheme.surface,
             child: _buildBody(context, state),
           );
         },
@@ -133,48 +143,21 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   }
 
   Widget _buildBody(BuildContext context, DashboardState state) {
+    final theme = Theme.of(context);
+
     if (state is DashboardInitial) {
-      return const Center(child: CircularProgressIndicator());
+      return _buildLoadingState(context, 'Initializing dashboard...');
     }
 
     if (state is DashboardLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            AppSpacing.verticalSpaceMedium,
-            Text(
-              state.loadingMessage ?? 'Loading dashboard...',
-              style: AppTextStyles.body1,
-            ),
-          ],
-        ),
+      return _buildLoadingState(
+        context,
+        state.loadingMessage ?? 'Loading dashboard...',
       );
     }
 
     if (state is DashboardError && state.previousState == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            AppSpacing.verticalSpaceMedium,
-            Text(
-              state.message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body1,
-            ),
-            AppSpacing.verticalSpaceMedium,
-            ElevatedButton(
-              onPressed: () {
-                context.read<DashboardBloc>().add(const LoadInitialDashboard());
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
+      return _buildErrorState(context, state.message);
     }
 
     if (state is DashboardLoaded ||
@@ -191,20 +174,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with title and filters
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Overview',
-                  style: AppTextStyles.headline4.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-
-            AppSpacing.verticalSpaceMedium,
+            AppSpacing.verticalSpaceXL,
 
             // Summary Cards
             if (loadedState.stats != null)
@@ -214,7 +184,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state is DashboardPartialLoading &&
                     state.loadingType == 'stats',
               ),
-            AppSpacing.verticalSpaceMedium,
+            AppSpacing.verticalSpaceXL,
 
             // Audit Progress
             if (loadedState.auditProgress != null)
@@ -239,7 +209,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 },
               ),
 
-            AppSpacing.verticalSpaceLarge,
+            AppSpacing.verticalSpaceXXL,
 
             // Asset Distribution Chart
             if (loadedState.distribution != null)
@@ -253,7 +223,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'distribution',
               ),
 
-            AppSpacing.verticalSpaceLarge,
+            AppSpacing.verticalSpaceXXL,
 
             // Department Growth Trend Chart
             if (loadedState.departmentGrowthTrend != null)
@@ -274,7 +244,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'department_trends',
               ),
 
-            AppSpacing.verticalSpaceLarge,
+            AppSpacing.verticalSpaceXXL,
 
             if (loadedState.locationGrowthTrend != null)
               LocationGrowthTrendWidget(
@@ -294,7 +264,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     state.loadingType == 'location_trends',
               ),
 
-            AppSpacing.verticalSpaceLarge,
+            AppSpacing.verticalSpaceXXL,
 
             // Last Updated Info
             _buildLastUpdatedInfo(loadedState),
@@ -305,32 +275,173 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       );
     }
 
-    // Empty state when no data loaded
+    return _buildEmptyState(context);
+  }
+
+  Widget _buildLoadingState(BuildContext context, String message) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.dashboard_outlined, size: 64, color: Colors.grey),
-          AppSpacing.verticalSpaceMedium,
-          Text('No dashboard data available', style: AppTextStyles.body1),
-          AppSpacing.verticalSpaceMedium,
-          ElevatedButton(
-            onPressed: () {
-              context.read<DashboardBloc>().add(const LoadInitialDashboard());
-            },
-            child: const Text('Load Dashboard'),
+          CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
+          AppSpacing.verticalSpaceXL,
+          Text(
+            message,
+            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),
     );
   }
 
-  // Helper method เพื่อรวม Department จากทุกแหล่ง
+  Widget _buildErrorState(BuildContext context, String message) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: AppSpacing.paddingXXL,
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                borderRadius: AppBorders.circular,
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 64,
+                color: AppColors.error,
+              ),
+            ),
+            AppSpacing.verticalSpaceXL,
+            Text(
+              'Dashboard Error',
+              style: AppTextStyles.headline5.copyWith(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.onBackground
+                    : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            AppSpacing.verticalSpaceSM,
+            Container(
+              padding: AppSpacing.paddingMD,
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                borderRadius: AppBorders.md,
+                border: Border.all(color: AppColors.error.withOpacity(0.2)),
+              ),
+              child: Text(
+                message,
+                style: AppTextStyles.body2.copyWith(color: AppColors.error),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            AppSpacing.verticalSpaceXL,
+            SizedBox(
+              width: 200,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.read<DashboardBloc>().add(
+                    const LoadInitialDashboard(),
+                  );
+                },
+                icon: Icon(Icons.refresh, color: AppColors.onPrimary),
+                label: Text(
+                  'Retry',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.onPrimary,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  padding: AppSpacing.buttonPaddingSymmetric,
+                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: AppSpacing.paddingXXL,
+              decoration: BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                borderRadius: AppBorders.circular,
+              ),
+              child: Icon(
+                Icons.dashboard_outlined,
+                size: 64,
+                color: AppColors.textMuted,
+              ),
+            ),
+            AppSpacing.verticalSpaceXL,
+            Text(
+              'No Dashboard Data',
+              style: AppTextStyles.headline5.copyWith(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.onBackground
+                    : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            AppSpacing.verticalSpaceSM,
+            Text(
+              'Dashboard data is not available at the moment',
+              style: AppTextStyles.body2.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.verticalSpaceXL,
+            SizedBox(
+              width: 200,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.read<DashboardBloc>().add(
+                    const LoadInitialDashboard(),
+                  );
+                },
+                icon: Icon(Icons.dashboard, color: AppColors.onPrimary),
+                label: Text(
+                  'Load Dashboard',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.onPrimary,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  padding: AppSpacing.buttonPaddingSymmetric,
+                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   List<Map<String, String>> _getAllDepartments(DashboardLoaded state) {
     final Set<String> allDeptCodes = {};
     final Map<String, String> deptMap = {};
 
-    // รวม Department จาก Audit Progress
     if (state.auditProgress != null) {
       for (final dept in state.auditProgress!.auditProgress) {
         allDeptCodes.add(dept.deptCode);
@@ -338,7 +449,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       }
     }
 
-    // รวม Department จาก Department Growth Trend
     if (state.departmentGrowthTrend != null) {
       for (final trend in state.departmentGrowthTrend!.trends) {
         if (trend.deptCode.isNotEmpty) {
@@ -348,7 +458,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       }
     }
 
-    // รวม Department จาก Asset Distribution
     if (state.distribution != null) {
       for (final item in state.distribution!.pieChartData) {
         if (item.deptCode.isNotEmpty) {
@@ -358,18 +467,14 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       }
     }
 
-    // Convert เป็น List และเรียงตามชื่อ
     final List<Map<String, String>> departments = allDeptCodes
         .map((code) => {'code': code, 'name': deptMap[code] ?? code})
         .toList();
 
-    // เรียงตามชื่อ Department
     departments.sort((a, b) => a['name']!.compareTo(b['name']!));
-
     return departments;
   }
 
-  // Helper method เพื่อรวม Location จากทุกแหล่ง
   List<Map<String, String>> _getAllLocations(DashboardLoaded state) {
     final Set<String> allLocationCodes = {};
     final Map<String, String> locationMap = {};
@@ -391,16 +496,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {
     return Container(
-      padding: AppSpacing.paddingMedium,
-      decoration: BoxDecoration(
+      padding: AppSpacing.paddingLG,
+      decoration: AppDecorations.card.copyWith(
         color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
       ),
       child: Row(
         children: [
           Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
-          AppSpacing.horizontalSpaceSmall,
+          AppSpacing.horizontalSpaceSM,
           Text(
             'Last updated: ${Helpers.formatDateTime(state.lastUpdated)}',
             style: AppTextStyles.caption.copyWith(
@@ -420,12 +524,12 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             ),
           ],
           if (state.isDataRecent) ...[
-            AppSpacing.horizontalSpaceSmall,
+            AppSpacing.horizontalSpaceSM,
             Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.green,
+              decoration: BoxDecoration(
+                color: AppColors.success,
                 shape: BoxShape.circle,
               ),
             ),
@@ -433,7 +537,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Text(
               'Fresh',
               style: AppTextStyles.caption.copyWith(
-                color: Colors.green,
+                color: AppColors.success,
                 fontWeight: FontWeight.w500,
               ),
             ),

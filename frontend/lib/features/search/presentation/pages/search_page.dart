@@ -2,6 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../di/injection.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
@@ -14,7 +18,7 @@ import '../widgets/search_loading_view.dart';
 import '../widgets/search_empty_view.dart';
 import '../widgets/search_error_view.dart';
 import '../widgets/search_result_card.dart';
-import '../widgets/search_result_detail_dialog.dart'; // <<< เพิ่มการนำเข้าไฟล์ Dialog ใหม่
+import '../widgets/search_result_detail_dialog.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -32,46 +36,41 @@ class _SearchPageState extends State<SearchPage> {
     super.dispose();
   }
 
-  // Helper method to show detail dialog
   void _showResultDetail(SearchResultEntity result, ThemeData theme) {
     showDialog(
       context: context,
-      builder: (context) => SearchResultDetailDialog(
-        result: result,
-      ), // <<< เปลี่ยนมาเรียกใช้ Dialog ใหม่
+      builder: (context) => SearchResultDetailDialog(result: result),
     );
   }
 
-  // Helper method for entity color
   Color _getEntityColor(String entityType) {
     switch (entityType) {
       case 'assets':
-        return Colors.blue;
+        return AppColors.primary;
       case 'plants':
-        return Colors.green;
+        return AppColors.success;
       case 'locations':
-        return Colors.orange;
+        return AppColors.warning;
       case 'users':
-        return Colors.purple;
+        return AppColors.info;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
-  // Helper method for status color
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
       case 'A':
       case 'ACTIVE':
-        return Colors.green;
+        return AppColors.success;
       case 'C':
       case 'CREATED':
-        return Colors.blue;
+        return AppColors.info;
       case 'I':
       case 'INACTIVE':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 
@@ -87,13 +86,15 @@ class _SearchPageState extends State<SearchPage> {
           title: Text(
             'Search',
             style: TextStyle(
+              fontSize: 25,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: AppColors.primary,
             ),
           ),
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: theme.colorScheme.onSurface,
-          elevation: 1,
+          elevation: 0,
+          scrolledUnderElevation: 1,
         ),
         body: Column(
           children: [
@@ -131,31 +132,63 @@ class _SearchPageState extends State<SearchPage> {
                       children: [
                         Container(
                           color: theme.colorScheme.surface,
-                          padding: const EdgeInsets.all(16),
+                          padding: AppSpacing.paddingLG,
                           child: Row(
                             children: [
-                              Text(
-                                'Search Results for "${state.query}" Found (${state.totalResults} items)',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Text(
+                                  'Search Results for "${state.query}"',
+                                  style: AppTextStyles.cardTitle.copyWith(
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                              AppSpacing.horizontalSpaceSM,
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.sm,
+                                  vertical: AppSpacing.xs,
+                                ),
+                                decoration: AppDecorations.custom(
+                                  color: AppColors.primarySurface,
+                                  borderRadius: AppBorders.pill,
+                                ),
+                                child: Text(
+                                  '${state.totalResults} items',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                               if (state.fromCache) ...[
-                                const SizedBox(width: 8),
+                                AppSpacing.horizontalSpaceSM,
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm,
+                                    vertical: AppSpacing.xs,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green[100],
-                                    borderRadius: BorderRadius.circular(12),
+                                  decoration: AppDecorations.custom(
+                                    color: AppColors.successLight,
+                                    borderRadius: AppBorders.pill,
                                   ),
-                                  child: Text(
-                                    'Cached',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: Colors.green,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.cached,
+                                        size: 12,
+                                        color: AppColors.success,
+                                      ),
+                                      AppSpacing.horizontalSpaceXS,
+                                      Text(
+                                        'Cached',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: AppColors.success,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -164,16 +197,19 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         Expanded(
                           child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
+                            padding: AppSpacing.screenPaddingAll,
                             itemCount: state.results.length,
                             itemBuilder: (context, index) {
                               final result = state.results[index];
-                              return SearchResultCard(
-                                result: result,
-                                getEntityColor: _getEntityColor,
-                                getStatusColor: _getStatusColor,
-                                onTapped: () =>
-                                    _showResultDetail(result, theme),
+                              return Padding(
+                                padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                                child: SearchResultCard(
+                                  result: result,
+                                  getEntityColor: _getEntityColor,
+                                  getStatusColor: _getStatusColor,
+                                  onTapped: () =>
+                                      _showResultDetail(result, theme),
+                                ),
                               );
                             },
                           ),

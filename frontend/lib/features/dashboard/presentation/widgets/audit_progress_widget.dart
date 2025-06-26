@@ -177,7 +177,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             ),
             _buildDivider(),
             _buildProgressStat(
-              'Pending',
+              'Await',
               selectedDeptProgress.pendingAudit.toString(),
               AppColors.warning,
             ),
@@ -205,7 +205,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           ),
           _buildDivider(),
           _buildProgressStat(
-            'Pending',
+            'Awaiting',
             overallProgress.pendingAudit.toString(),
             AppColors.warning,
           ),

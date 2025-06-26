@@ -1,5 +1,8 @@
-// File: file_format_section.dart
+// Path: frontend/lib/features/export/presentation/widgets/file_format_section.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
 import 'file_format_card.dart';
 
 class FileFormatSection extends StatelessWidget {
@@ -15,24 +18,23 @@ class FileFormatSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(Icons.file_copy, color: theme.colorScheme.primary, size: 20),
-            const SizedBox(width: 8),
+            Icon(Icons.file_copy, color: AppColors.primary, size: 20),
+            AppSpacing.horizontalSpaceSM,
             Text(
               'File Format',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              style: AppTextStyles.cardTitle.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        AppSpacing.verticalSpaceLG,
         Row(
           children: [
             Expanded(
@@ -42,11 +44,11 @@ class FileFormatSection extends StatelessWidget {
                 title: 'Excel (.xlsx)',
                 subtitle: 'Spreadsheet with formatting',
                 icon: Icons.table_chart,
-                color: Colors.green,
+                color: AppColors.excel,
                 onTap: onFormatSelected,
               ),
             ),
-            const SizedBox(width: 12),
+            AppSpacing.horizontalSpaceLG,
             Expanded(
               child: FileFormatCard(
                 isSelected: selectedFormat == 'csv',
@@ -54,7 +56,7 @@ class FileFormatSection extends StatelessWidget {
                 title: 'CSV (.csv)',
                 subtitle: 'Plain text, comma-separated',
                 icon: Icons.text_snippet,
-                color: Colors.orange,
+                color: AppColors.csv,
                 onTap: onFormatSelected,
               ),
             ),

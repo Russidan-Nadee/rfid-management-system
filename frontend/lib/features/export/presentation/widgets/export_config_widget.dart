@@ -1,8 +1,11 @@
-// File: export_config_widget.dart
+// Path: frontend/lib/features/export/presentation/widgets/export_config_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/export/presentation/bloc/export_bloc.dart';
 import 'package:frontend/features/export/presentation/bloc/export_state.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../core/utils/helpers.dart';
 import 'export_header_card.dart';
 import 'export_type_section.dart';
 import 'file_format_section.dart';
@@ -26,49 +29,33 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
   @override
   Widget build(BuildContext context) {
-    
-
     return BlocListener<ExportBloc, ExportState>(
       listener: (context, state) {
         if (state is ExportJobCreated) {
-          _showSnackBar(
-            context,
-            'Export job created! Processing...',
-            Colors.blue,
-          );
+          Helpers.showSuccess(context, 'Export job created! Processing...');
         } else if (state is ExportCompleted) {
-          _showSnackBar(context, 'Export completed and shared!', Colors.green);
+          Helpers.showSuccess(context, 'Export completed and shared!');
         } else if (state is ExportError) {
-          _showSnackBar(context, state.message, Colors.red);
+          Helpers.showError(context, state.message);
         }
       },
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.screenPaddingAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ExportHeaderCard(),
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceXL,
             const ExportTypeSection(),
-            const SizedBox(height: 24),
+            AppSpacing.verticalSpaceXL,
             FileFormatSection(
               selectedFormat: _selectedFormat,
               onFormatSelected: _onFormatSelected,
             ),
-            const SizedBox(height: 32),
+            AppSpacing.verticalSpaceXXL,
             CreateExportButton(selectedFormat: _selectedFormat),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        duration: const Duration(seconds: 3),
       ),
     );
   }

@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../di/injection.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_typography.dart';
 import '../bloc/export_bloc.dart';
 import '../bloc/export_event.dart';
 import '../widgets/export_config_widget.dart';
@@ -40,23 +42,36 @@ class _ExportPageState extends State<ExportPage>
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
           title: Text(
-            'Export Center',
+            'Export',
             style: TextStyle(
+              fontSize: 25,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: AppColors.primary,
             ),
           ),
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: theme.colorScheme.onSurface,
-          elevation: 1,
+          elevation: 0, // Modern flat design
+          scrolledUnderElevation: 1,
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: theme.colorScheme.primary,
-            labelColor: theme.colorScheme.primary,
+            indicatorColor: AppColors.primary,
+            indicatorWeight: 3,
+            labelColor: AppColors.primary,
             unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(0.6),
+            labelStyle: AppTextStyles.button.copyWith(fontSize: 13),
+            unselectedLabelStyle: AppTextStyles.button.copyWith(fontSize: 13),
             tabs: const [
-              Tab(icon: Icon(Icons.upload), text: 'Create Export'),
-              Tab(icon: Icon(Icons.history), text: 'History'),
+              Tab(
+                icon: Icon(Icons.upload, size: 20),
+                text: 'Create Export',
+                iconMargin: EdgeInsets.only(bottom: 4),
+              ),
+              Tab(
+                icon: Icon(Icons.history, size: 20),
+                text: 'History',
+                iconMargin: EdgeInsets.only(bottom: 4),
+              ),
             ],
           ),
         ),

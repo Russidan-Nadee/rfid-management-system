@@ -29,7 +29,6 @@ class AppColors {
   static const Color success = Color(0xFF42A5F5); // Light Blue แทนเขียว
   static const Color successLight = Color(0xFFE3F2FD); // Light blue background
   static const Color successDark = Color(0xFF1976D2); // Darker blue
-
   static const Color warning = Color(0xFFF59E0B); // ส้มเดิม
   static const Color warningLight = Color(0xFFFEF3C7);
   static const Color warningDark = Color(0xFFD97706);
@@ -45,7 +44,7 @@ class AppColors {
   // Vibrant Colors - Updated with theme colors
   static const Color vibrantOrange = Color(0xFFF59E0B);
   static const Color vibrantOrangeLight = Color(0xFFFEF3C7);
-  static const Color vibrantGreen = Color(0xFF42A5F5); // Light Blue แทนเขียวสด
+  static const Color vibrantGreen = Color(0xFF42A5F5); // Light Blue
   static const Color vibrantGreenLight = Color(0xFFE3F2FD);
   static const Color vibrantPurple = Color(0xFF6366F1);
   static const Color vibrantPurpleLight = Color(0xFFF0F0FF);
@@ -67,7 +66,7 @@ class AppColors {
   static const Color chartOrange = Color(0xFFF59E0B);
   static const Color chartRed = Color(0xFFEF4444);
   static const Color chartPurple = Color(0xFF6366F1);
-  static const Color chartTeal = Color(0xFF14B8A6);
+  static const Color chartTeal = Color.fromARGB(255, 20, 184, 88);
   static const Color chartAmber = Color(0xFFF59E0B);
 
   // UI Helper Colors
@@ -83,7 +82,11 @@ class AppColors {
   static Color focus = primary.withOpacity(0.12);
   static Color disabled = textMuted.withOpacity(0.38);
 
-  // Gradients - Updated
+  //export
+  static const Color excel = Colors.green;
+  static const Color csv = Color(0xFFF59E0B);
+
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

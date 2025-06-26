@@ -17,7 +17,7 @@ extension AssetStatusTheme on ThemeData {
       case 'A':
         return colorScheme.primary;
       case 'C':
-        return colorScheme.tertiary; // สีม่วงสำหรับ Checked
+        return AppColors.assetActive; // สีม่วงสำหรับ Checked
       case 'I':
         return colorScheme.error;
       case 'UNKNOWN':

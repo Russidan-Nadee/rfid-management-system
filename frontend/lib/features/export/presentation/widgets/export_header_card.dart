@@ -1,5 +1,9 @@
-// File: export_header_card.dart
+// Path: frontend/lib/features/export/presentation/widgets/export_header_card.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_decorations.dart';
+import '../../../../app/theme/app_typography.dart';
 
 class ExportHeaderCard extends StatelessWidget {
   const ExportHeaderCard({super.key});
@@ -7,46 +11,43 @@ class ExportHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+      padding: AppSpacing.cardPaddingAll,
+      decoration: AppDecorations.card.copyWith(
+        color: AppColors.primarySurface,
+        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(8),
+            padding: AppSpacing.paddingSM,
+            decoration: AppDecorations.custom(
+              color: AppColors.primary,
+              borderRadius: AppBorders.sm,
             ),
-            child: Icon(
-              Icons.settings,
-              color: theme.colorScheme.onPrimary,
-              size: 20,
-            ),
+            child: Icon(Icons.settings, color: AppColors.onPrimary, size: 20),
           ),
-          const SizedBox(width: 12),
+          AppSpacing.horizontalSpaceLG,
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Export Configuration',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
+                  style: AppTextStyles.cardTitle.copyWith(
+                    color: theme.brightness == Brightness.dark
+                        ? AppColors.onPrimary
+                        : AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                AppSpacing.verticalSpaceXS,
                 Text(
                   'Configure your export format and filters',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  style: AppTextStyles.cardSubtitle.copyWith(
+                    color: theme.brightness == Brightness.dark
+                        ? AppColors.onPrimary.withOpacity(0.8)
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],

@@ -1,5 +1,9 @@
-// File: export_type_section.dart
+// Path: frontend/lib/features/export/presentation/widgets/export_type_section.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_decorations.dart';
+import '../../../../app/theme/app_typography.dart';
 
 class ExportTypeSection extends StatelessWidget {
   const ExportTypeSection({super.key});
@@ -7,58 +11,66 @@ class ExportTypeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(Icons.category, color: theme.colorScheme.primary, size: 20),
-            const SizedBox(width: 8),
+            Icon(Icons.category, color: AppColors.primary, size: 20),
+            AppSpacing.horizontalSpaceSM,
             Text(
               'Export Type',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              style: AppTextStyles.cardTitle.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        AppSpacing.verticalSpaceLG,
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          padding: AppSpacing.cardPaddingAll,
+          decoration: AppDecorations.buttonPrimary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.inventory_2,
-                    color: theme.colorScheme.onPrimary,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
+                  Icon(Icons.inventory_2, color: AppColors.onPrimary, size: 24),
+                  AppSpacing.horizontalSpaceLG,
                   Text(
                     'Assets',
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: AppTextStyles.headline5.copyWith(
+                      color: AppColors.onPrimary,
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimary,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              AppSpacing.verticalSpaceSM,
               Text(
-                'Export all asset information',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.colorScheme.onPrimary.withOpacity(0.9),
+                'Export all asset information including locations, status, and descriptions',
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.onPrimary.withOpacity(0.9),
+                ),
+              ),
+              AppSpacing.verticalSpaceXS,
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: AppDecorations.custom(
+                  color: AppColors.onPrimary.withOpacity(0.2),
+                  borderRadius: AppBorders.sm,
+                ),
+                child: Text(
+                  'All Status (Active, Inactive, Created)',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.onPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

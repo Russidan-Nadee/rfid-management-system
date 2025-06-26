@@ -17,10 +17,10 @@ extension FilterTheme on ThemeData {
     switch (label.toLowerCase()) {
       case 'all':
         return colorScheme.primary;
-      case 'active':
+      case 'Awaiting':
         return colorScheme.primary;
       case 'checked':
-        return colorScheme.tertiary;
+        return AppColors.assetActive;
       case 'inactive':
         return colorScheme.error;
       case 'unknown':
@@ -319,7 +319,7 @@ class _ScanListViewState extends State<ScanListView> {
                         if ((statusCounts['Active'] ?? 0) > 0)
                           _buildFilterChip(
                             theme,
-                            'Active',
+                            'Awaiting',
                             statusCounts['Active'] ?? 0,
                             selectedFilter,
                             context,

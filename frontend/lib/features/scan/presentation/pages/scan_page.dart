@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_typography.dart';
+import '../../../../app/theme/app_decorations.dart';
 import '../../../../di/injection.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -33,10 +36,8 @@ class _ScanPageViewState extends State<ScanPageView> {
   void initState() {
     super.initState();
     print('ScanPage: initState called');
-    // Auto scan after widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // print('ScanPage: Starting scan...');
         context.read<ScanBloc>().add(const StartScan());
       }
     });
@@ -47,17 +48,20 @@ class _ScanPageViewState extends State<ScanPageView> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'RFID Scan',
           style: TextStyle(
+            fontSize: 25,
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.primary,
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.primary,
-        elevation: 1,
+        foregroundColor: AppColors.primary,
+        elevation: 0,
+        scrolledUnderElevation: 1,
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
             builder: (context, state) {
@@ -67,7 +71,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                     print('ScanPage: Refresh button pressed');
                     context.read<ScanBloc>().add(const StartScan());
                   },
-                  icon: Icon(Icons.refresh, color: theme.colorScheme.primary),
+                  icon: Icon(Icons.refresh, color: AppColors.primary),
                   tooltip: 'Scan Again',
                 );
               }
@@ -76,16 +80,11 @@ class _ScanPageViewState extends State<ScanPageView> {
           ),
         ],
       ),
-      backgroundColor: theme.colorScheme.background,
       body: BlocListener<ScanBloc, ScanState>(
         listener: (context, state) {
-          // print('ScanPage: State changed to ${state.runtimeType}');
-
           if (state is ScanError) {
-            // print('ScanPage: Error occurred - ${state.message}');
             Helpers.showError(context, state.message);
           } else if (state is ScanSuccess && state is! ScanSuccessFiltered) {
-            // แสดง success message เฉพาะเมื่อ scan จริงๆ (ไม่ใช่ filter)
             print(
               'ScanPage: Scan success - ${state.scannedItems.length} items',
             );
@@ -94,7 +93,6 @@ class _ScanPageViewState extends State<ScanPageView> {
               'Scanned ${state.scannedItems.length} items',
             );
           } else if (state is AssetStatusUpdateError) {
-            // แสดง error message สำหรับ status update
             Helpers.showError(context, state.message);
           }
         },
@@ -104,13 +102,10 @@ class _ScanPageViewState extends State<ScanPageView> {
 
             if (state is ScanLoading || state is ScanInitial) {
               print('ScanPage: Showing loading view');
-              return _buildLoadingView(theme);
+              return _buildLoadingView(context);
             } else if (state is ScanSuccess) {
               print(
                 'ScanPage: Showing scan results, items count = ${state.scannedItems.length}',
-              );
-              print(
-                'ScanPage: Items status: ${state.scannedItems.map((e) => '${e.assetNo}:${e.status}').join(', ')}',
               );
 
               return ScanListView(
@@ -122,124 +117,214 @@ class _ScanPageViewState extends State<ScanPageView> {
               );
             } else if (state is ScanError) {
               print('ScanPage: Showing error view: ${state.message}');
-              return _buildErrorView(context, state.message, theme);
+              return _buildErrorView(context, state.message);
             } else if (state is AssetStatusUpdating) {
               print('ScanPage: Asset updating - showing loading');
-              return _buildLoadingView(theme);
+              return _buildLoadingView(context);
             }
 
             print('ScanPage: Unknown state - fallback to loading: $state');
-            return _buildLoadingView(theme);
+            return _buildLoadingView(context);
           },
         ),
       ),
     );
   }
 
-  Widget _buildLoadingView(ThemeData theme) {
+  Widget _buildLoadingView(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Animated scanning icon
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Animated scanning icon
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.2),
+                  width: 2,
+                ),
+              ),
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                        strokeWidth: 3,
+                      ),
+                    ),
+                    Icon(
+                      Icons.qr_code_scanner,
+                      color: AppColors.primary,
+                      size: 40,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            child: CircularProgressIndicator(
-              color: theme.colorScheme.primary,
-              strokeWidth: 3,
+
+            AppSpacing.verticalSpaceXXL,
+
+            Text(
+              'Scanning RFID Tags...',
+              style: AppTextStyles.headline4.copyWith(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.onBackground
+                    : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 32),
+            AppSpacing.verticalSpaceLG,
 
-          Text(
-            'Scanning RFID Tags...',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onBackground,
+            Container(
+              padding: AppSpacing.paddingMD,
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: AppBorders.md,
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.primary, size: 16),
+                  AppSpacing.horizontalSpaceSM,
+                  Text(
+                    'Please wait while we scan for assets',
+                    style: AppTextStyles.body2.copyWith(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            'Please wait while we scan for assets',
-            style: TextStyle(
-              fontSize: 16,
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildErrorView(
-    BuildContext context,
-    String message,
-    ThemeData theme,
-  ) {
+  Widget _buildErrorView(BuildContext context, String message) {
+    final theme = Theme.of(context);
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: AppColors.error.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.error_outline, color: AppColors.error, size: 60),
-          ),
-
-          const SizedBox(height: 32),
-
-          Text(
-            'Scan Failed',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onBackground,
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 16,
-                color: theme.colorScheme.onBackground.withOpacity(0.7),
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              padding: AppSpacing.paddingXXL,
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.error.withOpacity(0.3),
+                  width: 2,
+                ),
               ),
-              textAlign: TextAlign.center,
+              child: Icon(
+                Icons.error_outline,
+                color: AppColors.error,
+                size: 60,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 32),
+            AppSpacing.verticalSpaceXXL,
 
-          ElevatedButton.icon(
-            onPressed: () {
-              print('ScanPage: Try Again button pressed');
-              context.read<ScanBloc>().add(const StartScan());
-            },
-            icon: const Icon(Icons.refresh),
-            label: const Text('Try Again'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            Text(
+              'Scan Failed',
+              style: AppTextStyles.headline4.copyWith(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.onBackground
+                    : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+
+            AppSpacing.verticalSpaceLG,
+
+            Container(
+              padding: AppSpacing.paddingLG,
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                borderRadius: AppBorders.md,
+                border: Border.all(color: AppColors.error.withOpacity(0.2)),
+              ),
+              child: Text(
+                message,
+                style: AppTextStyles.body2.copyWith(color: AppColors.error),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            AppSpacing.verticalSpaceXXL,
+
+            SizedBox(
+              width: 200,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  print('ScanPage: Try Again button pressed');
+                  context.read<ScanBloc>().add(const StartScan());
+                },
+                icon: Icon(Icons.refresh, color: AppColors.onPrimary),
+                label: Text(
+                  'Try Again',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.onPrimary,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  padding: AppSpacing.buttonPaddingSymmetric,
+                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                ),
+              ),
+            ),
+
+            AppSpacing.verticalSpaceLG,
+
+            Container(
+              padding: AppSpacing.paddingMD,
+              decoration: BoxDecoration(
+                color: AppColors.backgroundSecondary,
+                borderRadius: AppBorders.md,
+                border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.help_outline,
+                    color: AppColors.textSecondary,
+                    size: 16,
+                  ),
+                  AppSpacing.horizontalSpaceSM,
+                  Text(
+                    'Make sure RFID scanner is connected',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
