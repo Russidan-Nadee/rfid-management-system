@@ -1,88 +1,162 @@
-// Path: frontend/lib/core/constants/app_decorations.dart
+// Path: frontend/lib/app/theme/app_decorations.dart
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
-import '../app_constants.dart';
+import 'app_spacing.dart';
 
 class AppShadows {
-  // Base Shadows
+  // Modern shadow system - More depth and softness
   static const List<BoxShadow> none = [];
+
+  static const List<BoxShadow> subtle = [
+    BoxShadow(
+      color: Color(0x08000000),
+      blurRadius: 4,
+      offset: Offset(0, 1),
+      spreadRadius: 0,
+    ),
+  ];
 
   static const List<BoxShadow> small = [
     BoxShadow(
-      color: Color(0x1A000000), // Black with 10% opacity
+      color: Color(0x0A000000),
+      blurRadius: 6,
+      offset: Offset(0, 2),
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x06000000),
       blurRadius: 2,
       offset: Offset(0, 1),
+      spreadRadius: 0,
     ),
   ];
 
   static const List<BoxShadow> medium = [
     BoxShadow(
-      color: Color(0x1F000000), // Black with 12% opacity
+      color: Color(0x0F000000),
+      blurRadius: 12,
+      offset: Offset(0, 4),
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x08000000),
       blurRadius: 4,
       offset: Offset(0, 2),
+      spreadRadius: 0,
     ),
   ];
 
   static const List<BoxShadow> large = [
     BoxShadow(
-      color: Color(0x29000000), // Black with 16% opacity
+      color: Color(0x15000000),
+      blurRadius: 20,
+      offset: Offset(0, 8),
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x0A000000),
       blurRadius: 8,
       offset: Offset(0, 4),
+      spreadRadius: 0,
     ),
   ];
 
   static const List<BoxShadow> xl = [
     BoxShadow(
-      color: Color(0x33000000), // Black with 20% opacity
+      color: Color(0x19000000),
+      blurRadius: 32,
+      offset: Offset(0, 12),
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x0F000000),
       blurRadius: 16,
       offset: Offset(0, 8),
+      spreadRadius: 0,
     ),
   ];
 
-  // Elevated Shadows (for floating elements)
-  static const List<BoxShadow> elevated = [
-    BoxShadow(color: Color(0x1A000000), blurRadius: 8, offset: Offset(0, 4)),
-    BoxShadow(color: Color(0x0F000000), blurRadius: 16, offset: Offset(0, 8)),
+  // Special shadow effects
+  static const List<BoxShadow> floating = [
+    BoxShadow(
+      color: Color(0x12000000),
+      blurRadius: 24,
+      offset: Offset(0, 16),
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x08000000),
+      blurRadius: 8,
+      offset: Offset(0, 4),
+      spreadRadius: 0,
+    ),
   ];
 
-  // Colored Shadows
+  // Colored shadows for interactive elements
   static List<BoxShadow> primary = [
     BoxShadow(
-      color: AppColors.primary.withOpacity(0.2),
-      blurRadius: 8,
+      color: AppColors.primary.withOpacity(0.15),
+      blurRadius: 12,
       offset: const Offset(0, 4),
+      spreadRadius: 0,
     ),
   ];
 
   static List<BoxShadow> success = [
     BoxShadow(
-      color: AppColors.success.withOpacity(0.2),
-      blurRadius: 8,
+      color: AppColors.success.withOpacity(0.15),
+      blurRadius: 12,
       offset: const Offset(0, 4),
+      spreadRadius: 0,
     ),
   ];
 
   static List<BoxShadow> error = [
     BoxShadow(
-      color: AppColors.error.withOpacity(0.2),
-      blurRadius: 8,
+      color: AppColors.error.withOpacity(0.15),
+      blurRadius: 12,
       offset: const Offset(0, 4),
+      spreadRadius: 0,
     ),
   ];
 }
 
 class AppBorders {
-  // Border Radius
+  // Modern border radius - More rounded
   static const BorderRadius noRadius = BorderRadius.zero;
-  static const BorderRadius small = BorderRadius.all(Radius.circular(4));
-  static const BorderRadius medium = BorderRadius.all(Radius.circular(8));
-  static const BorderRadius large = BorderRadius.all(Radius.circular(12));
-  static const BorderRadius xl = BorderRadius.all(Radius.circular(16));
-  static const BorderRadius circular = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius xs = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusXS),
+  );
+  static const BorderRadius sm = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusSM),
+  );
+  static const BorderRadius md = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusMD),
+  );
+  static const BorderRadius lg = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusLG),
+  );
+  static const BorderRadius xl = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusXL),
+  );
+  static const BorderRadius xxl = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusXXL),
+  );
+  static const BorderRadius xxxl = BorderRadius.all(
+    Radius.circular(AppSpacing.radiusXXXL),
+  );
 
-  // Custom Radius
-  static BorderRadius custom(double radius) =>
-      BorderRadius.all(Radius.circular(radius));
+  // Legacy support
+  static const BorderRadius small = sm;
+  static const BorderRadius medium = md;
+  static const BorderRadius large = lg;
+  static const BorderRadius circular = md;
+
+  // Pill shape
+  static const BorderRadius pill = BorderRadius.all(Radius.circular(999));
+
+  // Custom radius helpers
+  static BorderRadius custom(double radius) => BorderRadius.circular(radius);
 
   static BorderRadius only({
     double? topLeft,
@@ -96,7 +170,7 @@ class AppBorders {
     bottomRight: Radius.circular(bottomRight ?? 0),
   );
 
-  // Border Sides
+  // Border sides - Modern subtle borders
   static const BorderSide noBorder = BorderSide.none;
   static const BorderSide thin = BorderSide(
     color: AppColors.cardBorder,
@@ -106,181 +180,313 @@ class AppBorders {
     color: AppColors.cardBorder,
     width: 2,
   );
+  static const BorderSide subtle = BorderSide(
+    color: AppColors.dividerLight,
+    width: 1,
+  );
 
   static BorderSide colored(Color color, {double width = 1}) =>
       BorderSide(color: color, width: width);
 
-  // Borders
-  static const Border allBorders = Border.fromBorderSide(thin);
+  // Full borders
+  static const Border all = Border.fromBorderSide(thin);
   static const Border allThick = Border.fromBorderSide(thick);
+  static const Border allSubtle = Border.fromBorderSide(subtle);
 
-  static Border primary = Border.all(color: AppColors.primary);
-  static Border success = Border.all(color: AppColors.success);
-  static Border error = Border.all(color: AppColors.error);
+  static const Border primary = Border.fromBorderSide(
+    BorderSide(color: AppColors.primary),
+  );
+  static const Border success = Border.fromBorderSide(
+    BorderSide(color: AppColors.success),
+  );
+  static const Border error = Border.fromBorderSide(
+    BorderSide(color: AppColors.error),
+  );
 }
 
 class AppDecorations {
-  // Card Decorations
+  // Modern card decorations
   static BoxDecoration get card => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.large,
-    border: AppBorders.allBorders,
-    boxShadow: AppShadows.medium,
+    borderRadius: AppBorders.lg,
+    border: AppBorders.allSubtle,
+    boxShadow: AppShadows.small,
   );
 
   static BoxDecoration get cardElevated => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.large,
-    boxShadow: AppShadows.elevated,
+    borderRadius: AppBorders.lg,
+    boxShadow: AppShadows.medium,
   );
 
   static BoxDecoration get cardFlat => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.large,
-    border: AppBorders.allBorders,
+    borderRadius: AppBorders.lg,
+    border: AppBorders.allSubtle,
   );
 
-  // Dashboard Specific Cards
+  static BoxDecoration get cardFloating => BoxDecoration(
+    color: AppColors.surface,
+    borderRadius: AppBorders.xl,
+    boxShadow: AppShadows.floating,
+  );
+
+  // Dashboard specific cards - Enhanced
   static BoxDecoration get dashboardCard => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.large,
-    border: Border.all(color: AppColors.cardBorder),
-    boxShadow: AppShadows.medium,
+    borderRadius: AppBorders.lg,
+    border: AppBorders.allSubtle,
+    boxShadow: AppShadows.small,
   );
 
   static BoxDecoration get summaryCard => BoxDecoration(
     color: AppColors.surface,
     borderRadius: AppBorders.xl,
-    boxShadow: AppShadows.large,
+    boxShadow: AppShadows.medium,
   );
 
-  // Input Decorations
+  static BoxDecoration get statsCard => BoxDecoration(
+    gradient: AppColors.cardGradient,
+    borderRadius: AppBorders.lg,
+    boxShadow: AppShadows.small,
+  );
+
+  // Input decorations - Modern styling
   static BoxDecoration get input => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.medium,
-    border: AppBorders.allBorders,
+    borderRadius: AppBorders.md,
+    border: AppBorders.allSubtle,
   );
 
   static BoxDecoration get inputFocused => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.medium,
-    border: AppBorders.primary,
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.primary, width: 2),
+    boxShadow: AppShadows.primary,
   );
 
   static BoxDecoration get inputError => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.medium,
-    border: AppBorders.error,
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.error, width: 2),
+    boxShadow: AppShadows.error,
   );
 
-  // Button Decorations
+  // Button decorations - Enhanced
   static BoxDecoration get buttonPrimary => BoxDecoration(
-    color: AppColors.primary,
-    borderRadius: AppBorders.medium,
-    boxShadow: AppShadows.small,
+    gradient: AppColors.primaryGradient,
+    borderRadius: AppBorders.md,
+    boxShadow: AppShadows.primary,
   );
 
   static BoxDecoration get buttonSecondary => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.medium,
+    borderRadius: AppBorders.md,
     border: AppBorders.primary,
+    boxShadow: AppShadows.subtle,
   );
 
   static BoxDecoration get buttonFlat =>
-      BoxDecoration(color: Colors.transparent, borderRadius: AppBorders.medium);
+      BoxDecoration(color: Colors.transparent, borderRadius: AppBorders.md);
 
-  // Status Decorations
+  static BoxDecoration get buttonFloating => BoxDecoration(
+    color: AppColors.primary,
+    borderRadius: AppBorders.pill,
+    boxShadow: AppShadows.floating,
+  );
+
+  // Status decorations - Modern approach
   static BoxDecoration success = BoxDecoration(
     color: AppColors.successLight,
-    borderRadius: AppBorders.medium,
-    border: Border.all(color: AppColors.success.withOpacity(0.3)),
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+    boxShadow: AppShadows.success,
   );
 
   static BoxDecoration warning = BoxDecoration(
     color: AppColors.warningLight,
-    borderRadius: AppBorders.medium,
-    border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.warning.withOpacity(0.2)),
   );
 
   static BoxDecoration error = BoxDecoration(
     color: AppColors.errorLight,
-    borderRadius: AppBorders.medium,
-    border: Border.all(color: AppColors.error.withOpacity(0.3)),
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.error.withOpacity(0.2)),
+    boxShadow: AppShadows.error,
   );
 
   static BoxDecoration info = BoxDecoration(
     color: AppColors.infoLight,
-    borderRadius: AppBorders.medium,
-    border: Border.all(color: AppColors.info.withOpacity(0.3)),
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.info.withOpacity(0.2)),
   );
 
-  // Gradient Decorations
+  // Gradient decorations - Modern depth
   static BoxDecoration get primaryGradient => BoxDecoration(
-    gradient: LinearGradient(
-      colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-    borderRadius: AppBorders.medium,
+    gradient: AppColors.primaryGradient,
+    borderRadius: AppBorders.md,
+    boxShadow: AppShadows.primary,
   );
 
-  // Modal/Dialog Decorations
+  static BoxDecoration get backgroundGradient =>
+      BoxDecoration(gradient: AppColors.backgroundGradient);
+
+  // Modal/Dialog decorations - Enhanced
   static BoxDecoration get modal => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.large,
+    borderRadius: AppBorders.xl,
     boxShadow: AppShadows.xl,
   );
 
   static BoxDecoration get bottomSheet => BoxDecoration(
     color: AppColors.surface,
-    borderRadius: AppBorders.only(topLeft: 16, topRight: 16),
+    borderRadius: AppBorders.only(
+      topLeft: AppSpacing.radiusXL,
+      topRight: AppSpacing.radiusXL,
+    ),
+    boxShadow: AppShadows.large,
   );
 
-  // Filter/Chip Decorations
+  // Filter/Chip decorations - Modern
   static BoxDecoration get chip => BoxDecoration(
     color: AppColors.backgroundSecondary,
-    borderRadius: AppBorders.medium,
-    border: AppBorders.allBorders,
+    borderRadius: AppBorders.pill,
+    border: AppBorders.allSubtle,
   );
 
   static BoxDecoration get chipSelected => BoxDecoration(
-    color: AppColors.primary.withOpacity(0.1),
-    borderRadius: AppBorders.medium,
-    border: Border.all(color: AppColors.primary),
+    gradient: AppColors.primaryGradient,
+    borderRadius: AppBorders.pill,
+    boxShadow: AppShadows.primary,
   );
 
-  // Loading/Skeleton Decorations
+  static BoxDecoration get chipOutlined => BoxDecoration(
+    color: AppColors.surface,
+    borderRadius: AppBorders.pill,
+    border: AppBorders.primary,
+  );
+
+  // Loading/Skeleton decorations
   static BoxDecoration get skeleton => BoxDecoration(
     color: AppColors.backgroundSecondary,
-    borderRadius: AppBorders.small,
+    borderRadius: AppBorders.sm,
   );
 
-  // Custom Decoration Builder
+  static BoxDecoration get skeletonShimmer => BoxDecoration(
+    gradient: LinearGradient(
+      colors: [
+        AppColors.backgroundSecondary,
+        AppColors.backgroundTertiary,
+        AppColors.backgroundSecondary,
+      ],
+      stops: const [0.4, 0.5, 0.6],
+    ),
+    borderRadius: AppBorders.sm,
+  );
+
+  // Interactive states
+  static BoxDecoration hover(BoxDecoration base) =>
+      base.copyWith(boxShadow: AppShadows.medium);
+
+  static BoxDecoration pressed(BoxDecoration base) =>
+      base.copyWith(boxShadow: AppShadows.small);
+
+  // Navigation decorations
+  static BoxDecoration get navigationCard => BoxDecoration(
+    color: AppColors.surface,
+    borderRadius: AppBorders.lg,
+    boxShadow: AppShadows.small,
+  );
+
+  static BoxDecoration get navigationSelected => BoxDecoration(
+    gradient: AppColors.primaryGradient,
+    borderRadius: AppBorders.md,
+    boxShadow: AppShadows.primary,
+  );
+
+  // Custom decoration builder
   static BoxDecoration custom({
     Color? color,
+    Gradient? gradient,
     BorderRadius? borderRadius,
     Border? border,
     List<BoxShadow>? boxShadow,
-    Gradient? gradient,
   }) => BoxDecoration(
     color: color,
-    borderRadius: borderRadius,
+    gradient: gradient,
+    borderRadius: borderRadius ?? AppBorders.md,
     border: border,
     boxShadow: boxShadow,
-    gradient: gradient,
   );
-
-  // Hover Effects (for web/desktop)
-  static BoxDecoration hover(BoxDecoration base) =>
-      base.copyWith(boxShadow: AppShadows.large);
 
   // Theme-aware decorations
   static BoxDecoration cardForTheme(ThemeData theme) => BoxDecoration(
     color: theme.cardColor,
-    borderRadius: AppBorders.large,
-    border: Border.all(color: theme.dividerColor.withOpacity(0.2)),
+    borderRadius: AppBorders.lg,
+    border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
     boxShadow: theme.brightness == Brightness.light
-        ? AppShadows.medium
+        ? AppShadows.small
         : AppShadows.none,
+  );
+
+  // Glass morphism effect
+  static BoxDecoration get glassMorphism => BoxDecoration(
+    color: AppColors.surface.withOpacity(0.8),
+    borderRadius: AppBorders.lg,
+    border: Border.all(color: AppColors.surface.withOpacity(0.2)),
+    boxShadow: AppShadows.medium,
+  );
+
+  // Neumorphism effect
+  static BoxDecoration get neumorphism => BoxDecoration(
+    color: AppColors.backgroundSecondary,
+    borderRadius: AppBorders.lg,
+    boxShadow: const [
+      BoxShadow(color: Color(0x1A000000), blurRadius: 8, offset: Offset(4, 4)),
+      BoxShadow(
+        color: Color(0xFFFFFFFF),
+        blurRadius: 8,
+        offset: Offset(-4, -4),
+      ),
+    ],
+  );
+
+  // Modern list item decoration
+  static BoxDecoration get listItem => BoxDecoration(
+    color: AppColors.surface,
+    borderRadius: AppBorders.md,
+    border: AppBorders.allSubtle,
+  );
+
+  static BoxDecoration get listItemSelected => BoxDecoration(
+    color: AppColors.primarySurface,
+    borderRadius: AppBorders.md,
+    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+  );
+
+  // Badge decorations
+  static BoxDecoration get badge => BoxDecoration(
+    color: AppColors.primary,
+    borderRadius: AppBorders.pill,
+    boxShadow: AppShadows.subtle,
+  );
+
+  static BoxDecoration getBadgeColored(Color color) => BoxDecoration(
+    color: color,
+    borderRadius: AppBorders.pill,
+    boxShadow: AppShadows.subtle,
+  );
+
+  // Progress bar decorations
+  static BoxDecoration get progressTrack => BoxDecoration(
+    color: AppColors.backgroundSecondary,
+    borderRadius: AppBorders.pill,
+  );
+
+  static BoxDecoration get progressFill => BoxDecoration(
+    gradient: AppColors.primaryGradient,
+    borderRadius: AppBorders.pill,
+    boxShadow: AppShadows.primary,
   );
 }

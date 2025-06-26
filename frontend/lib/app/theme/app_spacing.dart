@@ -1,90 +1,146 @@
-// Path: frontend/lib/core/constants/app_spacing.dart
+// Path: frontend/lib/app/theme/app_spacing.dart
 import 'package:flutter/material.dart';
 
 class AppSpacing {
-  // Base 8px Grid System
+  // Modern 4px Grid System - More breathing room
   static const double xs = 4.0;
-  static const double small = 8.0;
-  static const double medium = 16.0;
-  static const double large = 24.0;
-  static const double xl = 32.0;
-  static const double xxl = 48.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+  static const double xl = 20.0;
+  static const double xxl = 24.0;
+  static const double xxxl = 32.0;
+  static const double xxxxl = 48.0;
 
-  // Semantic Spacing
-  static const double cardPadding = medium;
-  static const double screenPadding = medium;
-  static const double sectionSpacing = large;
-  static const double itemSpacing = small;
-  static const double tightSpacing = xs;
+  // Legacy names for backward compatibility
+  static const double small = sm;
+  static const double medium = lg;
+  static const double large = xxl;
 
-  // Component Specific Spacing
-  static const double buttonPadding = medium;
-  static const double inputPadding = medium;
-  static const double listItemPadding = medium;
-  static const double modalPadding = large;
+  // Modern semantic spacing - More generous
+  static const double cardPadding = xl; // 20px (was 16px)
+  static const double screenPadding = lg; // 16px
+  static const double sectionSpacing = xxxl; // 32px (was 24px)
+  static const double itemSpacing = md; // 12px (was 8px)
+  static const double tightSpacing = xs; // 4px
 
-  // Dashboard Specific
-  static const double dashboardCardPadding = medium;
-  static const double dashboardItemSpacing = medium;
-  static const double dashboardSectionSpacing = large;
-  static const double chartPadding = medium;
-  static const double filterSpacing = small;
+  // Component specific - Enhanced breathing room
+  static const double buttonPadding = lg; // 16px
+  static const double buttonPaddingVertical = md; // 12px
+  static const double buttonPaddingHorizontal = xxl; // 24px
 
-  // Layout Spacing
-  static const double navigationHeight = 56.0;
-  static const double toolbarHeight = 56.0;
-  static const double bottomNavHeight = 60.0;
+  static const double inputPadding = lg; // 16px
+  static const double inputPaddingVertical = md; // 12px
+  static const double inputPaddingHorizontal = lg; // 16px
+
+  static const double listItemPadding = lg; // 16px
+  static const double listItemSpacing = sm; // 8px
+
+  static const double modalPadding = xxl; // 24px
+  static const double dialogPadding = xxl; // 24px
+
+  // Dashboard specific - Modern spacing
+  static const double dashboardCardPadding = xl; // 20px (was 16px)
+  static const double dashboardItemSpacing = lg; // 16px
+  static const double dashboardSectionSpacing = xxxl; // 32px (was 24px)
+  static const double chartPadding = lg; // 16px
+  static const double filterSpacing = md; // 12px (was 8px)
+
+  // Layout constants - Modern sizes
+  static const double navigationHeight = 60.0; // Taller (was 56px)
+  static const double toolbarHeight = 64.0; // Taller (was 56px)
+  static const double bottomNavHeight = 72.0; // Taller (was 60px)
   static const double fabSize = 56.0;
+  static const double appBarElevation = 0.0; // Flat design
 
-  // SizedBox Helpers
+  // Modern border radius - More rounded
+  static const double radiusXS = 4.0;
+  static const double radiusSM = 6.0;
+  static const double radiusMD = 8.0;
+  static const double radiusLG = 12.0;
+  static const double radiusXL = 16.0;
+  static const double radiusXXL = 20.0;
+  static const double radiusXXXL = 24.0;
+
+  // SizedBox helpers - Updated
   static const Widget verticalSpaceXS = SizedBox(height: xs);
-  static const Widget verticalSpaceSmall = SizedBox(height: small);
-  static const Widget verticalSpaceMedium = SizedBox(height: medium);
-  static const Widget verticalSpaceLarge = SizedBox(height: large);
+  static const Widget verticalSpaceSM = SizedBox(height: sm);
+  static const Widget verticalSpaceMD = SizedBox(height: md);
+  static const Widget verticalSpaceLG = SizedBox(height: lg);
   static const Widget verticalSpaceXL = SizedBox(height: xl);
   static const Widget verticalSpaceXXL = SizedBox(height: xxl);
+  static const Widget verticalSpaceXXXL = SizedBox(height: xxxl);
 
   static const Widget horizontalSpaceXS = SizedBox(width: xs);
-  static const Widget horizontalSpaceSmall = SizedBox(width: small);
-  static const Widget horizontalSpaceMedium = SizedBox(width: medium);
-  static const Widget horizontalSpaceLarge = SizedBox(width: large);
+  static const Widget horizontalSpaceSM = SizedBox(width: sm);
+  static const Widget horizontalSpaceMD = SizedBox(width: md);
+  static const Widget horizontalSpaceLG = SizedBox(width: lg);
   static const Widget horizontalSpaceXL = SizedBox(width: xl);
   static const Widget horizontalSpaceXXL = SizedBox(width: xxl);
+  static const Widget horizontalSpaceXXXL = SizedBox(width: xxxl);
 
-  // EdgeInsets Helpers
+  // Legacy support
+  static const Widget verticalSpaceSmall = verticalSpaceSM;
+  static const Widget verticalSpaceMedium = verticalSpaceLG;
+  static const Widget verticalSpaceLarge = verticalSpaceXXL;
+  static const Widget horizontalSpaceSmall = horizontalSpaceSM;
+  static const Widget horizontalSpaceMedium = horizontalSpaceLG;
+  static const Widget horizontalSpaceLarge = horizontalSpaceXXL;
+
+  // EdgeInsets helpers - Modern padding
   static const EdgeInsets paddingXS = EdgeInsets.all(xs);
-  static const EdgeInsets paddingSmall = EdgeInsets.all(small);
-  static const EdgeInsets paddingMedium = EdgeInsets.all(medium);
-  static const EdgeInsets paddingLarge = EdgeInsets.all(large);
+  static const EdgeInsets paddingSM = EdgeInsets.all(sm);
+  static const EdgeInsets paddingMD = EdgeInsets.all(md);
+  static const EdgeInsets paddingLG = EdgeInsets.all(lg);
   static const EdgeInsets paddingXL = EdgeInsets.all(xl);
+  static const EdgeInsets paddingXXL = EdgeInsets.all(xxl);
 
+  // Modern horizontal padding
   static const EdgeInsets paddingHorizontalXS = EdgeInsets.symmetric(
     horizontal: xs,
   );
-  static const EdgeInsets paddingHorizontalSmall = EdgeInsets.symmetric(
-    horizontal: small,
+  static const EdgeInsets paddingHorizontalSM = EdgeInsets.symmetric(
+    horizontal: sm,
   );
-  static const EdgeInsets paddingHorizontalMedium = EdgeInsets.symmetric(
-    horizontal: medium,
+  static const EdgeInsets paddingHorizontalMD = EdgeInsets.symmetric(
+    horizontal: md,
   );
-  static const EdgeInsets paddingHorizontalLarge = EdgeInsets.symmetric(
-    horizontal: large,
+  static const EdgeInsets paddingHorizontalLG = EdgeInsets.symmetric(
+    horizontal: lg,
+  );
+  static const EdgeInsets paddingHorizontalXL = EdgeInsets.symmetric(
+    horizontal: xl,
+  );
+  static const EdgeInsets paddingHorizontalXXL = EdgeInsets.symmetric(
+    horizontal: xxl,
   );
 
+  // Modern vertical padding
   static const EdgeInsets paddingVerticalXS = EdgeInsets.symmetric(
     vertical: xs,
   );
-  static const EdgeInsets paddingVerticalSmall = EdgeInsets.symmetric(
-    vertical: small,
+  static const EdgeInsets paddingVerticalSM = EdgeInsets.symmetric(
+    vertical: sm,
   );
-  static const EdgeInsets paddingVerticalMedium = EdgeInsets.symmetric(
-    vertical: medium,
+  static const EdgeInsets paddingVerticalMD = EdgeInsets.symmetric(
+    vertical: md,
   );
-  static const EdgeInsets paddingVerticalLarge = EdgeInsets.symmetric(
-    vertical: large,
+  static const EdgeInsets paddingVerticalLG = EdgeInsets.symmetric(
+    vertical: lg,
+  );
+  static const EdgeInsets paddingVerticalXL = EdgeInsets.symmetric(
+    vertical: xl,
+  );
+  static const EdgeInsets paddingVerticalXXL = EdgeInsets.symmetric(
+    vertical: xxl,
   );
 
-  // Screen Padding
+  // Legacy support
+  static const EdgeInsets paddingSmall = paddingSM;
+  static const EdgeInsets paddingMedium = paddingLG;
+  static const EdgeInsets paddingLarge = paddingXXL;
+
+  // Screen padding - Enhanced
   static const EdgeInsets screenPaddingAll = EdgeInsets.all(screenPadding);
   static const EdgeInsets screenPaddingHorizontal = EdgeInsets.symmetric(
     horizontal: screenPadding,
@@ -93,31 +149,40 @@ class AppSpacing {
     vertical: screenPadding,
   );
 
-  // Component Padding
+  // Component padding - Modern
   static const EdgeInsets cardPaddingAll = EdgeInsets.all(cardPadding);
   static const EdgeInsets buttonPaddingAll = EdgeInsets.all(buttonPadding);
   static const EdgeInsets inputPaddingAll = EdgeInsets.all(inputPadding);
+  static const EdgeInsets buttonPaddingSymmetric = EdgeInsets.symmetric(
+    horizontal: buttonPaddingHorizontal,
+    vertical: buttonPaddingVertical,
+  );
+  static const EdgeInsets inputPaddingSymmetric = EdgeInsets.symmetric(
+    horizontal: inputPaddingHorizontal,
+    vertical: inputPaddingVertical,
+  );
 
-  // Responsive Spacing Helper
-  static double responsive({
-    required BuildContext context,
+  // Modern responsive spacing
+  static double responsiveSpacing(
+    BuildContext context, {
     double? mobile,
     double? tablet,
     double? desktop,
-    double fallback = medium,
+    double fallback = lg,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     if (screenWidth < 600) {
       return mobile ?? fallback;
     } else if (screenWidth < 1024) {
-      return tablet ?? fallback;
+      return tablet ?? (fallback * 1.2);
     } else {
-      return desktop ?? fallback;
+      return desktop ?? (fallback * 1.5);
     }
   }
 
-  // Custom spacing methods
+  // Modern spacing utilities
+  static Widget space(double size) => SizedBox(width: size, height: size);
   static Widget verticalSpace(double height) => SizedBox(height: height);
   static Widget horizontalSpace(double width) => SizedBox(width: width);
 
@@ -139,29 +204,29 @@ class AppSpacing {
     bottom: bottom ?? 0,
   );
 
-  // Grid Helpers for Layouts
-  static double gridSpacing(int multiplier) => small * multiplier;
-
+  // Modern grid spacing
+  static double gridSpacing(int multiplier) => sm * multiplier;
   static EdgeInsets gridPadding(int multiplier) =>
-      EdgeInsets.all(small * multiplier);
+      EdgeInsets.all(sm * multiplier);
 
-  // Safe Area Helpers
+  // Modern safe area helpers
   static EdgeInsets safeAreaPadding(BuildContext context) {
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(context);
     return EdgeInsets.only(
-      top: mediaQuery.padding.top + small,
-      bottom: mediaQuery.padding.bottom + small,
+      top: mediaQuery.padding.top + sm,
+      bottom: mediaQuery.padding.bottom + sm,
       left: screenPadding,
       right: screenPadding,
     );
   }
 
-  // Layout Constants
+  // Layout constants
   static const double maxContentWidth = 1200.0;
   static const double minCardWidth = 280.0;
   static const double maxCardWidth = 400.0;
+  static const double maxModalWidth = 480.0;
 
-  // Animation Spacing (for transitions)
-  static const double animationOffset = medium;
-  static const double slideDistance = large;
+  // Animation spacing
+  static const double animationOffset = lg;
+  static const double slideDistance = xxxl;
 }
