@@ -331,6 +331,9 @@ class SearchModel {
             case 'serial_no':
                searchConditions.serial_no = { contains: queryPattern };
                break;
+            case 'dept_code':
+               return await this.getDepartmentSuggestions(query, options);
+               break;
             case 'inventory_no':
                searchConditions.inventory_no = { contains: queryPattern };
                break;

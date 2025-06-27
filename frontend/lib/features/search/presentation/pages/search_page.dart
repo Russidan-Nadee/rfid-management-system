@@ -51,6 +51,8 @@ class _SearchPageState extends State<SearchPage> {
         return AppColors.success;
       case 'locations':
         return AppColors.warning;
+      case 'departments':
+        return AppColors.chartBlue;
       case 'users':
         return AppColors.info;
       default:

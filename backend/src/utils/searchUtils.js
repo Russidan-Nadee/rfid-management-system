@@ -467,15 +467,16 @@ class SearchUtils {
    static getItemTitle(item, entity) {
       switch (entity) {
          case 'assets':
-            return item.asset_no || 'Unknown Asset';
+            return item.description || 'Unknown Asset';
          case 'plants':
-            return item.plant_code || 'Unknown Plant';
+            return item.description || 'Unknown Plant';
          case 'locations':
-            return item.location_code || 'Unknown Location';
+            return item.description || 'Unknown Location';
+         case 'departments':
+            return item.description || 'Unknown Department';
          case 'users':
             return item.full_name || item.username || 'Unknown User';
-         case 'departments':
-            return item.dept_code || 'Unknown Department';
+
          default:
             return 'Unknown Item';
       }

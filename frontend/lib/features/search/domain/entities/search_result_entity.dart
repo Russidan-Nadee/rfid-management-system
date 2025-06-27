@@ -147,9 +147,13 @@ class SearchResultEntity extends Equatable {
       case 'locations':
         entityPriority = 600;
         break;
+      case 'departments':
+        entityPriority = 500;
+        break;
       case 'users':
         entityPriority = 400;
         break;
+
       default:
         entityPriority = 0;
     }
@@ -166,6 +170,8 @@ class SearchResultEntity extends Equatable {
         return Icons.factory; // หรือ Icons.business, Icons.location_city
       case 'locations':
         return Icons.place; // หรือ Icons.location_on, Icons.map
+      case 'departments':
+        return Icons.group;
       case 'users':
         return Icons.person; // หรือ Icons.account_circle, Icons.group
       default:
@@ -182,6 +188,8 @@ class SearchResultEntity extends Equatable {
         return '#059669'; // Green
       case 'locations':
         return '#DC2626'; // Red
+      case 'departments':
+        return '#F59E0B'; // Orange
       case 'users':
         return '#7C3AED'; // Purple
       default:

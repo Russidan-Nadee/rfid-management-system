@@ -30,9 +30,16 @@ class InstantSearchHandler {
        _cacheTimeout = cacheTimeout;
 
   /// Main instant search method with debouncing and caching
+  /// Main instant search method with debouncing and caching
   Future<SearchResult<List<SearchResultEntity>>> search(
     String query, {
-    List<String> entities = const ['assets'],
+    List<String> entities = const [
+      'assets',
+      'plants',
+      'locations',
+      'users',
+      'departments',
+    ],
     int? limit,
     bool forceRefresh = false,
   }) async {

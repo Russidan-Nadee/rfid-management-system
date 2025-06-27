@@ -165,6 +165,9 @@ class SearchSuggestionEntity extends Equatable {
       case 'location_code':
       case 'location':
         return '📍';
+      case 'dept_code':
+      case 'department':
+        return '🏢';
       case 'username':
       case 'user':
         return '👤';
@@ -184,6 +187,8 @@ class SearchSuggestionEntity extends Equatable {
         return '#2563EB'; // Blue
       case 'master_data':
         return '#059669'; // Green
+      case 'departments':
+        return '#F59E0B'; // Orange
       case 'users':
         return '#7C3AED'; // Purple
       case 'history':
@@ -209,21 +214,24 @@ class SearchSuggestionEntity extends Equatable {
         return 3;
       case 'description':
         return 4;
+      case 'dept_code':
+      case 'department':
+        return 5;
       case 'plant_code':
       case 'plant':
-        return 5;
+        return 6;
       case 'location_code':
       case 'location':
-        return 6;
+        return 7;
       case 'username':
       case 'user':
-        return 7;
-      case 'recent':
         return 8;
-      case 'popular':
+      case 'recent':
         return 9;
-      default:
+      case 'popular':
         return 10;
+      default:
+        return 11;
     }
   }
 

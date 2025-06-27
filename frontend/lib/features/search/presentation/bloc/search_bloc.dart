@@ -19,6 +19,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchQueryChanged>(_onQueryChanged);
     on<SearchSubmitted>(_onSearchSubmitted);
     on<ClearSearch>(_onClearSearch);
+    add(SearchSubmitted(""));
   }
 
   // Handle พิมพ์ search (มี debounce)
