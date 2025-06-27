@@ -453,56 +453,92 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     LoadAuditProgress event,
     Emitter<DashboardState> emit,
   ) async {
-    final currentState = state;
+    // 1. ดึง baseLoadedState ที่เป็น DashboardLoaded ตัวล่าสุด
+    //    ไม่ว่าสถานะปัจจุบันของ Bloc จะเป็น DashboardLoaded หรือ DashboardPartialLoading
+    DashboardLoaded? baseLoadedState;
+    if (state is DashboardLoaded) {
+      baseLoadedState = state as DashboardLoaded;
+    } else if (state is DashboardPartialLoading) {
+      baseLoadedState = (state as DashboardPartialLoading).currentState;
+    }
 
-    if (currentState is DashboardLoaded) {
+    // 2. Emit partial loading state เพื่อบอก UI ว่ากำลังโหลด
+    if (baseLoadedState != null) {
+      // ถ้ามีข้อมูลเก่าอยู่ ให้แสดงข้อมูลเก่าระหว่างโหลด
       emit(
         DashboardPartialLoading(
-          currentState: currentState,
+          currentState: baseLoadedState,
           loadingType: 'audit',
         ),
       );
     } else {
+      // ถ้ายังไม่มีข้อมูลเก่า (โหลดครั้งแรก) ให้แสดง Loading เต็มหน้าจอ
       emit(const DashboardLoading(loadingMessage: 'Loading audit progress...'));
     }
 
+    // 3. เรียกใช้งาน UseCase เพื่อดึงข้อมูลจริง
     final result = await getAuditProgressUseCase(
       GetAuditProgressParams(
-        deptCode: event.deptCode,
+        deptCode: event
+            .deptCode, // event.deptCode ตรงนี้จะเป็น null ถ้าเลือก All Departments
         includeDetails: event.includeDetails,
         auditStatus: event.auditStatus,
       ),
     );
 
+    // 4. จัดการผลลัพธ์จาก UseCase
     result.fold(
       (failure) {
+        // กรณีเกิดข้อผิดพลาด
         emit(
           DashboardError(
             message: 'Failed to load audit progress: ${failure.message}',
             errorCode: 'AUDIT_ERROR',
-            previousState: currentState is DashboardLoaded
-                ? currentState
-                : null,
+            previousState:
+                baseLoadedState, // ใช้ baseLoadedState เป็น previous state
           ),
         );
       },
       (audit) {
-        if (currentState is DashboardLoaded) {
+        // กรณีโหลดข้อมูลสำเร็จ
+        if (baseLoadedState != null) {
+          print(
+            '🔥 BLoC: Emitting DashboardLoaded with auditProgressDeptFilter: ${event.deptCode}',
+          );
           emit(
-            currentState.copyWith(
+            // ใช้ baseLoadedState.copyWith() เพื่ออัปเดตเฉพาะข้อมูลที่เปลี่ยนไป
+            // auditProgressDeptFilter จะถูกตั้งค่าเป็น event.deptCode (ซึ่งจะเป็น null ถ้าเลือก All)
+            baseLoadedState.copyWith(
               auditProgress: audit,
-              auditProgressDeptFilter: event.deptCode,
+              auditProgressDeptFilter:
+                  event.deptCode, // <<< ตรงนี้สำคัญ! จะเป็น null หรือ deptCode
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
             ),
           );
         } else {
+          // กรณีโหลดครั้งแรกและยังไม่มี DashboardLoaded state มาก่อน
+          print(
+            '🔥 BLoC: Creating new DashboardLoaded state from scratch for audit progress',
+          );
           emit(
             DashboardLoaded(
               auditProgress: audit,
-              auditProgressDeptFilter: event.deptCode,
+              auditProgressDeptFilter:
+                  event.deptCode, // <<< ตรงนี้สำคัญ! จะเป็น null หรือ deptCode
               includeDetails: event.includeDetails,
               lastUpdated: DateTime.now(),
+              // ต้องแน่ใจว่า field อื่นๆ ถูกตั้งค่าเริ่มต้นที่เหมาะสมเมื่อสร้าง state ใหม่
+              stats: null,
+              distribution: null,
+              departmentGrowthTrend: null,
+              locationGrowthTrend: null,
+              locationAnalytics: null,
+              currentPeriod: 'today',
+              currentPlantFilter: null,
+              departmentGrowthDeptFilter: null,
+              locationGrowthLocationFilter: null,
+              locationAnalyticsLocationFilter: null,
             ),
           );
         }

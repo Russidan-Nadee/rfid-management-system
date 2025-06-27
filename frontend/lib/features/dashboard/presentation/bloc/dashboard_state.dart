@@ -105,7 +105,7 @@ class DashboardLoaded extends DashboardState {
     String? currentPlantFilter,
     String? departmentGrowthDeptFilter,
     String? locationGrowthLocationFilter,
-    String? auditProgressDeptFilter,
+    String? auditProgressDeptFilter, // พารามิเตอร์นี้รับ null ได้
     String? locationAnalyticsLocationFilter,
     bool? includeDetails,
     DateTime? lastUpdated,
@@ -120,12 +120,14 @@ class DashboardLoaded extends DashboardState {
       locationAnalytics: locationAnalytics ?? this.locationAnalytics,
       currentPeriod: currentPeriod ?? this.currentPeriod,
       currentPlantFilter: currentPlantFilter ?? this.currentPlantFilter,
-      departmentGrowthDeptFilter:
-          departmentGrowthDeptFilter ?? this.departmentGrowthDeptFilter,
-      locationGrowthLocationFilter:
-          locationGrowthLocationFilter ?? this.locationGrowthLocationFilter,
-      auditProgressDeptFilter:
-          auditProgressDeptFilter ?? this.auditProgressDeptFilter,
+      departmentGrowthDeptFilter: departmentGrowthDeptFilter,
+      locationGrowthLocationFilter: locationGrowthLocationFilter,
+      // >>>>>>>>>> นี่คือบรรทัดที่แก้ไข! <<<<<<<<<<
+      // เราเปลี่ยนจากการใช้ '?? this.auditProgressDeptFilter'
+      // เป็นการส่งค่า 'auditProgressDeptFilter' ตรงๆ
+      // เพื่อให้สามารถตั้งค่าเป็น null ได้อย่างแท้จริง
+      auditProgressDeptFilter: auditProgressDeptFilter,
+      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       locationAnalyticsLocationFilter:
           locationAnalyticsLocationFilter ??
           this.locationAnalyticsLocationFilter,
@@ -146,7 +148,7 @@ class DashboardLoaded extends DashboardState {
     currentPlantFilter,
     departmentGrowthDeptFilter,
     locationGrowthLocationFilter,
-    auditProgressDeptFilter,
+    auditProgressDeptFilter, // ตรงนี้สำคัญมาก! ต้องมีตัวแปรนี้
     locationAnalyticsLocationFilter,
     includeDetails,
     lastUpdated,

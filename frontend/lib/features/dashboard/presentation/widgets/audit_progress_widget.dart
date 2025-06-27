@@ -33,26 +33,10 @@ class AuditProgressWidget extends StatefulWidget {
 }
 
 class _AuditProgressWidgetState extends State<AuditProgressWidget> {
-  String? _currentSelectedDept;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentSelectedDept = widget.selectedDeptCode;
-  }
-
-  @override
-  void didUpdateWidget(AuditProgressWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedDeptCode != oldWidget.selectedDeptCode) {
-      setState(() {
-        _currentSelectedDept = widget.selectedDeptCode;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    print('🔥 Widget rebuild with props: ${widget.selectedDeptCode}');
+
     if (widget.isLoading) {
       return _buildLoadingWidget();
     }
@@ -78,12 +62,15 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   }
 
   String _getCardTitle() {
-    if (_currentSelectedDept == null) {
+    print(
+      '🎯 Building title with selectedDeptCode: ${widget.selectedDeptCode}',
+    );
+    if (widget.selectedDeptCode == null) {
       return 'Audit Progress - All Departments';
     }
 
     final selectedDept = widget.availableDepartments.firstWhere(
-      (dept) => dept['code'] == _currentSelectedDept,
+      (dept) => dept['code'] == widget.selectedDeptCode,
       orElse: () => {'name': 'Unknown Department'},
     );
 
@@ -107,7 +94,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   }
 
   String? _getSubtitle() {
-    return _currentSelectedDept == null ? 'Overall Progress' : null;
+    return widget.selectedDeptCode == null ? 'Overall Progress' : null;
   }
 
   Color _getProgressColor() {
@@ -129,7 +116,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
-          value: _currentSelectedDept,
+          value: widget.selectedDeptCode,
           hint: Text(
             'All Departments',
             style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
@@ -148,9 +135,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             ),
           ],
           onChanged: (String? newValue) {
-            setState(() {
-              _currentSelectedDept = newValue;
-            });
+            print('🎯 Dropdown changed to: $newValue');
             widget.onDeptChanged(newValue);
           },
         ),
@@ -159,12 +144,19 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   }
 
   Widget _buildProgressDetails() {
-    // ถ้าเลือก Department เฉพาะ
-    if (_currentSelectedDept != null) {
-      // หา Department ที่เลือก
+    print(
+      '🎯 Building progress with selectedDeptCode: ${widget.selectedDeptCode}',
+    );
+    print(
+      '🎯 Has overall progress: ${widget.auditProgress.overallProgress != null}',
+    );
+
+    // 1. ตรวจสอบว่าเลือกแผนกเฉพาะเจาะจงหรือไม่
+    if (widget.selectedDeptCode != null) {
+      print('🎯 Showing specific department data');
       final selectedDeptProgress = widget.auditProgress.auditProgress
-          .where((dept) => dept.deptCode == _currentSelectedDept)
-          .firstOrNull;
+          .where((dept) => dept.deptCode == widget.selectedDeptCode)
+          .firstOrNull; // Ensure firstOrNull is available (Dart 2.12+ or collection package)
 
       if (selectedDeptProgress != null) {
         return Row(
@@ -189,12 +181,22 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             ),
           ],
         );
+      } else {
+        // กรณีเลือกแผนกเฉพาะเจาะจง แต่ไม่พบข้อมูลของแผนกนั้น
+        return Center(
+          child: Text(
+            'No data available for this department.',
+            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+          ),
+        );
       }
     }
 
-    // ถ้าเลือก All Departments หรือมี overall progress
+    // 2. ถ้าเลือก "All Departments" (selectedDeptCode เป็น null)
+    // ให้พยายามแสดง Overall Progress เป็นอันดับแรก
     final overallProgress = widget.auditProgress.overallProgress;
     if (overallProgress != null) {
+      print('🎯 Showing overall progress data');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -219,7 +221,11 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       );
     }
 
-    // Fallback: แสดง Department Summary
+    // 3. Fallback: ถ้าไม่มีทั้ง Overall Progress และไม่ได้เลือกแผนกเฉพาะเจาะจง
+    // ให้แสดง Department Summary (ซึ่งเป็นการสรุปแผนก ไม่ใช่สินทรัพย์รวม)
+    print(
+      '🎯 Falling back to Department Summary as no overall progress available',
+    );
     return Column(
       children: [
         Text(

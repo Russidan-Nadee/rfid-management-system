@@ -32,21 +32,27 @@ class LocationGrowthTrendWidget extends StatefulWidget {
 }
 
 class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
-  String? _currentSelectedLocation;
-
   @override
   void initState() {
     super.initState();
-    _currentSelectedLocation = widget.selectedLocationCode;
+    // เพิ่ม print ตรงนี้เพื่อดูค่าเริ่มต้น
+    print(
+      '✅ LocationGrowthTrendWidget initState: Initial selectedLocationCode: ${widget.selectedLocationCode}',
+    );
   }
 
   @override
   void didUpdateWidget(LocationGrowthTrendWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // เพิ่ม print ตรงนี้เพื่อดูการเปลี่ยนแปลงของ props
     if (widget.selectedLocationCode != oldWidget.selectedLocationCode) {
-      setState(() {
-        _currentSelectedLocation = widget.selectedLocationCode;
-      });
+      print(
+        '🟢 LocationGrowthTrendWidget didUpdateWidget: selectedLocationCode changed from ${oldWidget.selectedLocationCode} to ${widget.selectedLocationCode}',
+      );
+    } else {
+      print(
+        '🟡 LocationGrowthTrendWidget didUpdateWidget: selectedLocationCode is same (${widget.selectedLocationCode})',
+      );
     }
   }
 
@@ -82,23 +88,19 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       uniqueLocations[location['code']!] = location['name']!;
     }
 
-    // ตรวจสอบว่า currentSelectedLocation มีใน dropdown ไหม
-    String? validSelectedLocation = _currentSelectedLocation;
-    if (validSelectedLocation != null &&
-        !uniqueLocations.containsKey(validSelectedLocation)) {
-      print(
-        '🚨 Location $validSelectedLocation not found in dropdown, resetting to null',
-      );
-      validSelectedLocation = null;
-      _currentSelectedLocation = null;
-    }
+    // ใช้ค่าจาก BLoC ตรงๆ ไม่ต้อง validation
+    String? dropdownDisplayValue = widget.selectedLocationCode;
+
+    print(
+      '🔵 LocationGrowthTrendWidget _buildLocationFilter: Dropdown value: $dropdownDisplayValue',
+    );
 
     return Container(
       padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),
       decoration: AppDecorations.input,
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
-          value: validSelectedLocation,
+          value: dropdownDisplayValue,
           hint: Text(
             'All Locations',
             style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
@@ -117,10 +119,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             ),
           ],
           onChanged: (String? newValue) {
-            print('🔥 Location filter changed to: $newValue');
-            setState(() {
-              _currentSelectedLocation = newValue;
-            });
+            print('🔥 LocationGrowthTrendWidget onChanged: $newValue');
             widget.onLocationChanged(newValue);
           },
         ),

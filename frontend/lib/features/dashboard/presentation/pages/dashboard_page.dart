@@ -189,7 +189,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             // Audit Progress
             if (loadedState.auditProgress != null)
               AuditProgressWidget(
-                key: ValueKey('audit_${DateTime.now().millisecondsSinceEpoch}'),
+                key: ValueKey(
+                  'audit_progress_widget_${loadedState.auditProgressDeptFilter}',
+                ),
                 auditProgress: loadedState.auditProgress!,
                 includeDetails: loadedState.includeDetails,
                 selectedDeptCode: loadedState.auditProgressDeptFilter,
@@ -208,7 +210,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                   );
                 },
               ),
-
             AppSpacing.verticalSpaceXXL,
 
             // Asset Distribution Chart
