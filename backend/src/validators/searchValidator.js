@@ -30,9 +30,9 @@ const handleValidationErrors = (req, res, next) => {
 const getSuggestionForError = (error) => {
    const suggestions = {
       'q': 'Search query is required. Try: ?q=ABC123 or ?q=pump',
-      'entities': 'Valid entities: assets,plants,locations,users',
+      'entities': 'Valid entities: assets,plants,locations,users,departments',
       'limit': 'Limit should be between 1-50 for instant search, 1-100 for others',
-      'type': 'Valid types: all,asset_no,description,serial_no,inventory_no'
+      'type': 'Valid types: all,asset_no,description,serial_no,inventory_no,dept_code'
    };
 
    return suggestions[error.path] || 'Please check the parameter format';
@@ -60,7 +60,7 @@ const instantSearchValidator = [
       .custom((value) => {
          if (!value) return true;
 
-         const validEntities = ['assets', 'plants', 'locations', 'users'];
+         const validEntities = ['assets', 'plants', 'locations', 'users', 'departments'];
          const requestedEntities = value.split(',').map(e => e.trim());
 
          // ตรวจสอบว่าทุก entity ที่ขอมาถูกต้อง
@@ -70,8 +70,8 @@ const instantSearchValidator = [
          }
 
          // จำกัดไม่เกิน 4 entities พร้อมกัน
-         if (requestedEntities.length > 4) {
-            throw new Error('Maximum 4 entities allowed for instant search');
+         if (requestedEntities.length > 5) {
+            throw new Error('Maximum 5 entities allowed for instant search');
          }
 
          return true;
@@ -113,7 +113,7 @@ const suggestionsValidator = [
    query('type')
       .optional()
       .trim()
-      .isIn(['all', 'asset_no', 'description', 'serial_no', 'inventory_no', 'plant_code', 'location_code', 'username'])
+      .isIn(['all', 'asset_no', 'description', 'serial_no', 'inventory_no', 'plant_code', 'location_code', 'username', 'dept_code'])
       .withMessage('Invalid suggestion type'),
 
    // Limit - จำนวน suggestions
@@ -155,7 +155,7 @@ const globalSearchValidator = [
       .custom((value) => {
          if (!value) return true;
 
-         const validEntities = ['assets', 'plants', 'locations', 'users', 'all'];
+         const validEntities = ['assets', 'plants', 'locations', 'users', 'departments', 'all'];
          const requestedEntities = value.split(',').map(e => e.trim());
 
          const invalidEntities = requestedEntities.filter(e => !validEntities.includes(e));
@@ -259,7 +259,7 @@ const searchStatsValidator = [
 
    query('entity')
       .optional()
-      .isIn(['assets', 'plants', 'locations', 'users', 'all'])
+      .isIn(['assets', 'plants', 'locations', 'users', 'departments', 'all'])
       .withMessage('Entity must be: assets, plants, locations, users, or all'),
 
    handleValidationErrors

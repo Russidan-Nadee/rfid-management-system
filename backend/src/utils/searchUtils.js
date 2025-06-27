@@ -270,7 +270,8 @@ class SearchUtils {
          { field: 'plant_code', value: item.plant_code, fieldType: 'plant_code' },
          { field: 'location_code', value: item.location_code, fieldType: 'location_code' },
          { field: 'username', value: item.username, fieldType: 'username' },
-         { field: 'full_name', value: item.full_name, fieldType: 'full_name' }
+         { field: 'full_name', value: item.full_name, fieldType: 'full_name' },
+         { field: 'dept_code', value: item.dept_code, fieldType: 'dept_code' }
       ];
 
       if (type === 'all') {
@@ -390,6 +391,12 @@ class SearchUtils {
                plant_code: item.plant_code,
                location_code: item.location_code
             };
+         case 'departments':
+            return {
+               ...baseFormat,
+               dept_code: item.dept_code,
+               plant_code: item.plant_code
+            };
 
          case 'plants':
             return {
@@ -467,6 +474,8 @@ class SearchUtils {
             return item.location_code || 'Unknown Location';
          case 'users':
             return item.full_name || item.username || 'Unknown User';
+         case 'departments':
+            return item.dept_code || 'Unknown Department';
          default:
             return 'Unknown Item';
       }
@@ -488,6 +497,8 @@ class SearchUtils {
             return item.description || `Plant: ${item.plant_code}`;
          case 'users':
             return `${item.role || 'User'} - ${item.username || ''}`;
+         case 'departments':
+            return item.description || `Plant: ${item.plant_code}`;
          default:
             return '';
       }
@@ -632,7 +643,7 @@ class SearchUtils {
     * @returns {boolean} valid หรือไม่
     */
    static isValidEntity(entity) {
-      const validEntities = ['assets', 'plants', 'locations', 'users'];
+      const validEntities = ['assets', 'plants', 'locations', 'users', 'departments'];
       return validEntities.includes(entity);
    }
 

@@ -683,6 +683,64 @@ class SearchModel {
          throw new Error(`Database query error: ${error.message}`);
       }
    }
+   // เพิ่มหลัง instantSearchUsers
+   async instantSearchDepartments(query, options = {}) {
+      const { limit = 5 } = options;
+      const actualLimit = Math.min(limit, 10);
+
+      try {
+         const results = await prisma.mst_department.findMany({
+            where: {
+               OR: [
+                  { dept_code: { contains: query } },
+                  { description: { contains: query } }
+               ]
+            },
+            include: {
+               mst_plant: { select: { description: true } }
+            },
+            take: actualLimit,
+            orderBy: [{ dept_code: 'asc' }]
+         });
+
+         return results.map(dept => ({
+            ...dept,
+            plant_description: dept.mst_plant?.description,
+            entity_type: 'department'
+         })) || [];
+      } catch (error) {
+         console.error('Instant search departments error:', error);
+         return [];
+      }
+   }
+
+   // เพิ่มใน getDepartmentSuggestions
+   async getDepartmentSuggestions(query, options = {}) {
+      const { limit = 5 } = options;
+      const actualLimit = Math.min(limit, 10);
+
+      try {
+         const results = await prisma.mst_department.findMany({
+            where: {
+               OR: [
+                  { dept_code: { contains: query } },
+                  { description: { contains: query } }
+               ]
+            },
+            take: actualLimit,
+            orderBy: [{ dept_code: 'asc' }]
+         });
+
+         return results.map(dept => ({
+            value: dept.dept_code,
+            type: 'dept_code',
+            label: `${dept.dept_code}${dept.description ? ` - ${dept.description}` : ''}${dept.plant_code ? ` (${dept.plant_code})` : ''}`
+         }));
+      } catch (error) {
+         console.error('Get department suggestions error:', error);
+         return [];
+      }
+   }
 }
 
 module.exports = SearchModel;

@@ -101,6 +101,14 @@ class SearchService {
                   .catch(error => ({ entity: 'users', data: [], error: error.message }))
             );
          }
+         if (requestedEntities.includes('departments')) {
+            searchPromises.push(
+               this.searchModel.instantSearchDepartments(cleanQuery, searchOptions)
+                  .then(results => ({ entity: 'departments', data: results }))
+                  .catch(error => ({ entity: 'departments', data: [], error: error.message }))
+            );
+         }
+
 
          // รอผลลัพธ์จากทุก entities
          const entityResults = await Promise.all(searchPromises);
@@ -373,7 +381,25 @@ class SearchService {
                      error: error.message
                   }))
             );
+
          }
+         if (requestedEntities.includes('departments')) {
+            searchPromises.push(
+               this.searchModel.instantSearchDepartments(cleanQuery, { limit: Math.min(limit, 50) })
+                  .then(results => ({
+                     entity: 'departments',
+                     data: results,
+                     pagination: { page: 1, limit: results.length, total: results.length, totalPages: 1 }
+                  }))
+                  .catch(error => ({
+                     entity: 'departments',
+                     data: [],
+                     pagination: { page: 1, limit: 0, total: 0, totalPages: 0 },
+                     error: error.message
+                  }))
+            );
+         }
+
 
          // รอผลลัพธ์จากทุก entities
          const entityResults = await Promise.all(searchPromises);
