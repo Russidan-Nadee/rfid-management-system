@@ -17,7 +17,7 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 0; // Default to Scan page
+  int _currentIndex = 2; // Default to Scan page
   bool _isRailExtended = true;
 
   final _navigatorKeys = List.generate(

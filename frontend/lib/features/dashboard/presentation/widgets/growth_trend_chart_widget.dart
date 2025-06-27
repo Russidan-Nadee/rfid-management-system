@@ -129,13 +129,13 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
               AppSpacing.paddingVerticalXS,
             ),
             decoration: AppDecorations.chip.copyWith(
-              color: AppColors.primary.withOpacity(0.1),
-              border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              color: AppColors.warning.withOpacity(0.1),
+              border: Border.all(color: AppColors.warning.withOpacity(0.3)),
             ),
             child: Text(
               'Current Year',
               style: AppTextStyles.overline.copyWith(
-                color: AppColors.primary,
+                color: AppColors.warning,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -205,7 +205,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColors.primary,
+            color: AppColors.warning,
             barWidth: 3,
             dotData: FlDotData(
               show: true,
@@ -225,7 +225,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 }
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: AppColors.primary,
+                  color: AppColors.warning,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -233,7 +233,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.warning.withOpacity(0.1),
             ),
           ),
         ],
@@ -286,7 +286,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             'Average Growth',
             '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
-            AppColors.primary,
+            AppColors.warning,
           ),
           _buildDivider(),
           _buildSummaryItem(

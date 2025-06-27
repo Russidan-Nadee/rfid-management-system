@@ -17,7 +17,7 @@ extension AssetStatusTheme on ThemeData {
       case 'A':
         return colorScheme.primary;
       case 'C':
-        return AppColors.assetActive; // สีม่วงสำหรับ Checked
+        return AppColors.assetActive;
       case 'I':
         return colorScheme.error;
       case 'UNKNOWN':
@@ -54,7 +54,7 @@ extension AssetStatusTheme on ThemeData {
   String getAssetStatusLabel(String status) {
     switch (status.toUpperCase()) {
       case 'A':
-        return 'Active';
+        return 'Awaiting';
       case 'C':
         return 'Checked';
       case 'I':

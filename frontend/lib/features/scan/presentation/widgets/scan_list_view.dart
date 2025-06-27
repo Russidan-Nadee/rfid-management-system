@@ -66,6 +66,20 @@ class ScanListView extends StatefulWidget {
 class _ScanListViewState extends State<ScanListView> {
   bool _isLocationFilterExpanded = true;
   bool _isStatusFilterExpanded = true;
+  late TextEditingController _locationSearchController;
+  String _locationSearchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _locationSearchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _locationSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +167,13 @@ class _ScanListViewState extends State<ScanListView> {
     String selectedLocation,
     BuildContext context,
   ) {
+    // กรอง locations ตาม search query
+    final filteredLocations = availableLocations.where((location) {
+      return location.toLowerCase().contains(
+        _locationSearchQuery.toLowerCase(),
+      );
+    }).toList();
+
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -166,32 +187,114 @@ class _ScanListViewState extends State<ScanListView> {
       ),
       child: Column(
         children: [
-          // Header
-          InkWell(
-            onTap: () => setState(
-              () => _isLocationFilterExpanded = !_isLocationFilterExpanded,
+          // Header with Search
+          Padding(
+            padding: AppSpacing.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
             ),
-            child: Padding(
-              padding: AppSpacing.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.md,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    color: theme.colorScheme.primary,
-                    size: 18,
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: () => setState(
+                    () =>
+                        _isLocationFilterExpanded = !_isLocationFilterExpanded,
                   ),
-                  AppSpacing.horizontalSpaceSM,
-                  Text(
-                    'Filter by Location',
-                    style: AppTextStyles.filterLabel.copyWith(
-                      color: theme.colorScheme.primary,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: theme.colorScheme.primary,
+                        size: 18,
+                      ),
+                      AppSpacing.horizontalSpaceSM,
+                      Text(
+                        'Filter by Location',
+                        style: AppTextStyles.filterLabel.copyWith(
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AppSpacing.horizontalSpaceMD,
+                Expanded(
+                  child: TextField(
+                    controller: _locationSearchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _locationSearchQuery = value;
+                      });
+                    },
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search locations...',
+                      hintStyle: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: theme.colorScheme.primary,
+                        size: 18,
+                      ),
+                      suffixIcon: _locationSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.6,
+                                ),
+                                size: 18,
+                              ),
+                              onPressed: () {
+                                _locationSearchController.clear();
+                                setState(() {
+                                  _locationSearchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withOpacity(0.3),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.outline.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                          color: theme.colorScheme.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: theme.colorScheme.surface,
                     ),
                   ),
-                  const Spacer(),
-                  AnimatedRotation(
+                ),
+                AppSpacing.horizontalSpaceSM,
+                InkWell(
+                  onTap: () => setState(
+                    () =>
+                        _isLocationFilterExpanded = !_isLocationFilterExpanded,
+                  ),
+                  child: AnimatedRotation(
                     turns: _isLocationFilterExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
@@ -199,8 +302,8 @@ class _ScanListViewState extends State<ScanListView> {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
@@ -216,22 +319,38 @@ class _ScanListViewState extends State<ScanListView> {
                       AppSpacing.lg,
                       AppSpacing.md,
                     ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: availableLocations.map((location) {
-                          return Padding(
-                            padding: AppSpacing.only(right: AppSpacing.sm),
-                            child: _buildLocationChip(
-                              context,
-                              theme,
-                              location,
-                              selectedLocation,
+                    child: filteredLocations.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Text(
+                              'No locations found matching "${_locationSearchQuery}"',
+                              style: TextStyle(
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.6,
+                                ),
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+                          )
+                        : SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: filteredLocations.map((location) {
+                                return Padding(
+                                  padding: AppSpacing.only(
+                                    right: AppSpacing.sm,
+                                  ),
+                                  child: _buildLocationChip(
+                                    context,
+                                    theme,
+                                    location,
+                                    selectedLocation,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                   )
                 : const SizedBox(),
           ),
