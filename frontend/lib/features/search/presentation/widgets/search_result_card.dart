@@ -20,6 +20,9 @@ class SearchResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    // ดึง asset_no จาก data
+    final assetNo = result.data['asset_no']?.toString() ?? '';
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: theme.colorScheme.surface,
@@ -40,16 +43,31 @@ class SearchResultCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
           child: Row(
             children: [
-              // แสดงแค่ description
+              // แสดง 2 บรรทัด: Description + Asset No
               Expanded(
-                child: Text(
-                  result.subtitle.isNotEmpty ? result.subtitle : result.title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // บรรทัดแรก: Description (จาก title)
+                    Text(
+                      result.title.isNotEmpty ? result.title : 'No description',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // บรรทัดที่สอง: Asset No
+                    Text(
+                      assetNo.isNotEmpty ? assetNo : 'No asset number',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // ลูกศรเล็กๆ แสดงว่าแตะได้

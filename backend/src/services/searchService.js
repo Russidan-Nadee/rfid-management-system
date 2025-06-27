@@ -22,12 +22,12 @@ class SearchService {
     */
 
    /**
-    * ค้นหาแบบ instant ทุก entities
-    * @param {string} query - คำค้นหา
-    * @param {Object} options - ตัวเลือก
-    * @param {Object} requestMeta - ข้อมูล request (สำหรับ logging)
-    * @returns {Promise<Object>} ผลลัพธ์การค้นหา
-    */
+ * ค้นหาแบบ instant ทุก entities - Enhanced Version
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @param {Object} requestMeta - ข้อมูล request (สำหรับ logging)
+ * @returns {Promise<Object>} ผลลัพธ์การค้นหาแบบครบถ้วน
+ */
    async instantSearch(query, options = {}, requestMeta = {}) {
       const startTime = new Date();
 
@@ -41,7 +41,7 @@ class SearchService {
          const {
             entities = ['assets'],
             limit = 5,
-            includeDetails = false
+            includeDetails = true // เปลี่ยน default เป็น true
          } = options;
 
          const requestedEntities = SearchUtils.parseEntities(entities.join ? entities.join(',') : entities);
@@ -66,9 +66,9 @@ class SearchService {
             return cachedResult;
          }
 
-         // ทำการค้นหาจริง
+         // ทำการค้นหาจริง - ส่ง includeDetails: true เป็น default
          const searchPromises = [];
-         const searchOptions = { limit, includeDetails };
+         const searchOptions = { limit, includeDetails }; // ตอนนี้ includeDetails = true
 
          if (requestedEntities.includes('assets')) {
             searchPromises.push(
@@ -101,6 +101,7 @@ class SearchService {
                   .catch(error => ({ entity: 'users', data: [], error: error.message }))
             );
          }
+
          if (requestedEntities.includes('departments')) {
             searchPromises.push(
                this.searchModel.instantSearchDepartments(cleanQuery, searchOptions)
@@ -109,11 +110,11 @@ class SearchService {
             );
          }
 
-
          // รอผลลัพธ์จากทุก entities
          const entityResults = await Promise.all(searchPromises);
 
-         // จัดรูปแบบผลลัพธ์
+         // จัดรูปแบบผลลัพธ์ - ไม่ต้องใช้ SearchUtils.formatInstantSearchResults
+         // เพราะ data จาก model มีข้อมูลครบถ้วนแล้ว
          const results = {};
          let totalResults = 0;
          const errors = [];
@@ -123,10 +124,8 @@ class SearchService {
                errors.push({ entity, error });
                results[entity] = [];
             } else {
-               results[entity] = SearchUtils.formatInstantSearchResults(
-                  { [entity]: data },
-                  { includeDetails, maxItems: limit }
-               )[entity] || [];
+               // ใช้ data โดยตรงจาก searchModel (ที่เราแก้ไขแล้ว)
+               results[entity] = data || [];
                totalResults += results[entity].length;
             }
          });
@@ -134,12 +133,13 @@ class SearchService {
          // สร้าง response object
          const response = {
             success: true,
-            message: 'Instant search completed successfully',
+            message: 'Enhanced instant search completed successfully',
             data: results,
             meta: {
                query: cleanQuery,
                entities: requestedEntities,
                totalResults,
+               includeDetails, // แสดงว่าใช้ detailed data
                cached: false,
                performance: SearchUtils.calculatePerformanceMetrics(startTime, results),
                errors: errors.length > 0 ? errors : undefined
@@ -156,13 +156,13 @@ class SearchService {
          return response;
 
       } catch (error) {
-         console.error('Instant search error:', error);
+         console.error('Enhanced instant search error:', error);
 
          // Log error search (async)
          this.logSearchAsync(query, [], {}, requestMeta, 'instant', error.message);
 
          return SearchUtils.createErrorResponse(
-            error.message || 'Instant search failed',
+            error.message || 'Enhanced instant search failed',
             500,
             {
                meta: {
@@ -268,12 +268,12 @@ class SearchService {
     */
 
    /**
-    * ค้นหาแบบ global ทุก entities
-    * @param {string} query - คำค้นหา
-    * @param {Object} options - ตัวเลือก
-    * @param {Object} requestMeta - ข้อมูล request
-    * @returns {Promise<Object>} ผลลัพธ์การค้นหา
-    */
+ * ค้นหาแบบ global ทุก entities - Enhanced Version
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @param {Object} requestMeta - ข้อมูล request
+ * @returns {Promise<Object>} ผลลัพธ์การค้นหาแบบครบถ้วน
+ */
    async globalSearch(query, options = {}, requestMeta = {}) {
       const startTime = new Date();
 
@@ -289,7 +289,8 @@ class SearchService {
             limit = 20,
             sort = 'relevance',
             filters = {},
-            exactMatch = false
+            exactMatch = false,
+            includeDetails = true // เปลี่ยน default เป็น true
          } = options;
 
          const requestedEntities = SearchUtils.parseEntities(entities.join ? entities.join(',') : entities);
@@ -302,6 +303,7 @@ class SearchService {
             sort,
             filters,
             exactMatch,
+            includeDetails,
             type: 'global'
          });
 
@@ -315,7 +317,7 @@ class SearchService {
          }
 
          const searchPromises = [];
-         const searchOptions = { page, limit, sort, filters, exactMatch };
+         const searchOptions = { page, limit, sort, filters, exactMatch, includeDetails }; // includeDetails = true
 
          // ค้นหาใน assets (รองรับ pagination เต็มรูปแบบ)
          if (requestedEntities.includes('assets')) {
@@ -331,10 +333,12 @@ class SearchService {
             );
          }
 
-         // สำหรับ entities อื่นๆ ใช้ instant search (simplified)
+         // สำหรับ entities อื่นๆ ใช้ instant search (simplified) แต่ใช้ includeDetails = true
+         const instantSearchOptions = { limit: Math.min(limit, 50), includeDetails: true };
+
          if (requestedEntities.includes('plants')) {
             searchPromises.push(
-               this.searchModel.instantSearchPlants(cleanQuery, { limit: Math.min(limit, 50) })
+               this.searchModel.instantSearchPlants(cleanQuery, instantSearchOptions)
                   .then(results => ({
                      entity: 'plants',
                      data: results,
@@ -351,7 +355,7 @@ class SearchService {
 
          if (requestedEntities.includes('locations')) {
             searchPromises.push(
-               this.searchModel.instantSearchLocations(cleanQuery, { limit: Math.min(limit, 50) })
+               this.searchModel.instantSearchLocations(cleanQuery, instantSearchOptions)
                   .then(results => ({
                      entity: 'locations',
                      data: results,
@@ -368,7 +372,7 @@ class SearchService {
 
          if (requestedEntities.includes('users')) {
             searchPromises.push(
-               this.searchModel.instantSearchUsers(cleanQuery, { limit: Math.min(limit, 50) })
+               this.searchModel.instantSearchUsers(cleanQuery, instantSearchOptions)
                   .then(results => ({
                      entity: 'users',
                      data: results,
@@ -381,11 +385,11 @@ class SearchService {
                      error: error.message
                   }))
             );
-
          }
+
          if (requestedEntities.includes('departments')) {
             searchPromises.push(
-               this.searchModel.instantSearchDepartments(cleanQuery, { limit: Math.min(limit, 50) })
+               this.searchModel.instantSearchDepartments(cleanQuery, instantSearchOptions)
                   .then(results => ({
                      entity: 'departments',
                      data: results,
@@ -399,12 +403,11 @@ class SearchService {
                   }))
             );
          }
-
 
          // รอผลลัพธ์จากทุก entities
          const entityResults = await Promise.all(searchPromises);
 
-         // จัดรูปแบบผลลัพธ์
+         // จัดรูปแบบผลลัพธ์ - ใช้ data โดยตรงจาก searchModel
          const results = {};
          const pagination = {};
          let totalResults = 0;
@@ -415,6 +418,7 @@ class SearchService {
                errors.push({ entity, error });
             }
 
+            // ใช้ data โดยตรง (ที่มีข้อมูลครบถ้วนแล้วจาก enhanced searchModel)
             results[entity] = data || [];
             pagination[entity] = entityPagination || { page, limit: 0, total: 0, totalPages: 0 };
             totalResults += (data || []).length;
@@ -422,14 +426,14 @@ class SearchService {
 
          // สร้าง response
          const response = SearchUtils.createSuccessResponse(
-            'Global search completed successfully',
+            'Enhanced global search completed successfully',
             results,
             {
                query: cleanQuery,
                entities: requestedEntities,
                pagination,
                totalResults,
-               searchOptions: { sort, exactMatch, filters },
+               searchOptions: { sort, exactMatch, filters, includeDetails }, // เพิ่ม includeDetails
                cached: false,
                performance: SearchUtils.calculatePerformanceMetrics(startTime, results),
                errors: errors.length > 0 ? errors : undefined
@@ -445,12 +449,12 @@ class SearchService {
          return response;
 
       } catch (error) {
-         console.error('Global search error:', error);
+         console.error('Enhanced global search error:', error);
 
          this.logSearchAsync(query, [], {}, requestMeta, 'global', error.message);
 
          return SearchUtils.createErrorResponse(
-            error.message || 'Global search failed',
+            error.message || 'Enhanced global search failed',
             500,
             {
                meta: {

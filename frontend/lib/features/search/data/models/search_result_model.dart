@@ -115,7 +115,7 @@ class AssetSearchResultModel extends SearchResultModel<Map<String, dynamic>> {
   factory AssetSearchResultModel.fromJson(Map<String, dynamic> json) {
     return AssetSearchResultModel(
       id: json['asset_no'] ?? json['id'] ?? '',
-      title: json['asset_no'] ?? '',
+      title: json['title'] ?? json['description'] ?? '',
       subtitle: json['description'] ?? '',
       data: Map<String, dynamic>.from(json),
       relevanceScore: json['relevance_score']?.toDouble(),

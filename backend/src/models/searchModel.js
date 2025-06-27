@@ -20,13 +20,317 @@ class SearchModel {
     */
 
    /**
-    * ค้นหา assets แบบ instant (เร็วที่สุด)
-    * @param {string} query - คำค้นหา
-    * @param {Object} options - ตัวเลือก
-    * @returns {Promise<Array>} ผลลัพธ์ assets
-    */
+ * ค้นหา assets แบบละเอียด พร้อม nested description search
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @returns {Promise<Object>} ผลลัพธ์พร้อม pagination และข้อมูลครบถ้วน
+ */
+   async comprehensiveSearchAssets(query, options = {}) {
+      const {
+         page = 1,
+         limit = 20,
+         sort = 'relevance',
+         filters = {},
+         exactMatch = false,
+         includeDetails = true
+      } = options;
+
+      const offset = (page - 1) * limit;
+      const actualLimit = Math.min(limit, 100);
+
+      try {
+         // Build enhanced search conditions
+         const searchConditions = {
+            AND: [
+               {
+                  status: { in: ['A', 'C'] }
+               }
+            ]
+         };
+
+         // Add search query conditions
+         if (query) {
+            if (exactMatch) {
+               searchConditions.AND.push({
+                  OR: [
+                     { asset_no: query },
+                     { description: query },
+                     { serial_no: query },
+                     { inventory_no: query },
+                     { mst_plant: { description: query } },
+                     { mst_location: { description: query } },
+                     { mst_department: { description: query } },
+                     { mst_unit: { name: query } },
+                     { mst_user: { full_name: query } }
+                  ]
+               });
+            } else {
+               searchConditions.AND.push({
+                  OR: [
+                     // Original asset fields
+                     { asset_no: { contains: query } },
+                     { description: { contains: query } },
+                     { serial_no: { contains: query } },
+                     { inventory_no: { contains: query } },
+
+                     // Nested relation searches
+                     { mst_plant: { description: { contains: query } } },
+                     { mst_location: { description: { contains: query } } },
+                     { mst_department: { description: { contains: query } } },
+                     { mst_unit: { name: { contains: query } } },
+                     { mst_user: { full_name: { contains: query } } }
+                  ]
+               });
+            }
+         }
+
+         // Add filters
+         if (filters.plant_codes && filters.plant_codes.length > 0) {
+            searchConditions.AND.push({ plant_code: { in: filters.plant_codes } });
+         }
+         if (filters.location_codes && filters.location_codes.length > 0) {
+            searchConditions.AND.push({ location_code: { in: filters.location_codes } });
+         }
+         if (filters.dept_codes && filters.dept_codes.length > 0) {
+            searchConditions.AND.push({ dept_code: { in: filters.dept_codes } });
+         }
+         if (filters.status && filters.status.length > 0) {
+            searchConditions.AND.push({ status: { in: filters.status } });
+         }
+
+         // Build orderBy
+         let orderBy = [{ asset_no: 'asc' }];
+         switch (sort) {
+            case 'created_date':
+               orderBy = [{ created_at: 'desc' }];
+               break;
+            case 'alphabetical':
+               orderBy = [{ description: 'asc' }, { asset_no: 'asc' }];
+               break;
+            case 'recent':
+               orderBy = [{ created_at: 'desc' }];
+               break;
+         }
+
+         // Enhanced include - เหมือนกับ instantSearchAssets
+         const includeOptions = {
+            mst_plant: {
+               select: {
+                  plant_code: true,
+                  description: true
+               }
+            },
+            mst_location: {
+               select: {
+                  location_code: true,
+                  description: true
+               }
+            },
+            mst_department: {
+               select: {
+                  dept_code: true,
+                  description: true
+               }
+            },
+            mst_unit: {
+               select: {
+                  unit_code: true,
+                  name: true
+               }
+            },
+            mst_user: {
+               select: {
+                  user_id: true,
+                  full_name: true,
+                  role: true
+               }
+            }
+         };
+
+         const [results, total] = await Promise.all([
+            prisma.asset_master.findMany({
+               where: searchConditions,
+               include: includeOptions,
+               orderBy,
+               skip: offset,
+               take: actualLimit
+            }),
+            prisma.asset_master.count({
+               where: searchConditions
+            })
+         ]);
+
+         const totalPages = Math.ceil(total / actualLimit);
+
+         return {
+            data: results.map(asset => ({
+               // Basic asset fields
+               asset_no: asset.asset_no,
+               description: asset.description,
+               plant_code: asset.plant_code,
+               location_code: asset.location_code,
+               dept_code: asset.dept_code,
+               serial_no: asset.serial_no,
+               inventory_no: asset.inventory_no,
+               quantity: asset.quantity,
+               unit_code: asset.unit_code,
+               status: asset.status,
+               created_by: asset.created_by,
+               created_at: asset.created_at,
+               deactivated_at: asset.deactivated_at,
+
+               // Enhanced relation fields - flattened
+               plant_description: asset.mst_plant?.description || null,
+               location_description: asset.mst_location?.description || null,
+               dept_description: asset.mst_department?.description || null,
+               unit_name: asset.mst_unit?.name || null,
+               created_by_name: asset.mst_user?.full_name || null,
+               created_by_role: asset.mst_user?.role || null,
+
+               // Entity type for compatibility
+               entity_type: 'asset'
+            })) || [],
+            pagination: {
+               page,
+               limit: actualLimit,
+               total,
+               totalPages,
+               hasNext: page < totalPages,
+               hasPrev: page > 1
+            }
+         };
+      } catch (error) {
+         console.error('Enhanced comprehensive search assets with nested search error:', error);
+         return {
+            data: [],
+            pagination: { page, limit: actualLimit, total: 0, totalPages: 0 }
+         };
+      }
+   }
+
+   /**
+ * ค้นหา assets แบบ instant พร้อม nested description search
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @returns {Promise<Array>} ผลลัพธ์ assets พร้อมข้อมูลครบถ้วน
+ */
    async instantSearchAssets(query, options = {}) {
-      const { limit = 5, includeDetails = false } = options;
+      const { limit = 5, includeDetails = true } = options;
+      const actualLimit = Math.min(limit, 10);
+
+      try {
+         // Enhanced search conditions - รวม nested fields
+         const searchConditions = {
+            AND: [
+               {
+                  OR: [
+                     // Original asset fields
+                     { asset_no: { contains: query } },
+                     { description: { contains: query } },
+                     { serial_no: { contains: query } },
+                     { inventory_no: { contains: query } },
+
+                     // Nested relation searches
+                     { mst_plant: { description: { contains: query } } },
+                     { mst_location: { description: { contains: query } } },
+                     { mst_department: { description: { contains: query } } },
+                     { mst_unit: { name: { contains: query } } },
+                     { mst_user: { full_name: { contains: query } } }
+                  ]
+               },
+               {
+                  status: { in: ['A', 'C'] }
+               }
+            ]
+         };
+
+         // Enhanced include - ดึงข้อมูล relations ครบถ้วน
+         const includeOptions = {
+            mst_plant: {
+               select: {
+                  plant_code: true,
+                  description: true
+               }
+            },
+            mst_location: {
+               select: {
+                  location_code: true,
+                  description: true
+               }
+            },
+            mst_department: {
+               select: {
+                  dept_code: true,
+                  description: true
+               }
+            },
+            mst_unit: {
+               select: {
+                  unit_code: true,
+                  name: true
+               }
+            },
+            mst_user: {
+               select: {
+                  user_id: true,
+                  full_name: true,
+                  role: true
+               }
+            }
+         };
+
+         const results = await prisma.asset_master.findMany({
+            where: searchConditions,
+            include: includeOptions,
+            take: actualLimit,
+            orderBy: [
+               { asset_no: 'asc' }
+            ]
+         });
+
+         // Enhanced mapping - flatten relations และเพิ่ม fields ที่ต้องการ
+         return results.map(asset => ({
+            // Basic asset fields
+            asset_no: asset.asset_no,
+            description: asset.description,
+            plant_code: asset.plant_code,
+            location_code: asset.location_code,
+            dept_code: asset.dept_code,
+            serial_no: asset.serial_no,
+            inventory_no: asset.inventory_no,
+            quantity: asset.quantity,
+            unit_code: asset.unit_code,
+            status: asset.status,
+            created_by: asset.created_by,
+            created_at: asset.created_at,
+            deactivated_at: asset.deactivated_at,
+
+            // Enhanced relation fields - flattened
+            plant_description: asset.mst_plant?.description || null,
+            location_description: asset.mst_location?.description || null,
+            dept_description: asset.mst_department?.description || null,
+            unit_name: asset.mst_unit?.name || null,
+            created_by_name: asset.mst_user?.full_name || null,
+            created_by_role: asset.mst_user?.role || null,
+
+            // Entity type for compatibility
+            entity_type: 'asset'
+         })) || [];
+
+      } catch (error) {
+         console.error('Enhanced instant search assets with nested search error:', error);
+         return [];
+      }
+   }
+
+   /**
+ * ค้นหา assets แบบ instant (เร็วที่สุด) - Enhanced Version
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @returns {Promise<Array>} ผลลัพธ์ assets พร้อมข้อมูลครบถ้วน
+ */
+   async instantSearchAssets(query, options = {}) {
+      const { limit = 5, includeDetails = true } = options; // เปลี่ยน default เป็น true
       const actualLimit = Math.min(limit, 10);
 
       try {
@@ -40,11 +344,40 @@ class SearchModel {
             status: { in: ['A', 'C'] }
          };
 
-         const includeOptions = includeDetails ? {
-            mst_plant: { select: { description: true } },
-            mst_location: { select: { description: true } },
-            mst_unit: { select: { name: true } }
-         } : {};
+         // Enhanced include - ดึงข้อมูล relations ครบถ้วน
+         const includeOptions = {
+            mst_plant: {
+               select: {
+                  plant_code: true,
+                  description: true
+               }
+            },
+            mst_location: {
+               select: {
+                  location_code: true,
+                  description: true
+               }
+            },
+            mst_department: {
+               select: {
+                  dept_code: true,
+                  description: true
+               }
+            },
+            mst_unit: {
+               select: {
+                  unit_code: true,
+                  name: true
+               }
+            },
+            mst_user: {
+               select: {
+                  user_id: true,
+                  full_name: true,
+                  role: true
+               }
+            }
+         };
 
          const results = await prisma.asset_master.findMany({
             where: searchConditions,
@@ -55,14 +388,37 @@ class SearchModel {
             ]
          });
 
+         // Enhanced mapping - flatten relations และเพิ่ม fields ที่ต้องการ
          return results.map(asset => ({
-            ...asset,
-            plant_description: asset.mst_plant?.description,
-            location_description: asset.mst_location?.description,
-            unit_name: asset.mst_unit?.name
+            // Basic asset fields
+            asset_no: asset.asset_no,
+            description: asset.description,
+            plant_code: asset.plant_code,
+            location_code: asset.location_code,
+            dept_code: asset.dept_code,
+            serial_no: asset.serial_no,
+            inventory_no: asset.inventory_no,
+            quantity: asset.quantity,
+            unit_code: asset.unit_code,
+            status: asset.status,
+            created_by: asset.created_by,
+            created_at: asset.created_at,
+            deactivated_at: asset.deactivated_at,
+
+            // Enhanced relation fields - flattened
+            plant_description: asset.mst_plant?.description || null,
+            location_description: asset.mst_location?.description || null,
+            dept_description: asset.mst_department?.description || null,
+            unit_name: asset.mst_unit?.name || null,
+            created_by_name: asset.mst_user?.full_name || null,
+            created_by_role: asset.mst_user?.role || null,
+
+            // Entity type for compatibility
+            entity_type: 'asset'
          })) || [];
+
       } catch (error) {
-         console.error('Instant search assets error:', error);
+         console.error('Enhanced instant search assets error:', error);
          return [];
       }
    }
@@ -185,18 +541,19 @@ class SearchModel {
     */
 
    /**
-    * ค้นหา assets แบบละเอียด
-    * @param {string} query - คำค้นหา
-    * @param {Object} options - ตัวเลือก
-    * @returns {Promise<Object>} ผลลัพธ์พร้อม pagination
-    */
+ * ค้นหา assets แบบละเอียด - Enhanced Version
+ * @param {string} query - คำค้นหา
+ * @param {Object} options - ตัวเลือก
+ * @returns {Promise<Object>} ผลลัพธ์พร้อม pagination และข้อมูลครบถ้วน
+ */
    async comprehensiveSearchAssets(query, options = {}) {
       const {
          page = 1,
          limit = 20,
          sort = 'relevance',
          filters = {},
-         exactMatch = false
+         exactMatch = false,
+         includeDetails = true // เปลี่ยน default เป็น true
       } = options;
 
       const offset = (page - 1) * limit;
@@ -233,6 +590,9 @@ class SearchModel {
          if (filters.location_codes && filters.location_codes.length > 0) {
             searchConditions.location_code = { in: filters.location_codes };
          }
+         if (filters.dept_codes && filters.dept_codes.length > 0) {
+            searchConditions.dept_code = { in: filters.dept_codes };
+         }
          if (filters.status && filters.status.length > 0) {
             searchConditions.status = { in: filters.status };
          }
@@ -251,15 +611,45 @@ class SearchModel {
                break;
          }
 
+         // Enhanced include - เหมือนกับ instantSearchAssets
+         const includeOptions = {
+            mst_plant: {
+               select: {
+                  plant_code: true,
+                  description: true
+               }
+            },
+            mst_location: {
+               select: {
+                  location_code: true,
+                  description: true
+               }
+            },
+            mst_department: {
+               select: {
+                  dept_code: true,
+                  description: true
+               }
+            },
+            mst_unit: {
+               select: {
+                  unit_code: true,
+                  name: true
+               }
+            },
+            mst_user: {
+               select: {
+                  user_id: true,
+                  full_name: true,
+                  role: true
+               }
+            }
+         };
+
          const [results, total] = await Promise.all([
             prisma.asset_master.findMany({
                where: searchConditions,
-               include: {
-                  mst_plant: { select: { description: true } },
-                  mst_location: { select: { description: true } },
-                  mst_unit: { select: { name: true } },
-                  mst_user: { select: { full_name: true } }
-               },
+               include: includeOptions,
                orderBy,
                skip: offset,
                take: actualLimit
@@ -273,11 +663,31 @@ class SearchModel {
 
          return {
             data: results.map(asset => ({
-               ...asset,
-               plant_description: asset.mst_plant?.description,
-               location_description: asset.mst_location?.description,
-               unit_name: asset.mst_unit?.name,
-               created_by_name: asset.mst_user?.full_name
+               // Basic asset fields
+               asset_no: asset.asset_no,
+               description: asset.description,
+               plant_code: asset.plant_code,
+               location_code: asset.location_code,
+               dept_code: asset.dept_code,
+               serial_no: asset.serial_no,
+               inventory_no: asset.inventory_no,
+               quantity: asset.quantity,
+               unit_code: asset.unit_code,
+               status: asset.status,
+               created_by: asset.created_by,
+               created_at: asset.created_at,
+               deactivated_at: asset.deactivated_at,
+
+               // Enhanced relation fields - flattened
+               plant_description: asset.mst_plant?.description || null,
+               location_description: asset.mst_location?.description || null,
+               dept_description: asset.mst_department?.description || null,
+               unit_name: asset.mst_unit?.name || null,
+               created_by_name: asset.mst_user?.full_name || null,
+               created_by_role: asset.mst_user?.role || null,
+
+               // Entity type for compatibility
+               entity_type: 'asset'
             })) || [],
             pagination: {
                page,
@@ -289,14 +699,13 @@ class SearchModel {
             }
          };
       } catch (error) {
-         console.error('Comprehensive search assets error:', error);
+         console.error('Enhanced comprehensive search assets error:', error);
          return {
             data: [],
             pagination: { page, limit: actualLimit, total: 0, totalPages: 0 }
          };
       }
    }
-
    /**
     * 💭 SUGGESTIONS METHODS
     * สำหรับ autocomplete suggestions

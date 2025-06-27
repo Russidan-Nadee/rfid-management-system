@@ -338,33 +338,143 @@ class SearchUtils {
    }
 
    /**
-    * 📊 RESPONSE FORMATTING UTILITIES
-    */
+ * Format detailed item สำหรับ comprehensive search - Enhanced Version
+ * @param {Object} item - data item
+ * @param {string} entity - entity type  
+ * @returns {Object} detailed formatted item with complete data
+ */
+   static formatDetailedItem(item, entity) {
+      const basic = this.formatBasicItem(item, entity);
 
-   /**
-    * Format search results สำหรับ instant search
-    * @param {Object} results - ผลลัพธ์จาก database
-    * @param {Object} options - ตัวเลือก
-    * @returns {Object} formatted results
-    */
-   static formatInstantSearchResults(results, options = {}) {
-      const { includeDetails = false, maxItems = 5 } = options;
+      // เพิ่มรายละเอียดเต็มสำหรับ comprehensive search
+      const detailed = {
+         ...basic,
+         ...item, // ข้อมูลทั้งหมดจาก database
 
-      const formatted = {};
+         // Enhanced formatted timestamps
+         formatted_created_at: this.formatDateTime(item.created_at),
+         formatted_updated_at: this.formatDateTime(item.updated_at),
+         formatted_deactivated_at: this.formatDateTime(item.deactivated_at),
 
-      Object.keys(results).forEach(entity => {
-         if (!results[entity] || !Array.isArray(results[entity])) return;
+         // Additional metadata for detailed view
+         metadata: {
+            entity_type: entity,
+            has_plant: !!item.plant_code,
+            has_location: !!item.location_code,
+            has_department: !!item.dept_code,
+            has_unit: !!item.unit_code,
+            has_creator: !!item.created_by,
+            is_active: item.status === 'A',
+            is_created: item.status === 'C',
+            is_inactive: item.status === 'I',
+            has_deactivation_date: !!item.deactivated_at
+         }
+      };
 
-         formatted[entity] = results[entity].slice(0, maxItems).map(item => {
-            if (includeDetails) {
-               return this.formatDetailedItem(item, entity);
-            } else {
-               return this.formatBasicItem(item, entity);
-            }
-         });
-      });
+      // Entity-specific detailed enhancements
+      switch (entity) {
+         case 'assets':
+            return {
+               ...detailed,
 
-      return formatted;
+               // Enhanced asset-specific fields
+               display_quantity: item.quantity ? `${item.quantity} ${item.unit_name || item.unit_code || ''}`.trim() : null,
+               full_location: this.buildFullLocationString(item),
+               status_label: this.getStatusLabel(item.status),
+               age_days: this.calculateAgeDays(item.created_at),
+
+               // Relationship indicators
+               relationships: {
+                  plant: {
+                     code: item.plant_code,
+                     description: item.plant_description,
+                     display: item.plant_code && item.plant_description
+                        ? `${item.plant_code} - ${item.plant_description}`
+                        : item.plant_code || null
+                  },
+                  location: {
+                     code: item.location_code,
+                     description: item.location_description,
+                     display: item.location_code && item.location_description
+                        ? `${item.location_code} - ${item.location_description}`
+                        : item.location_code || null
+                  },
+                  department: {
+                     code: item.dept_code,
+                     description: item.dept_description,
+                     display: item.dept_code && item.dept_description
+                        ? `${item.dept_code} - ${item.dept_description}`
+                        : item.dept_code || null
+                  },
+                  unit: {
+                     code: item.unit_code,
+                     name: item.unit_name,
+                     display: item.unit_name || item.unit_code || null
+                  },
+                  creator: {
+                     user_id: item.created_by,
+                     full_name: item.created_by_name,
+                     role: item.created_by_role,
+                     display: item.created_by_name
+                        ? `${item.created_by_name}${item.created_by_role ? ` (${item.created_by_role})` : ''}`
+                        : item.created_by || null
+                  }
+               }
+            };
+
+         case 'plants':
+            return {
+               ...detailed,
+               display_name: item.description ? `${item.plant_code} - ${item.description}` : item.plant_code,
+               metadata: {
+                  ...detailed.metadata,
+                  has_description: !!item.description
+               }
+            };
+
+         case 'locations':
+            return {
+               ...detailed,
+               display_name: item.description ? `${item.location_code} - ${item.description}` : item.location_code,
+               full_path: item.plant_description
+                  ? `${item.plant_description} / ${item.description || item.location_code}`
+                  : item.description || item.location_code,
+               metadata: {
+                  ...detailed.metadata,
+                  has_description: !!item.description,
+                  has_plant: !!item.plant_code
+               }
+            };
+
+         case 'departments':
+            return {
+               ...detailed,
+               display_name: item.description ? `${item.dept_code} - ${item.description}` : item.dept_code,
+               full_path: item.plant_description
+                  ? `${item.plant_description} / ${item.description || item.dept_code}`
+                  : item.description || item.dept_code,
+               metadata: {
+                  ...detailed.metadata,
+                  has_description: !!item.description,
+                  has_plant: !!item.plant_code
+               }
+            };
+
+         case 'users':
+            return {
+               ...detailed,
+               display_name: item.full_name || item.username,
+               role_label: this.getRoleLabel(item.role),
+               metadata: {
+                  ...detailed.metadata,
+                  has_full_name: !!item.full_name,
+                  role_type: item.role
+               }
+            };
+
+         default:
+            return detailed;
+      }
    }
 
    /**
@@ -424,21 +534,93 @@ class SearchUtils {
    }
 
    /**
-    * Format detailed item สำหรับ comprehensive search
-    * @param {Object} item - data item
-    * @param {string} entity - entity type  
-    * @returns {Object} detailed formatted item
-    */
-   static formatDetailedItem(item, entity) {
-      const basic = this.formatBasicItem(item, entity);
-
-      // เพิ่มรายละเอียดเต็ม
-      return {
-         ...basic,
-         ...item, // ข้อมูลทั้งหมด
-         formatted_created_at: this.formatDateTime(item.created_at),
-         formatted_updated_at: this.formatDateTime(item.updated_at)
+ * Format basic item สำหรับ instant search - Enhanced Version
+ * @param {Object} item - data item
+ * @param {string} entity - entity type
+ * @returns {Object} enhanced formatted item with complete data
+ */
+   static formatBasicItem(item, entity) {
+      const baseFormat = {
+         id: this.getItemId(item, entity),
+         title: this.getItemTitle(item, entity),
+         subtitle: this.getItemSubtitle(item, entity),
+         type: entity
       };
+
+      // เพิ่มข้อมูลสำคัญตาม entity
+      switch (entity) {
+         case 'assets':
+            return {
+               ...baseFormat,
+               // Basic asset fields - ครบถ้วนตามที่ต้องการ
+               asset_no: item.asset_no,
+               description: item.description,
+               plant_code: item.plant_code,
+               location_code: item.location_code,
+               dept_code: item.dept_code,
+               serial_no: item.serial_no,
+               inventory_no: item.inventory_no,
+               quantity: item.quantity,
+               unit_code: item.unit_code,
+               status: item.status,
+               created_by: item.created_by,
+               created_at: item.created_at,
+               deactivated_at: item.deactivated_at,
+
+               // Enhanced relation fields - flattened descriptions
+               plant_description: item.plant_description || null,
+               location_description: item.location_description || null,
+               dept_description: item.dept_description || null,
+               unit_name: item.unit_name || null,
+               created_by_name: item.created_by_name || null,
+               created_by_role: item.created_by_role || null,
+
+               // Legacy compatibility fields
+               plant_code_description: item.plant_description || null,
+               location_code_description: item.location_description || null,
+               dept_code_description: item.dept_description || null,
+               unit_code_name: item.unit_name || null,
+               user_id_full_name: item.created_by_name || null,
+               role: item.created_by_role || null
+            };
+
+         case 'departments':
+            return {
+               ...baseFormat,
+               dept_code: item.dept_code,
+               description: item.description,
+               plant_code: item.plant_code,
+               plant_description: item.plant_description || null
+            };
+
+         case 'plants':
+            return {
+               ...baseFormat,
+               plant_code: item.plant_code,
+               description: item.description
+            };
+
+         case 'locations':
+            return {
+               ...baseFormat,
+               location_code: item.location_code,
+               description: item.description,
+               plant_code: item.plant_code,
+               plant_description: item.plant_description || null
+            };
+
+         case 'users':
+            return {
+               ...baseFormat,
+               user_id: item.user_id,
+               username: item.username,
+               full_name: item.full_name,
+               role: item.role
+            };
+
+         default:
+            return baseFormat;
+      }
    }
 
    /**
