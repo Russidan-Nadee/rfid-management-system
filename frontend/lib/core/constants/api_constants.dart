@@ -1,8 +1,26 @@
 // Path: frontend/lib/core/constants/api_constants.dart
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 class ApiConstants {
   // Base Configuration
   static String get baseUrl {
-    return 'http://10.0.2.2:3000/api/v1';
+    if (kIsWeb) {
+      // Web Browser
+      return 'http://localhost:3000/api/v1';
+    } else if (Platform.isAndroid) {
+      // Android Emulator/Device
+      return 'http://10.0.2.2:3000/api/v1';
+    } else if (Platform.isIOS) {
+      // iOS Simulator/Device
+      return 'http://localhost:3000/api/v1';
+    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      // Desktop Apps (Windows/Mac/Linux)
+      return 'http://localhost:3000/api/v1';
+    } else {
+      // Fallback
+      return 'http://localhost:3000/api/v1';
+    }
   }
 
   static const Duration timeout = Duration(seconds: 30);
