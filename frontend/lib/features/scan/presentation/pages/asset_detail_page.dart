@@ -67,6 +67,7 @@ class AssetDetailView extends StatelessWidget {
           title: Text(
             'Asset Detail',
             style: TextStyle(
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.primary,
             ),

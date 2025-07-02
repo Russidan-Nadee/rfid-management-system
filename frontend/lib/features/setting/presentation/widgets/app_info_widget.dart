@@ -34,26 +34,6 @@ class AppInfoWidget extends StatelessWidget {
           _buildInfoTile(theme, Icons.phone_android, 'Platform', 'Flutter'),
 
           const Divider(height: 1),
-
-          // Support Info
-          _buildInfoTile(
-            theme,
-            Icons.support_agent,
-            'Support',
-            'Contact Administrator',
-            isAction: true,
-            onTap: () => _showSupportDialog(context),
-          ),
-
-          // About
-          _buildInfoTile(
-            theme,
-            Icons.article_outlined,
-            'About',
-            'Terms & Privacy',
-            isAction: true,
-            onTap: () => _showAboutDialog(context),
-          ),
         ],
       ),
     );
@@ -145,89 +125,6 @@ class AppInfoWidget extends StatelessWidget {
           : null,
       onTap: onTap,
       dense: true,
-    );
-  }
-
-  void _showSupportDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.support_agent),
-              SizedBox(width: 8),
-              Text('Support'),
-            ],
-          ),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Need help with the application?'),
-              SizedBox(height: 16),
-              Text('Contact Information:'),
-              SizedBox(height: 8),
-              Text('• Email: support@company.com'),
-              Text('• Phone: +66 2-XXX-XXXX'),
-              Text('• Office Hours: 9:00 AM - 5:00 PM'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAboutDialog(BuildContext context) {
-    showAboutDialog(
-      context: context,
-      applicationName: AppConstants.appName,
-      applicationVersion: AppConstants.appVersion,
-      applicationIcon: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(
-          Icons.inventory_2_outlined,
-          color: Colors.white,
-          size: 32,
-        ),
-      ),
-      children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Asset Management System for tracking and managing company assets efficiently.',
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Terms of Service:',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const Text(
-          '• Use this application responsibly\n'
-          '• Do not share your login credentials\n'
-          '• Report any issues to system administrator',
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Privacy Policy:',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const Text(
-          '• Your data is stored securely\n'
-          '• We do not share personal information\n'
-          '• Activity logs are kept for security purposes',
-        ),
-      ],
     );
   }
 }

@@ -181,9 +181,9 @@ class LocationSearchResultModel
   factory LocationSearchResultModel.fromJson(Map<String, dynamic> json) {
     return LocationSearchResultModel(
       id: json['location_code'] ?? json['id'] ?? '',
-      title: json['location_code'] ?? '',
+      title: json['description'] ?? '',
       subtitle:
-          json['description'] ??
+          json['location_code'] ??
           (json['plant_code'] != null ? 'Plant: ${json['plant_code']}' : ''),
       data: Map<String, dynamic>.from(json),
       relevanceScore: json['relevance_score']?.toDouble(),

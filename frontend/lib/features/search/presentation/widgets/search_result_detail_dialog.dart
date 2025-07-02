@@ -276,16 +276,16 @@ class SearchResultDetailDialog extends StatelessWidget {
     for (final entry in allFields.entries) {
       final fieldName = entry.key.toLowerCase();
 
-      // Asset Information
-      if (_isAssetField(fieldName)) {
-        sections['📦 Asset Information']!.add(entry);
-      }
-      // Location & Plant
-      else if (_isLocationField(fieldName)) {
+      // เช็ค plant fields ก่อน (รวม plant_description)
+      if (fieldName.contains('plant')) {
         sections['🏭 Location & Plant']!.add(entry);
       }
-      // Department
-      else if (_isDepartmentField(fieldName)) {
+      // เช็ค location fields
+      else if (fieldName.contains('location')) {
+        sections['🏭 Location & Plant']!.add(entry);
+      }
+      // เช็ค department fields ก่อน (รวม dept_description)
+      else if (fieldName.contains('dept')) {
         sections['🏢 Department']!.add(entry);
       }
       // User Information
@@ -296,12 +296,15 @@ class SearchResultDetailDialog extends StatelessWidget {
       else if (_isTimestampField(fieldName)) {
         sections['📅 Timestamps']!.add(entry);
       }
+      // Asset Information (เช็คหลังสุด)
+      else if (_isAssetField(fieldName)) {
+        sections['📦 Asset Information']!.add(entry);
+      }
       // Other
       else {
         sections['📋 Other Information']!.add(entry);
       }
     }
-
     // เรียงลำดับ fields ใน section
     for (final sectionName in sections.keys) {
       sections[sectionName]!.sort(
@@ -366,11 +369,11 @@ class SearchResultDetailDialog extends StatelessWidget {
     final name = fieldName.toLowerCase();
 
     // Fields สำคัญแสดงก่อน
-    if (name.contains('id') || name.contains('no')) return 1;
-    if (name.contains('title') || name.contains('name')) return 2;
-    if (name.contains('description')) return 3;
-    if (name.contains('status')) return 4;
-    if (name.contains('code')) return 5;
+    if (name.contains('description')) return 1; // Description ก่อน Code
+    if (name.contains('id') || name.contains('no')) return 2;
+    if (name.contains('title') || name.contains('name')) return 3;
+    if (name.contains('code')) return 4; // Code หลัง Description
+    if (name.contains('status')) return 5;
     if (name.contains('type')) return 6;
     if (name.contains('date') || name.contains('time')) return 7;
     if (name.contains('created') || name.contains('updated')) return 8;

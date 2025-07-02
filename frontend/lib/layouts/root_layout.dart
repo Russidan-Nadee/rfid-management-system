@@ -17,7 +17,7 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 1; // Default to Scan page
+  int _currentIndex = 0;
   bool _isRailExtended = true;
 
   final _navigatorKeys = List.generate(
@@ -28,6 +28,11 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation destinations data
   static const List<NavigationDestination> _destinations = [
     NavigationDestination(
+      icon: Icon(Icons.qr_code_scanner_outlined),
+      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
+      label: 'Scan',
+    ),
+    NavigationDestination(
       icon: Icon(Icons.dashboard_outlined),
       selectedIcon: Icon(Icons.dashboard_rounded),
       label: 'Dashboard',
@@ -36,11 +41,6 @@ class _RootLayoutState extends State<RootLayout> {
       icon: Icon(Icons.search_outlined),
       selectedIcon: Icon(Icons.search_rounded),
       label: 'Search',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
-      label: 'Scan',
     ),
     NavigationDestination(
       icon: Icon(Icons.upload_outlined),
@@ -57,6 +57,11 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation rail destinations
   static const List<NavigationRailDestination> _railDestinations = [
     NavigationRailDestination(
+      icon: Icon(Icons.qr_code_scanner_outlined),
+      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
+      label: Text('Scan'),
+    ),
+    NavigationRailDestination(
       icon: Icon(Icons.dashboard_outlined),
       selectedIcon: Icon(Icons.home_rounded),
       label: Text('Dashboard'),
@@ -65,11 +70,6 @@ class _RootLayoutState extends State<RootLayout> {
       icon: Icon(Icons.search_outlined),
       selectedIcon: Icon(Icons.search_rounded),
       label: Text('Search'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
-      label: Text('Scan'),
     ),
     NavigationRailDestination(
       icon: Icon(Icons.upload_outlined),
@@ -84,9 +84,9 @@ class _RootLayoutState extends State<RootLayout> {
   ];
 
   List<Widget> get _pages => [
+    const ScanPage(),
     const DashboardPage(),
     const SearchPage(),
-    const ScanPage(),
     const ExportPage(),
     const SettingsPage(),
   ];
@@ -261,9 +261,9 @@ class _TabBarRootLayoutState extends State<TabBarRootLayout>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
+            Tab(icon: Icon(Icons.qr_code_scanner), text: 'Scan'),
             Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
             Tab(icon: Icon(Icons.search), text: 'Search'),
-            Tab(icon: Icon(Icons.qr_code_scanner), text: 'Scan'),
             Tab(icon: Icon(Icons.upload), text: 'Export'),
             Tab(icon: Icon(Icons.settings), text: 'Settings'),
           ],
@@ -274,9 +274,9 @@ class _TabBarRootLayoutState extends State<TabBarRootLayout>
       body: TabBarView(
         controller: _tabController,
         children: const [
+          ScanPage(),
           DashboardPage(),
           SearchPage(),
-          ScanPage(),
           ExportPage(),
           SettingsPage(),
         ],

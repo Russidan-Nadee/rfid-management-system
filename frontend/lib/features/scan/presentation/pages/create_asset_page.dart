@@ -132,6 +132,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           Text(
             'Create New Asset',
             style: TextStyle(
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
             ),

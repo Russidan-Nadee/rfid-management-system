@@ -209,17 +209,17 @@ class SearchModel {
    }
 
    /**
- * ค้นหา assets แบบ instant พร้อม nested description search
- * @param {string} query - คำค้นหา
- * @param {Object} options - ตัวเลือก
- * @returns {Promise<Array>} ผลลัพธ์ assets พร้อมข้อมูลครบถ้วน
- */
+  * ค้นหา assets แบบ instant พร้อม dept_code และ dept_description search
+  * @param {string} query - คำค้นหา
+  * @param {Object} options - ตัวเลือก
+  * @returns {Promise<Array>} ผลลัพธ์ assets พร้อมข้อมูลครบถ้วน
+  */
    async instantSearchAssets(query, options = {}) {
       const { limit = 5, includeDetails = true } = options;
       const actualLimit = Math.min(limit, 10);
 
       try {
-         // Enhanced search conditions - รวม nested fields
+         // Enhanced search conditions - เพิ่ม dept_code และ dept_description
          const searchConditions = {
             AND: [
                {
@@ -230,10 +230,13 @@ class SearchModel {
                      { serial_no: { contains: query } },
                      { inventory_no: { contains: query } },
 
+                     // เพิ่ม dept_code และ dept_description search
+                     { dept_code: { contains: query } },
+                     { mst_department: { description: { contains: query } } },
+
                      // Nested relation searches
                      { mst_plant: { description: { contains: query } } },
                      { mst_location: { description: { contains: query } } },
-                     { mst_department: { description: { contains: query } } },
                      { mst_unit: { name: { contains: query } } },
                      { mst_user: { full_name: { contains: query } } }
                   ]
@@ -318,107 +321,7 @@ class SearchModel {
          })) || [];
 
       } catch (error) {
-         console.error('Enhanced instant search assets with nested search error:', error);
-         return [];
-      }
-   }
-
-   /**
- * ค้นหา assets แบบ instant (เร็วที่สุด) - Enhanced Version
- * @param {string} query - คำค้นหา
- * @param {Object} options - ตัวเลือก
- * @returns {Promise<Array>} ผลลัพธ์ assets พร้อมข้อมูลครบถ้วน
- */
-   async instantSearchAssets(query, options = {}) {
-      const { limit = 5, includeDetails = true } = options; // เปลี่ยน default เป็น true
-      const actualLimit = Math.min(limit, 10);
-
-      try {
-         const searchConditions = {
-            OR: [
-               { asset_no: { contains: query } },
-               { description: { contains: query } },
-               { serial_no: { contains: query } },
-               { inventory_no: { contains: query } }
-            ],
-            status: { in: ['A', 'C'] }
-         };
-
-         // Enhanced include - ดึงข้อมูล relations ครบถ้วน
-         const includeOptions = {
-            mst_plant: {
-               select: {
-                  plant_code: true,
-                  description: true
-               }
-            },
-            mst_location: {
-               select: {
-                  location_code: true,
-                  description: true
-               }
-            },
-            mst_department: {
-               select: {
-                  dept_code: true,
-                  description: true
-               }
-            },
-            mst_unit: {
-               select: {
-                  unit_code: true,
-                  name: true
-               }
-            },
-            mst_user: {
-               select: {
-                  user_id: true,
-                  full_name: true,
-                  role: true
-               }
-            }
-         };
-
-         const results = await prisma.asset_master.findMany({
-            where: searchConditions,
-            include: includeOptions,
-            take: actualLimit,
-            orderBy: [
-               { asset_no: 'asc' }
-            ]
-         });
-
-         // Enhanced mapping - flatten relations และเพิ่ม fields ที่ต้องการ
-         return results.map(asset => ({
-            // Basic asset fields
-            asset_no: asset.asset_no,
-            description: asset.description,
-            plant_code: asset.plant_code,
-            location_code: asset.location_code,
-            dept_code: asset.dept_code,
-            serial_no: asset.serial_no,
-            inventory_no: asset.inventory_no,
-            quantity: asset.quantity,
-            unit_code: asset.unit_code,
-            status: asset.status,
-            created_by: asset.created_by,
-            created_at: asset.created_at,
-            deactivated_at: asset.deactivated_at,
-
-            // Enhanced relation fields - flattened
-            plant_description: asset.mst_plant?.description || null,
-            location_description: asset.mst_location?.description || null,
-            dept_description: asset.mst_department?.description || null,
-            unit_name: asset.mst_unit?.name || null,
-            created_by_name: asset.mst_user?.full_name || null,
-            created_by_role: asset.mst_user?.role || null,
-
-            // Entity type for compatibility
-            entity_type: 'asset'
-         })) || [];
-
-      } catch (error) {
-         console.error('Enhanced instant search assets error:', error);
+         console.error('Enhanced instant search assets with dept search error:', error);
          return [];
       }
    }

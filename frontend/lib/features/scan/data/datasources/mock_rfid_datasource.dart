@@ -108,14 +108,14 @@ class MockRfidDataSource {
 
     // Real location data
     final realLocations = [
-      {'code': '30-CUR-001', 'name': 'Curing Oven Area'},
-      {'code': '30-ECT-001', 'name': 'E-Coat Line 1'},
-      {'code': '30-MNT-001', 'name': 'Maintenance Workshop'},
-      {'code': '30-PHT-001', 'name': 'Phosphating Line 1'},
-      {'code': '30-PRT-001', 'name': 'Pre-Treatment Section'},
-      {'code': '30-PTB-001', 'name': 'Paint Spray Booth 1'},
-      {'code': '30-QCL-001', 'name': 'Quality Control Lab'},
-      {'code': '30-WTT-001', 'name': 'Wastewater Treatment'},
+      {'code': '30-OFF-001', 'name': 'Accounting Office'},
+      {'code': '30-OFF-002', 'name': 'Finance Office'},
+      {'code': '30-OFF-003', 'name': 'HR Office'},
+      {'code': '30-OFF-004', 'name': 'Sales Office'},
+      {'code': '30-OFF-005', 'name': 'IT Office'},
+      {'code': '30-OFF-006', 'name': 'General Affairs Office'},
+      {'code': '30-OFF-007', 'name': 'Meeting Room'},
+      {'code': '30-OFF-008', 'name': 'Server Room'},
     ];
 
     for (int i = 0; i < count; i++) {
