@@ -77,141 +77,213 @@ class AssetDetailView extends StatelessWidget {
           elevation: 1,
         ),
         backgroundColor: theme.colorScheme.background,
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Status Card
-              _buildStatusCard(theme),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth > 800;
 
-              const SizedBox(height: 16),
-
-              // Basic Information
-              _buildSectionCard(
-                theme: theme,
-                title: 'Basic Information',
-                icon: Icons.inventory_2_outlined,
-                children: [
-                  _buildDetailRow(theme, 'Asset Number', item.assetNo),
-                  _buildDetailRow(
-                    theme,
-                    'Description',
-                    item.description ?? '-',
-                  ),
-                  _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
-                  _buildDetailRow(
-                    theme,
-                    'Inventory Number',
-                    item.inventoryNo ?? '-',
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Location Information
-              _buildSectionCard(
-                theme: theme,
-                title: 'Location Information',
-                icon: Icons.location_on,
-                children: [
-                  _buildDetailRow(
-                    theme,
-                    'Plant',
-                    item.plantDescription != null
-                        ? item.plantDescription ?? '-'
-                        : item.plantCode ?? '-',
-                  ),
-                  _buildDetailRow(
-                    theme,
-                    'Location',
-                    item.locationName != null
-                        ? item.locationName ?? '-'
-                        : item.locationCode ?? '-',
-                  ),
-                  _buildDetailRow(
-                    theme,
-                    'Department',
-                    item.deptDescription != null
-                        ? item.deptDescription ?? '-'
-                        : item.deptCode ?? '-',
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Quantity Information
-              _buildSectionCard(
-                theme: theme,
-                title: 'Quantity Information',
-                icon: Icons.straighten,
-                children: [
-                  _buildDetailRow(
-                    theme,
-                    'Quantity',
-                    item.quantity != null ? '${item.quantity}' : '-',
-                  ),
-                  _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Scan Activity Information
-              _buildSectionCard(
-                theme: theme,
-                title: 'Scan Activity',
-                icon: Icons.qr_code_scanner,
-                children: [
-                  _buildDetailRow(
-                    theme,
-                    'Last Scan',
-                    item.lastScanAt != null
-                        ? Helpers.formatDateTime(item.lastScanAt)
-                        : 'Never scanned',
-                  ),
-                  _buildDetailRow(
-                    theme,
-                    'Scanned By',
-                    item.lastScannedBy ?? '-',
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Creation Information
-              _buildSectionCard(
-                theme: theme,
-                title: 'Creation Information',
-                icon: Icons.person_outline,
-                children: [
-                  _buildDetailRow(
-                    theme,
-                    'Created By',
-                    item.createdByName ?? 'Unknown User',
-                  ),
-                  _buildDetailRow(
-                    theme,
-                    'Created Date',
-                    item.createdAt != null
-                        ? Helpers.formatDateTime(item.createdAt)
-                        : '-',
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Action Button (แสดงเฉพาะเมื่อ status = 'A')
-              if (item.status.toUpperCase() == 'A')
-                _buildActionButton(context, theme),
-            ],
-          ),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: isDesktop
+                  ? _buildDesktopLayout(context, theme)
+                  : _buildMobileLayout(context, theme),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  // Desktop Layout (2x3 Grid)
+  Widget _buildDesktopLayout(BuildContext context, ThemeData theme) {
+    return Column(
+      children: [
+        // Row 1: Status Card + Basic Info
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildStatusCard(theme)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildBasicInfoSection(theme)),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Row 2: Location Info + Quantity Info
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildLocationInfoSection(theme)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildQuantityInfoSection(theme)),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Row 3: Scan Activity + Creation Info
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildScanActivitySection(theme)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildCreationInfoSection(theme)),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        // Action Button (Full Width Center)
+        if (item.status.toUpperCase() == 'A')
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: _buildActionButton(context, theme),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // Mobile Layout (Original)
+  Widget _buildMobileLayout(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Status Card
+        _buildStatusCard(theme),
+
+        const SizedBox(height: 16),
+
+        // Basic Information
+        _buildBasicInfoSection(theme),
+
+        const SizedBox(height: 16),
+
+        // Location Information
+        _buildLocationInfoSection(theme),
+
+        const SizedBox(height: 16),
+
+        // Quantity Information
+        _buildQuantityInfoSection(theme),
+
+        const SizedBox(height: 16),
+
+        // Scan Activity Information
+        _buildScanActivitySection(theme),
+
+        const SizedBox(height: 16),
+
+        // Creation Information
+        _buildCreationInfoSection(theme),
+
+        const SizedBox(height: 24),
+
+        // Action Button (แสดงเฉพาะเมื่อ status = 'A')
+        if (item.status.toUpperCase() == 'A')
+          _buildActionButton(context, theme),
+      ],
+    );
+  }
+
+  // Section Components (เดิมทั้งหมด)
+  Widget _buildBasicInfoSection(ThemeData theme) {
+    return _buildSectionCard(
+      theme: theme,
+      title: 'Basic Information',
+      icon: Icons.inventory_2_outlined,
+      children: [
+        _buildDetailRow(theme, 'Asset Number', item.assetNo),
+        _buildDetailRow(theme, 'Description', item.description ?? '-'),
+        _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
+        _buildDetailRow(theme, 'Inventory Number', item.inventoryNo ?? '-'),
+      ],
+    );
+  }
+
+  Widget _buildLocationInfoSection(ThemeData theme) {
+    return _buildSectionCard(
+      theme: theme,
+      title: 'Location Information',
+      icon: Icons.location_on,
+      children: [
+        _buildDetailRow(
+          theme,
+          'Plant',
+          item.plantDescription != null
+              ? item.plantDescription ?? '-'
+              : item.plantCode ?? '-',
+        ),
+        _buildDetailRow(
+          theme,
+          'Location',
+          item.locationName != null
+              ? item.locationName ?? '-'
+              : item.locationCode ?? '-',
+        ),
+        _buildDetailRow(
+          theme,
+          'Department',
+          item.deptDescription != null
+              ? item.deptDescription ?? '-'
+              : item.deptCode ?? '-',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuantityInfoSection(ThemeData theme) {
+    return _buildSectionCard(
+      theme: theme,
+      title: 'Quantity Information',
+      icon: Icons.straighten,
+      children: [
+        _buildDetailRow(
+          theme,
+          'Quantity',
+          item.quantity != null ? '${item.quantity}' : '-',
+        ),
+        _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
+      ],
+    );
+  }
+
+  Widget _buildScanActivitySection(ThemeData theme) {
+    return _buildSectionCard(
+      theme: theme,
+      title: 'Scan Activity',
+      icon: Icons.qr_code_scanner,
+      children: [
+        _buildDetailRow(
+          theme,
+          'Last Scan',
+          item.lastScanAt != null
+              ? Helpers.formatDateTime(item.lastScanAt)
+              : 'Never scanned',
+        ),
+        _buildDetailRow(theme, 'Scanned By', item.lastScannedBy ?? '-'),
+      ],
+    );
+  }
+
+  Widget _buildCreationInfoSection(ThemeData theme) {
+    return _buildSectionCard(
+      theme: theme,
+      title: 'Creation Information',
+      icon: Icons.person_outline,
+      children: [
+        _buildDetailRow(
+          theme,
+          'Created By',
+          item.createdByName ?? 'Unknown User',
+        ),
+        _buildDetailRow(
+          theme,
+          'Created Date',
+          item.createdAt != null ? Helpers.formatDateTime(item.createdAt) : '-',
+        ),
+      ],
     );
   }
 

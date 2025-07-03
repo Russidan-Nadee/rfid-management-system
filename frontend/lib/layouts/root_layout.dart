@@ -28,8 +28,8 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation destinations data
   static const List<NavigationDestination> _destinations = [
     NavigationDestination(
-      icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
+      icon: Icon(Icons.sensors_outlined),
+      selectedIcon: Icon(Icons.sensors_rounded),
       label: 'Scan',
     ),
     NavigationDestination(
@@ -57,8 +57,8 @@ class _RootLayoutState extends State<RootLayout> {
   // Navigation rail destinations
   static const List<NavigationRailDestination> _railDestinations = [
     NavigationRailDestination(
-      icon: Icon(Icons.qr_code_scanner_outlined),
-      selectedIcon: Icon(Icons.qr_code_scanner_rounded),
+      icon: Icon(Icons.sensors_outlined),
+      selectedIcon: Icon(Icons.sensors_rounded),
       label: Text('Scan'),
     ),
     NavigationRailDestination(
@@ -126,39 +126,132 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   Widget _buildNavigationRail(ThemeData theme) {
-    return NavigationRail(
-      selectedIndex: _currentIndex,
-      onDestinationSelected: _onNavTap,
-      extended: _isRailExtended,
-      destinations: _railDestinations,
+    return SizedBox(
+      width: _isRailExtended ? 256 : 80,
+      child: Material(
+        color: AppColors.primary,
+        child: Column(
+          children: [
+            // Header ที่มีปุ่มคงที่
+            Container(
+              height: 64,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              alignment: Alignment.centerLeft,
+              child: _buildRailToggleButton(theme),
+            ),
 
-      // Use theme values
-      backgroundColor: theme.navigationRailTheme.backgroundColor,
-      selectedIconTheme: theme.navigationRailTheme.selectedIconTheme,
-      unselectedIconTheme: theme.navigationRailTheme.unselectedIconTheme,
-      selectedLabelTextStyle: theme.navigationRailTheme.selectedLabelTextStyle,
-      unselectedLabelTextStyle:
-          theme.navigationRailTheme.unselectedLabelTextStyle,
-      indicatorColor: theme.navigationRailTheme.indicatorColor,
+            // Custom Navigation Items แทน NavigationRail
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                itemCount: _railDestinations.length,
+                itemBuilder: (context, index) {
+                  final destination = _railDestinations[index];
+                  final isSelected = index == _currentIndex;
 
-      // Toggle button
-      leading: _buildRailToggleButton(theme),
-
-      // Optional trailing widget
-      trailing: _buildRailTrailing(),
+                  return _buildCustomNavItem(
+                    destination: destination,
+                    isSelected: isSelected,
+                    onTap: () => _onNavTap(index),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildRailToggleButton(ThemeData theme) {
-    return Padding(
-      padding: AppSpacing.paddingSmall,
-      child: FloatingActionButton.small(
-        heroTag: 'rail_toggle',
-        onPressed: () => setState(() => _isRailExtended = !_isRailExtended),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.primary,
-        elevation: 0,
-        child: Icon(_isRailExtended ? Icons.menu_open : Icons.menu),
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.onPrimary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => setState(() => _isRailExtended = !_isRailExtended),
+          child: Icon(
+            _isRailExtended ? Icons.menu_open : Icons.menu,
+            color: AppColors.onPrimary,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomNavItem({
+    required NavigationRailDestination destination,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: AppColors.onPrimary.withOpacity(0.08),
+          splashColor: AppColors.onPrimary.withOpacity(0.12),
+          highlightColor: AppColors.onPrimary.withOpacity(0.08),
+          onTap: onTap,
+          child: Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.onPrimary.withOpacity(0.15)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: IconTheme(
+                    data: IconThemeData(
+                      color: isSelected
+                          ? AppColors.onPrimary
+                          : AppColors.onPrimary.withOpacity(0.6),
+                      size: isSelected ? 28 : 26,
+                    ),
+                    child: isSelected
+                        ? destination.selectedIcon
+                        : destination.icon,
+                  ),
+                ),
+
+                // Label (only when extended)
+                if (_isRailExtended) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DefaultTextStyle(
+                      style: TextStyle(
+                        color: isSelected
+                            ? AppColors.onPrimary
+                            : AppColors.onPrimary.withOpacity(0.6),
+                        fontSize: 14,
+                        fontWeight: isSelected
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                      ),
+                      child: destination.label,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -261,7 +354,7 @@ class _TabBarRootLayoutState extends State<TabBarRootLayout>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.qr_code_scanner), text: 'Scan'),
+            Tab(icon: Icon(Icons.sensors), text: 'Scan'),
             Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
             Tab(icon: Icon(Icons.search), text: 'Search'),
             Tab(icon: Icon(Icons.upload), text: 'Export'),

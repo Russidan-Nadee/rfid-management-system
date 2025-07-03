@@ -136,12 +136,10 @@ class _ScanListViewState extends State<ScanListView> {
               // Header with status filters
               _buildStatusFilter(theme, statusCounts, selectedFilter, context),
 
-              // Filtered List with responsive 2-column on large screen
+              // Filtered List with responsive 3-column on large screen
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    final isLargeScreen = constraints.maxWidth >= 800;
-
                     if (filteredItems.isEmpty) {
                       return _buildEmptyFilterState(
                         theme,
@@ -150,19 +148,37 @@ class _ScanListViewState extends State<ScanListView> {
                       );
                     }
 
-                    if (!isLargeScreen) {
-                      return ListView.builder(
+                    // Responsive columns based on screen width
+                    if (constraints.maxWidth >= 1200) {
+                      // Very large screen: 3 columns
+                      List<Widget> rows = [];
+                      for (var i = 0; i < filteredItems.length; i += 3) {
+                        final firstCard = AssetCard(item: filteredItems[i]);
+                        final secondCard = (i + 1 < filteredItems.length)
+                            ? AssetCard(item: filteredItems[i + 1])
+                            : Expanded(child: Container());
+                        final thirdCard = (i + 2 < filteredItems.length)
+                            ? AssetCard(item: filteredItems[i + 2])
+                            : Expanded(child: Container());
+
+                        rows.add(
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: firstCard),
+                              Expanded(child: secondCard),
+                              Expanded(child: thirdCard),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: filteredItems.length,
-                        itemBuilder: (context, index) {
-                          print(
-                            'ScanListView: Building card $index for asset ${filteredItems[index].assetNo}',
-                          );
-                          return AssetCard(item: filteredItems[index]);
-                        },
+                        child: Column(children: rows),
                       );
-                    } else {
-                      // Large screen: 2 columns via Rows inside Column
+                    } else if (constraints.maxWidth >= 800) {
+                      // Large screen: 2 columns
                       List<Widget> rows = [];
                       for (var i = 0; i < filteredItems.length; i += 2) {
                         final firstCard = AssetCard(item: filteredItems[i]);
@@ -175,7 +191,6 @@ class _ScanListViewState extends State<ScanListView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(child: firstCard),
-
                               Expanded(child: secondCard),
                             ],
                           ),
@@ -185,6 +200,18 @@ class _ScanListViewState extends State<ScanListView> {
                       return SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         child: Column(children: rows),
+                      );
+                    } else {
+                      // Mobile: 1 column
+                      return ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: filteredItems.length,
+                        itemBuilder: (context, index) {
+                          print(
+                            'ScanListView: Building card $index for asset ${filteredItems[index].assetNo}',
+                          );
+                          return AssetCard(item: filteredItems[index]);
+                        },
                       );
                     }
                   },
