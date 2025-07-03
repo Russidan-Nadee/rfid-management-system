@@ -99,22 +99,25 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
         // Export Type and File Format in Row for large screens
         if (isLargeScreen)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: ExportTypeSection()),
-              AppSpacing.horizontalSpaceXXL,
-              Expanded(
-                child: FileFormatSection(
-                  selectedFormat: _selectedFormat,
-                  onFormatSelected: _onFormatSelected,
-                  isLargeScreen: isLargeScreen,
+          // Add IntrinsicHeight to make all cards same height
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: ExportTypeSection()),
+                AppSpacing.horizontalSpaceXXL,
+                Expanded(
+                  child: FileFormatSection(
+                    selectedFormat: _selectedFormat,
+                    onFormatSelected: _onFormatSelected,
+                    isLargeScreen: isLargeScreen,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           )
         else
-          // Mobile: Stack vertically
+          // Mobile: Stack vertically (unchanged)
           Column(
             children: [
               const ExportTypeSection(),

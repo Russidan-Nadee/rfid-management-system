@@ -63,7 +63,7 @@ class _RootLayoutState extends State<RootLayout> {
     ),
     NavigationRailDestination(
       icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.home_rounded),
+      selectedIcon: Icon(Icons.dashboard_rounded),
       label: Text('Dashboard'),
     ),
     NavigationRailDestination(

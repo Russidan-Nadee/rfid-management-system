@@ -123,6 +123,7 @@ class _ScanListViewState extends State<ScanListView> {
           },
           color: theme.colorScheme.primary,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Location Filter
               _buildLocationFilter(
@@ -135,15 +136,22 @@ class _ScanListViewState extends State<ScanListView> {
               // Header with status filters
               _buildStatusFilter(theme, statusCounts, selectedFilter, context),
 
-              // Filtered List
+              // Filtered List with responsive 2-column on large screen
               Expanded(
-                child: filteredItems.isEmpty
-                    ? _buildEmptyFilterState(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isLargeScreen = constraints.maxWidth >= 800;
+
+                    if (filteredItems.isEmpty) {
+                      return _buildEmptyFilterState(
                         theme,
                         selectedFilter,
                         selectedLocation,
-                      )
-                    : ListView.builder(
+                      );
+                    }
+
+                    if (!isLargeScreen) {
+                      return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: filteredItems.length,
                         itemBuilder: (context, index) {
@@ -152,7 +160,35 @@ class _ScanListViewState extends State<ScanListView> {
                           );
                           return AssetCard(item: filteredItems[index]);
                         },
-                      ),
+                      );
+                    } else {
+                      // Large screen: 2 columns via Rows inside Column
+                      List<Widget> rows = [];
+                      for (var i = 0; i < filteredItems.length; i += 2) {
+                        final firstCard = AssetCard(item: filteredItems[i]);
+                        final secondCard = (i + 1 < filteredItems.length)
+                            ? AssetCard(item: filteredItems[i + 1])
+                            : Expanded(child: Container());
+
+                        rows.add(
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: firstCard),
+
+                              Expanded(child: secondCard),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(children: rows),
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
