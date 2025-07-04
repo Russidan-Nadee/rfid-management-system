@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/export/presentation/widgets/file_format_section.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/app/theme/app_decorations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
@@ -66,30 +67,35 @@ class FileFormatSection extends StatelessWidget {
   }
 
   Widget _buildLargeScreenLayout(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: FileFormatCard(
-            isSelected: selectedFormat == 'xlsx',
-            format: 'xlsx',
-            title: 'Excel (.xlsx)',
-            subtitle: 'Spreadsheet with formatting',
-            icon: Icons.table_chart,
-            color: AppColors.excel,
-            onTap: onFormatSelected,
-          ),
-        ),
-        AppSpacing.horizontalSpaceLG,
-        Expanded(
-          child: FileFormatCard(
-            isSelected: selectedFormat == 'csv',
-            format: 'csv',
-            title: 'CSV (.csv)',
-            subtitle: 'Plain text, comma-separated',
-            icon: Icons.text_snippet,
-            color: AppColors.csv,
-            onTap: onFormatSelected,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: FileFormatCard(
+                isSelected: selectedFormat == 'xlsx',
+                format: 'xlsx',
+                title: 'Excel (.xlsx)',
+                subtitle: 'Spreadsheet with formatting',
+                icon: Icons.table_chart,
+                color: AppColors.excel,
+                onTap: onFormatSelected,
+              ),
+            ),
+            AppSpacing.horizontalSpaceLG,
+            Expanded(
+              child: FileFormatCard(
+                isSelected: selectedFormat == 'csv',
+                format: 'csv',
+                title: 'CSV (.csv)',
+                subtitle: 'Plain text, comma-separated',
+                icon: Icons.text_snippet,
+                color: AppColors.csv,
+                onTap: onFormatSelected,
+              ),
+            ),
+          ],
         ),
       ],
     );

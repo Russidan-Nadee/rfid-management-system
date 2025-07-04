@@ -41,43 +41,38 @@ class FileFormatCard extends StatelessWidget {
       onTap: () => onTap(format),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        // Remove fixed height - let it size based on content
         padding: cardPadding,
         decoration: _buildCardDecoration(theme),
-        child: Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? Colors.white : color,
-                size: iconSize,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : color,
+              size: iconSize,
+            ),
+            SizedBox(height: AppSpacing.lg),
+            Text(
+              title,
+              style: AppTextStyles.button.copyWith(
+                fontSize: screenWidth >= 1024 ? 15 : 14,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : theme.colorScheme.onSurface,
               ),
-              SizedBox(height: AppSpacing.lg),
-              Text(
-                title,
-                style: AppTextStyles.button.copyWith(
-                  fontSize: screenWidth >= 1024 ? 15 : 14,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected
-                      ? Colors.white
-                      : theme.colorScheme.onSurface,
-                ),
+            ),
+            SizedBox(height: AppSpacing.xs),
+            Text(
+              subtitle,
+              style: AppTextStyles.caption.copyWith(
+                fontSize: screenWidth >= 1024 ? 13 : 12,
+                color: isSelected
+                    ? Colors.white.withOpacity(0.9)
+                    : theme.colorScheme.onSurface.withOpacity(0.7),
               ),
-              SizedBox(height: AppSpacing.xs),
-              Text(
-                subtitle,
-                style: AppTextStyles.caption.copyWith(
-                  fontSize: screenWidth >= 1024 ? 13 : 12,
-                  color: isSelected
-                      ? Colors.white.withOpacity(0.9)
-                      : theme.colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

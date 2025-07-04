@@ -48,15 +48,15 @@ class SummaryCardsWidget extends StatelessWidget {
     if (screenWidth > AppConstants.desktopBreakpoint) {
       crossAxisCount = 4;
       childAspectRatio = 1.4;
-      gridPadding = EdgeInsets.symmetric(horizontal: 32);
+      gridPadding = EdgeInsets.symmetric(horizontal: 50);
     } else if (screenWidth > AppConstants.tabletBreakpoint) {
       crossAxisCount = 2;
       childAspectRatio = 1.5;
-      gridPadding = EdgeInsets.symmetric(horizontal: 24);
+      gridPadding = EdgeInsets.symmetric(horizontal: 50);
     } else {
       crossAxisCount = 2;
       childAspectRatio = 1.1;
-      gridPadding = EdgeInsets.symmetric(horizontal: 16); // เน้นตรงนี้
+      gridPadding = EdgeInsets.symmetric(horizontal: 16);
     }
 
     return Padding(
@@ -118,10 +118,10 @@ class SummaryCardsWidget extends StatelessWidget {
           double childAspectRatio;
 
           if (screenWidth > AppConstants.desktopBreakpoint) {
-            crossAxisCount = 4;
+            crossAxisCount = 1;
             childAspectRatio = 1.3;
           } else if (screenWidth > AppConstants.tabletBreakpoint) {
-            crossAxisCount = 2;
+            crossAxisCount = 1;
             childAspectRatio = 1.4;
           } else {
             crossAxisCount = 2;
@@ -182,10 +182,10 @@ class LegacySummaryCardsWidget extends StatelessWidget {
           double childAspectRatio;
 
           if (screenWidth > AppConstants.desktopBreakpoint) {
-            crossAxisCount = 4;
+            crossAxisCount = 1;
             childAspectRatio = 1.3;
           } else if (screenWidth > AppConstants.tabletBreakpoint) {
-            crossAxisCount = 2;
+            crossAxisCount = 1;
             childAspectRatio = 1.4;
           } else {
             crossAxisCount = 2;
@@ -235,10 +235,10 @@ class LegacySummaryCardsWidget extends StatelessWidget {
           double childAspectRatio;
 
           if (screenWidth > AppConstants.desktopBreakpoint) {
-            crossAxisCount = 4;
+            crossAxisCount = 1;
             childAspectRatio = 1.3;
           } else if (screenWidth > AppConstants.tabletBreakpoint) {
-            crossAxisCount = 2;
+            crossAxisCount = 1;
             childAspectRatio = 1.4;
           } else {
             crossAxisCount = 2;

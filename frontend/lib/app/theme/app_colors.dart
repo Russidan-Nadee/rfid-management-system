@@ -29,7 +29,7 @@ class AppColors {
   static const Color success = Color(0xFF42A5F5); // Light Blue แทนเขียว
   static const Color successLight = Color(0xFFE3F2FD); // Light blue background
   static const Color successDark = Color(0xFF1976D2); // Darker blue
-  static const Color warning = Color(0xFFF59E0B); // ส้มเดิม
+  static const Color warning = Color(0xFFDC2626); // ส้มเดิม
   static const Color warningLight = Color(0xFFFEF3C7);
   static const Color warningDark = Color(0xFFD97706);
 

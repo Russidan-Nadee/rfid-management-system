@@ -129,13 +129,15 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
               AppSpacing.paddingVerticalXS,
             ),
             decoration: AppDecorations.chip.copyWith(
-              color: AppColors.warning.withOpacity(0.1),
-              border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+              color: AppColors.vibrantOrange.withOpacity(0.1),
+              border: Border.all(
+                color: AppColors.vibrantOrange.withOpacity(0.3),
+              ),
             ),
             child: Text(
               'Current Year',
               style: AppTextStyles.overline.copyWith(
-                color: AppColors.warning,
+                color: AppColors.vibrantGreen,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -205,7 +207,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: AppColors.warning,
+            color: AppColors.vibrantOrange,
             barWidth: 3,
             dotData: FlDotData(
               show: true,
@@ -225,7 +227,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
                 }
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: AppColors.warning,
+                  color: AppColors.vibrantOrange,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -233,7 +235,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.warning.withOpacity(0.1),
+              color: AppColors.vibrantOrange.withOpacity(0.1),
             ),
           ),
         ],
@@ -286,7 +288,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             'Average Growth',
             '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
-            AppColors.warning,
+            AppColors.vibrantOrange,
           ),
           _buildDivider(),
           _buildSummaryItem(

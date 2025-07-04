@@ -100,7 +100,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Color _getProgressColor() {
     final completionPercentage = _getProgressValue() * 100;
     if (completionPercentage >= 80) return AppColors.success;
-    if (completionPercentage >= 50) return AppColors.warning;
+    if (completionPercentage >= 50) return AppColors.vibrantOrange;
     return AppColors.error;
   }
 
@@ -171,7 +171,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             _buildProgressStat(
               'Await',
               selectedDeptProgress.pendingAudit.toString(),
-              AppColors.warning,
+              AppColors.vibrantOrange,
             ),
             _buildDivider(),
             _buildProgressStat(
@@ -209,7 +209,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           _buildProgressStat(
             'Awaiting',
             overallProgress.pendingAudit.toString(),
-            AppColors.warning,
+            AppColors.vibrantOrange,
           ),
           _buildDivider(),
           _buildProgressStat(
@@ -293,7 +293,11 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb_outline, size: 16, color: AppColors.warning),
+              Icon(
+                Icons.lightbulb_outline,
+                size: 16,
+                color: AppColors.vibrantOrange,
+              ),
               AppSpacing.horizontalSpaceXS,
               Text(
                 'Recommendations',
@@ -374,7 +378,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       case 'critical':
         return AppColors.error;
       case 'warning':
-        return AppColors.warning;
+        return AppColors.vibrantOrange;
       case 'success':
         return AppColors.success;
       default:

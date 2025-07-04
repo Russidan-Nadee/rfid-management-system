@@ -52,7 +52,7 @@ class ExportItemCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Status Icon (larger)
+            // Status Icon
             Container(
               padding: AppSpacing.paddingMD,
               decoration: _buildStatusIconDecoration(),
@@ -61,40 +61,70 @@ class ExportItemCard extends StatelessWidget {
 
             AppSpacing.horizontalSpaceXL,
 
-            // Content (expanded)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Export #${export.exportId}',
-                        style: AppTextStyles.responsive(
-                          context: context,
-                          style: AppTextStyles.headline6.copyWith(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          desktopFactor: 1.1,
-                        ),
-                      ),
-                      _buildStatusBadge(context),
-                    ],
-                  ),
-
-                  AppSpacing.verticalSpaceSM,
-
-                  // Export details in grid
-                  _buildDetailsGrid(context, theme),
-                ],
+            // Export ID
+            Text(
+              'Export #${export.exportId}',
+              style: AppTextStyles.responsive(
+                context: context,
+                style: AppTextStyles.headline6.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+                desktopFactor: 1.1,
               ),
             ),
 
             AppSpacing.horizontalSpaceXL,
 
-            // Action button (enhanced)
+            // Status Badge
+            _buildStatusBadge(context),
+
+            AppSpacing.horizontalSpaceXL,
+
+            // Records
+            if (export.totalRecords != null) ...[
+              Icon(Icons.numbers, size: 16, color: AppColors.info),
+              AppSpacing.horizontalSpaceXS,
+              Text(
+                '${export.totalRecords} records',
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.info,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              AppSpacing.horizontalSpaceXL,
+            ],
+
+            // Created Date
+            Icon(Icons.schedule, size: 16, color: AppColors.textSecondary),
+            AppSpacing.horizontalSpaceXS,
+            Text(
+              _formatDate(export.createdAt),
+              style: AppTextStyles.body2.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            AppSpacing.horizontalSpaceXL,
+
+            // File Size
+            if (export.fileSize != null) ...[
+              Icon(Icons.storage, size: 16, color: AppColors.success),
+              AppSpacing.horizontalSpaceXS,
+              Text(
+                export.fileSizeFormatted,
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+
+            // Spacer to push download button to the right
+            const Spacer(),
+
+            // Download Button
             _buildActionButton(context, true),
           ],
         ),

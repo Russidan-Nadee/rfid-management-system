@@ -120,31 +120,22 @@ class ExportHistoryWidget extends StatelessWidget {
   }
 
   Widget _buildGridLayout(BuildContext context, List<ExportJobEntity> exports) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = screenWidth > 1200 ? 2 : 1;
-    final maxWidth = screenWidth > 1200 ? 1000.0 : 600.0;
-
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        padding: EdgeInsets.all(
-          AppSpacing.responsiveSpacing(
-            context,
-            mobile: AppSpacing.lg,
-            tablet: AppSpacing.xl,
-            desktop: AppSpacing.xxl,
-          ),
+    return Container(
+      width: double.infinity, // เต็มความกว้างหน้าจอ
+      padding: EdgeInsets.all(
+        AppSpacing.responsiveSpacing(
+          context,
+          mobile: AppSpacing.lg,
+          tablet: AppSpacing.xl,
+          desktop: AppSpacing.xxl,
         ),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: AppSpacing.xl,
-            mainAxisSpacing: AppSpacing.lg,
-            childAspectRatio: crossAxisCount == 2 ? 3.5 : 4.0,
-          ),
-          itemCount: exports.length,
-          itemBuilder: (context, index) {
-            return ExportItemCard(
+      ),
+      child: ListView.builder(
+        itemCount: exports.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ExportItemCard(
               export: exports[index],
               isLargeScreen: true,
               onTap: () {
@@ -152,9 +143,9 @@ class ExportHistoryWidget extends StatelessWidget {
                   DownloadHistoryExport(exports[index].exportId),
                 );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

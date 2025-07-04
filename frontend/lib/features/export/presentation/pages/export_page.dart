@@ -126,79 +126,84 @@ class _ExportPageState extends State<ExportPage>
     return Row(
       children: [
         // Sidebar Navigation
-        Container(
-          width: 280,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border(
-              right: BorderSide(
-                color: AppColors.divider.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: AppSpacing.paddingXL,
-                child: Text(
-                  'Export Tools',
-                  style: AppTextStyles.headline6.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
+        AnimatedBuilder(
+          animation: _tabController,
+          builder: (context, child) {
+            return Container(
+              width: 280,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border(
+                  right: BorderSide(
+                    color: AppColors.divider.withOpacity(0.5),
+                    width: 1,
                   ),
                 ),
               ),
-              _buildSidebarTab(
-                context,
-                icon: Icons.upload,
-                title: 'Create Export',
-                subtitle: 'Generate new export files',
-                isSelected: _tabController.index == 0,
-                onTap: () => _tabController.animateTo(0),
-              ),
-              _buildSidebarTab(
-                context,
-                icon: Icons.history,
-                title: 'Export History',
-                subtitle: 'View and download exports',
-                isSelected: _tabController.index == 1,
-                onTap: () => _tabController.animateTo(1),
-              ),
-              const Spacer(),
-              Padding(
-                padding: AppSpacing.paddingXL,
-                child: Container(
-                  padding: AppSpacing.paddingMD,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: AppBorders.md,
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.2),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: AppSpacing.paddingXL,
+                    child: Text(
+                      'Export Tools',
+                      style: AppTextStyles.headline6.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: AppColors.primary,
-                        size: 16,
-                      ),
-                      AppSpacing.horizontalSpaceSM,
-                      Expanded(
-                        child: Text(
-                          'Export files expire after 7 days',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.primary,
-                          ),
+                  _buildSidebarTab(
+                    context,
+                    icon: Icons.upload,
+                    title: 'Create Export',
+                    subtitle: 'Generate new export files',
+                    isSelected: _tabController.index == 0,
+                    onTap: () => _tabController.animateTo(0),
+                  ),
+                  _buildSidebarTab(
+                    context,
+                    icon: Icons.history,
+                    title: 'Export History',
+                    subtitle: 'View and download exports',
+                    isSelected: _tabController.index == 1,
+                    onTap: () => _tabController.animateTo(1),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: AppSpacing.paddingXL,
+                    child: Container(
+                      padding: AppSpacing.paddingMD,
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySurface,
+                        borderRadius: AppBorders.md,
+                        border: Border.all(
+                          color: AppColors.primary.withOpacity(0.2),
                         ),
                       ),
-                    ],
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: AppColors.primary,
+                            size: 16,
+                          ),
+                          AppSpacing.horizontalSpaceSM,
+                          Expanded(
+                            child: Text(
+                              'Export files expire after 7 days',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
 
         // Main Content Area
