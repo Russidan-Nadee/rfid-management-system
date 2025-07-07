@@ -1,9 +1,9 @@
-// Path: backend/src/routes/searchRoutes.js
+// Path: backend/src/features/search/searchRoutes.js
 const express = require('express');
 const router = express.Router();
 
 // Import controller
-const SearchController = require('../controllers/searchController');
+const SearchController = require('./searchController');
 const searchController = new SearchController();
 
 // Import validators
@@ -12,11 +12,11 @@ const {
    suggestionsValidator,
    globalSearchValidator,
    recentSearchValidator
-} = require('../validators/searchValidator');
+} = require('./searchValidator');
 
 // Import middleware
-const { createRateLimit } = require('../middlewares/middleware');
-const { authenticateToken, optionalAuth } = require('../middlewares/authMiddleware');
+const { createRateLimit } = require('../../middlewares/middleware');
+const { authenticateToken, optionalAuth } = require('../../middlewares/authMiddleware');
 
 // สำหรับเพิ่มใน routes/route.js:
 // router.use('/search', require('./searchRoutes'));
@@ -31,7 +31,7 @@ const instantRateLimit = createRateLimit(1 * 60 * 1000, 120);  // 120 requests p
  */
 
 // GET /api/v1/search/instant?q=ABC&entities=assets,plants
-router.get('/instant', 
+router.get('/instant',
    instantRateLimit,
    optionalAuth,  // ไม่บังคับ login แต่ถ้า login จะได้ผลดีกว่า
    instantSearchValidator,
@@ -42,7 +42,7 @@ router.get('/instant',
 router.get('/suggestions',
    instantRateLimit,
    optionalAuth,
-   suggestionsValidator, 
+   suggestionsValidator,
    (req, res) => searchController.getSuggestions(req, res)
 );
 
@@ -141,7 +141,7 @@ router.get('/docs', (req, res) => {
             'GET /search/suggestions': {
                description: 'Autocomplete suggestions for search input',
                parameters: {
-                  q: 'Search query (required, min 1 char)', 
+                  q: 'Search query (required, min 1 char)',
                   type: 'Suggestion type: all,asset_no,description,serial_no (default: all)',
                   limit: 'Number of suggestions (default: 5, max: 10)',
                   fuzzy: 'Enable fuzzy matching (default: false)'

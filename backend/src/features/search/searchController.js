@@ -1,8 +1,7 @@
-// Path: backend/src/controllers/searchController.js
+// Path: backend/src/features/search/searchController.js
 
-const SearchService = require('../services/searchService');
-const SearchUtils = require('../utils/searchUtils');
-
+const SearchService = require('./searchService');
+const SearchUtils = require('../../utils/searchUtils');
 /**
  * 🔍 SEARCH CONTROLLER
  * Handle HTTP requests สำหรับ search functionality
