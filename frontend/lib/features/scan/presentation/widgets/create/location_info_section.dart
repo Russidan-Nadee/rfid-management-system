@@ -1,12 +1,9 @@
-// Path: frontend/lib/features/scan/presentation/pages/create_asset/widgets/location_info_section.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/location_info_section.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/scan/domain/entities/master_data_entity.dart';
 import '../../../../../../app/theme/app_colors.dart';
 
 class LocationInfoSection extends StatelessWidget {
-  final bool hasLocationData;
-  final String? locationCode;
-  final String? locationName;
   final String? selectedPlant;
   final String? selectedLocation;
   final String? selectedDepartment;
@@ -21,9 +18,6 @@ class LocationInfoSection extends StatelessWidget {
 
   const LocationInfoSection({
     super.key,
-    required this.hasLocationData,
-    this.locationCode,
-    this.locationName,
     this.selectedPlant,
     this.selectedLocation,
     this.selectedDepartment,
@@ -44,76 +38,43 @@ class LocationInfoSection extends StatelessWidget {
       icon: Icons.location_on,
       color: AppColors.info,
       children: [
-        if (hasLocationData) ...[
-          // Read-only ถ้ามี location data
-          _buildDropdownField<String>(
-            value: selectedPlant,
-            label: 'Plant',
-            icon: Icons.business,
-            isRequired: true,
-            items: plants
-                .map(
-                  (plant) => DropdownMenuItem(
-                    value: plant.plantCode,
-                    child: Text(plant.toString()),
-                  ),
-                )
-                .toList(),
-            onChanged: onPlantChanged,
-            validator: plantValidator,
-          ),
-          const SizedBox(height: 16),
-          _buildReadOnlyField(
-            label: 'Location Code',
-            value: locationCode!,
-            icon: Icons.place,
-          ),
-          if (locationName != null) ...[
-            const SizedBox(height: 16),
-            _buildReadOnlyField(
-              label: 'Location Name',
-              value: locationName!,
-              icon: Icons.location_city,
-            ),
-          ],
-        ] else ...[
-          // Dropdown ถ้าไม่มี location data
-          _buildDropdownField<String>(
-            value: selectedPlant,
-            label: 'Plant',
-            icon: Icons.business,
-            isRequired: true,
-            items: plants
-                .map(
-                  (plant) => DropdownMenuItem(
-                    value: plant.plantCode,
-                    child: Text(plant.toString()),
-                  ),
-                )
-                .toList(),
-            onChanged: onPlantChanged,
-            validator: plantValidator,
-          ),
-          const SizedBox(height: 16),
+        // Plant Dropdown
+        _buildDropdownField<String>(
+          value: selectedPlant,
+          label: 'Plant',
+          icon: Icons.business,
+          isRequired: true,
+          items: plants
+              .map(
+                (plant) => DropdownMenuItem(
+                  value: plant.plantCode,
+                  child: Text(plant.toString()),
+                ),
+              )
+              .toList(),
+          onChanged: onPlantChanged,
+          validator: plantValidator,
+        ),
 
-          // Location Dropdown
-          _buildDropdownField<String>(
-            value: selectedLocation,
-            label: 'Location',
-            icon: Icons.place,
-            isRequired: true,
-            items: locations
-                .map(
-                  (location) => DropdownMenuItem(
-                    value: location.locationCode,
-                    child: Text(location.toString()),
-                  ),
-                )
-                .toList(),
-            onChanged: onLocationChanged,
-            validator: locationValidator,
-          ),
-        ],
+        const SizedBox(height: 16),
+
+        // Location Dropdown (เปลี่ยนจาก read-only เป็น dropdown)
+        _buildDropdownField<String>(
+          value: selectedLocation,
+          label: 'Location',
+          icon: Icons.place,
+          isRequired: true,
+          items: locations
+              .map(
+                (location) => DropdownMenuItem(
+                  value: location.locationCode,
+                  child: Text(location.toString()),
+                ),
+              )
+              .toList(),
+          onChanged: onLocationChanged,
+          validator: locationValidator,
+        ),
 
         const SizedBox(height: 16),
 
@@ -178,49 +139,6 @@ class LocationInfoSection extends StatelessWidget {
             ...children,
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyField({
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.backgroundSecondary,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.onBackground,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

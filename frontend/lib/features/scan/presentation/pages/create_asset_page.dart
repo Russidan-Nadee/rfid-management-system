@@ -302,9 +302,6 @@ class _CreateAssetViewState extends State<CreateAssetView> {
 
                   // Location Information Section
                   LocationInfoSection(
-                    hasLocationData: _hasLocationData,
-                    locationCode: widget.locationCode,
-                    locationName: widget.locationName,
                     selectedPlant: _selectedPlant,
                     selectedLocation: _selectedLocation,
                     selectedDepartment: _selectedDepartment,
@@ -337,7 +334,6 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                     locationValidator: (value) =>
                         value == null ? 'Please select a location' : null,
                   ),
-
                   const SizedBox(height: 16),
 
                   // Quantity Information Section

@@ -215,14 +215,12 @@ class AssetCard extends StatelessWidget {
 
   void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
-      // Navigate to Create Asset Page for unknown items พร้อม location data
+      // Navigate to Create Asset Page for unknown items (ลบ location data ออก)
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
           builder: (context) => CreateAssetPage(
             assetNo: item.assetNo,
-            plantCode: item.plantCode,
-            locationCode: item.locationCode,
-            locationName: item.locationName,
+            // ลบ plantCode, locationCode, locationName ออก
           ),
         ),
       );
