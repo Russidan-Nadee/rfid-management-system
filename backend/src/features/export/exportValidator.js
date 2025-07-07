@@ -1,4 +1,4 @@
-// Path: backend/src/validators/exportValidator.js
+// Path: backend/src/features/export/exportValidator.js
 const { body, param, query, validationResult } = require('express-validator');
 
 // Validation error handler

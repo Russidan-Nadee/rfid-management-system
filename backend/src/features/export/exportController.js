@@ -1,5 +1,5 @@
 // Path: backend/src/controllers/exportController.js
-const ExportService = require('../../services/exportService');
+const ExportService = require('./exportService');
 const fs = require('fs').promises;
 const path = require('path');
 

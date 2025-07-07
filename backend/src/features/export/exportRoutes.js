@@ -12,7 +12,7 @@ const {
    cancelExportValidator,
    validateExportConfigByType,
    validateExportSize
-} = require('../../validators/exportValidator');
+} = require('./exportValidator');
 
 const exportController = new ExportController();
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000);

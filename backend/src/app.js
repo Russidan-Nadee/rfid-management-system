@@ -12,8 +12,7 @@ const routes = require('./routes/route');
 const { errorHandler, notFoundHandler } = require('./middlewares/middleware');
 
 // Import cleanup service
-const ExportCleanupService = require('./services/exportCleanupService');
-
+const ExportCleanupService = require('./features/export/exportCleanupService');
 const app = express();
 
 // Security middleware
