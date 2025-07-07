@@ -1,5 +1,5 @@
 // Path: backend/src/features/export/exportService.js
-const ExportModel = require('../../models/exportModel');
+const ExportModel = require('./exportModel');
 const prisma = require('../../lib/prisma');
 const path = require('path');
 const fs = require('fs').promises;

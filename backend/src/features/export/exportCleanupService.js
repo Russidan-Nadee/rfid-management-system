@@ -1,7 +1,7 @@
 // Path: backend/src/services/exportCleanupService.js
 const cron = require('node-cron');
 const ExportService = require('./exportService');
-const ExportModel = require('../../models/exportModel');
+const ExportModel = require('./exportModel');
 
 class ExportCleanupService {
    constructor() {
