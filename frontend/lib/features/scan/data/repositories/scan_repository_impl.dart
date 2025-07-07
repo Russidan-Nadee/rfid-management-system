@@ -17,6 +17,7 @@ class ScanRepositoryImpl implements ScanRepository {
     required this.apiService,
     required this.mockRfidDataSource,
   });
+
   @override
   Future<List<DepartmentEntity>> getDepartments() async {
     try {
@@ -39,12 +40,11 @@ class ScanRepositoryImpl implements ScanRepository {
     }
   }
 
-  // Modified method to include cached location data
   @override
   Future<ScannedItemEntity> getAssetDetails(String assetNo) async {
     try {
       final response = await apiService.get<Map<String, dynamic>>(
-        '${ApiConstants.assets}/$assetNo',
+        ApiConstants.scanAssetDetail(assetNo),
         fromJson: (json) => json,
       );
 
@@ -81,7 +81,7 @@ class ScanRepositoryImpl implements ScanRepository {
   ) async {
     try {
       final response = await apiService.patch<Map<String, dynamic>>(
-        '${ApiConstants.assets}/$assetNo/status',
+        ApiConstants.scanAssetCheck(assetNo),
         body: request.toJson(),
         fromJson: (json) => json,
       );
@@ -110,13 +110,12 @@ class ScanRepositoryImpl implements ScanRepository {
     }
   }
 
-  // New methods for asset creation
   @override
   Future<ScannedItemEntity> createAsset(CreateAssetRequest request) async {
     try {
       final requestModel = CreateAssetRequestModel(request);
       final response = await apiService.post<Map<String, dynamic>>(
-        ApiConstants.assets,
+        ApiConstants.scanAssetCreate,
         body: requestModel.toJson(),
         fromJson: (json) => json,
       );

@@ -49,7 +49,7 @@ class MockRfidDataSource {
       try {
         print('🔍 Option 1: Trying new API with location');
         final response = await _apiService.get<Map<String, dynamic>>(
-          ApiConstants.assetNumbers,
+          ApiConstants.scanAssetsMock,
           queryParams: {
             'limit': count.toString(),
             'include_location': 'true', // บอกให้ส่ง location มาด้วย
@@ -82,7 +82,7 @@ class MockRfidDataSource {
       // Option 2: Fallback ใช้ API เดิม (แค่ asset numbers)
       print('🔍 Option 2: Trying fallback API');
       final response = await _apiService.get<Map<String, dynamic>>(
-        ApiConstants.assetNumbers,
+        ApiConstants.scanAssetsMock,
         queryParams: {'limit': count.toString()},
         fromJson: (json) => json,
       );

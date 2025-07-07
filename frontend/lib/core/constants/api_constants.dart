@@ -56,40 +56,51 @@ class ApiConstants {
   static const String units = '/units';
   static const String users = '/users';
 
-  // Asset Endpoints
-  static const String assets = '/assets';
-  static const String assetSearch = '$assets/search';
-  static const String assetStats = '$assets/stats';
-  static const String assetNumbers = '$assets/numbers';
-  static const String assetsByPlant = '$assets/stats/by-plant';
-  static const String assetsByLocation = '$assets/stats/by-location';
+  // ===== SCAN ENDPOINTS (UPDATED) =====
+  static const String scanBase = '/scan';
 
-  // Export Endpoints (NEW)
+  // Scan Asset Operations
+  static const String scanAssetCreate = '$scanBase/asset/create';
+  static const String scanAssetsMock = '$scanBase/assets/mock';
+  static String scanAssetDetail(String assetNo) => '$scanBase/asset/$assetNo';
+  static String scanAssetCheck(String assetNo) =>
+      '$scanBase/asset/$assetNo/check';
+  static String scanAssetStatusHistory(String assetNo) =>
+      '$scanBase/asset/$assetNo/status/history';
+
+  // Scan Logging
+  static const String scanLog = '$scanBase/log';
+  static const String scanMock = '$scanBase/mock';
+
+  // Export Endpoints
   static const String exportBase = '/export';
   static const String exportJobs = '$exportBase/jobs';
   static const String exportHistory = '$exportBase/history';
   static const String exportStats = '$exportBase/stats';
   static const String exportCleanup = '$exportBase/cleanup';
 
-  // Scan Endpoints
-  static const String scanLog = '/scan/log';
-  static const String scanMock = '/scan/mock';
-
-  // Asset Actions
-  static String assetDetail(String assetNo) => '$assets/$assetNo';
-  static String assetStatusHistory(String assetNo) =>
-      '$assets/$assetNo/status/history';
-  static String assetUpdateStatus(String assetNo) => '$assets/$assetNo/status';
+  // Plant/Location Actions for Scan
   static String plantAssets(String plantCode) => '$plants/$plantCode/assets';
   static String locationAssets(String locationCode) =>
       '$locations/$locationCode/assets';
   static String plantLocations(String plantCode) =>
       '$plants/$plantCode/locations';
 
-  // Export Actions (NEW)
+  // Export Actions
   static String exportJobStatus(int exportId) => '$exportJobs/$exportId';
   static String exportDownload(int exportId) =>
       '$exportBase/download/$exportId';
   static String exportJobCancel(int exportId) => '$exportJobs/$exportId';
   static String exportJobDelete(int exportId) => '$exportJobs/$exportId';
+
+  // ===== LEGACY SUPPORT (DEPRECATED) =====
+  // Keep old constants for backward compatibility during transition
+  @deprecated
+  static const String assets = '/scan/asset'; // Will be removed in next version
+  @deprecated
+  static const String assetNumbers = '/scan/assets/mock'; // Will be removed in next version
+  @deprecated
+  static String assetDetail(String assetNo) => scanAssetDetail(assetNo);
+  @deprecated
+  static String assetUpdateStatus(String assetNo) => scanAssetCheck(assetNo);
 }

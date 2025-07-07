@@ -30,17 +30,24 @@ const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000);
 // Department Routes
 router.get('/departments', generalRateLimit, departmentController.getDepartments);
 
-// Asset Routes  
-router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
-router.post('/assets', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
-router.patch('/assets/:asset_no/status', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
-router.get('/assets/numbers', generalRateLimit, assetController.getAssetNumbers);
+// ===== SCAN ASSET OPERATIONS =====
+// Asset lookup during scanning
+router.get('/scan/asset/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
 
-// Scan Routes
+// Create unknown asset found during scan
+router.post('/scan/asset/create', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
 
+// Update asset status after scan (mark as checked)
+router.patch('/scan/asset/:asset_no/check', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
+
+// Get asset numbers for mock scanning
+router.get('/scan/assets/mock', generalRateLimit, assetController.getAssetNumbers);
+
+// ===== SCAN LOGGING =====
 router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
 router.post('/scan/mock', generalRateLimit, authenticateToken, scanController.mockRfidScan);
 
+// ===== MASTER DATA FOR SCANNING =====
 // Plant Routes
 router.get('/plants', generalRateLimit, plantValidators.getPlants, plantController.getPlants);
 
