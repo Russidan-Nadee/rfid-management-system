@@ -16,10 +16,6 @@ const {
 // Import dashboard controller (separate file)
 const dashboardController = require('../controllers/dashboardController');
 
-// Import export controller
-const ExportController = require('../controllers/exportController');
-const exportController = new ExportController();
-
 // Import validators
 const {
    plantValidators,
@@ -29,17 +25,6 @@ const {
    assetValidators,
    statsValidators
 } = require('../validators/validator');
-
-// Import export validators
-const {
-   createExportValidator,
-   getExportJobValidator,
-   downloadExportValidator,
-   getExportHistoryValidator,
-   cancelExportValidator,
-   validateExportConfigByType,
-   validateExportSize
-} = require('../validators/exportValidator');
 
 // Import dashboard validators (ENHANCED)
 const {
@@ -60,6 +45,7 @@ const {
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
 const { authenticateToken } = require('../middlewares/authMiddleware');
 const authRoutes = require('../features/auth/authRoutes');
+const exportRoutes = require('../features/export/exportRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -351,56 +337,8 @@ router.get('/assets/stats/by-location', generalRateLimit, assetController.getAss
 
 router.use(require('../features/scan/scanRoutes'));
 
-
-// Export Routes - ต้องใช้ authentication
-router.post('/export/jobs',
-   generalRateLimit,
-   authenticateToken,
-   createExportValidator,
-   validateExportConfigByType,
-   validateExportSize,
-   (req, res) => exportController.createExport(req, res)
-);
-
-router.get('/export/jobs/:jobId',
-   generalRateLimit,
-   authenticateToken,
-   getExportJobValidator,
-   (req, res) => exportController.getExportStatus(req, res)
-);
-
-router.get('/export/download/:jobId',
-   strictRateLimit,
-   authenticateToken,
-   downloadExportValidator,
-   (req, res) => exportController.downloadExport(req, res)
-);
-
-router.get('/export/history',
-   generalRateLimit,
-   authenticateToken,
-   getExportHistoryValidator,
-   (req, res) => exportController.getExportHistory(req, res)
-);
-
-router.delete('/export/jobs/:jobId',
-   generalRateLimit,
-   authenticateToken,
-   cancelExportValidator,
-   (req, res) => exportController.cancelExport(req, res)
-);
-
-router.get('/export/stats',
-   generalRateLimit,
-   authenticateToken,
-   (req, res) => exportController.getExportStats(req, res)
-);
-
-router.post('/export/cleanup',
-   strictRateLimit,
-   authenticateToken,
-   (req, res) => exportController.cleanupExpiredFiles(req, res)
-);
+// Export Routes
+router.use('/export', exportRoutes);
 
 // Scan Routes
 // router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
