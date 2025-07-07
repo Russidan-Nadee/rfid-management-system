@@ -1,12 +1,10 @@
-// =======================
-// 12. backend/src/routes/authRoutes.js
-// =======================
+// Path: backend/src/features/auth/authRoutes.js
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { authenticateToken } = require('../middlewares/authMiddleware');
-const { logActivity } = require('../middlewares/loginLogMiddleware');
-const { loginValidator, changePasswordValidator, refreshTokenValidator } = require('../validators/authValidator');
+const authController = require('./authController');
+const { authenticateToken } = require('../../middlewares/authMiddleware');
+const { logActivity } = require('../../middlewares/loginLogMiddleware');
+const { loginValidator, changePasswordValidator, refreshTokenValidator } = require('../../validators/authValidator');
 
 // Public routes
 router.post('/login', loginValidator, authController.login);

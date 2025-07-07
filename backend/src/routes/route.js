@@ -59,7 +59,7 @@ const {
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
 const { authenticateToken } = require('../middlewares/authMiddleware');
-const authRoutes = require('./authRoutes');
+const authRoutes = require('../features/auth/authRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -132,8 +132,8 @@ router.get('/dashboard/audit-progress',
 );
 
 // Department Routes
-router.get('/departments', generalRateLimit, departmentController.getDepartments);
-router.get('/departments/:dept_code', generalRateLimit, departmentController.getDepartmentByCode);
+// router.get('/departments', generalRateLimit, departmentController.getDepartments);
+// router.get('/departments/:dept_code', generalRateLimit, departmentController.getDepartmentByCode);
 
 // API Documentation สำหรับ Dashboard APIs (ENHANCED)
 router.get('/dashboard/docs', (req, res) => {
@@ -323,18 +323,18 @@ router.get('/dashboard/docs', (req, res) => {
 });
 
 // Plant Routes
-router.get('/plants', generalRateLimit, plantValidators.getPlants, plantController.getPlants);
-router.get('/plants/stats', generalRateLimit, plantController.getPlantStats);
-router.get('/plants/:plant_code', generalRateLimit, plantValidators.getPlantByCode, plantController.getPlantByCode);
+// router.get('/plants', generalRateLimit, plantValidators.getPlants, plantController.getPlants);
+// router.get('/plants/stats', generalRateLimit, plantController.getPlantStats);
+// router.get('/plants/:plant_code', generalRateLimit, plantValidators.getPlantByCode, plantController.getPlantByCode);
 
 // Location Routes
-router.get('/locations', generalRateLimit, locationValidators.getLocations, locationController.getLocations);
-router.get('/locations/:location_code', generalRateLimit, locationValidators.getLocationByCode, locationController.getLocationByCode);
-router.get('/plants/:plant_code/locations', generalRateLimit, locationValidators.getLocationsByPlant, locationController.getLocationsByPlant);
+// router.get('/locations', generalRateLimit, locationValidators.getLocations, locationController.getLocations);
+// router.get('/locations/:location_code', generalRateLimit, locationValidators.getLocationByCode, locationController.getLocationByCode);
+// router.get('/plants/:plant_code/locations', generalRateLimit, locationValidators.getLocationsByPlant, locationController.getLocationsByPlant);
 
-// Unit Routes
-router.get('/units', generalRateLimit, unitValidators.getUnits, unitController.getUnits);
-router.get('/units/:unit_code', generalRateLimit, unitValidators.getUnitByCode, unitController.getUnitByCode);
+// // Unit Routes
+// router.get('/units', generalRateLimit, unitValidators.getUnits, unitController.getUnits);
+// router.get('/units/:unit_code', generalRateLimit, unitValidators.getUnitByCode, unitController.getUnitByCode);
 
 // User Routes
 router.get('/users', generalRateLimit, userValidators.getUsers, userController.getUsers);
@@ -342,17 +342,15 @@ router.get('/users/:user_id', generalRateLimit, userValidators.getUserById, user
 router.get('/users/username/:username', generalRateLimit, userValidators.getUserByUsername, userController.getUserByUsername);
 
 // Asset Routes
-router.post('/assets', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
-router.put('/assets/:asset_no', generalRateLimit, assetValidators.updateAsset, assetController.updateAsset);
-router.patch('/assets/:asset_no/status', generalRateLimit, assetValidators.updateAssetStatus, assetController.updateAssetStatus);
-router.get('/assets/:asset_no/status/history', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetStatusHistory);
+router.get('/assets/numbers', generalRateLimit, assetController.getAssetNumbers); // ← ย้ายขึ้นมา
 router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets);
-router.get('/assets/numbers', generalRateLimit, assetController.getAssetNumbers);
 router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
 router.get('/assets/stats', generalRateLimit, assetController.getAssetStats);
 router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetStatsByPlant);
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
-router.get('/assets/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
+
+router.use(require('../features/scan/scanRoutes'));
+
 
 // Export Routes - ต้องใช้ authentication
 router.post('/export/jobs',
@@ -405,8 +403,8 @@ router.post('/export/cleanup',
 );
 
 // Scan Routes
-router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
-router.post('/scan/mock', generalRateLimit, authenticateToken, scanController.mockRfidScan);
+// router.post('/scan/log', generalRateLimit, authenticateToken, scanController.logAssetScan);
+// router.post('/scan/mock', generalRateLimit, authenticateToken, scanController.mockRfidScan);
 
 // Asset filtering routes
 router.get('/plants/:plant_code/assets', generalRateLimit, assetValidators.getAssetsByPlant, assetController.getAssetsByPlant);

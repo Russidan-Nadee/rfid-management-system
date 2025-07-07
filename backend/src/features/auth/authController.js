@@ -1,5 +1,5 @@
-// Path: backend/src/controllers/authController.js
-const AuthService = require('../services/authService');
+// Path: backend/src/features/auth/authController.js
+const AuthService = require('../../services/authService');
 
 const authService = new AuthService();
 
