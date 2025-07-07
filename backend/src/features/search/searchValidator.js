@@ -1,4 +1,4 @@
-// Path: backend/src/validators/searchValidator.js
+// Path: backend/src/features/search/searchValidator.js
 const { query, validationResult } = require('express-validator');
 
 /**

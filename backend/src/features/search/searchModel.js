@@ -1,6 +1,6 @@
 // Path: backend/src/models/searchModel.js
-const prisma = require('../lib/prisma');
-const SearchUtils = require('../utils/searchUtils');
+const prisma = require('../../lib/prisma');
+const SearchUtils = require('./searchUtils');
 
 /**
  * 🔍 SEARCH MODEL

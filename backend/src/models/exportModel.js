@@ -30,7 +30,7 @@ class ExportModel extends BaseModel {
 
    /**
     * ดึงข้อมูล export job ตาม ID
-    * @param {number} exportId - Export ID
+   * @param {number} exportId - Export ID
     * @returns {Promise<Object|null>} export job หรือ null
     */
    async getExportJobById(exportId) {

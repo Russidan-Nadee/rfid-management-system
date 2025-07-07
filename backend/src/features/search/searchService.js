@@ -1,6 +1,6 @@
 // Path: src/services/searchService.js
-const SearchModel = require('../../models/searchModel');
-const SearchUtils = require('../../utils/searchUtils');
+const SearchModel = require('./searchModel');
+const SearchUtils = require('./searchUtils');
 
 /**
  * 🔍 SEARCH SERVICE
