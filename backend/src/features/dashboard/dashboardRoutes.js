@@ -114,7 +114,7 @@ router.get('/audit-progress',
 router.get('/locations',
    generalRateLimit,
    dashboardLocationsValidator,
-   require('../../controllers/controller').locationController.getLocations
+   dashboardController.getLocations
 );
 
 /**

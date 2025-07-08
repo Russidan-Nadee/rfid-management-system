@@ -13,6 +13,62 @@ const assetService = new AssetService();
 const departmentService = new DepartmentService();
 const exportModel = new ExportModel();
 
+const locationController = {
+   async getLocations(req, res) {
+      try {
+         const { page = 1, limit = 50, plant_code } = req.query;
+
+         let locations;
+         let totalCount;
+
+         if (plant_code) {
+            locations = await locationService.getLocationsByPlant(plant_code);
+            totalCount = locations.length;
+         } else {
+            locations = await locationService.getLocationsWithPlant();
+            totalCount = locations.length;
+         }
+
+         const paginatedLocations = applyPagination(locations, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
+
+         return sendResponse(res, 200, true, 'Locations retrieved successfully', paginatedLocations, meta);
+      } catch (error) {
+         console.error('Get locations error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   async getLocationByCode(req, res) {
+      try {
+         const { location_code } = req.params;
+         const location = await locationService.getLocationByCode(location_code);
+
+         return sendResponse(res, 200, true, 'Location retrieved successfully', location);
+      } catch (error) {
+         console.error('Get location by code error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
+   async getLocationsByPlant(req, res) {
+      try {
+         const { plant_code } = req.params;
+         const { page = 1, limit = 50 } = req.query;
+
+         const locations = await locationService.getLocationsByPlant(plant_code);
+         const paginatedLocations = applyPagination(locations, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), locations.length);
+
+         return sendResponse(res, 200, true, 'Locations by plant retrieved successfully', paginatedLocations, meta);
+      } catch (error) {
+         console.error('Get locations by plant error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   }
+};
+
 // Response helper function
 const sendResponse = (res, statusCode, success, message, data = null, meta = null) => {
    const response = {
@@ -1108,7 +1164,27 @@ const dashboardController = {
          console.error('Get audit progress error:', error);
          return sendResponse(res, 500, false, error.message);
       }
+   },
+   async getLocations(req, res) {
+      try {
+         const { plant_code } = req.query;
+
+
+         let locations;
+         if (plant_code) {
+            locations = await locationService.getLocationsByPlant(plant_code);
+         } else {
+            locations = await locationService.getLocationsWithPlant();
+         }
+
+         return sendResponse(res, 200, true, 'Locations retrieved successfully', { locations });
+      } catch (error) {
+         console.error('Get locations error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
    }
+
+
 };
 
 module.exports = dashboardController;
