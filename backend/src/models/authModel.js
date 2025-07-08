@@ -1,5 +1,5 @@
 // Path: backend/src/models/authModel.js
-const { BaseModel } = require('./model');
+const { BaseModel } = require('../features/scan/scanModel');
 
 class AuthModel extends BaseModel {
    constructor() {

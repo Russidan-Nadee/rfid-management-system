@@ -126,7 +126,7 @@ const validateRequest = (req, res, next) => {
 const checkDatabaseConnection = async (req, res, next) => {
    try {
       // Simple connection test using a basic query
-      const { BaseModel } = require('../models/model');
+      const { BaseModel } = require('../features/scan/scanModel');
       const baseModel = new BaseModel('information_schema.tables');
       await baseModel.executeQuery('SELECT 1 as test');
       next();
