@@ -6,7 +6,7 @@ const helmet = require('helmet');
 require('dotenv').config();
 
 // Import routes
-const routes = require('./routes/route');
+const routes = require('.');
 
 // Import middleware
 const { errorHandler, notFoundHandler } = require('./features/scan/scanMiddleware');

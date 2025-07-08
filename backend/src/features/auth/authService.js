@@ -3,7 +3,7 @@ const AuthModel = require('./authModel');
 const LoginLogModel = require('../../core/auth/loginLogModel');
 const { hashPassword, comparePassword } = require('../../core/auth/passwordUtils');
 const { generateToken, verifyToken } = require('../../core/auth/jwtUtils');
-const authConfig = require('../../config/authConfig');
+const authConfig = require('../../core/auth/authConfig');
 const crypto = require('crypto');
 
 class AuthService {

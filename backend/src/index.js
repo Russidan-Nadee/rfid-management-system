@@ -9,16 +9,16 @@ const {
    unitValidators,
    assetValidators,
    statsValidators
-} = require('../features/scan/scanValidator');
+} = require('./features/scan/scanValidator');
 
 // Import middleware
-const { createRateLimit, checkDatabaseConnection } = require('../features/scan/scanMiddleware');
-const { authenticateToken } = require('../features/auth/authMiddleware');
+const { createRateLimit, checkDatabaseConnection } = require('./features/scan/scanMiddleware');
+const { authenticateToken } = require('./features/auth/authMiddleware');
 
 // Import feature routes
-const authRoutes = require('../features/auth/authRoutes');
-const exportRoutes = require('../features/export/exportRoutes');
-const dashboardRoutes = require('../features/dashboard/dashboardRoutes');
+const authRoutes = require('./features/auth/authRoutes');
+const exportRoutes = require('./features/export/exportRoutes');
+const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -33,10 +33,10 @@ const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests 
  * =================================
  */
 router.use('/auth', authRoutes);
-router.use('/search', require('../features/search/searchRoutes'));
+router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
-router.use(require('../features/scan/scanRoutes'));
+router.use(require('./features/scan/scanRoutes'));
 
 /**
  * =================================
@@ -51,7 +51,7 @@ const {
    unitController,
    assetController,
    scanController
-} = require('../features/scan/scanController');
+} = require('./features/scan/scanController');
 
 // Asset Routes (using scan controllers)
 router.get('/assets/numbers', generalRateLimit, assetController.getAssetNumbers);
