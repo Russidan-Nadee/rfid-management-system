@@ -9,10 +9,10 @@ const {
    unitValidators,
    assetValidators,
    statsValidators
-} = require('../validators/validator');
+} = require('../validators/scanValidator');
 
 // Import middleware
-const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
+const { createRateLimit, checkDatabaseConnection } = require('../middlewares/scanMiddleware');
 const { authenticateToken } = require('../features/auth/authMiddleware');
 
 // Import feature routes

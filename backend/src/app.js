@@ -9,7 +9,7 @@ require('dotenv').config();
 const routes = require('./routes/route');
 
 // Import middleware
-const { errorHandler, notFoundHandler } = require('./middlewares/middleware');
+const { errorHandler, notFoundHandler } = require('./middlewares/scanMiddleware');
 
 // Import cleanup service
 const ExportCleanupService = require('./features/export/exportCleanupService');

@@ -20,7 +20,7 @@ const {
 } = require('./dashboardValidator');
 
 // Import middleware
-const { createRateLimit } = require('../../middlewares/middleware');
+const { createRateLimit } = require('../../middlewares/scanMiddleware');
 const { authenticateToken } = require('../auth/authMiddleware');
 
 // Apply rate limiting

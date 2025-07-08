@@ -13,7 +13,7 @@ const {
 } = require('./scanController');
 
 // Import middleware
-const { createRateLimit } = require('../../middlewares/middleware');
+const { createRateLimit } = require('../../middlewares/scanMiddleware');
 const { authenticateToken } = require('../auth/authMiddleware');
 
 // Import validators
@@ -22,7 +22,7 @@ const {
    locationValidators,
    unitValidators,
    assetValidators
-} = require('../../validators/validator');
+} = require('../../validators/scanValidator');
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000);
