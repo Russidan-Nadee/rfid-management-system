@@ -1,31 +1,46 @@
-// Path: frontend/lib/core/constants/api_constants.dart
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
 class ApiConstants {
-  // Base Configuration
+  // Environment Configuration
+  static const String _devHost = 'localhost';
+  static const String _devPort = '3000';
+  static const String _prodHost = 'your-api.com'; // Change for production
+  static const String _apiVersion = 'api/v1';
+
+  // Base URL with Environment Support
   static String get baseUrl {
+    final host = kDebugMode ? _devHost : _prodHost;
+    final port = kDebugMode ? _devPort : '443';
+    final protocol = kDebugMode ? 'http' : 'https';
+
     if (kIsWeb) {
-      // Web Browser
-      return 'http://localhost:3000/api/v1';
+      return '$protocol://$host:$port/$_apiVersion';
     } else if (Platform.isAndroid) {
-      // Android Emulator/Device
-      return 'http://10.0.2.2:3000/api/v1';
-    } else if (Platform.isIOS) {
-      // iOS Simulator/Device
-      return 'http://localhost:3000/api/v1';
-    } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      // Desktop Apps (Windows/Mac/Linux)
-      return 'http://localhost:3000/api/v1';
+      // Android Emulator maps localhost to 10.0.2.2
+      final androidHost = kDebugMode ? '10.0.2.2' : _prodHost;
+      return '$protocol://$androidHost:$port/$_apiVersion';
     } else {
-      // Fallback
-      return 'http://localhost:3000/api/v1';
+      return '$protocol://$host:$port/$_apiVersion';
     }
+  }
+
+  // Alternative: Manual Override (for testing different environments)
+  static String customBaseUrl({
+    String? host,
+    String? port,
+    bool useHttps = false,
+  }) {
+    final targetHost =
+        host ?? (kIsWeb || !Platform.isAndroid ? 'localhost' : '10.0.2.2');
+    final targetPort = port ?? '3000';
+    final protocol = useHttps ? 'https' : 'http';
+
+    return '$protocol://$targetHost:$targetPort/$_apiVersion';
   }
 
   static const Duration timeout = Duration(seconds: 30);
 
-  // Headers
   static const Map<String, String> defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -56,10 +71,8 @@ class ApiConstants {
   static const String units = '/units';
   static const String users = '/users';
 
-  // ===== SCAN ENDPOINTS (UPDATED) =====
+  // Scan Endpoints
   static const String scanBase = '/scan';
-
-  // Scan Asset Operations
   static const String scanAssetCreate = '$scanBase/asset/create';
   static const String scanAssetsMock = '$scanBase/assets/mock';
   static String scanAssetDetail(String assetNo) => '$scanBase/asset/$assetNo';
@@ -79,7 +92,7 @@ class ApiConstants {
   static const String exportStats = '$exportBase/stats';
   static const String exportCleanup = '$exportBase/cleanup';
 
-  // Plant/Location Actions for Scan
+  // Helper Methods
   static String plantAssets(String plantCode) => '$plants/$plantCode/assets';
   static String locationAssets(String locationCode) =>
       '$locations/$locationCode/assets';
@@ -93,14 +106,14 @@ class ApiConstants {
   static String exportJobCancel(int exportId) => '$exportJobs/$exportId';
   static String exportJobDelete(int exportId) => '$exportJobs/$exportId';
 
-  // ===== LEGACY SUPPORT (DEPRECATED) =====
-  // Keep old constants for backward compatibility during transition
-  @deprecated
-  static const String assets = '/scan/asset'; // Will be removed in next version
-  @deprecated
-  static const String assetNumbers = '/scan/assets/mock'; // Will be removed in next version
-  @deprecated
-  static String assetDetail(String assetNo) => scanAssetDetail(assetNo);
-  @deprecated
-  static String assetUpdateStatus(String assetNo) => scanAssetCheck(assetNo);
+  // Debug Helper
+  static void printCurrentConfig() {
+    if (kDebugMode) {
+      print('=== API Configuration ===');
+      print('Platform: ${kIsWeb ? 'Web' : Platform.operatingSystem}');
+      print('Base URL: $baseUrl');
+      print('Environment: ${kDebugMode ? 'Development' : 'Production'}');
+      print('========================');
+    }
+  }
 }
