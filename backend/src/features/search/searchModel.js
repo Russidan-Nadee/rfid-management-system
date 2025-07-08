@@ -1,5 +1,5 @@
 // Path: backend/src/models/searchModel.js
-const prisma = require('../../lib/prisma');
+const prisma = require('../../core/database/prisma');
 const SearchUtils = require('./searchUtils');
 
 /**

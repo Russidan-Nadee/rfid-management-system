@@ -1,5 +1,5 @@
 // Path: src/models/model.js
-const prisma = require('../../lib/prisma');
+const prisma = require('../../core/database/prisma');
 
 // Base Model Class for common operations
 class BaseModel {

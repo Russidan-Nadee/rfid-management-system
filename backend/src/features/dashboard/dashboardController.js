@@ -2,7 +2,7 @@
 const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../scan/scanService');
 const DepartmentService = require('./departmentService');
 const ExportModel = require('../export/exportModel');
-const prisma = require('../../lib/prisma');
+const prisma = require('../../core/database/prisma');
 
 // Initialize services
 const plantService = new PlantService();

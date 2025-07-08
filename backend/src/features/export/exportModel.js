@@ -1,6 +1,6 @@
 // Path: src/models/exportModel.js
 const { BaseModel } = require('../scan/scanModel');
-const prisma = require('../../lib/prisma');
+const prisma = require('../../core/database/prisma');
 
 class ExportModel extends BaseModel {
    constructor() {

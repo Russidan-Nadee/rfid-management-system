@@ -1,6 +1,6 @@
 // Path: backend/src/features/export/exportService.js
 const ExportModel = require('./exportModel');
-const prisma = require('../../lib/prisma');
+const prisma = require('../../core/database/prisma');
 const path = require('path');
 const fs = require('fs').promises;
 const XLSX = require('xlsx');
