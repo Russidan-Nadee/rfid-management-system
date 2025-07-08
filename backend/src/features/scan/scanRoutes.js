@@ -22,7 +22,7 @@ const {
    locationValidators,
    unitValidators,
    assetValidators
-} = require('../../validators/scanValidator');
+} = require('./scanValidator');
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000);

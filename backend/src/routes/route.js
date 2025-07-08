@@ -9,7 +9,7 @@ const {
    unitValidators,
    assetValidators,
    statsValidators
-} = require('../validators/scanValidator');
+} = require('../features/scan/scanValidator');
 
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../features/scan/scanMiddleware');
