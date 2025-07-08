@@ -2,7 +2,7 @@
 // 11. backend/src/validators/authValidator.js
 // =======================
 const { body, validationResult } = require('express-validator');
-const { validatePasswordStrength } = require('../utils/passwordUtils');
+const { validatePasswordStrength } = require('../../utils/passwordUtils');
 
 const handleValidationErrors = (req, res, next) => {
    const errors = validationResult(req);

@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require('./authController');
 const { authenticateToken } = require('./authMiddleware');
 const { logActivity } = require('../../middlewares/loginLogMiddleware');
-const { loginValidator, changePasswordValidator, refreshTokenValidator } = require('../../validators/authValidator');
+const { loginValidator, changePasswordValidator, refreshTokenValidator } = require('./authValidator');
 
 // Public routes
 router.post('/login', loginValidator, authController.login);
