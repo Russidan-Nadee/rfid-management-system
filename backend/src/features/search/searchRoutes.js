@@ -15,7 +15,7 @@ const {
 } = require('./searchValidator');
 
 // Import middleware
-const { createRateLimit } = require('../../middlewares/scanMiddleware');
+const { createRateLimit } = require('../scan/scanMiddleware');
 const { authenticateToken, optionalAuth } = require('../auth/authMiddleware');
 
 // สำหรับเพิ่มใน routes/route.js:

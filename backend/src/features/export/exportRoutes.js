@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const ExportController = require('./exportController');
 const { authenticateToken } = require('../auth/authMiddleware');
-const { createRateLimit } = require('../../middlewares/scanMiddleware');
+const { createRateLimit } = require('../scan/scanMiddleware');
 const {
    createExportValidator,
    getExportJobValidator,

@@ -13,7 +13,7 @@ const {
 } = require('./scanController');
 
 // Import middleware
-const { createRateLimit } = require('../../middlewares/scanMiddleware');
+const { createRateLimit } = require('./scanMiddleware');
 const { authenticateToken } = require('../auth/authMiddleware');
 
 // Import validators

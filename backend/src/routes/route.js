@@ -12,7 +12,7 @@ const {
 } = require('../validators/scanValidator');
 
 // Import middleware
-const { createRateLimit, checkDatabaseConnection } = require('../middlewares/scanMiddleware');
+const { createRateLimit, checkDatabaseConnection } = require('../features/scan/scanMiddleware');
 const { authenticateToken } = require('../features/auth/authMiddleware');
 
 // Import feature routes
