@@ -1,7 +1,7 @@
 // =======================
 // 8. backend/src/middlewares/authMiddleware.js
 // =======================
-const { verifyToken } = require('../../utils/jwtUtils');
+const { verifyToken } = require('../../core/auth/jwtUtils');
 
 const authenticateToken = (req, res, next) => {
    try {

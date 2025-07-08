@@ -1,6 +1,6 @@
 // Path: src/models/loginLogModel.js
-const { BaseModel } = require('../features/scan/scanModel');
-const prisma = require('../core/database/prisma');
+const { BaseModel } = require('../../features/scan/scanModel');
+const prisma = require('../database/prisma');
 
 class LoginLogModel extends BaseModel {
    constructor() {

@@ -1,7 +1,7 @@
 // =======================
 // 10. backend/src/middlewares/loginLogMiddleware.js
 // =======================
-const LoginLogModel = require('../../models/loginLogModel');
+const LoginLogModel = require('../auth/loginLogModel');
 
 const loginLogModel = new LoginLogModel();
 
