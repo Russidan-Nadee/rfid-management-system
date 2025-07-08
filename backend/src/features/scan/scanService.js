@@ -1,6 +1,6 @@
 // Path: src/services/scanService.js
 const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../../models/model');
-const DepartmentService = require('../../services/departmentService');
+const DepartmentService = require('../dashboard/departmentService');
 const prisma = require('../../lib/prisma');
 
 class BaseService {
