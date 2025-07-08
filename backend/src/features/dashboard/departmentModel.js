@@ -1,5 +1,5 @@
 // Path: backend/src/models/departmentModel.js
-const prisma = require('../lib/prisma');
+const prisma = require('../../lib/prisma');
 
 class DepartmentModel {
    constructor() {
