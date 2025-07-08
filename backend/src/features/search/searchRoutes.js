@@ -16,7 +16,7 @@ const {
 
 // Import middleware
 const { createRateLimit } = require('../../middlewares/middleware');
-const { authenticateToken, optionalAuth } = require('../../middlewares/authMiddleware');
+const { authenticateToken, optionalAuth } = require('../auth/authMiddleware');
 
 // สำหรับเพิ่มใน routes/route.js:
 // router.use('/search', require('./searchRoutes'));

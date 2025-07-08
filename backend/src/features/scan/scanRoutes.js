@@ -14,7 +14,7 @@ const {
 
 // Import middleware
 const { createRateLimit } = require('../../middlewares/middleware');
-const { authenticateToken } = require('../../middlewares/authMiddleware');
+const { authenticateToken } = require('../auth/authMiddleware');
 
 // Import validators
 const {

@@ -13,7 +13,7 @@ const {
 
 // Import middleware
 const { createRateLimit, checkDatabaseConnection } = require('../middlewares/middleware');
-const { authenticateToken } = require('../middlewares/authMiddleware');
+const { authenticateToken } = require('../features/auth/authMiddleware');
 
 // Import feature routes
 const authRoutes = require('../features/auth/authRoutes');

@@ -21,7 +21,7 @@ const {
 
 // Import middleware
 const { createRateLimit } = require('../../middlewares/middleware');
-const { authenticateToken } = require('../../middlewares/authMiddleware');
+const { authenticateToken } = require('../auth/authMiddleware');
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes
