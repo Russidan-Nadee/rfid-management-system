@@ -2,23 +2,11 @@
 const express = require('express');
 const router = express.Router();
 
-// Import controllers
-const {
-   plantController,
-   locationController,
-   unitController,
-   userController,
-   assetController,
-   scanController,
-   departmentController
-} = require('../controllers/controller');
-
-// Import validators
+// Import validators (keep existing validators)
 const {
    plantValidators,
    locationValidators,
    unitValidators,
-   userValidators,
    assetValidators,
    statsValidators
 } = require('../validators/validator');
@@ -30,7 +18,7 @@ const { authenticateToken } = require('../middlewares/authMiddleware');
 // Import feature routes
 const authRoutes = require('../features/auth/authRoutes');
 const exportRoutes = require('../features/export/exportRoutes');
-const dashboardRoutes = require('../features/dashboard/dashboardRoutes'); // NEW DASHBOARD ROUTES
+const dashboardRoutes = require('../features/dashboard/dashboardRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -46,22 +34,26 @@ const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests 
  */
 router.use('/auth', authRoutes);
 router.use('/search', require('../features/search/searchRoutes'));
-router.use('/dashboard', dashboardRoutes); // DASHBOARD ROUTES MODULE
+router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
 router.use(require('../features/scan/scanRoutes'));
 
 /**
  * =================================
- * LEGACY ROUTES (TO BE REFACTORED)
+ * LEGACY ASSET ROUTES (MINIMAL)
  * =================================
  */
 
-// User Routes
-router.get('/users', generalRateLimit, userValidators.getUsers, userController.getUsers);
-router.get('/users/:user_id', generalRateLimit, userValidators.getUserById, userController.getUserById);
-router.get('/users/username/:username', generalRateLimit, userValidators.getUserByUsername, userController.getUserByUsername);
+// Import controllers from scan feature (since they have all the controllers we need)
+const {
+   plantController,
+   locationController,
+   unitController,
+   assetController,
+   scanController
+} = require('../features/scan/scanController');
 
-// Asset Routes
+// Asset Routes (using scan controllers)
 router.get('/assets/numbers', generalRateLimit, assetController.getAssetNumbers);
 router.get('/assets', generalRateLimit, assetValidators.getAssets, assetController.getAssets);
 router.get('/assets/search', generalRateLimit, assetValidators.searchAssets, assetController.searchAssets);
@@ -69,7 +61,7 @@ router.get('/assets/stats', generalRateLimit, assetController.getAssetStats);
 router.get('/assets/stats/by-plant', generalRateLimit, assetController.getAssetStatsByPlant);
 router.get('/assets/stats/by-location', generalRateLimit, assetController.getAssetStatsByLocation);
 
-// Asset filtering routes
+// Asset filtering routes (using scan controllers)
 router.get('/plants/:plant_code/assets', generalRateLimit, assetValidators.getAssetsByPlant, assetController.getAssetsByPlant);
 router.get('/locations/:location_code/assets', generalRateLimit, assetValidators.getAssetsByLocation, assetController.getAssetsByLocation);
 
@@ -151,12 +143,6 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/assets/stats/by-plant': 'Get asset statistics by plant',
             'GET /api/v1/assets/stats/by-location': 'Get asset statistics by location',
             'GET /api/v1/assets/numbers': 'Get asset numbers for mock scanning'
-         },
-
-         legacy_users: {
-            'GET /api/v1/users': 'Get all active users',
-            'GET /api/v1/users/:user_id': 'Get user by ID',
-            'GET /api/v1/users/username/:username': 'Get user by username'
          }
       },
 
@@ -179,7 +165,7 @@ router.get('/docs', (req, res) => {
          search: {
             search: 'Search term for asset number, description, serial number, inventory number',
             q: 'Search query for search endpoints',
-            entities: 'Target entities for search (assets,plants,locations,users)',
+            entities: 'Target entities for search (assets,plants,locations)',
             fuzzy: 'Enable fuzzy matching for suggestions'
          }
       },
