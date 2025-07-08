@@ -1,5 +1,5 @@
 // Path: src/services/authService.js
-const AuthModel = require('../../models/authModel');
+const AuthModel = require('./authModel');
 const LoginLogModel = require('../../models/loginLogModel');
 const { hashPassword, comparePassword } = require('../../utils/passwordUtils');
 const { generateToken, verifyToken } = require('../../utils/jwtUtils');
