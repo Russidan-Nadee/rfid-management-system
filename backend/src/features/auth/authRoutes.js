@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('./authController');
 const { authenticateToken } = require('./authMiddleware');
-const { logActivity } = require('../../middlewares/loginLogMiddleware');
+const { logActivity } = require('../../core/middleware/loginLogMiddleware');
 const { loginValidator, changePasswordValidator, refreshTokenValidator } = require('./authValidator');
 
 // Public routes
