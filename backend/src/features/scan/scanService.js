@@ -1,7 +1,7 @@
-// Path: src/services/service.js
-const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../models/model');
-const DepartmentService = require('./departmentService');
-const prisma = require('../lib/prisma');
+// Path: src/services/scanService.js
+const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('../../models/model');
+const DepartmentService = require('../../services/departmentService');
+const prisma = require('../../lib/prisma');
 
 class BaseService {
    constructor(model) {

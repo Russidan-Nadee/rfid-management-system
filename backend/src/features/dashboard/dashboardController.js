@@ -1,5 +1,5 @@
 // Path: backend/src/controllers/dashboardController.js
-const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../../services/service');
+const { PlantService, LocationService, UnitService, UserService, AssetService } = require('../scan/scanService');
 const DepartmentService = require('../../services/departmentService');
 const ExportModel = require('../export/exportModel');
 const prisma = require('../../lib/prisma');

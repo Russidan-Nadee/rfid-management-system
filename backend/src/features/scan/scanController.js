@@ -1,5 +1,5 @@
 // Path: backend/src/features/scan/scanController.js
-const { PlantService, LocationService, UnitService, UserService, AssetService, DepartmentService } = require('../../services/service');
+const { PlantService, LocationService, UnitService, UserService, AssetService, DepartmentService } = require('./scanService');
 
 const departmentService = new DepartmentService();
 
