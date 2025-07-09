@@ -1,6 +1,7 @@
-// Path: frontend/lib/features/settings/presentation/widgets/app_info_widget.dart
+// Path: frontend/lib/features/setting/presentation/widgets/app_info_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../app/app_constants.dart';
+import '../../../../l10n/features/settings/settings_localizations.dart';
 
 class AppInfoWidget extends StatelessWidget {
   const AppInfoWidget({super.key});
@@ -8,6 +9,7 @@ class AppInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SettingsLocalizations.of(context);
 
     return Card(
       elevation: 1,
@@ -23,15 +25,15 @@ class AppInfoWidget extends StatelessWidget {
           _buildInfoTile(
             theme,
             Icons.info_outline,
-            'Version',
+            l10n.version,
             AppConstants.appVersion,
           ),
 
           // Build Info
-          _buildInfoTile(theme, Icons.build_outlined, 'Build', 'Release'),
+          _buildInfoTile(theme, Icons.build_outlined, l10n.build, 'Release'),
 
           // Device Info
-          _buildInfoTile(theme, Icons.phone_android, 'Platform', 'Flutter'),
+          _buildInfoTile(theme, Icons.phone_android, l10n.platform, 'Flutter'),
 
           const Divider(height: 1),
         ],

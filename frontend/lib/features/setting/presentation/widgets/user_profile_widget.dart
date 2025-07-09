@@ -1,7 +1,8 @@
-// Path: frontend/lib/features/settings/presentation/widgets/user_profile_widget.dart
+// Path: frontend/lib/features/setting/presentation/widgets/user_profile_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../l10n/features/settings/settings_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 
@@ -11,6 +12,7 @@ class UserProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SettingsLocalizations.of(context);
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
@@ -116,7 +118,7 @@ class UserProfileWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Last login: ${Helpers.formatTimeAgo(user.lastLogin)}',
+                            '${l10n.lastLogin}: ${Helpers.formatTimeAgo(user.lastLogin)}',
                             style: TextStyle(
                               fontSize: 12,
                               color: theme.colorScheme.onSurface.withOpacity(
