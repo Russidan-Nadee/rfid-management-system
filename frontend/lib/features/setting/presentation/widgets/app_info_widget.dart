@@ -17,7 +17,7 @@ class AppInfoWidget extends StatelessWidget {
       child: Column(
         children: [
           // App Logo and Name
-          _buildAppHeader(theme),
+          _buildAppHeader(theme, context),
 
           const Divider(height: 1),
 
@@ -41,7 +41,8 @@ class AppInfoWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildAppHeader(ThemeData theme) {
+  Widget _buildAppHeader(ThemeData theme, BuildContext context) {
+    final l10n = SettingsLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -69,7 +70,7 @@ class AppInfoWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppConstants.appName,
+                  l10n.appName,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -80,7 +81,7 @@ class AppInfoWidget extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 Text(
-                  'Asset Management System',
+                  l10n.appDescription,
                   style: TextStyle(
                     fontSize: 14,
                     color: theme.colorScheme.onSurface.withOpacity(0.7),

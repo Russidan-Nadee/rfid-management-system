@@ -1,8 +1,8 @@
 // Path: frontend/lib/features/setting/presentation/pages/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
 import '../../../../core/utils/helpers.dart';
-import '../../../../di/injection.dart';
 import '../../../../l10n/features/settings/settings_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
@@ -17,10 +17,8 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<SettingsBloc>()..add(const LoadSettings()),
-      child: const SettingsPageView(),
-    );
+    // ใช้ existing SettingsBloc จาก app.dart
+    return const SettingsPageView();
   }
 }
 
@@ -129,9 +127,9 @@ class SettingsPageView extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Language Section
-          _buildSectionTitle(theme, 'Language'), // TODO: Add to localization
+          _buildSectionTitle(theme, l10n.language),
           const SizedBox(height: 12),
-          _buildLanguageSelector(context, theme),
+          const LanguageSelectorWidget(),
 
           const SizedBox(height: 24),
 
@@ -179,99 +177,6 @@ class SettingsPageView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
-    );
-  }
-
-  Widget _buildLanguageSelector(BuildContext context, ThemeData theme) {
-    final currentLocale = Localizations.localeOf(context);
-
-    return Card(
-      elevation: 1,
-      color: theme.colorScheme.surface,
-      child: Column(
-        children: [
-          _buildLanguageOption(
-            context,
-            'English',
-            'en',
-            Icons.language,
-            currentLocale.languageCode == 'en',
-          ),
-          const Divider(height: 1),
-          _buildLanguageOption(
-            context,
-            'ไทย',
-            'th',
-            Icons.language,
-            currentLocale.languageCode == 'th',
-          ),
-          const Divider(height: 1),
-          _buildLanguageOption(
-            context,
-            '日本語',
-            'ja',
-            Icons.language,
-            currentLocale.languageCode == 'ja',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption(
-    BuildContext context,
-    String label,
-    String languageCode,
-    IconData icon,
-    bool isSelected,
-  ) {
-    return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          color: isSelected
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-          : null,
-      onTap: () {
-        _changeLanguage(context, languageCode);
-      },
-    );
-  }
-
-  void _changeLanguage(BuildContext context, String languageCode) {
-    // แสดง SnackBar ยืนยันการเปลี่ยนภาษา
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Language changed to: $languageCode'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    // TODO: บันทึกภาษาใน SharedPreferences
-    // TODO: เชื่อมต่อกับ SettingsBloc ในอนาคต
-
-    // แสดงข้อความให้ restart แอปด้วยตนเอง
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Language Changed'),
-          content: const Text('Please restart the app to see changes.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
     );
   }
 

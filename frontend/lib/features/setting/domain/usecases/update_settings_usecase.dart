@@ -17,7 +17,7 @@ class UpdateSettingsUseCase {
 
   Future<void> updateLanguage(String language) async {
     // Validate language
-    if (!['en', 'th'].contains(language)) {
+    if (!['en', 'th', 'ja'].contains(language)) {
       throw Exception('Invalid language: $language');
     }
 

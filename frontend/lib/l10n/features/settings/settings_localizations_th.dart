@@ -7,7 +7,16 @@ class SettingsLocalizationsTh extends SettingsLocalizations {
   String get pageTitle => 'การตั้งค่า';
 
   @override
+  String get appName => 'การจัดการสินทรัพย์';
+
+  @override
+  String get language => 'ภาษา';
+
+  @override
   String get about => 'เกี่ยวกับ';
+
+  @override
+  String get appDescription => 'ระบบจัดการสินทรัพย์';
 
   @override
   String get version => 'เวอร์ชัน';

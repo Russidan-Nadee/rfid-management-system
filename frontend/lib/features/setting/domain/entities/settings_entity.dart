@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 
 class SettingsEntity extends Equatable {
   final String themeMode; // 'light', 'dark', 'system'
-  final String language; // 'en', 'th'
+  final String language; // 'en', 'th', 'ja'
   final double fontSize; // 1.0 = normal, 1.2 = large, 0.8 = small
   final bool rememberLogin;
   final int autoLogoutTimeout; // minutes
@@ -41,6 +41,7 @@ class SettingsEntity extends Equatable {
   // Getter สำหรับตรวจสอบภาษา
   bool get isEnglish => language == 'en';
   bool get isThai => language == 'th';
+  bool get isJapanese => language == 'ja';
 
   // Getter สำหรับ font size label
   String get fontSizeLabel {
@@ -86,7 +87,7 @@ class SettingsEntity extends Equatable {
   }
 
   bool isValidLanguage() {
-    return ['en', 'th'].contains(language);
+    return ['en', 'th', 'ja'].contains(language);
   }
 
   bool isValidFontSize() {

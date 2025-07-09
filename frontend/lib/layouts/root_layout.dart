@@ -5,7 +5,6 @@ import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
-import '../app/theme/app_spacing.dart';
 import '../app/app_constants.dart';
 import '../app/theme/app_colors.dart';
 
@@ -254,11 +253,6 @@ class _RootLayoutState extends State<RootLayout> {
         ),
       ),
     );
-  }
-
-  Widget? _buildRailTrailing() {
-    // Optional: Add user profile or other trailing widgets
-    return null;
   }
 
   Widget _buildCustomBottomNav() {

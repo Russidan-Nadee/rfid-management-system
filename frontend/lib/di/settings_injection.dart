@@ -29,7 +29,7 @@ void configureSettingsDependencies() {
     () => UpdateSettingsUseCase(getIt<SettingsRepository>()),
   );
 
-  // Presentation Layer - BLoCs (Factory - new instance each time)
+  // Presentation Layer - BLoCs (เปลี่ยนกลับเป็น Factory)
   getIt.registerFactory<SettingsBloc>(
     () => SettingsBloc(
       getSettingsUseCase: getIt<GetSettingsUseCase>(),

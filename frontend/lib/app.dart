@@ -1,40 +1,68 @@
 // Path: frontend/lib/app.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // เพิ่มบรรทัดนี้
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app/theme/app_theme.dart';
 import 'app/app_constants.dart';
 import 'app/app_entry_point.dart';
+import 'features/setting/presentation/bloc/settings_bloc.dart';
+import 'features/setting/presentation/bloc/settings_state.dart';
+import 'features/setting/presentation/bloc/settings_event.dart';
+import 'di/injection.dart';
 
 class AssetManagementApp extends StatelessWidget {
   const AssetManagementApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: AppConstants.appName,
+    return BlocProvider<SettingsBloc>(
+      create: (context) => getIt<SettingsBloc>()..add(const LoadSettings()),
+      child: BlocBuilder<SettingsBloc, SettingsState>(
+        buildWhen: (previous, current) {
+          // Rebuild เมื่อ language เปลี่ยน
+          if (previous is SettingsLoaded && current is SettingsLoaded) {
+            return previous.settings.language != current.settings.language;
+          }
+          return current is SettingsLoaded;
+        },
+        builder: (context, state) {
+          Locale locale = const Locale('en'); // Default locale
 
-      // ใช้ Enhanced Theme ที่สร้างไว้
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+          if (state is SettingsLoaded) {
+            locale = Locale(state.settings.language);
+          }
 
-      // เพิ่ม Localization Delegates
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: AppConstants.appName,
 
-      // รองรับภาษา
-      supportedLocales: const [
-        Locale('en'), // English
-        Locale('th'), // Thai
-        Locale('ja'), // Japanese
-      ],
+            // ใช้ Enhanced Theme ที่สร้างไว้
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.system,
 
-      // Home page
-      home: const AppEntryPoint(),
+            // เพิ่ม Localization Delegates
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+
+            // รองรับภาษา
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('th'), // Thai
+              Locale('ja'), // Japanese
+            ],
+
+            // ใช้ locale จาก settings
+            locale: locale,
+
+            // Home page
+            home: const AppEntryPoint(),
+          );
+        },
+      ),
     );
   }
 }

@@ -7,7 +7,15 @@ class SettingsLocalizationsEn extends SettingsLocalizations {
   String get pageTitle => 'Settings';
 
   @override
+  String get appName => 'Asset Management';
+
+  @override
+  String get language => 'Language';
+
+  @override
   String get about => 'About';
+
+  String get appDescription => 'Asset Management System';
 
   @override
   String get version => 'Version';

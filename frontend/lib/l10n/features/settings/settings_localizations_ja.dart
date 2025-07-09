@@ -7,7 +7,16 @@ class SettingsLocalizationsJa extends SettingsLocalizations {
   String get pageTitle => '設定';
 
   @override
+  String get appName => 'アセット管理';
+
+  @override
+  String get language => '言語';
+
+  @override
   String get about => 'について';
+
+  @override
+  String get appDescription => 'アセット管理システム';
 
   @override
   String get version => 'バージョン';

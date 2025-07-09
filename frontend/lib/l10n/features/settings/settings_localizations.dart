@@ -24,9 +24,13 @@ abstract class SettingsLocalizations {
 
   // Page Title
   String get pageTitle;
+  String get appName;
+  String get language;
 
   // Sections
   String get about;
+
+  String get appDescription;
 
   // App Info Labels
   String get version;
