@@ -84,7 +84,7 @@ class UserProfileWidget extends StatelessWidget {
                                     Theme.of(context).brightness ==
                                         Brightness.dark
                                     ? theme.colorScheme.surface.withValues(
-                                        alpha: 0.3,
+                                        alpha: 0.1,
                                       )
                                     : theme.colorScheme.primary.withValues(
                                         alpha: 0.1,
@@ -100,7 +100,7 @@ class UserProfileWidget extends StatelessWidget {
                                   color:
                                       Theme.of(context).brightness ==
                                           Brightness.dark
-                                      ? AppColors.darkTextSecondary
+                                      ? theme.colorScheme.onSurface
                                       : theme.colorScheme.primary,
                                 ),
                               ),

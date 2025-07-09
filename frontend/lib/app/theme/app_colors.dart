@@ -1,3 +1,4 @@
+// Path: frontend/lib/app/theme/app_colors.dart
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -77,14 +78,31 @@ class AppColors {
   // Interactive States
   static const Color selected = primary;
   static const Color unselected = textSecondary;
-  static Color hover = primary.withValues(alpha: 0.08);
-  static Color pressed = primary.withValues(alpha: 0.12);
-  static Color focus = primary.withValues(alpha: 0.12);
-  static Color disabled = textMuted.withValues(alpha: 0.38);
+  static Color hover = primary.withOpacity(0.08);
+  static Color pressed = primary.withOpacity(0.12);
+  static Color focus = primary.withOpacity(0.12);
+  static Color disabled = textMuted.withOpacity(0.38);
 
   //export
   static const Color excel = Colors.green;
   static const Color csv = Color(0xFFF59E0B);
+
+  // Custom Dark Theme Colors - Your Palette
+  static const Color darkBackground = Color(0xFF27374D); // #27374D - เข้มที่สุด
+  static const Color darkSurface = Color(0xFF526D82); // #526D82 - เข้มปานกลาง
+  static const Color darkSurfaceVariant = Color(
+    0xFF9DB2BF,
+  ); // #9DB2BF - อ่อนปานกลาง
+  static const Color darkBorder = Color(
+    0xFF526D82,
+  ); // #526D82 - Borders/dividers
+  static const Color darkText = Color(
+    0xFFDDE6ED,
+  ); // #DDE6ED - Primary text (อ่อนที่สุด)
+  static const Color darkTextSecondary = Color(
+    0xFF9DB2BF,
+  ); // #9DB2BF - Secondary text
+  static const Color darkTextMuted = Color(0xFF526D82); // #526D82 - Muted text
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -115,6 +133,19 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [background, backgroundSecondary],
+  );
+
+  // Dark Theme Gradients
+  static const LinearGradient darkBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [darkBackground, Color(0xFF1F2A37)], // Slightly darker variant
+  );
+
+  static const LinearGradient darkCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [darkSurface, darkSurfaceVariant],
   );
 
   static const LinearGradient cardGradient = LinearGradient(
@@ -155,7 +186,7 @@ class AppColors {
   }
 
   static Color getStatusColorWithOpacity(String status, double opacity) {
-    return getStatusColor(status).withValues(alpha: opacity);
+    return getStatusColor(status).withOpacity(opacity);
   }
 
   static Color getTrendColor(String trend) {
@@ -220,22 +251,15 @@ class AppColors {
     'onSurface': textPrimary,
   };
 
+  // Updated Dark Scheme with your colors
   static Map<String, Color> get darkScheme => {
     'primary': primary,
-    'background': Color(0xFF1A1A1A),
-    'surface': Color(0xFF2D2D2D),
+    'background': darkBackground, // #27374D
+    'surface': darkSurface, // #526D82
     'onPrimary': onPrimary,
-    'onBackground': Color(0xFFE5E5E5),
-    'onSurface': Color(0xFFE5E5E5),
+    'onBackground': darkText, // #DDE6ED
+    'onSurface': darkText, // #DDE6ED
   };
-
-  static const Color darkBackground = Color.fromARGB(255, 56, 56, 56);
-  static const Color darkSurface = Color(0xFF404040);
-  static const Color darkSurfaceVariant = Color(0xFF343434);
-  static const Color darkBorder = Color(0xFF404040); // Borders/dividers
-  static const Color darkText = Color(0xFFE5E5E5); // Primary text
-  static const Color darkTextSecondary = Color(0xFFB3B3B3); // Secondary text
-  static const Color darkTextMuted = Color(0xFF808080); // Muted text
 
   static List<LinearGradient> get modernGradients => [
     primaryGradient,
@@ -256,5 +280,32 @@ class AppColors {
     if (color == vibrantBlue) return vibrantPurple;
     if (color == vibrantPurple) return vibrantOrange;
     return primary;
+  }
+
+  // Dark Theme Helper Methods
+  static Color getDarkSurfaceColor(int level) {
+    switch (level) {
+      case 0:
+        return darkBackground; // #27374D - Base background
+      case 1:
+        return darkSurface; // #526D82 - Cards, surfaces
+      case 2:
+        return darkSurfaceVariant; // #9DB2BF - Elevated surfaces
+      default:
+        return darkSurface;
+    }
+  }
+
+  static Color getDarkTextColor(int level) {
+    switch (level) {
+      case 0:
+        return darkText; // #DDE6ED - Primary text
+      case 1:
+        return darkTextSecondary; // #9DB2BF - Secondary text
+      case 2:
+        return darkTextMuted; // #526D82 - Muted text
+      default:
+        return darkText;
+    }
   }
 }

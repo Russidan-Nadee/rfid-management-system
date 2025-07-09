@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/setting/presentation/widgets/app_info_widget.dart
 import 'package:flutter/material.dart';
 import '../../../../app/app_constants.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../l10n/features/settings/settings_localizations.dart';
 
 class AppInfoWidget extends StatelessWidget {
@@ -23,6 +24,7 @@ class AppInfoWidget extends StatelessWidget {
 
           // Version Info
           _buildInfoTile(
+            context,
             theme,
             Icons.info_outline,
             l10n.version,
@@ -30,10 +32,22 @@ class AppInfoWidget extends StatelessWidget {
           ),
 
           // Build Info
-          _buildInfoTile(theme, Icons.build_outlined, l10n.build, 'Release'),
+          _buildInfoTile(
+            context,
+            theme,
+            Icons.build_outlined,
+            l10n.build,
+            'Release',
+          ),
 
           // Device Info
-          _buildInfoTile(theme, Icons.phone_android, l10n.platform, 'Flutter'),
+          _buildInfoTile(
+            context,
+            theme,
+            Icons.phone_android,
+            l10n.platform,
+            'Flutter',
+          ),
 
           const Divider(height: 1),
         ],
@@ -96,6 +110,7 @@ class AppInfoWidget extends StatelessWidget {
   }
 
   Widget _buildInfoTile(
+    BuildContext context,
     ThemeData theme,
     IconData icon,
     String title,
@@ -104,7 +119,14 @@ class AppInfoWidget extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: theme.colorScheme.primary, size: 20),
+      leading: Icon(
+        icon,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors
+                  .darkTextSecondary // Dark mode: สีเทาอ่อน
+            : theme.colorScheme.primary, // Light mode: สีน้ำเงิน
+        size: 20,
+      ),
       title: Text(
         title,
         style: TextStyle(

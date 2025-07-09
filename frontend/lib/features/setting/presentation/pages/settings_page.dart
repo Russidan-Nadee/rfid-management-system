@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/setting/presentation/pages/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
 import 'package:frontend/features/setting/presentation/widgets/theme_selector_widget.dart';
 import '../../../../core/utils/helpers.dart';
@@ -46,7 +47,11 @@ class SettingsPageView extends StatelessWidget {
         foregroundColor: theme.colorScheme.onSurface,
         elevation: 1,
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkSurface.withValues(
+              alpha: 0.8,
+            ) // #526D82 - เข้มกว่า SurfaceVariant
+          : theme.colorScheme.background,
       body: BlocListener<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state is SettingsUpdated) {

@@ -234,7 +234,9 @@ class AppTheme {
     shadowColor: Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: AppBorders.large,
-      side: BorderSide(color: AppColors.darkBorder), // #404040
+      side: BorderSide(
+        color: AppColors.darkBackground.withValues(alpha: (0.4)),
+      ), // #404040
     ),
     margin: EdgeInsets.zero,
   );
@@ -470,8 +472,11 @@ class AppTheme {
       DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
 
   // Dark Divider - Claude style
-  static DividerThemeData get darkDividerTheme =>
-      DividerThemeData(color: AppColors.darkBorder, thickness: 1, space: 1);
+  static DividerThemeData get darkDividerTheme => DividerThemeData(
+    color: AppColors.darkBackground.withValues(alpha: 0.2),
+    thickness: 1,
+    space: 1,
+  );
 
   // Icon Themes - Light เก็บเดิม
   static IconThemeData get lightIconTheme =>
