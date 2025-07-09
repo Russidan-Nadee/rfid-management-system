@@ -71,11 +71,20 @@ class LanguageSelectorWidget extends StatelessWidget {
     String languageCode,
     bool isSelected,
   ) {
+    final theme = Theme.of(context);
+
+    // แก้สีให้แตกต่างกันระหว่าง Light และ Dark Mode
+    final trailingIconColor = isSelected
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว
+              : theme.colorScheme.primary) // Light Mode: สีน้ำเงิน
+        : null;
+
     return ListTile(
       title: _buildLanguageTitle(context, flag, code, name, isSelected),
-      trailing: isSelected
-          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-          : null,
+      trailing: isSelected ? Icon(Icons.check, color: trailingIconColor) : null,
       onTap: isSelected
           ? null
           : () {
@@ -92,9 +101,13 @@ class LanguageSelectorWidget extends StatelessWidget {
     bool isSelected,
   ) {
     final theme = Theme.of(context);
+
+    // แก้สีให้แตกต่างกันระหว่าง Light และ Dark Mode
     final textColor = isSelected
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.primary)
+        : theme.colorScheme.onSurface.withValues(alpha: 0.6);
 
     return Row(
       children: [

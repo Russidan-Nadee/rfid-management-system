@@ -137,7 +137,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             child: Text(
               'Current Year',
               style: AppTextStyles.overline.copyWith(
-                color: AppColors.vibrantGreen,
+                color: AppColors.vibrantBlue,
                 fontWeight: FontWeight.w500,
               ),
             ),

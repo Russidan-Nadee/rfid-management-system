@@ -87,16 +87,36 @@ class ThemeSelectorWidget extends StatelessWidget {
     SettingsLocalizations l10n,
   ) {
     final theme = Theme.of(context);
+
+    // แก้สีให้แตกต่างกันระหว่าง Light และ Dark Mode
     final textColor = isSelected
-        ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว
+              : theme.colorScheme.primary) // Light Mode: สีน้ำเงิน
+        : theme.colorScheme.onSurface.withValues(alpha: 0.3);
+
+    final iconColor = isSelected
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว
+              : theme.colorScheme.primary) // Light Mode: สีน้ำเงิน
+        : theme.colorScheme.onSurface.withValues(alpha: 0.6);
+
+    final trailingIconColor = isSelected
+        ? (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว
+              : theme.colorScheme.primary) // Light Mode: สีน้ำเงิน
+        : theme.colorScheme.onSurface.withValues(alpha: 0.3);
 
     return ListTile(
       leading: Icon(
         isSelected ? filledIcon : outlinedIcon,
-        color: isSelected
-            ? theme.colorScheme.primary
-            : theme.colorScheme.onSurface.withOpacity(0.6),
+        color: iconColor,
         size: 24,
       ),
       title: Text(
@@ -110,14 +130,14 @@ class ThemeSelectorWidget extends StatelessWidget {
         description,
         style: TextStyle(
           fontSize: 12,
-          color: theme.colorScheme.onSurface.withOpacity(0.6),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
         ),
       ),
       trailing: isSelected
-          ? Icon(Icons.check_circle, color: theme.colorScheme.primary, size: 20)
+          ? Icon(Icons.check_circle, color: trailingIconColor, size: 20)
           : Icon(
               Icons.radio_button_unchecked,
-              color: theme.colorScheme.onSurface.withOpacity(0.3),
+              color: trailingIconColor,
               size: 20,
             ),
       onTap: isSelected

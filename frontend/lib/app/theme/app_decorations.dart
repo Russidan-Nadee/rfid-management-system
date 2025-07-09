@@ -130,9 +130,9 @@ class AppShadows {
     ),
   ];
 
-  static List<BoxShadow> vibrantGreen = [
+  static List<BoxShadow> vibrantBlue = [
     BoxShadow(
-      color: AppColors.vibrantGreen.withOpacity(0.25),
+      color: AppColors.vibrantBlue.withOpacity(0.25),
       blurRadius: 20,
       offset: const Offset(0, 8),
       spreadRadius: 0,
@@ -285,10 +285,10 @@ class AppDecorations {
     boxShadow: AppShadows.vibrantOrange,
   );
 
-  static BoxDecoration get vibrantGreenCard => BoxDecoration(
-    gradient: AppColors.vibrantGreenGradient,
+  static BoxDecoration get vibrantBlueCard => BoxDecoration(
+    gradient: AppColors.vibrantBlueGradient,
     borderRadius: AppBorders.xl,
-    boxShadow: AppShadows.vibrantGreen,
+    boxShadow: AppShadows.vibrantBlue,
   );
 
   static BoxDecoration get vibrantPurpleCard => BoxDecoration(
@@ -349,9 +349,9 @@ class AppDecorations {
   );
 
   static BoxDecoration get buttonVibrantGreen => BoxDecoration(
-    gradient: AppColors.vibrantGreenGradient,
+    gradient: AppColors.vibrantBlueGradient,
     borderRadius: AppBorders.md,
-    boxShadow: AppShadows.vibrantGreen,
+    boxShadow: AppShadows.vibrantBlue,
   );
 
   // Status decorations - Modern approach with increased radius
@@ -565,7 +565,7 @@ class AppDecorations {
   // Modern decoration collection for dashboard cards
   static List<BoxDecoration> get modernCardDecorations => [
     vibrantOrangeCard,
-    vibrantGreenCard,
+    vibrantBlueCard,
     vibrantPurpleCard,
     sunsetGradient,
     oceanGradient,

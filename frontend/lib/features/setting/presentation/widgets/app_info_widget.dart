@@ -84,7 +84,7 @@ class AppInfoWidget extends StatelessWidget {
                   l10n.appDescription,
                   style: TextStyle(
                     fontSize: 14,
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],

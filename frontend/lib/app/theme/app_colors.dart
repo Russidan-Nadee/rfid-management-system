@@ -4,7 +4,7 @@ class AppColors {
   // Primary Colors - Navy tone for buttons and headers
   static const Color primary = Color(0xFF1E3A5F);
   static const Color primaryLight = Color(0xFF2C4F7C);
-  static const Color primaryDark = Color(0xFF0F1B2E);
+  static const Color primaryDark = Color.fromARGB(255, 19, 35, 59);
   static const Color primarySurface = Color(0xFFF1F5F9);
 
   // Background
@@ -44,8 +44,8 @@ class AppColors {
   // Vibrant Colors - Updated with theme colors
   static const Color vibrantOrange = Color(0xFFF59E0B);
   static const Color vibrantOrangeLight = Color(0xFFFEF3C7);
-  static const Color vibrantGreen = Color(0xFF42A5F5); // Light Blue
-  static const Color vibrantGreenLight = Color(0xFFE3F2FD);
+  static const Color vibrantBlue = Color(0xFF42A5F5); // Light Blue
+  static const Color vibrantBlueLight = Color(0xFFE3F2FD);
   static const Color vibrantPurple = Color(0xFF6366F1);
   static const Color vibrantPurpleLight = Color(0xFFF0F0FF);
 
@@ -62,7 +62,7 @@ class AppColors {
 
   // Chart Colors - Updated with harmonized palette
   static const Color chartBlue = Color(0xFF3B82F6);
-  static const Color chartGreen = Color(0xFF42A5F5); // Light Blue แทนเขียวสด
+  static const Color chartGreen = Colors.green; // Light Blue แทนเขียวสด
   static const Color chartOrange = Color(0xFFF59E0B);
   static const Color chartRed = Color(0xFFEF4444);
   static const Color chartPurple = Color(0xFF6366F1);
@@ -99,10 +99,10 @@ class AppColors {
     colors: [Color(0xFFFFA726), vibrantOrange],
   );
 
-  static const LinearGradient vibrantGreenGradient = LinearGradient(
+  static const LinearGradient vibrantBlueGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF64B5F6), vibrantGreen], // Light blue gradient
+    colors: [Color(0xFF64B5F6), vibrantBlue], // Light blue gradient
   );
 
   static const LinearGradient vibrantPurpleGradient = LinearGradient(
@@ -132,11 +132,7 @@ class AppColors {
   static const LinearGradient oceanGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      chartTeal,
-      chartBlue,
-      vibrantGreen,
-    ], // ใช้ vibrantGreen ที่เป็น Light Blue
+    colors: [chartTeal, chartBlue, vibrantBlue],
   );
 
   // Helper Methods
@@ -184,7 +180,7 @@ class AppColors {
       case 'info':
         return info;
       case 'success':
-        return success; // Light Blue
+        return success;
       default:
         return info;
     }
@@ -193,7 +189,7 @@ class AppColors {
   static List<Color> get chartPalette => [
     chartBlue,
     vibrantOrange,
-    chartGreen, // ยังใช้ชื่อเดิม
+    chartGreen,
     vibrantPurple,
     chartTeal,
     chartAmber,
@@ -202,7 +198,7 @@ class AppColors {
 
   static List<Color> get vibrantPalette => [
     vibrantOrange,
-    vibrantGreen, // ยังใช้ชื่อเดิม
+    vibrantBlue,
     vibrantPurple,
     chartTeal,
     chartAmber,
@@ -224,22 +220,18 @@ class AppColors {
     'onSurface': textPrimary,
   };
 
-  // ===== CLAUDE-STYLE DARK SCHEME =====
   static Map<String, Color> get darkScheme => {
-    'primary': primary, // เก็บ navy blue เดิม
-    'background': Color(0xFF1A1A1A), // Claude dark gray
-    'surface': Color(0xFF2D2D2D), // Medium gray cards
+    'primary': primary,
+    'background': Color(0xFF1A1A1A),
+    'surface': Color(0xFF2D2D2D),
     'onPrimary': onPrimary,
-    'onBackground': Color(0xFFE5E5E5), // Off-white text
-    'onSurface': Color(0xFFE5E5E5), // Off-white text
+    'onBackground': Color(0xFFE5E5E5),
+    'onSurface': Color(0xFFE5E5E5),
   };
 
-  // Dark Theme Specific Colors
-  static const Color darkBackground = Color(0xFF1A1A1A); // Claude-style
-  static const Color darkSurface = Color(0xFF2D2D2D); // Cards/containers
-  static const Color darkSurfaceVariant = Color(
-    0xFF343434,
-  ); // Elevated surfaces
+  static const Color darkBackground = Color.fromARGB(255, 56, 56, 56);
+  static const Color darkSurface = Color(0xFF404040);
+  static const Color darkSurfaceVariant = Color(0xFF343434);
   static const Color darkBorder = Color(0xFF404040); // Borders/dividers
   static const Color darkText = Color(0xFFE5E5E5); // Primary text
   static const Color darkTextSecondary = Color(0xFFB3B3B3); // Secondary text
@@ -248,7 +240,7 @@ class AppColors {
   static List<LinearGradient> get modernGradients => [
     primaryGradient,
     vibrantOrangeGradient,
-    vibrantGreenGradient, // ยังใช้ชื่อเดิม
+    vibrantBlueGradient,
     vibrantPurpleGradient,
     sunsetGradient,
     oceanGradient,
@@ -260,8 +252,8 @@ class AppColors {
   }
 
   static Color getComplementaryColor(Color color) {
-    if (color == vibrantOrange) return vibrantGreen; // ยังใช้ชื่อเดิม
-    if (color == vibrantGreen) return vibrantPurple; // ยังใช้ชื่อเดิม
+    if (color == vibrantOrange) return vibrantBlue;
+    if (color == vibrantBlue) return vibrantPurple;
     if (color == vibrantPurple) return vibrantOrange;
     return primary;
   }

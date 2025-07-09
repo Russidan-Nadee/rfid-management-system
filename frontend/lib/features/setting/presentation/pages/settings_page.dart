@@ -1,3 +1,4 @@
+// Path: frontend/lib/features/setting/presentation/pages/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
@@ -36,7 +37,9 @@ class SettingsPageView extends StatelessWidget {
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.primary,
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
@@ -55,7 +58,7 @@ class SettingsPageView extends StatelessWidget {
         child: BlocBuilder<SettingsBloc, SettingsState>(
           builder: (context, state) {
             if (state is SettingsLoading) {
-              return _buildLoadingView(theme, l10n);
+              return _buildLoadingView(context, theme, l10n);
             } else if (state is SettingsLoaded || state is SettingsUpdating) {
               final settings = state is SettingsLoaded
                   ? state.settings
@@ -64,19 +67,29 @@ class SettingsPageView extends StatelessWidget {
             } else if (state is SettingsError) {
               return _buildErrorView(context, state.message, theme, l10n);
             }
-            return _buildLoadingView(theme, l10n);
+            return _buildLoadingView(context, theme, l10n);
           },
         ),
       ),
     );
   }
 
-  Widget _buildLoadingView(ThemeData theme, SettingsLocalizations l10n) {
+  Widget _buildLoadingView(
+    BuildContext context,
+    ThemeData theme,
+    SettingsLocalizations l10n,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: theme.colorScheme.primary),
+          CircularProgressIndicator(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? theme
+                      .colorScheme
+                      .onSurface // Dark Mode: ขาว
+                : theme.colorScheme.primary, // Light Mode: น้ำเงิน
+          ),
           const SizedBox(height: 16),
           Text(l10n.loading),
         ],
@@ -134,6 +147,7 @@ class SettingsPageView extends StatelessWidget {
                   ? Column(
                       children: [
                         _buildFlexibleCard(
+                          context,
                           theme,
                           l10n.theme,
                           const ThemeSelectorWidget(),
@@ -141,6 +155,7 @@ class SettingsPageView extends StatelessWidget {
                         ),
                         SizedBox(height: spacing),
                         _buildFlexibleCard(
+                          context,
                           theme,
                           l10n.language,
                           const LanguageSelectorWidget(),
@@ -154,6 +169,7 @@ class SettingsPageView extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _buildFlexibleCard(
+                              context,
                               theme,
                               l10n.theme,
                               const ThemeSelectorWidget(),
@@ -163,6 +179,7 @@ class SettingsPageView extends StatelessWidget {
                           SizedBox(width: spacing),
                           Expanded(
                             child: _buildFlexibleCard(
+                              context,
                               theme,
                               l10n.language,
                               const LanguageSelectorWidget(),
@@ -175,6 +192,7 @@ class SettingsPageView extends StatelessWidget {
 
               SizedBox(height: 16),
               _buildFlexibleCard(
+                context,
                 theme,
                 l10n.about,
                 const AppInfoWidget(),
@@ -190,6 +208,7 @@ class SettingsPageView extends StatelessWidget {
   }
 
   Widget _buildFlexibleCard(
+    BuildContext context,
     ThemeData theme,
     String title,
     Widget content,
@@ -205,7 +224,7 @@ class SettingsPageView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle(theme, title),
+              _buildSectionTitle(context, theme, title),
               const SizedBox(height: 12),
               content,
             ],
@@ -215,13 +234,21 @@ class SettingsPageView extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme, String title) {
+  Widget _buildSectionTitle(
+    BuildContext context,
+    ThemeData theme,
+    String title,
+  ) {
     return Text(
       title,
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: theme.colorScheme.primary,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? theme
+                  .colorScheme
+                  .onSurface // Dark Mode: สีขาว
+            : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
       ),
     );
   }
