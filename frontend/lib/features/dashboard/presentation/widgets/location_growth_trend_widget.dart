@@ -141,8 +141,8 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               AppSpacing.paddingVerticalXS,
             ),
             decoration: AppDecorations.chip.copyWith(
-              color: Colors.orange.withOpacity(0.1),
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+              color: Colors.orange.withValues(alpha: 0.1),
+              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
             ),
             child: Text(
               'Current Year',
@@ -245,7 +245,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.orange.withOpacity(0.1),
+              color: Colors.orange.withValues(alpha: 0.1),
             ),
           ),
         ],

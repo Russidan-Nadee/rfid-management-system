@@ -258,7 +258,9 @@ class ExportHistoryWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -367,7 +369,9 @@ class ExportHistoryWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.error.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.2),
+                ),
               ),
               child: Text(
                 message,

@@ -14,20 +14,20 @@ class SearchInitialView extends StatelessWidget {
           Icon(
             Icons.search,
             size: 64,
-            color: theme.colorScheme.onBackground.withOpacity(0.5),
+            color: theme.colorScheme.onBackground.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
             'Start your search', // Changed to English
             style: theme.textTheme.titleLarge?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+              color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Type a query to see results', // Changed to English
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(0.6),
+              color: theme.colorScheme.onBackground.withValues(alpha: 0.6),
             ),
           ),
         ],

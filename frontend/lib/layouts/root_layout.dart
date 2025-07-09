@@ -170,7 +170,7 @@ class _RootLayoutState extends State<RootLayout> {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: AppColors.onPrimary.withOpacity(0.1),
+        color: AppColors.onPrimary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Material(
@@ -199,16 +199,16 @@ class _RootLayoutState extends State<RootLayout> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          hoverColor: AppColors.onPrimary.withOpacity(0.08),
-          splashColor: AppColors.onPrimary.withOpacity(0.12),
-          highlightColor: AppColors.onPrimary.withOpacity(0.08),
+          hoverColor: AppColors.onPrimary.withValues(alpha: 0.08),
+          splashColor: AppColors.onPrimary.withValues(alpha: 0.12),
+          highlightColor: AppColors.onPrimary.withValues(alpha: 0.08),
           onTap: onTap,
           child: Container(
             height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.onPrimary.withOpacity(0.15)
+                  ? AppColors.onPrimary.withValues(alpha: 0.15)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
             ),
@@ -223,7 +223,7 @@ class _RootLayoutState extends State<RootLayout> {
                     data: IconThemeData(
                       color: isSelected
                           ? AppColors.onPrimary
-                          : AppColors.onPrimary.withOpacity(0.6),
+                          : AppColors.onPrimary.withValues(alpha: 0.6),
                       size: isSelected ? 28 : 26,
                     ),
                     child: isSelected
@@ -240,7 +240,7 @@ class _RootLayoutState extends State<RootLayout> {
                       style: TextStyle(
                         color: isSelected
                             ? AppColors.onPrimary
-                            : AppColors.onPrimary.withOpacity(0.6),
+                            : AppColors.onPrimary.withValues(alpha: 0.6),
                         fontSize: 14,
                         fontWeight: isSelected
                             ? FontWeight.w500
@@ -292,7 +292,7 @@ class _RootLayoutState extends State<RootLayout> {
                           : (destination.icon as Icon).icon,
                       color: isSelected
                           ? AppColors.onPrimary
-                          : AppColors.onPrimary.withOpacity(0.6),
+                          : AppColors.onPrimary.withValues(alpha: 0.6),
                       size: isSelected ? 28 : 26,
                     ),
                   ),

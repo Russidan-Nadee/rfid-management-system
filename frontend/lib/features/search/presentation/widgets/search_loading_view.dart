@@ -15,10 +15,7 @@ class SearchLoadingView extends StatelessWidget {
         children: [
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
-          Text(
-            'Searching for "$query"...', // TODO: Use i18n
-            style: theme.textTheme.bodyLarge,
-          ),
+          Text('Searching for "$query"...', style: theme.textTheme.bodyLarge),
         ],
       ),
     );

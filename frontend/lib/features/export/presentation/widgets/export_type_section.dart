@@ -81,7 +81,7 @@ class ExportTypeSection extends StatelessWidget {
       decoration: AppDecorations.buttonPrimary.copyWith(
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.2),
+            color: AppColors.primary.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -116,7 +116,7 @@ class ExportTypeSection extends StatelessWidget {
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.body2.copyWith(
-                          color: AppColors.onPrimary.withOpacity(0.9),
+                          color: AppColors.onPrimary.withValues(alpha: 0.9),
                         ),
                         desktopFactor: 1.0,
                       ),
@@ -136,7 +136,7 @@ class ExportTypeSection extends StatelessWidget {
               vertical: AppSpacing.xs,
             ),
             decoration: AppDecorations.custom(
-              color: AppColors.onPrimary.withOpacity(0.2),
+              color: AppColors.onPrimary.withValues(alpha: 0.2),
               borderRadius: AppBorders.sm,
             ),
             child: Text(
@@ -147,82 +147,6 @@ class ExportTypeSection extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeaturesList(BuildContext context) {
-    final features = [
-      {
-        'icon': Icons.location_on,
-        'title': 'Location Data',
-        'desc': 'Plant and location information',
-      },
-      {
-        'icon': Icons.info,
-        'title': 'Asset Details',
-        'desc': 'Complete asset descriptions',
-      },
-      {
-        'icon': Icons.analytics,
-        'title': 'Status Tracking',
-        'desc': 'Current and historical status',
-      },
-    ];
-
-    return Container(
-      padding: AppSpacing.paddingLG,
-      decoration: BoxDecoration(
-        color: AppColors.onPrimary.withOpacity(0.1),
-        borderRadius: AppBorders.md,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Export Includes:',
-            style: AppTextStyles.button.copyWith(
-              color: AppColors.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          AppSpacing.verticalSpaceSM,
-          ...features.map((feature) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Row(
-                children: [
-                  Icon(
-                    feature['icon'] as IconData,
-                    color: AppColors.onPrimary,
-                    size: 18,
-                  ),
-                  AppSpacing.horizontalSpaceSM,
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          feature['title'] as String,
-                          style: AppTextStyles.body2.copyWith(
-                            color: AppColors.onPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Text(
-                          feature['desc'] as String,
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.onPrimary.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
         ],
       ),
     );

@@ -145,10 +145,10 @@ class _ScanPageViewState extends State<ScanPageView> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primary.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.2),
                   width: 2,
                 ),
               ),
@@ -193,7 +193,9 @@ class _ScanPageViewState extends State<ScanPageView> {
               decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -232,7 +234,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 color: AppColors.errorLight,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.error.withOpacity(0.3),
+                  color: AppColors.error.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -262,7 +264,9 @@ class _ScanPageViewState extends State<ScanPageView> {
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.error.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.2),
+                ),
               ),
               child: Text(
                 message,
@@ -303,7 +307,9 @@ class _ScanPageViewState extends State<ScanPageView> {
               decoration: BoxDecoration(
                 color: AppColors.backgroundSecondary,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+                border: Border.all(
+                  color: AppColors.divider.withValues(alpha: 0.5),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

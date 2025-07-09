@@ -129,9 +129,9 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
               AppSpacing.paddingVerticalXS,
             ),
             decoration: AppDecorations.chip.copyWith(
-              color: AppColors.vibrantOrange.withOpacity(0.1),
+              color: AppColors.vibrantOrange.withValues(alpha: 0.1),
               border: Border.all(
-                color: AppColors.vibrantOrange.withOpacity(0.3),
+                color: AppColors.vibrantOrange.withValues(alpha: 0.3),
               ),
             ),
             child: Text(
@@ -235,7 +235,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: AppColors.vibrantOrange.withOpacity(0.1),
+              color: AppColors.vibrantOrange.withValues(alpha: 0.1),
             ),
           ),
         ],

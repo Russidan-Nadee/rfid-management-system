@@ -242,8 +242,8 @@ class _ScanListViewState extends State<ScanListView> {
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(
-              FilterTheme.borderOpacity,
+            color: theme.colorScheme.outline.withValues(
+              alpha: FilterTheme.borderOpacity,
             ),
           ),
         ),
@@ -297,7 +297,9 @@ class _ScanListViewState extends State<ScanListView> {
                     decoration: InputDecoration(
                       hintText: 'Search locations...',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
@@ -309,8 +311,8 @@ class _ScanListViewState extends State<ScanListView> {
                           ? IconButton(
                               icon: Icon(
                                 Icons.clear,
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.6,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
                                 ),
                                 size: 18,
                               ),
@@ -330,13 +332,17 @@ class _ScanListViewState extends State<ScanListView> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.3),
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.3),
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -388,8 +394,8 @@ class _ScanListViewState extends State<ScanListView> {
                             child: Text(
                               'No locations found matching "${_locationSearchQuery}"',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.6,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
                                 ),
                                 fontSize: 14,
                               ),
@@ -433,8 +439,8 @@ class _ScanListViewState extends State<ScanListView> {
         color: theme.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(
-              FilterTheme.borderOpacity,
+            color: theme.colorScheme.outline.withValues(
+              alpha: FilterTheme.borderOpacity,
             ),
           ),
         ),
@@ -565,11 +571,11 @@ class _ScanListViewState extends State<ScanListView> {
                     ? theme.colorScheme.primary
                     : theme.colorScheme.primary)
               : (isAllLocations
-                    ? theme.colorScheme.primary.withOpacity(
-                        FilterTheme.surfaceOpacity,
+                    ? theme.colorScheme.primary.withValues(
+                        alpha: FilterTheme.surfaceOpacity,
                       )
-                    : theme.colorScheme.primary.withOpacity(
-                        FilterTheme.surfaceOpacity,
+                    : theme.colorScheme.primary.withValues(
+                        alpha: FilterTheme.surfaceOpacity,
                       )),
           borderRadius: AppBorders.lg,
           border: Border.all(
@@ -645,7 +651,7 @@ class _ScanListViewState extends State<ScanListView> {
         decoration: BoxDecoration(
           color: isSelected
               ? color
-              : color.withOpacity(FilterTheme.surfaceOpacity),
+              : color.withValues(alpha: FilterTheme.surfaceOpacity),
           borderRadius: AppBorders.lg,
           border: Border.all(
             color: color,
@@ -688,16 +694,16 @@ class _ScanListViewState extends State<ScanListView> {
             width: ScanListConstants.iconContainerSize,
             height: ScanListConstants.iconContainerSize,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(
-                FilterTheme.surfaceOpacity,
+              color: theme.colorScheme.primary.withValues(
+                alpha: FilterTheme.surfaceOpacity,
               ),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isLocationFilter ? Icons.location_off : Icons.filter_list_off,
               size: ScanListConstants.emptyStateIconSize,
-              color: theme.colorScheme.primary.withOpacity(
-                FilterTheme.textSecondaryOpacity,
+              color: theme.colorScheme.primary.withValues(
+                alpha: FilterTheme.textSecondaryOpacity,
               ),
             ),
           ),
@@ -707,8 +713,8 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             isLocationFilter ? 'No items in $location' : 'No $filter items',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(
-                FilterTheme.textSecondaryOpacity,
+              color: theme.colorScheme.onBackground.withValues(
+                alpha: FilterTheme.textSecondaryOpacity,
               ),
             ),
           ),
@@ -720,8 +726,8 @@ class _ScanListViewState extends State<ScanListView> {
                 ? 'Try selecting a different location or scan again'
                 : 'Try selecting a different filter or scan again',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(
-                FilterTheme.textTertiaryOpacity,
+              color: theme.colorScheme.onBackground.withValues(
+                alpha: FilterTheme.textTertiaryOpacity,
               ),
             ),
             textAlign: TextAlign.center,
@@ -740,16 +746,16 @@ class _ScanListViewState extends State<ScanListView> {
             width: ScanListConstants.iconContainerSize,
             height: ScanListConstants.iconContainerSize,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(
-                FilterTheme.surfaceOpacity,
+              color: theme.colorScheme.primary.withValues(
+                alpha: FilterTheme.surfaceOpacity,
               ),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.qr_code_scanner,
               size: ScanListConstants.emptyStateIconSize,
-              color: theme.colorScheme.primary.withOpacity(
-                FilterTheme.textSecondaryOpacity,
+              color: theme.colorScheme.primary.withValues(
+                alpha: FilterTheme.textSecondaryOpacity,
               ),
             ),
           ),
@@ -759,8 +765,8 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             'No scanned items',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(
-                FilterTheme.textSecondaryOpacity,
+              color: theme.colorScheme.onBackground.withValues(
+                alpha: FilterTheme.textSecondaryOpacity,
               ),
             ),
           ),
@@ -770,8 +776,8 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             'Tap the scan button to start scanning RFID tags',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(
-                FilterTheme.textTertiaryOpacity,
+              color: theme.colorScheme.onBackground.withValues(
+                alpha: FilterTheme.textTertiaryOpacity,
               ),
             ),
             textAlign: TextAlign.center,

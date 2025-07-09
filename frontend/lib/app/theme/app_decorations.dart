@@ -95,7 +95,7 @@ class AppShadows {
   // Colored shadows for interactive elements
   static List<BoxShadow> primary = [
     BoxShadow(
-      color: AppColors.primary.withOpacity(0.2),
+      color: AppColors.primary.withValues(alpha: 0.2),
       blurRadius: 16,
       offset: const Offset(0, 6),
       spreadRadius: 0,
@@ -104,7 +104,7 @@ class AppShadows {
 
   static List<BoxShadow> success = [
     BoxShadow(
-      color: AppColors.success.withOpacity(0.2),
+      color: AppColors.success.withValues(alpha: 0.2),
       blurRadius: 16,
       offset: const Offset(0, 6),
       spreadRadius: 0,
@@ -113,7 +113,7 @@ class AppShadows {
 
   static List<BoxShadow> error = [
     BoxShadow(
-      color: AppColors.error.withOpacity(0.2),
+      color: AppColors.error.withValues(alpha: 0.2),
       blurRadius: 16,
       offset: const Offset(0, 6),
       spreadRadius: 0,
@@ -123,7 +123,7 @@ class AppShadows {
   // Vibrant shadows - NEW
   static List<BoxShadow> vibrantOrange = [
     BoxShadow(
-      color: AppColors.vibrantOrange.withOpacity(0.25),
+      color: AppColors.vibrantOrange.withValues(alpha: 0.25),
       blurRadius: 20,
       offset: const Offset(0, 8),
       spreadRadius: 0,
@@ -132,7 +132,7 @@ class AppShadows {
 
   static List<BoxShadow> vibrantBlue = [
     BoxShadow(
-      color: AppColors.vibrantBlue.withOpacity(0.25),
+      color: AppColors.vibrantBlue.withValues(alpha: 0.25),
       blurRadius: 20,
       offset: const Offset(0, 8),
       spreadRadius: 0,
@@ -358,27 +358,27 @@ class AppDecorations {
   static BoxDecoration success = BoxDecoration(
     color: AppColors.successLight,
     borderRadius: AppBorders.md, // Now 16px
-    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+    border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
     boxShadow: AppShadows.success,
   );
 
   static BoxDecoration warning = BoxDecoration(
     color: AppColors.warningLight,
     borderRadius: AppBorders.md, // Now 16px
-    border: Border.all(color: AppColors.warning.withOpacity(0.2)),
+    border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
   );
 
   static BoxDecoration error = BoxDecoration(
     color: AppColors.errorLight,
     borderRadius: AppBorders.md, // Now 16px
-    border: Border.all(color: AppColors.error.withOpacity(0.2)),
+    border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
     boxShadow: AppShadows.error,
   );
 
   static BoxDecoration info = BoxDecoration(
     color: AppColors.infoLight,
     borderRadius: AppBorders.md, // Now 16px
-    border: Border.all(color: AppColors.info.withOpacity(0.2)),
+    border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
   );
 
   // Gradient decorations - Modern depth with increased radius
@@ -496,7 +496,7 @@ class AppDecorations {
   static BoxDecoration cardForTheme(ThemeData theme) => BoxDecoration(
     color: theme.cardColor,
     borderRadius: AppBorders.lg, // Now 20px
-    border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+    border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
     boxShadow: theme.brightness == Brightness.light
         ? AppShadows.small
         : AppShadows.none,
@@ -504,9 +504,9 @@ class AppDecorations {
 
   // Glass morphism effect - Enhanced
   static BoxDecoration get glassMorphism => BoxDecoration(
-    color: AppColors.surface.withOpacity(0.8),
+    color: AppColors.surface.withValues(alpha: 0.8),
     borderRadius: AppBorders.lg, // Now 20px
-    border: Border.all(color: AppColors.surface.withOpacity(0.2)),
+    border: Border.all(color: AppColors.surface.withValues(alpha: 0.2)),
     boxShadow: AppShadows.medium,
   );
 
@@ -534,7 +534,7 @@ class AppDecorations {
   static BoxDecoration get listItemSelected => BoxDecoration(
     color: AppColors.primarySurface,
     borderRadius: AppBorders.md, // Now 16px
-    border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
   );
 
   // Badge decorations
@@ -607,7 +607,7 @@ class AppDecorations {
   static BoxDecoration get material3Card => BoxDecoration(
     color: AppColors.surface,
     borderRadius: AppBorders.lg, // 20px
-    border: Border.all(color: AppColors.cardBorder.withOpacity(0.5)),
+    border: Border.all(color: AppColors.cardBorder.withValues(alpha: 0.5)),
     boxShadow: AppShadows.small,
   );
 }

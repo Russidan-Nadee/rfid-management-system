@@ -283,9 +283,9 @@ class ExportItemCard extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: _getStatusColor().withOpacity(0.1),
+        color: _getStatusColor().withValues(alpha: 0.1),
         borderRadius: AppBorders.sm,
-        border: Border.all(color: _getStatusColor().withOpacity(0.3)),
+        border: Border.all(color: _getStatusColor().withValues(alpha: 0.3)),
       ),
       child: Text(
         export.statusLabel,
@@ -313,7 +313,7 @@ class ExportItemCard extends StatelessWidget {
           boxShadow: canDownload
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -366,7 +366,7 @@ class ExportItemCard extends StatelessWidget {
       boxShadow: isLarge
           ? [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withValues(alpha: 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -377,7 +377,7 @@ class ExportItemCard extends StatelessWidget {
 
   BoxDecoration _buildStatusIconDecoration() {
     return AppDecorations.custom(
-      color: _getStatusColor().withOpacity(0.1),
+      color: _getStatusColor().withValues(alpha: 0.1),
       borderRadius: AppBorders.circular,
     );
   }

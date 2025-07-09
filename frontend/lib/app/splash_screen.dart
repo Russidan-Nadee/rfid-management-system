@@ -92,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
                   Text(
                     'Version ${AppConstants.appVersion}',
                     style: AppTextStyles.body2.copyWith(
-                      color: AppColors.onPrimary.withOpacity(0.8),
+                      color: AppColors.onPrimary.withValues(alpha: 0.8),
                     ),
                   ),
 
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                   Text(
                     'Loading...',
                     style: AppTextStyles.body2.copyWith(
-                      color: AppColors.onPrimary.withOpacity(0.9),
+                      color: AppColors.onPrimary.withValues(alpha: 0.9),
                     ),
                   ),
                 ],

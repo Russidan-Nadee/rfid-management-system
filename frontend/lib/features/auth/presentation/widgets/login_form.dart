@@ -164,7 +164,6 @@ class _LoginFormState extends State<LoginForm> {
           onPressed: isLoading
               ? null
               : () {
-                  // TODO: Implement forgot password
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Forgot password feature coming soon'),

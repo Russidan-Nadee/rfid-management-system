@@ -118,7 +118,7 @@ class AssetCard extends StatelessWidget {
       width: 48.0,
       height: 48.0,
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: AppBorders.medium,
       ),
       child: Icon(statusIcon, color: statusColor, size: 24.0),
@@ -146,7 +146,7 @@ class AssetCard extends StatelessWidget {
         Text(
           'Asset No: ${item.assetNo}',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
 
@@ -187,14 +187,14 @@ class AssetCard extends StatelessWidget {
           Icon(
             Icons.location_on,
             size: 12.0,
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
           AppSpacing.horizontalSpaceXS,
           Expanded(
             child: Text(
               item.locationName!,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -209,7 +209,7 @@ class AssetCard extends StatelessWidget {
       item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
       color: item.isUnknown
           ? AppColors.warning
-          : theme.colorScheme.onSurface.withOpacity(0.4),
+          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
     );
   }
 

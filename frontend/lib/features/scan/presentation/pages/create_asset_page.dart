@@ -151,7 +151,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
@@ -182,7 +182,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.1),
+              color: AppColors.success.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: CircularProgressIndicator(
@@ -224,7 +224,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(

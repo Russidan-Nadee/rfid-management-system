@@ -117,13 +117,13 @@ class AppInfoWidget extends StatelessWidget {
         subtitle,
         style: TextStyle(
           fontSize: 12,
-          color: theme.colorScheme.onSurface.withOpacity(0.7),
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
         ),
       ),
       trailing: isAction
           ? Icon(
               Icons.chevron_right,
-              color: theme.colorScheme.onSurface.withOpacity(0.4),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
             )
           : null,
       onTap: onTap,

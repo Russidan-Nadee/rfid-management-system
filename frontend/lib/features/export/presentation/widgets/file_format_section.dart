@@ -1,6 +1,5 @@
 // Path: frontend/lib/features/export/presentation/widgets/file_format_section.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/app/theme/app_decorations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';

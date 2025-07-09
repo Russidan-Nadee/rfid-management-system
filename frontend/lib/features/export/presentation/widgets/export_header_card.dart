@@ -37,20 +37,20 @@ class ExportHeaderCard extends StatelessWidget {
     return AppDecorations.card.copyWith(
       color: AppColors.primarySurface,
       border: Border.all(
-        color: AppColors.primary.withOpacity(0.2),
+        color: AppColors.primary.withValues(alpha: 0.2),
         width: isLargeScreen ? 2 : 1,
       ),
       boxShadow: isLargeScreen
           ? [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ]
           : [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -173,7 +173,7 @@ class ExportHeaderCard extends StatelessWidget {
 
   Color _getSubtitleColor(ThemeData theme) {
     return theme.brightness == Brightness.dark
-        ? AppColors.onPrimary.withOpacity(0.8)
+        ? AppColors.onPrimary.withValues(alpha: 0.8)
         : AppColors.textSecondary;
   }
 }

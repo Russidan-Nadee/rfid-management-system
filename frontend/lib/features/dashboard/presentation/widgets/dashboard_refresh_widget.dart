@@ -53,11 +53,11 @@ class _LastRefreshIndicator extends StatelessWidget {
       padding: AppSpacing.paddingHorizontalSM.add(AppSpacing.paddingVerticalXS),
       decoration: AppDecorations.chip.copyWith(
         color: isRecent
-            ? AppColors.success.withOpacity(0.1)
+            ? AppColors.success.withValues(alpha: 0.1)
             : AppColors.backgroundSecondary,
         border: Border.all(
           color: isRecent
-              ? AppColors.success.withOpacity(0.3)
+              ? AppColors.success.withValues(alpha: 0.3)
               : AppColors.divider,
         ),
       ),
@@ -241,8 +241,8 @@ class _DataFreshnessIndicator extends StatelessWidget {
           AppSpacing.paddingVerticalXS,
         ),
         decoration: AppDecorations.chip.copyWith(
-          color: indicatorColor.withOpacity(0.1),
-          border: Border.all(color: indicatorColor.withOpacity(0.3)),
+          color: indicatorColor.withValues(alpha: 0.1),
+          border: Border.all(color: indicatorColor.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -369,7 +369,7 @@ class _SimpleRefreshButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.primary.withOpacity(0.1),
+      color: AppColors.primary.withValues(alpha: 0.1),
       borderRadius: AppBorders.medium,
       child: InkWell(
         onTap: onPressed,
@@ -448,7 +448,7 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
                       setState(() => _selectedInterval = interval);
                     }
                   },
-                  selectedColor: AppColors.primary.withOpacity(0.2),
+                  selectedColor: AppColors.primary.withValues(alpha: 0.2),
                   labelStyle: TextStyle(
                     color: isSelected ? AppColors.primary : null,
                     fontWeight: isSelected ? FontWeight.w600 : null,
@@ -488,7 +488,6 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            // TODO: Implement auto refresh logic
             Navigator.of(context).pop();
             _showAutoRefreshToast(context);
           },

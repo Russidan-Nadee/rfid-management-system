@@ -440,14 +440,6 @@ class SearchCacheDataSourceImpl implements SearchCacheDataSource {
     return storageService.getString('last_cache_cleanup');
   }
 
-  /// Mark cleanup time
-  Future<void> _markCleanupTime() async {
-    await storageService.setString(
-      'last_cache_cleanup',
-      DateTime.now().toIso8601String(),
-    );
-  }
-
   /// Get cache entry age
   Future<Duration?> getCacheAge(String cacheKey) async {
     try {

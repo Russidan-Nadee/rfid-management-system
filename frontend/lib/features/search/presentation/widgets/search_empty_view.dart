@@ -18,13 +18,13 @@ class SearchEmptyView extends StatelessWidget {
             Icon(
               Icons.search_off,
               size: 64,
-              color: theme.colorScheme.onBackground.withOpacity(0.5),
+              color: theme.colorScheme.onBackground.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               'No results found for "$query"', // Changed to English
               style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.7),
+                color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -32,7 +32,7 @@ class SearchEmptyView extends StatelessWidget {
             Text(
               'Try a different search term or check your spelling.', // Changed to English
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.6),
+                color: theme.colorScheme.onBackground.withValues(alpha: 0.6),
               ),
               textAlign: TextAlign.center,
             ),

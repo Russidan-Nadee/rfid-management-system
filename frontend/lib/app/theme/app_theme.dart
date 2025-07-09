@@ -353,7 +353,7 @@ class AppTheme {
   // Chip Theme - Light เก็บเดิม
   static ChipThemeData get chipTheme => ChipThemeData(
     backgroundColor: AppColors.backgroundSecondary,
-    selectedColor: AppColors.primary.withOpacity(0.1),
+    selectedColor: AppColors.primary.withValues(alpha: 0.1),
     disabledColor: AppColors.backgroundTertiary,
     padding: AppSpacing.paddingSmall,
     labelStyle: AppTextStyles.caption,
@@ -365,7 +365,7 @@ class AppTheme {
   // Dark Chip - Claude style
   static ChipThemeData get darkChipTheme => ChipThemeData(
     backgroundColor: AppColors.darkSurfaceVariant,
-    selectedColor: AppColors.primary.withOpacity(0.2),
+    selectedColor: AppColors.primary.withValues(alpha: 0.2),
     disabledColor: AppColors.darkBorder,
     padding: AppSpacing.paddingSmall,
     labelStyle: AppTextStyles.caption.copyWith(color: AppColors.darkText),
@@ -514,7 +514,7 @@ class AppTheme {
     }),
     trackColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
-        return AppColors.primary.withOpacity(0.3);
+        return AppColors.primary.withValues(alpha: 0.3);
       }
       return AppColors.backgroundSecondary;
     }),

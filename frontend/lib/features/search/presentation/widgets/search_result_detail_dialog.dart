@@ -45,7 +45,7 @@ class SearchResultDetailDialog extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -70,7 +70,7 @@ class SearchResultDetailDialog extends StatelessWidget {
                 Text(
                   result.entityType.toUpperCase(),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary.withOpacity(0.7),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -133,7 +133,7 @@ class SearchResultDetailDialog extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -151,10 +151,10 @@ class SearchResultDetailDialog extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+              color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.2),
+                color: theme.colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -191,7 +191,7 @@ class SearchResultDetailDialog extends StatelessWidget {
               '$label:',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withOpacity(0.8),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ),
@@ -200,7 +200,7 @@ class SearchResultDetailDialog extends StatelessWidget {
               value.isEmpty ? '(empty)' : value,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: value.isEmpty
-                    ? theme.colorScheme.onSurface.withOpacity(0.4)
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
                     : theme.colorScheme.onSurface,
               ),
             ),
@@ -221,7 +221,7 @@ class SearchResultDetailDialog extends StatelessWidget {
               child: Icon(
                 Icons.copy,
                 size: 12,
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -237,7 +237,9 @@ class SearchResultDetailDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outline.withOpacity(0.2)),
+          top: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+          ),
         ),
       ),
       child: Row(
@@ -340,14 +342,6 @@ class SearchResultDetailDialog extends StatelessWidget {
         fieldName.contains('quantity') ||
         fieldName.contains('unit') ||
         fieldName.contains('status');
-  }
-
-  bool _isLocationField(String fieldName) {
-    return fieldName.contains('plant') || fieldName.contains('location');
-  }
-
-  bool _isDepartmentField(String fieldName) {
-    return fieldName.contains('dept');
   }
 
   bool _isUserField(String fieldName) {

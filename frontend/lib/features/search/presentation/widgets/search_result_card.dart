@@ -30,15 +30,15 @@ class SearchResultCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: theme.colorScheme.onBackground.withOpacity(0.05),
+          color: theme.colorScheme.onBackground.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
       child: InkWell(
         onTap: onTapped,
         borderRadius: BorderRadius.circular(8),
-        highlightColor: theme.colorScheme.primary.withOpacity(0.05),
-        splashColor: theme.colorScheme.primary.withOpacity(0.03),
+        highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
+        splashColor: theme.colorScheme.primary.withValues(alpha: 0.03),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
           child: Row(
@@ -63,7 +63,9 @@ class SearchResultCard extends StatelessWidget {
                     Text(
                       assetNo.isNotEmpty ? assetNo : 'No asset number',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -74,7 +76,7 @@ class SearchResultCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 14,
-                color: theme.colorScheme.onSurface.withOpacity(0.3),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
               ),
             ],
           ),

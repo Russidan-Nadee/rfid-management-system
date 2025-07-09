@@ -291,21 +291,6 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     }
   }
 
-  /// Create timeout-aware request
-  Future<T> _requestWithTimeout<T>(
-    Future<T> Function() request, {
-    Duration timeout = const Duration(seconds: 10),
-  }) async {
-    try {
-      return await request().timeout(timeout);
-    } catch (e) {
-      if (e.toString().contains('timeout')) {
-        throw SearchTimeoutException();
-      }
-      rethrow;
-    }
-  }
-
   /// Batch search requests for multiple entities
   Future<Map<String, SearchResponseModel>> batchSearch(
     String query,

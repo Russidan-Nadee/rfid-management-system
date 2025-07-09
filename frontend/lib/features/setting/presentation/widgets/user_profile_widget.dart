@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/setting/presentation/widgets/user_profile_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../l10n/features/settings/settings_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -65,8 +66,8 @@ class UserProfileWidget extends StatelessWidget {
                               '@${user.username}',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: theme.colorScheme.onSurface.withOpacity(
-                                  0.7,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.7,
                                 ),
                               ),
                             ),
@@ -79,9 +80,16 @@ class UserProfileWidget extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.1,
-                                ),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? theme.colorScheme.surface.withValues(
+                                        alpha: 0.3,
+                                      )
+                                    : theme.colorScheme.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -89,7 +97,11 @@ class UserProfileWidget extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: theme.colorScheme.primary,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? AppColors.darkTextSecondary
+                                      : theme.colorScheme.primary,
                                 ),
                               ),
                             ),
@@ -114,15 +126,17 @@ class UserProfileWidget extends StatelessWidget {
                           Icon(
                             Icons.access_time,
                             size: 16,
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '${l10n.lastLogin}: ${Helpers.formatTimeAgo(user.lastLogin)}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
                               ),
                             ),
                           ),

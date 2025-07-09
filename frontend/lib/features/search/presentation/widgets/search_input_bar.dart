@@ -30,12 +30,12 @@ class SearchInputBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: 'Search...', // Placeholder text
           hintStyle: TextStyle(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
           filled: true,
           // Decoration: TextField fill color is a very light primary color
-          fillColor: theme.colorScheme.primary.withOpacity(
-            0.05,
+          fillColor: theme.colorScheme.primary.withValues(
+            alpha: 0.05,
           ), // Light blue fill for the search field
           border: OutlineInputBorder(
             // No border for the TextField
@@ -51,8 +51,8 @@ class SearchInputBar extends StatelessWidget {
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: theme.colorScheme.onSurface.withOpacity(
-                      0.6,
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: 0.6,
                     ), // Clear icon color
                   ),
                   onPressed: onClear,

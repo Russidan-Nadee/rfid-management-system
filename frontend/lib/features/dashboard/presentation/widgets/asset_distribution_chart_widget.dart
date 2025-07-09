@@ -321,7 +321,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
           return Container(
             padding: AppSpacing.paddingXS,
             decoration: BoxDecoration(
-              color: _getColorForIndex(index).withOpacity(0.1),
+              color: _getColorForIndex(index).withValues(alpha: 0.1),
               borderRadius: AppBorders.small,
             ),
             child: Row(

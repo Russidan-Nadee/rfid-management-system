@@ -94,7 +94,9 @@ class _ExportPageState extends State<ExportPage>
           indicatorColor: AppColors.primary,
           indicatorWeight: 3,
           labelColor: AppColors.primary,
-          unselectedLabelColor: theme.colorScheme.onSurface.withOpacity(0.6),
+          unselectedLabelColor: theme.colorScheme.onSurface.withValues(
+            alpha: 0.6,
+          ),
           labelStyle: AppTextStyles.button.copyWith(fontSize: 13),
           unselectedLabelStyle: AppTextStyles.button.copyWith(fontSize: 13),
           tabs: const [
@@ -135,7 +137,7 @@ class _ExportPageState extends State<ExportPage>
                 color: AppColors.surface,
                 border: Border(
                   right: BorderSide(
-                    color: AppColors.divider.withOpacity(0.5),
+                    color: AppColors.divider.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),
@@ -177,7 +179,7 @@ class _ExportPageState extends State<ExportPage>
                         color: AppColors.primarySurface,
                         borderRadius: AppBorders.md,
                         border: Border.all(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -258,7 +260,7 @@ class _ExportPageState extends State<ExportPage>
           subtitle,
           style: AppTextStyles.caption.copyWith(
             color: isSelected
-                ? AppColors.onPrimary.withOpacity(0.8)
+                ? AppColors.onPrimary.withValues(alpha: 0.8)
                 : AppColors.textSecondary,
           ),
         ),

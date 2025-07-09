@@ -558,7 +558,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
               decoration: BoxDecoration(
                 color: AppColors.errorLight,
                 borderRadius: AppBorders.md,
-                border: Border.all(color: AppColors.error.withOpacity(0.2)),
+                border: Border.all(
+                  color: AppColors.error.withValues(alpha: 0.2),
+                ),
               ),
               child: Text(
                 message,
@@ -726,7 +728,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       padding: AppSpacing.paddingLG,
       decoration: AppDecorations.card.copyWith(
         color: AppColors.backgroundSecondary,
-        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [

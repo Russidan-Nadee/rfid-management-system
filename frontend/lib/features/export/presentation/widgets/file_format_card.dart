@@ -68,8 +68,8 @@ class FileFormatCard extends StatelessWidget {
               style: AppTextStyles.caption.copyWith(
                 fontSize: screenWidth >= 1024 ? 13 : 12,
                 color: isSelected
-                    ? Colors.white.withOpacity(0.9)
-                    : theme.colorScheme.onSurface.withOpacity(0.7),
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -85,7 +85,7 @@ class FileFormatCard extends StatelessWidget {
         borderRadius: AppBorders.lg,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -96,12 +96,12 @@ class FileFormatCard extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: AppBorders.lg,
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
+          color: theme.colorScheme.outline.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

@@ -343,7 +343,7 @@ class ProgressCard extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: progress,
                     strokeWidth: 12,
-                    backgroundColor: theme.dividerColor.withOpacity(0.2),
+                    backgroundColor: theme.dividerColor.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
@@ -400,7 +400,7 @@ class InfoCard extends StatelessWidget {
     return DashboardCard(
       onTap: onTap,
       decoration: AppDecorations.card.copyWith(
-        border: Border.all(color: cardColor.withOpacity(0.3)),
+        border: Border.all(color: cardColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -408,7 +408,7 @@ class InfoCard extends StatelessWidget {
             Container(
               padding: AppSpacing.paddingSmall,
               decoration: BoxDecoration(
-                color: cardColor.withOpacity(0.1),
+                color: cardColor.withValues(alpha: 0.1),
                 borderRadius: AppBorders.medium,
               ),
               child: Icon(icon, color: cardColor, size: 24),

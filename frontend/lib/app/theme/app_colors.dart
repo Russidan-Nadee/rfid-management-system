@@ -77,10 +77,10 @@ class AppColors {
   // Interactive States
   static const Color selected = primary;
   static const Color unselected = textSecondary;
-  static Color hover = primary.withOpacity(0.08);
-  static Color pressed = primary.withOpacity(0.12);
-  static Color focus = primary.withOpacity(0.12);
-  static Color disabled = textMuted.withOpacity(0.38);
+  static Color hover = primary.withValues(alpha: 0.08);
+  static Color pressed = primary.withValues(alpha: 0.12);
+  static Color focus = primary.withValues(alpha: 0.12);
+  static Color disabled = textMuted.withValues(alpha: 0.38);
 
   //export
   static const Color excel = Colors.green;
@@ -155,7 +155,7 @@ class AppColors {
   }
 
   static Color getStatusColorWithOpacity(String status, double opacity) {
-    return getStatusColor(status).withOpacity(opacity);
+    return getStatusColor(status).withValues(alpha: opacity);
   }
 
   static Color getTrendColor(String trend) {

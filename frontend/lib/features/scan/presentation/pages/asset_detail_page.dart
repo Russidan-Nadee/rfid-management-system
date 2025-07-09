@@ -342,7 +342,7 @@ class AssetDetailView extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               _getStatusColor(item.status, theme),
-              _getStatusColor(item.status, theme).withOpacity(0.8),
+              _getStatusColor(item.status, theme).withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
@@ -368,7 +368,7 @@ class AssetDetailView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -436,7 +436,7 @@ class AssetDetailView extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
