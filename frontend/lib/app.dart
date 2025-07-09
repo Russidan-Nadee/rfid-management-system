@@ -19,17 +19,20 @@ class AssetManagementApp extends StatelessWidget {
       create: (context) => getIt<SettingsBloc>()..add(const LoadSettings()),
       child: BlocBuilder<SettingsBloc, SettingsState>(
         buildWhen: (previous, current) {
-          // Rebuild เมื่อ language เปลี่ยน
+          // Rebuild เมื่อ language หรือ theme เปลี่ยน
           if (previous is SettingsLoaded && current is SettingsLoaded) {
-            return previous.settings.language != current.settings.language;
+            return previous.settings.language != current.settings.language ||
+                previous.settings.themeMode != current.settings.themeMode;
           }
           return current is SettingsLoaded;
         },
         builder: (context, state) {
           Locale locale = const Locale('en'); // Default locale
+          ThemeMode themeMode = ThemeMode.system; // Default theme mode
 
           if (state is SettingsLoaded) {
             locale = Locale(state.settings.language);
+            themeMode = _getThemeMode(state.settings.themeMode);
           }
 
           return MaterialApp(
@@ -39,8 +42,7 @@ class AssetManagementApp extends StatelessWidget {
             // ใช้ Enhanced Theme ที่สร้างไว้
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-
+            themeMode: themeMode, // ใช้จาก settings แล้ว
             // เพิ่ม Localization Delegates
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
@@ -64,5 +66,18 @@ class AssetManagementApp extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// แปลง theme mode string เป็น ThemeMode enum
+  ThemeMode _getThemeMode(String themeMode) {
+    switch (themeMode.toLowerCase()) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      case 'system':
+      default:
+        return ThemeMode.system;
+    }
   }
 }

@@ -13,10 +13,43 @@ class SettingsLocalizationsJa extends SettingsLocalizations {
   String get language => '言語';
 
   @override
+  String get theme => 'テーマ';
+
+  @override
   String get about => 'について';
 
   @override
   String get appDescription => 'アセット管理システム';
+
+  @override
+  String get themeLight => 'ライトモード';
+
+  @override
+  String get themeDark => 'ダークモード';
+
+  @override
+  String get themeSystem => 'システム設定';
+
+  @override
+  String get themeLightDescription => 'ライトテーマを使用';
+
+  @override
+  String get themeDarkDescription => 'ダークテーマを使用';
+
+  @override
+  String get themeSystemDescription => 'システム設定に従う';
+
+  @override
+  String get themeChanged => 'テーマを更新しました';
+
+  @override
+  String get themeChangedToLight => 'ライトテーマに変更しました';
+
+  @override
+  String get themeChangedToDark => 'ダークテーマに変更しました';
+
+  @override
+  String get themeChangedToSystem => 'システムテーマに変更しました';
 
   @override
   String get version => 'バージョン';

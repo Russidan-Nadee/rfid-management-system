@@ -13,9 +13,45 @@ class SettingsLocalizationsEn extends SettingsLocalizations {
   String get language => 'Language';
 
   @override
+  String get theme => 'Theme'; // NEW
+
+  @override
   String get about => 'About';
 
+  @override
   String get appDescription => 'Asset Management System';
+
+  // Theme Options - NEW
+  @override
+  String get themeLight => 'Light Mode';
+
+  @override
+  String get themeDark => 'Dark Mode';
+
+  @override
+  String get themeSystem => 'System Default';
+
+  // Theme Descriptions - NEW
+  @override
+  String get themeLightDescription => 'Use light theme';
+
+  @override
+  String get themeDarkDescription => 'Use dark theme';
+
+  @override
+  String get themeSystemDescription => 'Follow system settings';
+
+  @override
+  String get themeChanged => 'Theme updated';
+
+  @override
+  String get themeChangedToLight => 'Changed to light theme';
+
+  @override
+  String get themeChangedToDark => 'Changed to dark theme';
+
+  @override
+  String get themeChangedToSystem => 'Changed to system theme';
 
   @override
   String get version => 'Version';

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
+import 'package:frontend/features/setting/presentation/widgets/theme_selector_widget.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../l10n/features/settings/settings_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -126,16 +127,28 @@ class SettingsPageView extends StatelessWidget {
 
           const SizedBox(height: 24),
 
+          _buildSectionTitle(theme, l10n.theme),
+
+          const SizedBox(height: 12),
+
+          const ThemeSelectorWidget(),
+
+          const SizedBox(height: 24),
+
           // Language Section
           _buildSectionTitle(theme, l10n.language),
+
           const SizedBox(height: 12),
+
           const LanguageSelectorWidget(),
 
           const SizedBox(height: 24),
 
           // About Section
           _buildSectionTitle(theme, l10n.about),
+
           const SizedBox(height: 12),
+
           const AppInfoWidget(),
 
           const SizedBox(height: 24),

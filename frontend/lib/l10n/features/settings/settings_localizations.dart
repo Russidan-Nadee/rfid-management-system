@@ -28,9 +28,26 @@ abstract class SettingsLocalizations {
   String get language;
 
   // Sections
+  String get theme;
   String get about;
 
   String get appDescription;
+
+  // Theme Options - NEW
+  String get themeLight;
+  String get themeDark;
+  String get themeSystem;
+
+  // Theme Descriptions - NEW
+  String get themeLightDescription;
+  String get themeDarkDescription;
+  String get themeSystemDescription;
+
+  // Theme Change Messages - NEW
+  String get themeChanged;
+  String get themeChangedToLight;
+  String get themeChangedToDark;
+  String get themeChangedToSystem;
 
   // App Info Labels
   String get version;

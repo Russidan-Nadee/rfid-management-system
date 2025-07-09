@@ -224,14 +224,26 @@ class AppColors {
     'onSurface': textPrimary,
   };
 
+  // ===== CLAUDE-STYLE DARK SCHEME =====
   static Map<String, Color> get darkScheme => {
-    'primary': primaryLight,
-    'background': Color(0xFF0F172A),
-    'surface': Color(0xFF1E293B),
+    'primary': primary, // เก็บ navy blue เดิม
+    'background': Color(0xFF1A1A1A), // Claude dark gray
+    'surface': Color(0xFF2D2D2D), // Medium gray cards
     'onPrimary': onPrimary,
-    'onBackground': Color(0xFFF8FAFC),
-    'onSurface': Color(0xFFE2E8F0),
+    'onBackground': Color(0xFFE5E5E5), // Off-white text
+    'onSurface': Color(0xFFE5E5E5), // Off-white text
   };
+
+  // Dark Theme Specific Colors
+  static const Color darkBackground = Color(0xFF1A1A1A); // Claude-style
+  static const Color darkSurface = Color(0xFF2D2D2D); // Cards/containers
+  static const Color darkSurfaceVariant = Color(
+    0xFF343434,
+  ); // Elevated surfaces
+  static const Color darkBorder = Color(0xFF404040); // Borders/dividers
+  static const Color darkText = Color(0xFFE5E5E5); // Primary text
+  static const Color darkTextSecondary = Color(0xFFB3B3B3); // Secondary text
+  static const Color darkTextMuted = Color(0xFF808080); // Muted text
 
   static List<LinearGradient> get modernGradients => [
     primaryGradient,
