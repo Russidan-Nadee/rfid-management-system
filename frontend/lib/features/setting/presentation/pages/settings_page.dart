@@ -1,4 +1,3 @@
-// Path: frontend/lib/features/setting/presentation/pages/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
@@ -18,7 +17,6 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ใช้ existing SettingsBloc จาก app.dart
     return const SettingsPageView();
   }
 }
@@ -96,7 +94,7 @@ class SettingsPageView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red),
+          const Icon(Icons.error_outline, size: 64, color: Colors.red),
           const SizedBox(height: 16),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 16),
@@ -117,45 +115,102 @@ class SettingsPageView extends StatelessWidget {
     ThemeData theme,
     SettingsLocalizations l10n,
   ) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // User Profile Section
-          const UserProfileWidget(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double maxWidth = constraints.maxWidth;
+        double spacing = 16.0;
 
-          const SizedBox(height: 24),
+        bool isMobile = maxWidth < 600;
 
-          _buildSectionTitle(theme, l10n.theme),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              const UserProfileWidget(),
+              const SizedBox(height: 24),
 
-          const SizedBox(height: 12),
+              // แก้ไขตรงนี้ เอา const ออกจาก SizedBox ที่ใช้ spacing
+              isMobile
+                  ? Column(
+                      children: [
+                        _buildFlexibleCard(
+                          theme,
+                          l10n.theme,
+                          const ThemeSelectorWidget(),
+                          maxWidth,
+                        ),
+                        SizedBox(height: spacing),
+                        _buildFlexibleCard(
+                          theme,
+                          l10n.language,
+                          const LanguageSelectorWidget(),
+                          maxWidth,
+                        ),
+                      ],
+                    )
+                  : IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _buildFlexibleCard(
+                              theme,
+                              l10n.theme,
+                              const ThemeSelectorWidget(),
+                              (maxWidth - spacing) / 2,
+                            ),
+                          ),
+                          SizedBox(width: spacing),
+                          Expanded(
+                            child: _buildFlexibleCard(
+                              theme,
+                              l10n.language,
+                              const LanguageSelectorWidget(),
+                              (maxWidth - spacing) / 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-          const ThemeSelectorWidget(),
+              SizedBox(height: 16),
+              _buildFlexibleCard(
+                theme,
+                l10n.about,
+                const AppInfoWidget(),
+                maxWidth,
+              ),
+              const SizedBox(height: 24),
+              _buildLogoutButton(context, theme, l10n),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-          const SizedBox(height: 24),
-
-          // Language Section
-          _buildSectionTitle(theme, l10n.language),
-
-          const SizedBox(height: 12),
-
-          const LanguageSelectorWidget(),
-
-          const SizedBox(height: 24),
-
-          // About Section
-          _buildSectionTitle(theme, l10n.about),
-
-          const SizedBox(height: 12),
-
-          const AppInfoWidget(),
-
-          const SizedBox(height: 24),
-
-          // Logout Button
-          _buildLogoutButton(context, theme, l10n),
-        ],
+  Widget _buildFlexibleCard(
+    ThemeData theme,
+    String title,
+    Widget content,
+    double width,
+  ) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: width),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionTitle(theme, title),
+              const SizedBox(height: 12),
+              content,
+            ],
+          ),
+        ),
       ),
     );
   }

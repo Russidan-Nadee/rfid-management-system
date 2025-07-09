@@ -128,7 +128,10 @@ class _RootLayoutState extends State<RootLayout> {
     return SizedBox(
       width: _isRailExtended ? 256 : 80,
       child: Material(
-        color: AppColors.primary,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors
+                  .primaryDark // เข้มขึ้นใน dark mode
+            : AppColors.primary, // เดิมใน light mode
         child: Column(
           children: [
             // Header ที่มีปุ่มคงที่
@@ -262,7 +265,9 @@ class _RootLayoutState extends State<RootLayout> {
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.primaryDark
+              : AppColors.primary,
           border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
         ),
         child: Row(
