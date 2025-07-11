@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -69,14 +70,24 @@ class AssetDetailView extends StatelessWidget {
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.primary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkText // Dark Mode: สีขาว
+                  : AppColors.primary, // Light Mode: สีน้ำเงิน
             ),
           ),
           backgroundColor: theme.colorScheme.surface,
-          foregroundColor: theme.colorScheme.onSurface,
+          foregroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors
+                    .darkText // Dark Mode: สีขาว
+              : AppColors.primary, // Light Mode: สีน้ำเงิน
           elevation: 1,
         ),
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurface.withValues(
+                alpha: 0.8,
+              ) // Dark Mode: เหมือน Scan Page
+            : theme.colorScheme.background, // Light Mode: เดิม
         body: LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth > 800;
@@ -98,37 +109,43 @@ class AssetDetailView extends StatelessWidget {
     return Column(
       children: [
         // Row 1: Status Card + Basic Info
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildStatusCard(theme)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildBasicInfoSection(theme)),
-          ],
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildStatusCard(theme)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildBasicInfoSection(theme)),
+            ],
+          ),
         ),
 
         const SizedBox(height: 16),
 
         // Row 2: Location Info + Quantity Info
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildLocationInfoSection(theme)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildQuantityInfoSection(theme)),
-          ],
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildLocationInfoSection(theme)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildQuantityInfoSection(theme)),
+            ],
+          ),
         ),
 
         const SizedBox(height: 16),
 
         // Row 3: Scan Activity + Creation Info
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _buildScanActivitySection(theme)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildCreationInfoSection(theme)),
-          ],
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildScanActivitySection(theme)),
+              const SizedBox(width: 16),
+              Expanded(child: _buildCreationInfoSection(theme)),
+            ],
+          ),
         ),
 
         const SizedBox(height: 24),
@@ -334,7 +351,10 @@ class AssetDetailView extends StatelessWidget {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: theme.colorScheme.surface,
+      color: theme.brightness == Brightness.dark
+          ? AppColors
+                .darkSurface // Dark Mode: Blue-Gray surface
+          : theme.colorScheme.surface, // Light Mode: เดิม
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -394,7 +414,10 @@ class AssetDetailView extends StatelessWidget {
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: theme.colorScheme.surface,
+      color: theme.brightness == Brightness.dark
+          ? AppColors
+                .darkSurface // Dark Mode: Blue-Gray surface
+          : theme.colorScheme.surface, // Light Mode: เดิม
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -402,14 +425,24 @@ class AssetDetailView extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: theme.colorScheme.primary, size: 20),
+                Icon(
+                  icon,
+                  color: theme.brightness == Brightness.dark
+                      ? AppColors
+                            .darkText // Dark Mode: สีขาว
+                      : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
+                    color: theme.brightness == Brightness.dark
+                        ? AppColors
+                              .darkText // Dark Mode: สีขาว
+                        : theme.colorScheme.onSurface, // Light Mode: เดิม
                   ),
                 ),
               ],
@@ -436,7 +469,12 @@ class AssetDetailView extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                color: theme.brightness == Brightness.dark
+                    ? AppColors
+                          .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                    : theme.colorScheme.onSurface.withValues(
+                        alpha: 0.7,
+                      ), // Light Mode: เดิม
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -449,7 +487,10 @@ class AssetDetailView extends StatelessWidget {
               value,
               style: TextStyle(
                 fontSize: 14,
-                color: theme.colorScheme.onSurface,
+                color: theme.brightness == Brightness.dark
+                    ? AppColors
+                          .darkText // Dark Mode: สีขาว
+                    : theme.colorScheme.onSurface, // Light Mode: เดิม
               ),
             ),
           ),
@@ -459,6 +500,11 @@ class AssetDetailView extends StatelessWidget {
   }
 
   Color _getStatusColor(String status, ThemeData theme) {
+    // เก็บสี Unknown เป็นสีแดงทั้ง Light และ Dark Mode
+    if (item.isUnknown == true) {
+      return AppColors.error; // สีแดงสำหรับ Unknown
+    }
+
     switch (status.toUpperCase()) {
       case 'A':
         return theme.colorScheme.primary;
@@ -467,13 +513,17 @@ class AssetDetailView extends StatelessWidget {
       case 'I':
         return Colors.grey;
       case 'UNKNOWN':
-        return Colors.red;
+        return AppColors.error; // สีแดงสำหรับ Unknown
       default:
         return theme.colorScheme.primary;
     }
   }
 
   IconData _getStatusIcon(String status) {
+    if (item.isUnknown == true) {
+      return Icons.help;
+    }
+
     switch (status.toUpperCase()) {
       case 'A':
         return Icons.padding_rounded;
@@ -489,6 +539,10 @@ class AssetDetailView extends StatelessWidget {
   }
 
   String _getStatusLabel(String status) {
+    if (item.isUnknown == true) {
+      return 'Unknown';
+    }
+
     switch (status.toUpperCase()) {
       case 'A':
         return 'Active';
