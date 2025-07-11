@@ -87,22 +87,38 @@ class AppColors {
   static const Color excel = Colors.green;
   static const Color csv = Color(0xFFF59E0B);
 
-  // Custom Dark Theme Colors - Your Palette
-  static const Color darkBackground = Color(0xFF27374D); // #27374D - เข้มที่สุด
-  static const Color darkSurface = Color(0xFF526D82); // #526D82 - เข้มปานกลาง
+  // NEW DARK THEME COLORS - Lighter Gray with Blue Tone
+  static const Color darkBackground = Color(
+    0xFF2A2D35,
+  ); // Lighter gray with blue tone - Base background
+  static const Color darkSurface = Color(
+    0xFF363B45,
+  ); // Medium gray-blue - Cards, surfaces
   static const Color darkSurfaceVariant = Color(
-    0xFF9DB2BF,
-  ); // #9DB2BF - อ่อนปานกลาง
+    0xFF424954,
+  ); // Light gray-blue - Elevated surfaces
+  static const Color darkNavigation = Color(
+    0xFF1E3A5F,
+  ); // Keep original navy for navigation
+  static const Color darkSecondary = Color(
+    0xFF4A5160,
+  ); // Blue-gray - Secondary surfaces
+  static const Color darkAccent = Color(
+    0xFF525A6B,
+  ); // Blue-gray accent - Accent elements
+
   static const Color darkBorder = Color(
-    0xFF526D82,
-  ); // #526D82 - Borders/dividers
+    0xFF4A5160,
+  ); // Blue-gray - Borders/dividers
   static const Color darkText = Color(
-    0xFFDDE6ED,
-  ); // #DDE6ED - Primary text (อ่อนที่สุด)
+    0xFFE8EAF0,
+  ); // Light blue-tinted text - Primary text
   static const Color darkTextSecondary = Color(
-    0xFF9DB2BF,
-  ); // #9DB2BF - Secondary text
-  static const Color darkTextMuted = Color(0xFF526D82); // #526D82 - Muted text
+    0xFFB8BCC8,
+  ); // Medium blue-gray - Secondary text
+  static const Color darkTextMuted = Color(
+    0xFF8A90A0,
+  ); // Muted blue-gray - Muted text
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
@@ -135,17 +151,29 @@ class AppColors {
     colors: [background, backgroundSecondary],
   );
 
-  // Dark Theme Gradients
+  // Dark Theme Gradients - Updated with lighter blue-gray tones
   static const LinearGradient darkBackgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [darkBackground, Color(0xFF1F2A37)], // Slightly darker variant
+    colors: [
+      darkBackground,
+      Color(0xFF1F242B),
+    ], // Blue-gray to darker blue-gray
   );
 
   static const LinearGradient darkCardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [darkSurface, darkSurfaceVariant],
+    colors: [
+      darkSurface,
+      darkSurfaceVariant,
+    ], // Medium blue-gray to light blue-gray
+  );
+
+  static const LinearGradient darkNavigationGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [darkNavigation, Color(0xFF0F2A45)], // Navy to darker navy
   );
 
   static const LinearGradient cardGradient = LinearGradient(
@@ -251,14 +279,15 @@ class AppColors {
     'onSurface': textPrimary,
   };
 
-  // Updated Dark Scheme with your colors
+  // Updated Dark Scheme with lighter blue-gray colors
   static Map<String, Color> get darkScheme => {
     'primary': primary,
-    'background': darkBackground, // #27374D
-    'surface': darkSurface, // #526D82
+    'background': darkBackground, // Blue-tinted Gray
+    'surface': darkSurface, // Medium Blue-Gray
+    'navigation': darkNavigation, // Keep navy for navigation
     'onPrimary': onPrimary,
-    'onBackground': darkText, // #DDE6ED
-    'onSurface': darkText, // #DDE6ED
+    'onBackground': darkText, // Light blue-tinted text
+    'onSurface': darkText, // Light blue-tinted text
   };
 
   static List<LinearGradient> get modernGradients => [
@@ -282,15 +311,17 @@ class AppColors {
     return primary;
   }
 
-  // Dark Theme Helper Methods
+  // Dark Theme Helper Methods - Updated with lighter blue-gray tones
   static Color getDarkSurfaceColor(int level) {
     switch (level) {
       case 0:
-        return darkBackground; // #27374D - Base background
+        return darkBackground; // Blue-tinted Gray - Base background
       case 1:
-        return darkSurface; // #526D82 - Cards, surfaces
+        return darkSurface; // Medium Blue-Gray - Cards, surfaces
       case 2:
-        return darkSurfaceVariant; // #9DB2BF - Elevated surfaces
+        return darkSurfaceVariant; // Light Blue-Gray - Elevated surfaces
+      case 3:
+        return darkSecondary; // Blue-Gray - Secondary surfaces
       default:
         return darkSurface;
     }
@@ -299,11 +330,11 @@ class AppColors {
   static Color getDarkTextColor(int level) {
     switch (level) {
       case 0:
-        return darkText; // #DDE6ED - Primary text
+        return darkText; // Light blue-tinted text - Primary text
       case 1:
-        return darkTextSecondary; // #9DB2BF - Secondary text
+        return darkTextSecondary; // Medium blue-gray - Secondary text
       case 2:
-        return darkTextMuted; // #526D82 - Muted text
+        return darkTextMuted; // Muted blue-gray - Muted text
       default:
         return darkText;
     }

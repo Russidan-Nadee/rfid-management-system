@@ -1,4 +1,4 @@
-// Path: frontend/lib/core/constants/app_theme.dart
+// Path: frontend/lib/app/theme/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
@@ -74,15 +74,15 @@ class AppTheme {
     bannerTheme: bannerTheme,
   );
 
-  // Dark Theme - อัพเดทเป็น Claude-style gray
+  // Dark Theme - อัพเดทเป็นสีใหม่ทั้งหมด
   static ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
 
-    // Color Scheme - ใช้ Claude-style colors
+    // Color Scheme - ใช้สีใหม่
     colorScheme: darkColorScheme,
 
-    // Scaffold - Claude dark background
+    // Scaffold - Charcoal Gray background
     scaffoldBackgroundColor: AppColors.darkBackground,
 
     // App Bar Theme
@@ -98,7 +98,7 @@ class AppTheme {
 
     cardTheme: darkCardTheme,
     inputDecorationTheme: darkInputDecorationTheme,
-    dropdownMenuTheme: dropdownMenuTheme,
+    dropdownMenuTheme: darkDropdownMenuTheme,
 
     dialogTheme: darkDialogTheme,
     bottomSheetTheme: darkBottomSheetTheme,
@@ -116,12 +116,12 @@ class AppTheme {
     primaryIconTheme: primaryIconTheme,
 
     listTileTheme: darkListTileTheme,
-    switchTheme: switchTheme,
-    checkboxTheme: checkboxTheme,
+    switchTheme: darkSwitchTheme,
+    checkboxTheme: darkCheckboxTheme,
 
     tooltipTheme: darkTooltipTheme,
     snackBarTheme: darkSnackBarTheme,
-    bannerTheme: bannerTheme,
+    bannerTheme: darkBannerTheme,
   );
 
   // Color Schemes
@@ -140,19 +140,19 @@ class AppTheme {
     outlineVariant: AppColors.divider,
   );
 
-  // Claude-style Dark Color Scheme
+  // Dark Color Scheme - Updated with lighter blue-gray palette
   static const ColorScheme darkColorScheme = ColorScheme.dark(
-    primary: AppColors.primary, // เก็บ navy blue
+    primary: AppColors.primary, // Keep navy blue
     onPrimary: AppColors.onPrimary,
     secondary: AppColors.info,
     onSecondary: Colors.white,
     error: AppColors.error,
     onError: Colors.white,
-    background: AppColors.darkBackground, // #1A1A1A
-    onBackground: AppColors.darkText, // #E5E5E5
-    surface: AppColors.darkSurface, // #2D2D2D
-    onSurface: AppColors.darkText, // #E5E5E5
-    outline: AppColors.darkBorder, // #404040
+    background: AppColors.darkBackground, // Blue-tinted Gray
+    onBackground: AppColors.darkText, // Light blue-tinted text
+    surface: AppColors.darkSurface, // Medium Blue-Gray
+    onSurface: AppColors.darkText, // Light blue-tinted text
+    outline: AppColors.darkBorder, // Blue-Gray
     outlineVariant: AppColors.darkBorder,
   );
 
@@ -169,10 +169,10 @@ class AppTheme {
     actionsIconTheme: IconThemeData(color: AppColors.onBackground),
   );
 
-  // Dark App Bar - Claude style
+  // Dark App Bar - Navy navigation with new palette
   static const AppBarTheme darkAppBarTheme = AppBarTheme(
-    backgroundColor: AppColors.darkSurface, // #2D2D2D
-    foregroundColor: AppColors.darkText, // #E5E5E5
+    backgroundColor: AppColors.darkNavigation, // Keep navy for navigation
+    foregroundColor: AppColors.darkText, // Light gray text
     elevation: 0,
     scrolledUnderElevation: 1,
     shadowColor: Colors.black26,
@@ -227,16 +227,16 @@ class AppTheme {
     margin: EdgeInsets.zero,
   );
 
-  // Dark Card Theme - Claude style
+  // Dark Card Theme - Lighter blue-gray palette
   static CardThemeData get darkCardTheme => CardThemeData(
-    color: AppColors.darkSurface, // #2D2D2D
+    color: AppColors.darkSurface, // Medium Blue-Gray
     elevation: 0, // Flat design
     shadowColor: Colors.transparent,
     shape: RoundedRectangleBorder(
       borderRadius: AppBorders.large,
       side: BorderSide(
-        color: AppColors.darkBackground.withValues(alpha: (0.4)),
-      ), // #404040
+        color: AppColors.darkBorder.withValues(alpha: 0.3),
+      ), // Subtle border
     ),
     margin: EdgeInsets.zero,
   );
@@ -271,11 +271,11 @@ class AppTheme {
     errorStyle: AppTextStyles.errorText,
   );
 
-  // Dark Input Decoration - Claude style
+  // Dark Input Decoration - Lighter blue-gray palette
   static InputDecorationTheme get darkInputDecorationTheme =>
       InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.darkSurfaceVariant, // #343434
+        fillColor: AppColors.darkSurfaceVariant, // Light Blue-Gray
         contentPadding: AppSpacing.inputPaddingAll,
         border: OutlineInputBorder(
           borderRadius: AppBorders.medium,
@@ -304,7 +304,7 @@ class AppTheme {
         errorStyle: AppTextStyles.errorText,
       );
 
-  // Dropdown Menu Theme
+  // Dropdown Menu Theme - Light
   static DropdownMenuThemeData get dropdownMenuTheme => DropdownMenuThemeData(
     inputDecorationTheme: inputDecorationTheme,
     menuStyle: MenuStyle(
@@ -316,6 +316,19 @@ class AppTheme {
     ),
   );
 
+  // Dark Dropdown Menu Theme
+  static DropdownMenuThemeData get darkDropdownMenuTheme =>
+      DropdownMenuThemeData(
+        inputDecorationTheme: darkInputDecorationTheme,
+        menuStyle: MenuStyle(
+          backgroundColor: MaterialStateProperty.all(AppColors.darkSurface),
+          elevation: MaterialStateProperty.all(4),
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(borderRadius: AppBorders.medium),
+          ),
+        ),
+      );
+
   // Dialog Themes - Light เก็บเดิม
   static DialogThemeData get dialogTheme => DialogThemeData(
     backgroundColor: AppColors.surface,
@@ -325,7 +338,7 @@ class AppTheme {
     contentTextStyle: AppTextStyles.body1,
   );
 
-  // Dark Dialog - Claude style
+  // Dark Dialog - Lighter blue-gray palette
   static DialogThemeData get darkDialogTheme => DialogThemeData(
     backgroundColor: AppColors.darkSurface,
     elevation: 8,
@@ -343,7 +356,7 @@ class AppTheme {
     ),
   );
 
-  // Dark Bottom Sheet - Claude style
+  // Dark Bottom Sheet - Lighter blue-gray palette
   static BottomSheetThemeData get darkBottomSheetTheme => BottomSheetThemeData(
     backgroundColor: AppColors.darkSurface,
     elevation: 8,
@@ -364,7 +377,7 @@ class AppTheme {
     side: const BorderSide(color: AppColors.cardBorder),
   );
 
-  // Dark Chip - Claude style
+  // Dark Chip - Lighter blue-gray palette
   static ChipThemeData get darkChipTheme => ChipThemeData(
     backgroundColor: AppColors.darkSurfaceVariant,
     selectedColor: AppColors.primary.withValues(alpha: 0.2),
@@ -389,7 +402,7 @@ class AppTheme {
     ),
   );
 
-  // Dark Tab Bar - Claude style
+  // Dark Tab Bar - Lighter blue-gray palette
   static TabBarThemeData get darkTabBarTheme => TabBarThemeData(
     labelColor: AppColors.primary,
     unselectedLabelColor: AppColors.darkTextSecondary,
@@ -415,10 +428,10 @@ class AppTheme {
         }),
       );
 
-  // Dark Navigation - Claude style
+  // Dark Navigation - Keep navy for navigation consistency
   static NavigationBarThemeData get darkNavigationBarTheme =>
       NavigationBarThemeData(
-        backgroundColor: AppColors.darkSurface,
+        backgroundColor: AppColors.darkNavigation, // Keep navy for navigation
         elevation: 8,
         height: AppSpacing.bottomNavHeight,
         labelTextStyle: MaterialStateProperty.all(
@@ -443,10 +456,10 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
       );
 
-  // Dark Bottom Navigation - Claude style
+  // Dark Bottom Navigation - Keep navy for consistency
   static BottomNavigationBarThemeData get darkBottomNavigationBarTheme =>
       BottomNavigationBarThemeData(
-        backgroundColor: AppColors.darkSurface,
+        backgroundColor: AppColors.darkNavigation, // Keep navy for navigation
         elevation: 8,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.darkTextSecondary,
@@ -471,9 +484,9 @@ class AppTheme {
   static DividerThemeData get dividerTheme =>
       DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
 
-  // Dark Divider - Claude style
+  // Dark Divider - Lighter blue-gray palette
   static DividerThemeData get darkDividerTheme => DividerThemeData(
-    color: AppColors.darkBackground.withValues(alpha: 0.2),
+    color: AppColors.darkBorder.withValues(alpha: 0.3),
     thickness: 1,
     space: 1,
   );
@@ -482,7 +495,7 @@ class AppTheme {
   static IconThemeData get lightIconTheme =>
       IconThemeData(color: AppColors.onBackground, size: 24);
 
-  // Dark Icon - Claude style
+  // Dark Icon - Lighter blue-gray palette
   static IconThemeData get darkIconTheme =>
       IconThemeData(color: AppColors.darkText, size: 24);
 
@@ -498,7 +511,7 @@ class AppTheme {
     iconColor: AppColors.textSecondary,
   );
 
-  // Dark List Tile - Claude style
+  // Dark List Tile - Lighter blue-gray palette
   static ListTileThemeData get darkListTileTheme => ListTileThemeData(
     contentPadding: AppSpacing.paddingMedium,
     shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
@@ -509,7 +522,7 @@ class AppTheme {
     iconColor: AppColors.darkTextSecondary,
   );
 
-  // Switch Theme
+  // Switch Theme - Light
   static SwitchThemeData get switchTheme => SwitchThemeData(
     thumbColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
@@ -525,7 +538,23 @@ class AppTheme {
     }),
   );
 
-  // Checkbox Theme
+  // Dark Switch Theme
+  static SwitchThemeData get darkSwitchTheme => SwitchThemeData(
+    thumbColor: MaterialStateProperty.resolveWith((states) {
+      if (states.contains(MaterialState.selected)) {
+        return AppColors.primary;
+      }
+      return AppColors.darkTextSecondary;
+    }),
+    trackColor: MaterialStateProperty.resolveWith((states) {
+      if (states.contains(MaterialState.selected)) {
+        return AppColors.primary.withValues(alpha: 0.3);
+      }
+      return AppColors.darkSurfaceVariant;
+    }),
+  );
+
+  // Checkbox Theme - Light
   static CheckboxThemeData get checkboxTheme => CheckboxThemeData(
     fillColor: MaterialStateProperty.resolveWith((states) {
       if (states.contains(MaterialState.selected)) {
@@ -535,6 +564,19 @@ class AppTheme {
     }),
     checkColor: MaterialStateProperty.all(AppColors.onPrimary),
     side: const BorderSide(color: AppColors.cardBorder, width: 2),
+    shape: RoundedRectangleBorder(borderRadius: AppBorders.small),
+  );
+
+  // Dark Checkbox Theme
+  static CheckboxThemeData get darkCheckboxTheme => CheckboxThemeData(
+    fillColor: MaterialStateProperty.resolveWith((states) {
+      if (states.contains(MaterialState.selected)) {
+        return AppColors.primary;
+      }
+      return Colors.transparent;
+    }),
+    checkColor: MaterialStateProperty.all(AppColors.onPrimary),
+    side: BorderSide(color: AppColors.darkBorder, width: 2),
     shape: RoundedRectangleBorder(borderRadius: AppBorders.small),
   );
 
@@ -548,7 +590,7 @@ class AppTheme {
     padding: AppSpacing.paddingSmall,
   );
 
-  // Dark Tooltip - Claude style
+  // Dark Tooltip - Lighter blue-gray palette
   static TooltipThemeData get darkTooltipTheme => TooltipThemeData(
     decoration: BoxDecoration(
       color: AppColors.darkSurfaceVariant,
@@ -568,7 +610,7 @@ class AppTheme {
     actionTextColor: AppColors.primary,
   );
 
-  // Dark Snackbar - Claude style
+  // Dark Snackbar - Lighter blue-gray palette
   static SnackBarThemeData get darkSnackBarTheme => SnackBarThemeData(
     backgroundColor: AppColors.darkSurfaceVariant,
     contentTextStyle: AppTextStyles.body2.copyWith(color: AppColors.darkText),
@@ -577,10 +619,17 @@ class AppTheme {
     actionTextColor: AppColors.primary,
   );
 
-  // Banner Theme
+  // Banner Theme - Light
   static MaterialBannerThemeData get bannerTheme => MaterialBannerThemeData(
     backgroundColor: AppColors.backgroundSecondary,
     contentTextStyle: AppTextStyles.body2,
+    padding: AppSpacing.paddingMedium,
+  );
+
+  // Dark Banner Theme
+  static MaterialBannerThemeData get darkBannerTheme => MaterialBannerThemeData(
+    backgroundColor: AppColors.darkSurfaceVariant,
+    contentTextStyle: AppTextStyles.body2.copyWith(color: AppColors.darkText),
     padding: AppSpacing.paddingMedium,
   );
 }
