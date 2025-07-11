@@ -48,18 +48,28 @@ class _ScanPageViewState extends State<ScanPageView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkSurface.withValues(
+              alpha: 0.8,
+            ) // Dark Mode: เหมือน settings
+          : theme.colorScheme.background, // Light Mode: เดิม
       appBar: AppBar(
         title: Text(
           'RFID Scan',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
-            color: AppColors.primary,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors
+                      .darkText // Dark Mode: สีขาว
+                : AppColors.primary, // Light Mode: สีน้ำเงิน
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
-        foregroundColor: AppColors.primary,
+        foregroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors
+                  .darkText // Dark Mode: สีขาว
+            : AppColors.primary, // Light Mode: สีน้ำเงิน
         elevation: 0,
         scrolledUnderElevation: 1,
         actions: [
@@ -71,7 +81,13 @@ class _ScanPageViewState extends State<ScanPageView> {
                     print('ScanPage: Refresh button pressed');
                     context.read<ScanBloc>().add(const StartScan());
                   },
-                  icon: Icon(Icons.refresh, color: AppColors.primary),
+                  icon: Icon(
+                    Icons.refresh,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors
+                              .darkText // Dark Mode: สีขาว
+                        : AppColors.primary,
+                  ), // Light Mode: สีน้ำเงิน
                   tooltip: 'Scan Again',
                 );
               }
@@ -145,10 +161,22 @@ class _ScanPageViewState extends State<ScanPageView> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkText.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังขาวโปร่งใส
+                    : AppColors.primary.withValues(
+                        alpha: 0.1,
+                      ), // Light Mode: พื้นหลังน้ำเงินโปร่งใส
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText.withValues(
+                          alpha: 0.2,
+                        ) // Dark Mode: ขอบขาวโปร่งใส
+                      : AppColors.primary.withValues(
+                          alpha: 0.2,
+                        ), // Light Mode: ขอบน้ำเงินโปร่งใส
                   width: 2,
                 ),
               ),
@@ -160,13 +188,19 @@ class _ScanPageViewState extends State<ScanPageView> {
                       width: 80,
                       height: 80,
                       child: CircularProgressIndicator(
-                        color: AppColors.primary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors
+                                  .darkText // Dark Mode: สีขาว
+                            : AppColors.primary, // Light Mode: สีน้ำเงิน
                         strokeWidth: 3,
                       ),
                     ),
                     Icon(
                       Icons.qr_code_scanner,
-                      color: AppColors.primary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : AppColors.primary, // Light Mode: สีน้ำเงิน
                       size: 40,
                     ),
                   ],
@@ -179,9 +213,10 @@ class _ScanPageViewState extends State<ScanPageView> {
             Text(
               'Scanning RFID Tags...',
               style: AppTextStyles.headline4.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.onBackground
-                    : AppColors.textPrimary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors
+                          .darkText // Dark Mode: สีขาว
+                    : AppColors.textPrimary, // Light Mode: สีเข้ม
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -191,21 +226,41 @@ class _ScanPageViewState extends State<ScanPageView> {
             Container(
               padding: AppSpacing.paddingMD,
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.primary.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังโปร่งใส
+                    : AppColors.primarySurface, // Light Mode: พื้นหลังอ่อน
                 borderRadius: AppBorders.md,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText.withValues(
+                          alpha: 0.2,
+                        ) // Dark Mode: ขอบขาวโปร่งใส
+                      : AppColors.primary.withValues(
+                          alpha: 0.2,
+                        ), // Light Mode: ขอบน้ำเงินโปร่งใส
                 ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.primary, size: 16),
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors
+                              .darkText // Dark Mode: สีขาว
+                        : AppColors.primary, // Light Mode: สีน้ำเงิน
+                    size: 16,
+                  ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
                     'Please wait while we scan for assets',
                     style: AppTextStyles.body2.copyWith(
-                      color: AppColors.primary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : AppColors.primary, // Light Mode: สีน้ำเงิน
                     ),
                   ),
                 ],
@@ -231,7 +286,11 @@ class _ScanPageViewState extends State<ScanPageView> {
               height: 120,
               padding: AppSpacing.paddingXXL,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังแดงโปร่งใส
+                    : AppColors.errorLight, // Light Mode: พื้นหลังแดงอ่อน
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: AppColors.error.withValues(alpha: 0.3),
@@ -250,9 +309,10 @@ class _ScanPageViewState extends State<ScanPageView> {
             Text(
               'Scan Failed',
               style: AppTextStyles.headline4.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.onBackground
-                    : AppColors.textPrimary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors
+                          .darkText // Dark Mode: สีขาว
+                    : AppColors.textPrimary, // Light Mode: สีเข้ม
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -262,7 +322,11 @@ class _ScanPageViewState extends State<ScanPageView> {
             Container(
               padding: AppSpacing.paddingLG,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังแดงโปร่งใส
+                    : AppColors.errorLight, // Light Mode: พื้นหลังแดงอ่อน
                 borderRadius: AppBorders.md,
                 border: Border.all(
                   color: AppColors.error.withValues(alpha: 0.2),
@@ -270,7 +334,12 @@ class _ScanPageViewState extends State<ScanPageView> {
               ),
               child: Text(
                 message,
-                style: AppTextStyles.body2.copyWith(color: AppColors.error),
+                style: AppTextStyles.body2.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors
+                            .darkText // Dark Mode: สีขาว
+                      : AppColors.error,
+                ), // Light Mode: สีแดง
                 textAlign: TextAlign.center,
               ),
             ),
@@ -305,10 +374,21 @@ class _ScanPageViewState extends State<ScanPageView> {
             Container(
               padding: AppSpacing.paddingMD,
               decoration: BoxDecoration(
-                color: AppColors.backgroundSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurfaceVariant.withValues(
+                        alpha: 0.3,
+                      ) // Dark Mode: พื้นหลังเทาเข้ม
+                    : AppColors
+                          .backgroundSecondary, // Light Mode: พื้นหลังเทาอ่อน
                 borderRadius: AppBorders.md,
                 border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.5),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkBorder.withValues(
+                          alpha: 0.3,
+                        ) // Dark Mode: ขอบเทา
+                      : AppColors.divider.withValues(
+                          alpha: 0.5,
+                        ), // Light Mode: ขอบเทาอ่อน
                 ),
               ),
               child: Row(
@@ -316,14 +396,20 @@ class _ScanPageViewState extends State<ScanPageView> {
                 children: [
                   Icon(
                     Icons.help_outline,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors
+                              .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                        : AppColors.textSecondary, // Light Mode: สีเทา
                     size: 16,
                   ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
                     'Make sure RFID scanner is connected',
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                          : AppColors.textSecondary, // Light Mode: สีเทา
                     ),
                   ),
                 ],

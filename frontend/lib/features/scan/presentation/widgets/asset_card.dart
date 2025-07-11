@@ -94,15 +94,15 @@ class AssetCard extends StatelessWidget {
           child: Row(
             children: [
               // Icon Container
-              _buildStatusIcon(theme),
+              _buildStatusIcon(context, theme),
 
               AppSpacing.horizontalSpaceLG,
 
               // Content
-              Expanded(child: _buildContent(theme)),
+              Expanded(child: _buildContent(context, theme)),
 
               // Arrow or Create Icon
-              _buildActionIcon(theme),
+              _buildActionIcon(context, theme),
             ],
           ),
         ),
@@ -110,57 +110,89 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(ThemeData theme) {
+  Widget _buildStatusIcon(BuildContext context, ThemeData theme) {
     final statusColor = theme.getAssetStatusColorByItem(item);
     final statusIcon = theme.getAssetStatusIcon(item.status);
+
+    // แก้สี status icon ให้เหมาะกับ dark mode แต่เก็บ Unknown เป็นสีแดง
+    final displayStatusColor = item.isUnknown
+        ? AppColors
+              .error // Unknown: ใช้สีแดง
+        : (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว/อ่อน
+              : statusColor); // Light Mode: สีตาม status เดิม
 
     return Container(
       width: 48.0,
       height: 48.0,
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.1),
+        color: displayStatusColor.withValues(alpha: 0.1),
         borderRadius: AppBorders.medium,
       ),
-      child: Icon(statusIcon, color: statusColor, size: 24.0),
+      child: Icon(statusIcon, color: displayStatusColor, size: 24.0),
     );
   }
 
-  Widget _buildContent(ThemeData theme) {
+  Widget _buildContent(BuildContext context, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title - ใช้สีตาม status เสมอ
+        // Title - แก้ตาม pattern settings feature
         Text(
           item.displayName,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: theme.getAssetStatusColorByItem(
-              item,
-            ), // ใช้สีตาม status เสมอ
+            color: item.isUnknown
+                ? AppColors
+                      .error // Unknown: ใช้สีแดง
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? theme
+                            .colorScheme
+                            .onSurface // Dark Mode: สีขาว
+                      : theme.getAssetStatusColorByItem(
+                          item,
+                        )), // Light Mode: สีตาม status
           ),
         ),
 
         AppSpacing.verticalSpaceXS,
 
-        // Asset Number - ใช้สีเทาเสมอ
+        // Asset Number - แก้ให้อ่านง่ายใน dark mode
         Text(
           'Asset No: ${item.assetNo}',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors
+                      .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                : theme.colorScheme.onSurface.withValues(
+                    alpha: 0.7,
+                  ), // Light Mode: สีเทาเข้ม
           ),
         ),
 
         AppSpacing.verticalSpaceXS,
 
         // Status และ Location Row
-        _buildStatusAndLocation(theme),
+        _buildStatusAndLocation(context, theme),
       ],
     );
   }
 
-  Widget _buildStatusAndLocation(ThemeData theme) {
+  Widget _buildStatusAndLocation(BuildContext context, ThemeData theme) {
     final statusColor = theme.getAssetStatusColorByItem(item);
     final statusLabel = theme.getAssetStatusLabel(item.status);
+
+    // แก้สี status dot ให้เหมาะกับ dark mode แต่เก็บ Unknown เป็นสีแดง
+    final displayStatusColor = item.isUnknown
+        ? AppColors
+              .error // Unknown: ใช้สีแดง
+        : (Theme.of(context).brightness == Brightness.dark
+              ? theme
+                    .colorScheme
+                    .onSurface // Dark Mode: สีขาว/อ่อน
+              : statusColor); // Light Mode: สีตาม status เดิม
 
     return Row(
       children: [
@@ -168,7 +200,10 @@ class AssetCard extends StatelessWidget {
         Container(
           width: 8.0,
           height: 8.0,
-          decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+          decoration: BoxDecoration(
+            color: displayStatusColor,
+            shape: BoxShape.circle,
+          ),
         ),
 
         AppSpacing.horizontalSpaceXS,
@@ -176,25 +211,35 @@ class AssetCard extends StatelessWidget {
         Text(
           statusLabel,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: statusColor,
+            color: displayStatusColor,
             fontWeight: FontWeight.w500,
           ),
         ),
 
-        // Location (ถ้ามี) - ใช้สีเทาเสมอ
+        // Location (ถ้ามี) - แก้ให้อ่านง่ายใน dark mode
         if (item.locationName != null) ...[
           AppSpacing.horizontalSpaceMD,
           Icon(
             Icons.location_on,
             size: 12.0,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors
+                      .darkTextMuted // Dark Mode: สีเทามาก
+                : theme.colorScheme.onSurface.withValues(
+                    alpha: 0.5,
+                  ), // Light Mode: สีเทาอ่อน
           ),
           AppSpacing.horizontalSpaceXS,
           Expanded(
             child: Text(
               item.locationName!,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors
+                          .darkTextMuted // Dark Mode: สีเทามาก
+                    : theme.colorScheme.onSurface.withValues(
+                        alpha: 0.5,
+                      ), // Light Mode: สีเทาอ่อน
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -204,12 +249,17 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionIcon(ThemeData theme) {
+  Widget _buildActionIcon(BuildContext context, ThemeData theme) {
     return Icon(
       item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
       color: item.isUnknown
           ? AppColors.warning
-          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+          : (Theme.of(context).brightness == Brightness.dark
+                ? AppColors
+                      .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                : theme.colorScheme.onSurface.withValues(
+                    alpha: 0.4,
+                  )), // Light Mode: สีเทาเข้ม
     );
   }
 

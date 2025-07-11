@@ -110,8 +110,11 @@ class AppColors {
   static const Color darkBorder = Color(
     0xFF4A5160,
   ); // Blue-gray - Borders/dividers
-  static const Color darkText = Color(
-    0xFFE8EAF0,
+  static const Color darkText = Color.fromARGB(
+    255,
+    200,
+    204,
+    221,
   ); // Light blue-tinted text - Primary text
   static const Color darkTextSecondary = Color(
     0xFFB8BCC8,

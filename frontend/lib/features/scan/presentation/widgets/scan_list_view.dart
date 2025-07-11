@@ -17,14 +17,14 @@ extension FilterTheme on ThemeData {
     switch (label.toLowerCase()) {
       case 'all':
         return colorScheme.primary;
-      case 'Awaiting':
+      case 'awaiting':
         return colorScheme.primary;
       case 'checked':
         return AppColors.assetActive;
       case 'inactive':
         return colorScheme.error;
       case 'unknown':
-        return AppColors.warning; // เก็บไว้เพราะไม่มีใน Material theme
+        return AppColors.error; // เปลี่ยนเป็นสีแดง
       default:
         return colorScheme.primary;
     }
@@ -268,14 +268,24 @@ class _ScanListViewState extends State<ScanListView> {
                     children: [
                       Icon(
                         Icons.location_on,
-                        color: theme.colorScheme.primary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors
+                                  .darkText // Dark Mode: สีขาว
+                            : theme
+                                  .colorScheme
+                                  .primary, // Light Mode: สีน้ำเงิน
                         size: 18,
                       ),
                       AppSpacing.horizontalSpaceSM,
                       Text(
                         'Filter by Location',
                         style: AppTextStyles.filterLabel.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors
+                                    .darkText // Dark Mode: สีขาว
+                              : theme
+                                    .colorScheme
+                                    .primary, // Light Mode: สีน้ำเงิน
                         ),
                       ),
                     ],
@@ -291,29 +301,45 @@ class _ScanListViewState extends State<ScanListView> {
                       });
                     },
                     style: TextStyle(
-                      color: theme.colorScheme.onSurface,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.onSurface, // Light Mode: สีเข้ม
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Search locations...',
                       hintStyle: TextStyle(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.6,
-                        ),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors
+                                  .darkTextSecondary // Dark Mode: สีเทาอ่อนกว่า
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ), // Light Mode: สีเทา
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
                         Icons.search,
-                        color: theme.colorScheme.primary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors
+                                  .darkText // Dark Mode: สีขาว
+                            : theme
+                                  .colorScheme
+                                  .primary, // Light Mode: สีน้ำเงิน
                         size: 18,
                       ),
                       suffixIcon: _locationSearchQuery.isNotEmpty
                           ? IconButton(
                               icon: Icon(
                                 Icons.clear,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors
+                                          .darkText // Dark Mode: สีขาว
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.6,
+                                      ), // Light Mode: สีเทา
                                 size: 18,
                               ),
                               onPressed: () {
@@ -332,17 +358,25 @@ class _ScanListViewState extends State<ScanListView> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withValues(
-                            alpha: 0.3,
-                          ),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkTextSecondary.withValues(
+                                  alpha: 0.2,
+                                ) // Dark Mode: เทาอ่อน ลด 30%
+                              : theme.colorScheme.outline.withValues(
+                                  alpha: 0.3,
+                                ), // Light Mode: เดิม
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
-                          color: theme.colorScheme.outline.withValues(
-                            alpha: 0.3,
-                          ),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.darkTextSecondary.withValues(
+                                  alpha: 0.2,
+                                ) // Dark Mode: เทาอ่อน ลด 30%
+                              : theme.colorScheme.outline.withValues(
+                                  alpha: 0.3,
+                                ), // Light Mode: เดิม
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -368,7 +402,10 @@ class _ScanListViewState extends State<ScanListView> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: theme.colorScheme.primary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
                     ),
                   ),
                 ),
@@ -394,9 +431,14 @@ class _ScanListViewState extends State<ScanListView> {
                             child: Text(
                               'No locations found matching "${_locationSearchQuery}"',
                               style: TextStyle(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.6,
-                                ),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? AppColors
+                                          .darkText // Dark Mode: สีขาว
+                                    : theme.colorScheme.onSurface.withValues(
+                                        alpha: 0.6,
+                                      ), // Light Mode: สีเทา
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -459,12 +501,21 @@ class _ScanListViewState extends State<ScanListView> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.filter_list, color: theme.colorScheme.primary),
+                  Icon(
+                    Icons.filter_list,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors
+                              .darkText // Dark Mode: สีขาว
+                        : theme.colorScheme.primary,
+                  ), // Light Mode: สีน้ำเงิน
                   AppSpacing.horizontalSpaceSM,
                   Text(
                     'Filter by Status',
                     style: AppTextStyles.filterLabel.copyWith(
-                      color: theme.colorScheme.primary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
                     ),
                   ),
                   const Spacer(),
@@ -473,7 +524,10 @@ class _ScanListViewState extends State<ScanListView> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: theme.colorScheme.primary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
                     ),
                   ),
                 ],
@@ -583,9 +637,11 @@ class _ScanListViewState extends State<ScanListView> {
                 ? (isAllLocations
                       ? theme.colorScheme.primary
                       : theme.colorScheme.primary)
-                : (isAllLocations
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.primary),
+                : (Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkTextSecondary.withValues(
+                          alpha: 0.2,
+                        ) // Dark Mode: เทาอ่อน ลด 30%
+                      : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
             width: isSelected
                 ? ScanListConstants.borderWidthSelected.toDouble()
                 : ScanListConstants.borderWidthNormal.toDouble(),
@@ -600,7 +656,10 @@ class _ScanListViewState extends State<ScanListView> {
                 size: 16,
                 color: isSelected
                     ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.primary,
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
               ),
               AppSpacing.horizontalSpaceXS,
             ] else ...[
@@ -609,7 +668,10 @@ class _ScanListViewState extends State<ScanListView> {
                 size: 16,
                 color: isSelected
                     ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.primary,
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
               ),
               AppSpacing.horizontalSpaceXS,
             ],
@@ -618,7 +680,10 @@ class _ScanListViewState extends State<ScanListView> {
               style: AppTextStyles.filterLabel.copyWith(
                 color: isSelected
                     ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.primary,
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkText // Dark Mode: สีขาว
+                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
@@ -654,7 +719,16 @@ class _ScanListViewState extends State<ScanListView> {
               : color.withValues(alpha: FilterTheme.surfaceOpacity),
           borderRadius: AppBorders.lg,
           border: Border.all(
-            color: color,
+            color: isSelected
+                ? color
+                : (label.toLowerCase() == 'unknown'
+                      ? AppColors
+                            .error // Unknown: เก็บขอบสีแดง
+                      : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkTextSecondary.withValues(
+                                alpha: 0.2,
+                              ) // Dark Mode: เทาอ่อน ลด 30%
+                            : color)), // Light Mode: สีตาม status เดิม
             width: isSelected
                 ? ScanListConstants.borderWidthSelected.toDouble()
                 : ScanListConstants.borderWidthNormal.toDouble(),
@@ -663,7 +737,15 @@ class _ScanListViewState extends State<ScanListView> {
         child: Text(
           '$label ($count)',
           style: AppTextStyles.filterLabel.copyWith(
-            color: isSelected ? theme.colorScheme.onPrimary : color,
+            color: isSelected
+                ? theme.colorScheme.onPrimary
+                : (label.toLowerCase() == 'unknown'
+                      ? AppColors
+                            .error // Unknown: text สีแดง
+                      : (Theme.of(context).brightness == Brightness.dark
+                            ? AppColors
+                                  .darkText // Dark Mode: สีขาว
+                            : color)), // Light Mode: สีตาม status
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -713,9 +795,12 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             isLocationFilter ? 'No items in $location' : 'No $filter items',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withValues(
-                alpha: FilterTheme.textSecondaryOpacity,
-              ),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkText // Dark Mode: สีขาว
+                  : theme.colorScheme.onBackground.withValues(
+                      alpha: FilterTheme.textSecondaryOpacity,
+                    ), // Light Mode: สีเทา
             ),
           ),
 
@@ -726,9 +811,12 @@ class _ScanListViewState extends State<ScanListView> {
                 ? 'Try selecting a different location or scan again'
                 : 'Try selecting a different filter or scan again',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withValues(
-                alpha: FilterTheme.textTertiaryOpacity,
-              ),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                  : theme.colorScheme.onBackground.withValues(
+                      alpha: FilterTheme.textTertiaryOpacity,
+                    ), // Light Mode: สีเทาอ่อน
             ),
             textAlign: TextAlign.center,
           ),
@@ -765,9 +853,12 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             'No scanned items',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withValues(
-                alpha: FilterTheme.textSecondaryOpacity,
-              ),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkText // Dark Mode: สีขาว
+                  : theme.colorScheme.onBackground.withValues(
+                      alpha: FilterTheme.textSecondaryOpacity,
+                    ), // Light Mode: สีเทา
             ),
           ),
 
@@ -776,9 +867,12 @@ class _ScanListViewState extends State<ScanListView> {
           Text(
             'Tap the scan button to start scanning RFID tags',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onBackground.withValues(
-                alpha: FilterTheme.textTertiaryOpacity,
-              ),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors
+                        .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                  : theme.colorScheme.onBackground.withValues(
+                      alpha: FilterTheme.textTertiaryOpacity,
+                    ), // Light Mode: สีเทาอ่อน
             ),
             textAlign: TextAlign.center,
           ),
