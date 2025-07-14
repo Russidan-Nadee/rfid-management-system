@@ -35,7 +35,6 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   @override
   void initState() {
     super.initState();
-    // เพิ่ม print ตรงนี้เพื่อดูค่าเริ่มต้น
     print(
       '✅ LocationGrowthTrendWidget initState: Initial selectedLocationCode: ${widget.selectedLocationCode}',
     );
@@ -44,7 +43,6 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   @override
   void didUpdateWidget(LocationGrowthTrendWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // เพิ่ม print ตรงนี้เพื่อดูการเปลี่ยนแปลงของ props
     if (widget.selectedLocationCode != oldWidget.selectedLocationCode) {
       print(
         '🟢 LocationGrowthTrendWidget didUpdateWidget: selectedLocationCode changed from ${oldWidget.selectedLocationCode} to ${widget.selectedLocationCode}',
@@ -64,10 +62,10 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
     return ChartCard(
       title: 'Asset Growth Location',
-      filters: _buildLocationFilter(),
+      filters: _buildLocationFilter(context),
       chart: Column(
         children: [
-          _buildPeriodInfo(),
+          _buildPeriodInfo(context),
           AppSpacing.verticalSpaceMedium,
           SizedBox(
             height: 200,
@@ -77,18 +75,19 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           ),
         ],
       ),
-      legend: widget.growthTrend.hasData ? _buildTrendSummary() : null,
+      legend: widget.growthTrend.hasData ? _buildTrendSummary(context) : null,
     );
   }
 
-  Widget _buildLocationFilter() {
+  Widget _buildLocationFilter(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final Map<String, String> uniqueLocations = {};
 
     for (final location in widget.availableLocations) {
       uniqueLocations[location['code']!] = location['name']!;
     }
 
-    // ใช้ค่าจาก BLoC ตรงๆ ไม่ต้อง validation
     String? dropdownDisplayValue = widget.selectedLocationCode;
 
     print(
@@ -97,24 +96,45 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
     return Container(
       padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),
-      decoration: AppDecorations.input,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceVariant : AppColors.surface,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : Border.all(color: AppColors.cardBorder),
+      ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: dropdownDisplayValue,
           hint: Text(
             'All Locations',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body2.copyWith(
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
+            ),
           ),
           isExpanded: true,
+          dropdownColor: isDark ? AppColors.darkSurface : null,
           items: [
             DropdownMenuItem<String?>(
               value: null,
-              child: Text('All Locations', style: AppTextStyles.body2),
+              child: Text(
+                'All Locations',
+                style: AppTextStyles.body2.copyWith(
+                  color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                ),
+              ),
             ),
             ...uniqueLocations.entries.map(
               (entry) => DropdownMenuItem<String?>(
                 value: entry.key,
-                child: Text(entry.value, style: AppTextStyles.body2),
+                child: Text(
+                  entry.value,
+                  style: AppTextStyles.body2.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                  ),
+                ),
               ),
             ),
           ],
@@ -122,26 +142,39 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             print('🔥 LocationGrowthTrendWidget onChanged: $newValue');
             widget.onLocationChanged(newValue);
           },
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildPeriodInfo() {
+  Widget _buildPeriodInfo(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Period: ${widget.growthTrend.periodInfo.period}',
-          style: AppTextStyles.body1.copyWith(fontWeight: FontWeight.w500),
+          style: AppTextStyles.body1.copyWith(
+            fontWeight: FontWeight.w500,
+            color: isDark ? AppColors.darkText : AppColors.textPrimary,
+          ),
         ),
         if (widget.growthTrend.periodInfo.isCurrentYear)
           Container(
             padding: AppSpacing.paddingHorizontalSM.add(
               AppSpacing.paddingVerticalXS,
             ),
-            decoration: AppDecorations.chip.copyWith(
+            decoration: BoxDecoration(
               color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: AppBorders.small,
               border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
             ),
             child: Text(
@@ -157,6 +190,9 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   }
 
   Widget _buildLineChart() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final spots = widget.growthTrend.trends.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.assetCount.toDouble());
     }).toList();
@@ -169,10 +205,20 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           horizontalInterval: 5,
           verticalInterval: 1,
           getDrawingHorizontalLine: (value) {
-            return FlLine(color: AppColors.divider, strokeWidth: 1);
+            return FlLine(
+              color: isDark
+                  ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                  : AppColors.divider,
+              strokeWidth: 1,
+            );
           },
           getDrawingVerticalLine: (value) {
-            return FlLine(color: AppColors.divider, strokeWidth: 1);
+            return FlLine(
+              color: isDark
+                  ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                  : AppColors.divider,
+              strokeWidth: 1,
+            );
           },
         ),
         titlesData: FlTitlesData(
@@ -181,7 +227,16 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               showTitles: true,
               reservedSize: 50,
               getTitlesWidget: (value, meta) {
-                return Text('${value.toInt()}', style: AppTextStyles.overline);
+                return Text(
+                  '${value.toInt()}',
+                  style: AppTextStyles.overline.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary.withValues(
+                            alpha: 0.8,
+                          ) // เข้มกว่า grid แต่อ่อนกว่าหัวข้อ
+                        : AppColors.textSecondary,
+                  ),
+                );
               },
             ),
           ),
@@ -198,6 +253,11 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                       widget.growthTrend.trends[index].period,
                       style: AppTextStyles.chartLabel.copyWith(
                         fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.darkTextSecondary.withValues(
+                                alpha: 0.8,
+                              ) // เข้มกว่า grid แต่อ่อนกว่าหัวข้อ
+                            : AppColors.textSecondary,
                       ),
                     ),
                   );
@@ -211,33 +271,57 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(
+            color: isDark
+                ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                : AppColors.divider,
+          ),
         ),
         lineBarsData: [
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: Colors.orange,
+            color: isDark
+                ? Color.lerp(Colors.orange, Colors.black, 0.2)! // ส้มมืดลง 20%
+                : Colors.orange,
             barWidth: 3,
             dotData: FlDotData(
               show: true,
               getDotPainter: (spot, percent, barData, index) {
                 if (index < widget.growthTrend.trends.length) {
                   final trend = widget.growthTrend.trends[index];
+                  Color dotColor;
+
+                  if (trend.isPositiveGrowth) {
+                    dotColor = isDark
+                        ? Color.lerp(
+                            AppColors.trendUp,
+                            Colors.black,
+                            0.2,
+                          )! // ฟ้ามืดลง 20%
+                        : AppColors.trendUp;
+                  } else if (trend.isNegativeGrowth) {
+                    dotColor = AppColors.trendDown;
+                  } else {
+                    dotColor = AppColors.trendStable;
+                  }
+
                   return FlDotCirclePainter(
                     radius: 4,
-                    color: trend.isPositiveGrowth
-                        ? AppColors.trendUp
-                        : trend.isNegativeGrowth
-                        ? AppColors.trendDown
-                        : AppColors.trendStable,
+                    color: dotColor,
                     strokeWidth: 2,
                     strokeColor: Colors.white,
                   );
                 }
                 return FlDotCirclePainter(
                   radius: 4,
-                  color: Colors.orange,
+                  color: isDark
+                      ? Color.lerp(
+                          Colors.orange,
+                          Colors.black,
+                          0.2,
+                        )! // ส้มมืดลง 20%
+                      : Colors.orange,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
                 );
@@ -245,7 +329,13 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.orange.withValues(alpha: 0.1),
+              color: isDark
+                  ? Color.lerp(
+                      Colors.orange,
+                      Colors.black,
+                      0.2,
+                    )!.withValues(alpha: 0.1)
+                  : Colors.orange.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -273,18 +363,29 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
     );
   }
 
-  Widget _buildTrendSummary() {
+  Widget _buildTrendSummary(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     int latestYearGrowth = _calculateLatestYearGrowth();
     int correctedAverageGrowth = _calculateAverageGrowth();
 
     return Container(
       padding: AppSpacing.paddingMedium,
-      decoration: AppDecorations.chip,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem(
-            'Latest Year', // เปลี่ยนจาก 'Total Growth'
+            context,
+            'Latest Year',
             '${latestYearGrowth.toString()}%',
             Icons.trending_up,
             latestYearGrowth > 0
@@ -293,19 +394,21 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                 ? AppColors.trendDown
                 : AppColors.trendStable,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildSummaryItem(
+            context,
             'Average Growth',
             '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
             Colors.orange,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildSummaryItem(
+            context,
             'Periods',
             widget.growthTrend.summary.totalPeriods.toString(),
             Icons.calendar_today,
-            AppColors.textSecondary,
+            isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
         ],
       ),
@@ -313,11 +416,15 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   }
 
   Widget _buildSummaryItem(
+    BuildContext context,
     String label,
     String value,
     IconData icon,
     Color color,
   ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Icon(icon, size: 16, color: color),
@@ -326,21 +433,30 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           value,
           style: AppTextStyles.body2.copyWith(
             fontWeight: FontWeight.bold,
-            color: color,
+            color: isDark ? AppColors.darkText : color,
           ),
         ),
         Text(
           label,
           style: AppTextStyles.overline.copyWith(
-            color: AppColors.textSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(width: 1, height: 30, color: AppColors.divider);
+  Widget _buildDivider(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: 1,
+      height: 30,
+      color: isDark ? AppColors.darkBorder : AppColors.divider,
+    );
   }
 
   int _calculateLatestYearGrowth() {

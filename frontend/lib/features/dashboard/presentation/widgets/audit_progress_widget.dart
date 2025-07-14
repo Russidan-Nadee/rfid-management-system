@@ -49,12 +49,12 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       progressColor: _getProgressColor(),
       details: Column(
         children: [
-          _buildDepartmentFilter(),
+          _buildDepartmentFilter(context),
           AppSpacing.verticalSpaceLarge,
-          _buildProgressDetails(),
+          _buildProgressDetails(context),
           if (widget.auditProgress.hasRecommendations) ...[
             AppSpacing.verticalSpaceMedium,
-            _buildRecommendations(),
+            _buildRecommendations(context),
           ],
         ],
       ),
@@ -104,7 +104,9 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     return AppColors.error;
   }
 
-  Widget _buildDepartmentFilter() {
+  Widget _buildDepartmentFilter(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final Map<String, String> uniqueDepts = {};
 
     for (final dept in widget.availableDepartments) {
@@ -113,24 +115,45 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
 
     return Container(
       padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),
-      decoration: AppDecorations.input,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceVariant : AppColors.surface,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : Border.all(color: AppColors.cardBorder),
+      ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: widget.selectedDeptCode,
           hint: Text(
             'All Departments',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body2.copyWith(
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
+            ),
           ),
           isExpanded: true,
+          dropdownColor: isDark ? AppColors.darkSurface : null,
           items: [
             DropdownMenuItem<String?>(
               value: null,
-              child: Text('All Departments', style: AppTextStyles.body2),
+              child: Text(
+                'All Departments',
+                style: AppTextStyles.body2.copyWith(
+                  color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                ),
+              ),
             ),
             ...uniqueDepts.entries.map(
               (entry) => DropdownMenuItem<String?>(
                 value: entry.key,
-                child: Text(entry.value, style: AppTextStyles.body2),
+                child: Text(
+                  entry.value,
+                  style: AppTextStyles.body2.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                  ),
+                ),
               ),
             ),
           ],
@@ -138,12 +161,21 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             print('🎯 Dropdown changed to: $newValue');
             widget.onDeptChanged(newValue);
           },
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildProgressDetails() {
+  Widget _buildProgressDetails(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     print(
       '🎯 Building progress with selectedDeptCode: ${widget.selectedDeptCode}',
     );
@@ -151,118 +183,154 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       '🎯 Has overall progress: ${widget.auditProgress.overallProgress != null}',
     );
 
+    Widget content;
+
     // 1. ตรวจสอบว่าเลือกแผนกเฉพาะเจาะจงหรือไม่
     if (widget.selectedDeptCode != null) {
       print('🎯 Showing specific department data');
       final selectedDeptProgress = widget.auditProgress.auditProgress
           .where((dept) => dept.deptCode == widget.selectedDeptCode)
-          .firstOrNull; // Ensure firstOrNull is available (Dart 2.12+ or collection package)
+          .firstOrNull;
 
       if (selectedDeptProgress != null) {
-        return Row(
+        content = Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildProgressStat(
+              context,
               'Checked',
               selectedDeptProgress.auditedAssets.toString(),
               AppColors.success,
             ),
-            _buildDivider(),
+            _buildDivider(context),
             _buildProgressStat(
+              context,
               'Await',
               selectedDeptProgress.pendingAudit.toString(),
               AppColors.vibrantOrange,
             ),
-            _buildDivider(),
+            _buildDivider(context),
             _buildProgressStat(
+              context,
               'Total',
               selectedDeptProgress.totalAssets.toString(),
-              AppColors.primary,
+              theme.colorScheme.primary,
             ),
           ],
         );
       } else {
-        // กรณีเลือกแผนกเฉพาะเจาะจง แต่ไม่พบข้อมูลของแผนกนั้น
-        return Center(
+        content = Center(
           child: Text(
             'No data available for this department.',
-            style: AppTextStyles.body2.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.body2.copyWith(
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
+            ),
           ),
+        );
+      }
+    } else {
+      // 2. ถ้าเลือก "All Departments" (selectedDeptCode เป็น null)
+      final overallProgress = widget.auditProgress.overallProgress;
+      if (overallProgress != null) {
+        print('🎯 Showing overall progress data');
+        content = Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildProgressStat(
+              context,
+              'Checked',
+              overallProgress.auditedAssets.toString(),
+              AppColors.success,
+            ),
+            _buildDivider(context),
+            _buildProgressStat(
+              context,
+              'Awaiting',
+              overallProgress.pendingAudit.toString(),
+              AppColors.vibrantOrange,
+            ),
+            _buildDivider(context),
+            _buildProgressStat(
+              context,
+              'Total',
+              overallProgress.totalAssets.toString(),
+              theme.colorScheme.primary,
+            ),
+          ],
+        );
+      } else {
+        // 3. Fallback: Department Summary
+        print(
+          '🎯 Falling back to Department Summary as no overall progress available',
+        );
+        content = Column(
+          children: [
+            Text(
+              'Department Summary',
+              style: AppTextStyles.body1.copyWith(
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
+              ),
+            ),
+            AppSpacing.verticalSpaceSmall,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildProgressStat(
+                  context,
+                  'Completed',
+                  widget.auditProgress.completedDepartments.length.toString(),
+                  AppColors.success,
+                ),
+                _buildDivider(context),
+                _buildProgressStat(
+                  context,
+                  'Critical',
+                  widget.auditProgress.criticalDepartments.length.toString(),
+                  AppColors.error,
+                ),
+                _buildDivider(context),
+                _buildProgressStat(
+                  context,
+                  'Total Depts',
+                  widget.auditProgress.auditProgress.length.toString(),
+                  theme.colorScheme.primary,
+                ),
+              ],
+            ),
+          ],
         );
       }
     }
 
-    // 2. ถ้าเลือก "All Departments" (selectedDeptCode เป็น null)
-    // ให้พยายามแสดง Overall Progress เป็นอันดับแรก
-    final overallProgress = widget.auditProgress.overallProgress;
-    if (overallProgress != null) {
-      print('🎯 Showing overall progress data');
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildProgressStat(
-            'Checked',
-            overallProgress.auditedAssets.toString(),
-            AppColors.success,
-          ),
-          _buildDivider(),
-          _buildProgressStat(
-            'Awaiting',
-            overallProgress.pendingAudit.toString(),
-            AppColors.vibrantOrange,
-          ),
-          _buildDivider(),
-          _buildProgressStat(
-            'Total',
-            overallProgress.totalAssets.toString(),
-            AppColors.primary,
-          ),
-        ],
-      );
-    }
-
-    // 3. Fallback: ถ้าไม่มีทั้ง Overall Progress และไม่ได้เลือกแผนกเฉพาะเจาะจง
-    // ให้แสดง Department Summary (ซึ่งเป็นการสรุปแผนก ไม่ใช่สินทรัพย์รวม)
-    print(
-      '🎯 Falling back to Department Summary as no overall progress available',
-    );
-    return Column(
-      children: [
-        Text(
-          'Department Summary',
-          style: AppTextStyles.body1.copyWith(
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        AppSpacing.verticalSpaceSmall,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildProgressStat(
-              'Completed',
-              widget.auditProgress.completedDepartments.length.toString(),
-              AppColors.success,
-            ),
-            _buildDivider(),
-            _buildProgressStat(
-              'Critical',
-              widget.auditProgress.criticalDepartments.length.toString(),
-              AppColors.error,
-            ),
-            _buildDivider(),
-            _buildProgressStat(
-              'Total Depts',
-              widget.auditProgress.auditProgress.length.toString(),
-              AppColors.primary,
-            ),
-          ],
-        ),
-      ],
+    return Container(
+      padding: AppSpacing.paddingLG,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: content,
     );
   }
 
-  Widget _buildProgressStat(String label, String value, Color color) {
+  Widget _buildProgressStat(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Text(
@@ -271,23 +339,44 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
         ),
         Text(
           label,
-          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+          style: AppTextStyles.caption.copyWith(
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(width: 1, height: 40, color: AppColors.divider);
+  Widget _buildDivider(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: 1,
+      height: 40,
+      color: isDark ? AppColors.darkBorder : AppColors.divider,
+    );
   }
 
-  Widget _buildRecommendations() {
+  Widget _buildRecommendations(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final criticalRecs = widget.auditProgress.criticalRecommendations;
     final warningRecs = widget.auditProgress.warningRecommendations;
 
     return Container(
       padding: AppSpacing.paddingMedium,
-      decoration: AppDecorations.chip,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -303,22 +392,29 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
                 'Recommendations',
                 style: AppTextStyles.body2.copyWith(
                   fontWeight: FontWeight.w500,
+                  color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 ),
               ),
             ],
           ),
           AppSpacing.verticalSpaceSmall,
           if (criticalRecs.isNotEmpty) ...[
-            ...criticalRecs.take(2).map((rec) => _buildRecommendationItem(rec)),
+            ...criticalRecs
+                .take(2)
+                .map((rec) => _buildRecommendationItem(context, rec)),
           ],
           if (warningRecs.isNotEmpty) ...[
-            ...warningRecs.take(1).map((rec) => _buildRecommendationItem(rec)),
+            ...warningRecs
+                .take(1)
+                .map((rec) => _buildRecommendationItem(context, rec)),
           ],
           if (widget.auditProgress.recommendations.length > 3)
             Text(
               '+ ${widget.auditProgress.recommendations.length - 3} more recommendations',
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -327,7 +423,13 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     );
   }
 
-  Widget _buildRecommendationItem(Recommendation recommendation) {
+  Widget _buildRecommendationItem(
+    BuildContext context,
+    Recommendation recommendation,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
@@ -342,7 +444,9 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           Expanded(
             child: Text(
               recommendation.message,
-              style: AppTextStyles.caption,
+              style: AppTextStyles.caption.copyWith(
+                color: isDark ? AppColors.darkText : AppColors.textPrimary,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

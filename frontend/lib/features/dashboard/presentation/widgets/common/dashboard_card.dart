@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/app/theme/app_spacing.dart';
 import 'package:frontend/app/theme/app_typography.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 
 class DashboardCard extends StatelessWidget {
   final String? title;
@@ -40,16 +41,40 @@ class DashboardCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: AppBorders.large,
         child: Container(
-          decoration:
-              decoration ??
-              AppDecorations.dashboardCard.copyWith(
-                color: backgroundColor ?? theme.cardColor,
-              ),
+          decoration: decoration ?? _getDefaultCardDecoration(context),
           padding: padding ?? AppSpacing.cardPaddingAll,
-          child: isLoading ? _buildLoadingContent() : _buildContent(theme),
+          child: isLoading
+              ? _buildLoadingContent(context)
+              : _buildContent(theme),
         ),
       ),
     );
+  }
+
+  BoxDecoration _getDefaultCardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (backgroundColor != null) {
+      return BoxDecoration(
+        color: backgroundColor,
+        borderRadius: AppBorders.large,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+        boxShadow: isDark ? null : AppShadows.small,
+      );
+    }
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : AppDecorations.dashboardCard;
   }
 
   Widget _buildContent(ThemeData theme) {
@@ -77,7 +102,7 @@ class DashboardCard extends StatelessWidget {
                 Text(
                   title!,
                   style: AppTextStyles.cardTitle.copyWith(
-                    color: theme.textTheme.titleMedium?.color,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -85,7 +110,7 @@ class DashboardCard extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: AppTextStyles.caption.copyWith(
-                      color: theme.textTheme.bodySmall?.color,
+                      color: _getSecondaryTextColor(theme),
                     ),
                   ),
                 ],
@@ -97,7 +122,10 @@ class DashboardCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingContent() {
+  Widget _buildLoadingContent(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -105,17 +133,32 @@ class DashboardCard extends StatelessWidget {
           Container(
             width: 120,
             height: 16,
-            decoration: AppDecorations.skeleton,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.darkSurfaceVariant
+                  : AppColors.backgroundSecondary,
+              borderRadius: AppBorders.small,
+            ),
           ),
           AppSpacing.verticalSpaceMedium,
         ],
         Container(
           width: double.infinity,
           height: 100,
-          decoration: AppDecorations.skeleton,
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.darkSurfaceVariant
+                : AppColors.backgroundSecondary,
+            borderRadius: AppBorders.small,
+          ),
         ),
       ],
     );
+  }
+
+  Color _getSecondaryTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
   }
 }
 
@@ -147,6 +190,7 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
 
     // คำนวณขนาดตัวเลขตามหน้าจอ
@@ -173,7 +217,7 @@ class StatCard extends StatelessWidget {
 
     return DashboardCard(
       onTap: onTap,
-      decoration: AppDecorations.summaryCard,
+      decoration: _getStatCardDecoration(context),
       child: Container(
         width: double.infinity,
         child: Column(
@@ -185,15 +229,23 @@ class StatCard extends StatelessWidget {
               Icon(
                 icon,
                 size: iconSize,
-                color: iconColor ?? theme.primaryColor,
+                color:
+                    iconColor ??
+                    (isDark
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.primary),
               ),
               AppSpacing.verticalSpaceSmall,
             ],
             Text(
               value,
               style: AppTextStyles.statValue.copyWith(
-                color: valueColor ?? theme.primaryColor,
-                fontSize: valueFontSize, // ← ใช้ขนาดที่คำนวณ
+                color:
+                    valueColor ??
+                    (isDark
+                        ? theme.colorScheme.onSurface
+                        : theme.colorScheme.primary),
+                fontSize: valueFontSize,
               ),
               textAlign: TextAlign.center,
             ),
@@ -201,7 +253,7 @@ class StatCard extends StatelessWidget {
             Text(
               title,
               style: AppTextStyles.statLabel.copyWith(
-                color: theme.textTheme.bodyMedium?.color,
+                color: theme.colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
@@ -210,7 +262,7 @@ class StatCard extends StatelessWidget {
               Text(
                 subtitle!,
                 style: AppTextStyles.caption.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
+                  color: _getSecondaryTextColor(theme),
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 1,
@@ -219,7 +271,7 @@ class StatCard extends StatelessWidget {
             ],
             if (trend != null) ...[
               AppSpacing.verticalSpaceXS,
-              Center(child: _buildTrendIndicator()),
+              Center(child: _buildTrendIndicator(context)),
             ],
           ],
         ),
@@ -227,7 +279,35 @@ class StatCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTrendIndicator() {
+  BoxDecoration _getStatCardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          );
+  }
+
+  Widget _buildTrendIndicator(BuildContext context) {
+    final theme = Theme.of(context);
+    final effectiveTrendColor = trendColor ?? _getTrendColor(theme);
+
     IconData trendIcon;
     if (trend!.startsWith('+')) {
       trendIcon = Icons.trending_up;
@@ -241,17 +321,34 @@ class StatCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(trendIcon, size: 12, color: trendColor),
+        Icon(trendIcon, size: 12, color: effectiveTrendColor),
         AppSpacing.horizontalSpaceXS,
         Text(
           trend!,
           style: AppTextStyles.caption.copyWith(
-            color: trendColor,
+            color: effectiveTrendColor,
             fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
+  }
+
+  Color _getTrendColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (trend!.startsWith('+')) {
+      return isDark ? AppColors.success : AppColors.trendUp;
+    } else if (trend!.startsWith('-')) {
+      return isDark ? AppColors.error : AppColors.trendDown;
+    } else {
+      return isDark ? AppColors.darkTextSecondary : AppColors.trendStable;
+    }
+  }
+
+  Color _getSecondaryTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
   }
 }
 
@@ -277,13 +374,20 @@ class ChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return DashboardCard(
       title: title,
       subtitle: subtitle,
       isLoading: isLoading,
+      decoration: _getChartCardDecoration(context),
       trailing: onRefresh != null
           ? IconButton(
-              icon: const Icon(Icons.refresh, size: 20),
+              icon: Icon(
+                Icons.refresh,
+                size: 20,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: onRefresh,
             )
           : null,
@@ -296,6 +400,21 @@ class ChartCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  BoxDecoration _getChartCardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : AppDecorations.card;
   }
 }
 
@@ -315,15 +434,18 @@ class FilterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return DashboardCard(
       title: title,
+      decoration: _getFilterCardDecoration(context),
       trailing: hasActiveFilters && onReset != null
           ? TextButton.icon(
               onPressed: onReset,
               icon: const Icon(Icons.clear, size: 16),
               label: const Text('Reset'),
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: theme.colorScheme.error,
               ),
             )
           : null,
@@ -333,6 +455,21 @@ class FilterCard extends StatelessWidget {
         children: filters,
       ),
     );
+  }
+
+  BoxDecoration _getFilterCardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : AppDecorations.card;
   }
 }
 
@@ -357,11 +494,12 @@ class ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = progressColor ?? theme.primaryColor;
+    final color = progressColor ?? theme.colorScheme.primary;
 
     return DashboardCard(
       title: title,
       subtitle: subtitle,
+      decoration: _getProgressCardDecoration(context),
       child: Column(
         children: [
           // Circular Progress
@@ -375,7 +513,7 @@ class ProgressCard extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: progress,
                     strokeWidth: 12,
-                    backgroundColor: theme.dividerColor.withValues(alpha: 0.2),
+                    backgroundColor: _getProgressTrackColor(theme),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),
@@ -391,7 +529,7 @@ class ProgressCard extends StatelessWidget {
                     Text(
                       'Complete',
                       style: AppTextStyles.caption.copyWith(
-                        color: theme.textTheme.bodySmall?.color,
+                        color: _getSecondaryTextColor(theme),
                       ),
                     ),
                   ],
@@ -403,6 +541,33 @@ class ProgressCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  BoxDecoration _getProgressCardDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : AppDecorations.card;
+  }
+
+  Color _getProgressTrackColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark
+        ? AppColors.darkBorder.withValues(alpha: 0.5)
+        : theme.dividerColor.withValues(alpha: 0.2);
+  }
+
+  Color _getSecondaryTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
   }
 }
 
@@ -427,13 +592,11 @@ class InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardColor = color ?? theme.primaryColor;
+    final cardColor = color ?? theme.colorScheme.primary;
 
     return DashboardCard(
       onTap: onTap,
-      decoration: AppDecorations.card.copyWith(
-        border: Border.all(color: cardColor.withValues(alpha: 0.3)),
-      ),
+      decoration: _getInfoCardDecoration(context, cardColor),
       child: Row(
         children: [
           if (icon != null) ...[
@@ -462,7 +625,7 @@ class InfoCard extends StatelessWidget {
                 Text(
                   message,
                   style: AppTextStyles.body2.copyWith(
-                    color: theme.textTheme.bodyMedium?.color,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -472,5 +635,23 @@ class InfoCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  BoxDecoration _getInfoCardDecoration(BuildContext context, Color cardColor) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(color: cardColor.withValues(alpha: 0.3)),
+          )
+        : BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: AppBorders.large,
+            border: Border.all(color: cardColor.withValues(alpha: 0.3)),
+            boxShadow: AppShadows.small,
+          );
   }
 }

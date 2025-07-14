@@ -5,7 +5,6 @@ import 'package:frontend/app/app_constants.dart';
 import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
@@ -14,7 +13,7 @@ import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../widgets/summary_cards_widget.dart';
 import '../widgets/asset_distribution_chart_widget.dart';
-import '../widgets/growth_trend_chart_widget.dart';
+import '../widgets/department_growth_trend_widget.dart';
 import '../widgets/location_growth_trend_widget.dart';
 import '../widgets/audit_progress_widget.dart';
 import '../widgets/dashboard_refresh_widget.dart';
@@ -76,16 +75,21 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: isDark
+          ? AppColors.darkSurface.withValues(alpha: 0.5)
+          : theme.colorScheme.background,
       appBar: AppBar(
         title: Text(
           'Dashboard',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
-            color: AppColors.primary,
+            color: isDark
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.primary,
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
@@ -135,7 +139,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             onRefresh: () async {
               context.read<DashboardBloc>().add(const RefreshDashboard());
             },
-            color: AppColors.primary,
+            color: theme.colorScheme.primary,
             backgroundColor: theme.colorScheme.surface,
             child: _buildBody(context, state),
           );
@@ -145,8 +149,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   }
 
   Widget _buildBody(BuildContext context, DashboardState state) {
-    final theme = Theme.of(context);
-
     if (state is DashboardInitial) {
       return _buildLoadingState(context, 'Initializing dashboard...');
     }
@@ -171,350 +173,329 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           ? state.currentState
           : (state as DashboardError).previousState!;
 
-      // Check if desktop layout
-      final isDesktop =
-          MediaQuery.of(context).size.width >= AppConstants.tabletBreakpoint;
-
-      return SingleChildScrollView(
-        padding: AppSpacing.screenPaddingAll,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AppSpacing.verticalSpaceXL,
-
-            // Desktop Grid Layout
-            if (isDesktop) ...[
-              // Top Row Grid
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left Column (Summary Cards - all & new stacked)
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          // All Assets Card
-                          if (loadedState.stats != null)
-                            Expanded(
-                              child: StatCard(
-                                title: 'All Assets',
-                                value: Helpers.formatNumber(
-                                  loadedState.stats!.overview.totalAssets.value,
-                                ),
-                                icon: Icons.inventory,
-                                iconColor: AppColors.primary,
-                                valueColor: AppColors.primary,
-                                trend: loadedState
-                                    .stats!
-                                    .overview
-                                    .totalAssets
-                                    .trend,
-                              ),
-                            ),
-                          AppSpacing.verticalSpaceMedium,
-                          // New Assets Card
-                          if (loadedState.stats != null)
-                            Expanded(
-                              child: StatCard(
-                                title: 'New Assets',
-                                value: Helpers.formatNumber(
-                                  loadedState
-                                      .stats!
-                                      .overview
-                                      .createdAssets
-                                      .value,
-                                ),
-                                icon: Icons.add_circle,
-                                iconColor: AppColors.success,
-                                valueColor: AppColors.success,
-                                trend: loadedState
-                                    .stats!
-                                    .overview
-                                    .createdAssets
-                                    .trend,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    AppSpacing.horizontalSpaceMedium,
-
-                    // Middle Column (Audit Progress)
-                    Expanded(
-                      flex: 2,
-                      child: loadedState.auditProgress != null
-                          ? AuditProgressWidget(
-                              key: ValueKey(
-                                'audit_progress_widget_${loadedState.auditProgressDeptFilter}',
-                              ),
-                              auditProgress: loadedState.auditProgress!,
-                              includeDetails: loadedState.includeDetails,
-                              selectedDeptCode:
-                                  loadedState.auditProgressDeptFilter,
-                              availableDepartments: _getAllDepartments(
-                                loadedState,
-                              ),
-                              onDeptChanged: (deptCode) {
-                                context.read<DashboardBloc>().add(
-                                  LoadAuditProgress(deptCode: deptCode),
-                                );
-                              },
-                              isLoading:
-                                  state is DashboardPartialLoading &&
-                                  state.loadingType == 'audit',
-                              onToggleDetails: (includeDetails) {
-                                context.read<DashboardBloc>().add(
-                                  ToggleDetailsView(includeDetails),
-                                );
-                              },
-                            )
-                          : Container(
-                              decoration: AppDecorations.card,
-                              child: Center(
-                                child: Text(
-                                  'No Audit Data',
-                                  style: AppTextStyles.body2.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                    AppSpacing.horizontalSpaceMedium,
-
-                    // Right Column (Asset Distribution)
-                    Expanded(
-                      flex: 2,
-                      child: loadedState.distribution != null
-                          ? AssetDistributionChartWidget(
-                              key: ValueKey(
-                                'distribution_${DateTime.now().millisecondsSinceEpoch}',
-                              ),
-                              distribution: loadedState.distribution!,
-                              isLoading:
-                                  state is DashboardPartialLoading &&
-                                  state.loadingType == 'distribution',
-                            )
-                          : Container(
-                              decoration: AppDecorations.card,
-                              child: Center(
-                                child: Text(
-                                  'No Distribution Data',
-                                  style: AppTextStyles.body2.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-
-              AppSpacing.verticalSpaceXXL,
-
-              // Bottom Row Grid (Growth Charts)
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Location Growth
-                    Expanded(
-                      child: loadedState.locationGrowthTrend != null
-                          ? LocationGrowthTrendWidget(
-                              key: ValueKey(
-                                'location_${DateTime.now().millisecondsSinceEpoch}',
-                              ),
-                              growthTrend: loadedState.locationGrowthTrend!,
-                              selectedLocationCode:
-                                  loadedState.locationGrowthLocationFilter,
-                              availableLocations: _getAllLocations(loadedState),
-                              onLocationChanged: (locationCode) {
-                                context.read<DashboardBloc>().add(
-                                  LoadLocationGrowthTrends(
-                                    locationCode: locationCode,
-                                  ),
-                                );
-                              },
-                              isLoading:
-                                  state is DashboardPartialLoading &&
-                                  state.loadingType == 'location_trends',
-                            )
-                          : Container(
-                              decoration: AppDecorations.card,
-                              child: Center(
-                                child: Text(
-                                  'No Location Data',
-                                  style: AppTextStyles.body2.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                    AppSpacing.horizontalSpaceMedium,
-
-                    // Department Growth
-                    Expanded(
-                      child: loadedState.departmentGrowthTrend != null
-                          ? GrowthTrendChartWidget(
-                              key: ValueKey(
-                                'dept_growth_${DateTime.now().millisecondsSinceEpoch}',
-                              ),
-                              growthTrend: loadedState.departmentGrowthTrend!,
-                              selectedDeptCode:
-                                  loadedState.departmentGrowthDeptFilter,
-                              availableDepartments: _getAllDepartments(
-                                loadedState,
-                              ),
-                              onDeptChanged: (deptCode) {
-                                context.read<DashboardBloc>().add(
-                                  LoadDepartmentGrowthTrends(
-                                    deptCode: deptCode,
-                                  ),
-                                );
-                              },
-                              isLoading:
-                                  state is DashboardPartialLoading &&
-                                  state.loadingType == 'department_trends',
-                            )
-                          : Container(
-                              decoration: AppDecorations.card,
-                              child: Center(
-                                child: Text(
-                                  'No Department Data',
-                                  style: AppTextStyles.body2.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ]
-            // Mobile/Tablet Layout (Original)
-            else ...[
-              // Summary Cards
-              if (loadedState.stats != null)
-                SummaryCardsWidget(
-                  stats: loadedState.stats!,
-                  isLoading:
-                      state is DashboardPartialLoading &&
-                      state.loadingType == 'stats',
-                ),
-              AppSpacing.verticalSpaceXL,
-
-              // Audit Progress
-              if (loadedState.auditProgress != null)
-                AuditProgressWidget(
-                  key: ValueKey(
-                    'audit_progress_widget_${loadedState.auditProgressDeptFilter}',
-                  ),
-                  auditProgress: loadedState.auditProgress!,
-                  includeDetails: loadedState.includeDetails,
-                  selectedDeptCode: loadedState.auditProgressDeptFilter,
-                  availableDepartments: _getAllDepartments(loadedState),
-                  onDeptChanged: (deptCode) {
-                    context.read<DashboardBloc>().add(
-                      LoadAuditProgress(deptCode: deptCode),
-                    );
-                  },
-                  isLoading:
-                      state is DashboardPartialLoading &&
-                      state.loadingType == 'audit',
-                  onToggleDetails: (includeDetails) {
-                    context.read<DashboardBloc>().add(
-                      ToggleDetailsView(includeDetails),
-                    );
-                  },
-                ),
-              AppSpacing.verticalSpaceXXL,
-
-              // Asset Distribution Chart
-              if (loadedState.distribution != null)
-                AssetDistributionChartWidget(
-                  key: ValueKey(
-                    'distribution_${DateTime.now().millisecondsSinceEpoch}',
-                  ),
-                  distribution: loadedState.distribution!,
-                  isLoading:
-                      state is DashboardPartialLoading &&
-                      state.loadingType == 'distribution',
-                ),
-
-              AppSpacing.verticalSpaceXXL,
-
-              // Department Growth Trend Chart
-              if (loadedState.departmentGrowthTrend != null)
-                GrowthTrendChartWidget(
-                  key: ValueKey(
-                    'dept_growth_${DateTime.now().millisecondsSinceEpoch}',
-                  ),
-                  growthTrend: loadedState.departmentGrowthTrend!,
-                  selectedDeptCode: loadedState.departmentGrowthDeptFilter,
-                  availableDepartments: _getAllDepartments(loadedState),
-                  onDeptChanged: (deptCode) {
-                    context.read<DashboardBloc>().add(
-                      LoadDepartmentGrowthTrends(deptCode: deptCode),
-                    );
-                  },
-                  isLoading:
-                      state is DashboardPartialLoading &&
-                      state.loadingType == 'department_trends',
-                ),
-
-              AppSpacing.verticalSpaceXXL,
-
-              if (loadedState.locationGrowthTrend != null)
-                LocationGrowthTrendWidget(
-                  key: ValueKey(
-                    'location_${DateTime.now().millisecondsSinceEpoch}',
-                  ),
-                  growthTrend: loadedState.locationGrowthTrend!,
-                  selectedLocationCode:
-                      loadedState.locationGrowthLocationFilter,
-                  availableLocations: _getAllLocations(loadedState),
-                  onLocationChanged: (locationCode) {
-                    context.read<DashboardBloc>().add(
-                      LoadLocationGrowthTrends(locationCode: locationCode),
-                    );
-                  },
-                  isLoading:
-                      state is DashboardPartialLoading &&
-                      state.loadingType == 'location_trends',
-                ),
-
-              AppSpacing.verticalSpaceXXL,
-            ],
-
-            // Last Updated Info (both layouts)
-            _buildLastUpdatedInfo(loadedState),
-
-            AppSpacing.verticalSpaceXXL,
-          ],
-        ),
-      );
+      return _buildDashboardContent(context, loadedState, state);
     }
 
     return _buildEmptyState(context);
   }
 
-  // Helper method to get trend color (add this to _DashboardPageContentState)
+  Widget _buildDashboardContent(
+    BuildContext context,
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    final isDesktop =
+        MediaQuery.of(context).size.width >= AppConstants.tabletBreakpoint;
+
+    return SingleChildScrollView(
+      padding: AppSpacing.screenPaddingAll,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppSpacing.verticalSpaceXL,
+
+          if (isDesktop)
+            _buildDesktopLayout(context, loadedState, currentState)
+          else
+            _buildMobileLayout(context, loadedState, currentState),
+
+          AppSpacing.verticalSpaceXXL,
+          _buildLastUpdatedInfo(loadedState),
+          AppSpacing.verticalSpaceXXL,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    return Column(
+      children: [
+        // Top Row Grid
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left Column (Summary Cards)
+              Expanded(flex: 1, child: _buildSummaryColumn(loadedState)),
+              AppSpacing.horizontalSpaceMedium,
+
+              // Middle Column (Audit Progress)
+              Expanded(
+                flex: 2,
+                child: _buildAuditProgressSection(loadedState, currentState),
+              ),
+              AppSpacing.horizontalSpaceMedium,
+
+              // Right Column (Asset Distribution)
+              Expanded(
+                flex: 2,
+                child: _buildDistributionSection(loadedState, currentState),
+              ),
+            ],
+          ),
+        ),
+
+        AppSpacing.verticalSpaceXXL,
+
+        // Bottom Row Grid (Growth Charts)
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Location Growth
+              Expanded(
+                child: _buildLocationGrowthSection(loadedState, currentState),
+              ),
+              AppSpacing.horizontalSpaceMedium,
+
+              // Department Growth
+              Expanded(
+                child: _buildDepartmentGrowthSection(loadedState, currentState),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(
+    BuildContext context,
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    return Column(
+      children: [
+        // Summary Cards
+        if (loadedState.stats != null)
+          SummaryCardsWidget(
+            stats: loadedState.stats!,
+            isLoading:
+                currentState is DashboardPartialLoading &&
+                currentState.loadingType == 'stats',
+          ),
+        AppSpacing.verticalSpaceXL,
+
+        // Audit Progress
+        _buildAuditProgressSection(loadedState, currentState),
+        AppSpacing.verticalSpaceXXL,
+
+        // Asset Distribution Chart
+        _buildDistributionSection(loadedState, currentState),
+        AppSpacing.verticalSpaceXXL,
+
+        // Department Growth Trend Chart
+        _buildDepartmentGrowthSection(loadedState, currentState),
+        AppSpacing.verticalSpaceXXL,
+
+        // Location Growth Trend Chart
+        _buildLocationGrowthSection(loadedState, currentState),
+      ],
+    );
+  }
+
+  Widget _buildSummaryColumn(DashboardLoaded loadedState) {
+    final theme = Theme.of(context);
+
+    return Column(
+      children: [
+        // All Assets Card
+        if (loadedState.stats != null)
+          Expanded(
+            child: StatCard(
+              title: 'All Assets',
+              value: Helpers.formatNumber(
+                loadedState.stats!.overview.totalAssets.value,
+              ),
+              icon: Icons.inventory,
+              iconColor: theme.colorScheme.primary,
+              valueColor: theme.colorScheme.primary,
+              trend: loadedState.stats!.overview.totalAssets.trend,
+            ),
+          ),
+        AppSpacing.verticalSpaceMedium,
+
+        // New Assets Card
+        if (loadedState.stats != null)
+          Expanded(
+            child: StatCard(
+              title: 'New Assets',
+              value: Helpers.formatNumber(
+                loadedState.stats!.overview.createdAssets.value,
+              ),
+              icon: Icons.add_circle,
+              iconColor: _getSuccessColor(theme),
+              valueColor: _getSuccessColor(theme),
+              trend: loadedState.stats!.overview.createdAssets.trend,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAuditProgressSection(
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    if (loadedState.auditProgress != null) {
+      return AuditProgressWidget(
+        key: ValueKey(
+          'audit_progress_widget_${loadedState.auditProgressDeptFilter}',
+        ),
+        auditProgress: loadedState.auditProgress!,
+        includeDetails: loadedState.includeDetails,
+        selectedDeptCode: loadedState.auditProgressDeptFilter,
+        availableDepartments: _getAllDepartments(loadedState),
+        onDeptChanged: (deptCode) {
+          context.read<DashboardBloc>().add(
+            LoadAuditProgress(deptCode: deptCode),
+          );
+        },
+        isLoading:
+            currentState is DashboardPartialLoading &&
+            currentState.loadingType == 'audit',
+        onToggleDetails: (includeDetails) {
+          context.read<DashboardBloc>().add(ToggleDetailsView(includeDetails));
+        },
+      );
+    }
+
+    return _buildEmptyCard('No Audit Data');
+  }
+
+  Widget _buildDistributionSection(
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    if (loadedState.distribution != null) {
+      return AssetDistributionChartWidget(
+        key: ValueKey('distribution_${DateTime.now().millisecondsSinceEpoch}'),
+        distribution: loadedState.distribution!,
+        isLoading:
+            currentState is DashboardPartialLoading &&
+            currentState.loadingType == 'distribution',
+      );
+    }
+
+    return _buildEmptyCard('No Distribution Data');
+  }
+
+  Widget _buildDepartmentGrowthSection(
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    if (loadedState.departmentGrowthTrend != null) {
+      return GrowthTrendChartWidget(
+        key: ValueKey('dept_growth_${DateTime.now().millisecondsSinceEpoch}'),
+        growthTrend: loadedState.departmentGrowthTrend!,
+        selectedDeptCode: loadedState.departmentGrowthDeptFilter,
+        availableDepartments: _getAllDepartments(loadedState),
+        onDeptChanged: (deptCode) {
+          context.read<DashboardBloc>().add(
+            LoadDepartmentGrowthTrends(deptCode: deptCode),
+          );
+        },
+        isLoading:
+            currentState is DashboardPartialLoading &&
+            currentState.loadingType == 'department_trends',
+      );
+    }
+
+    return _buildEmptyCard('No Department Data');
+  }
+
+  Widget _buildLocationGrowthSection(
+    DashboardLoaded loadedState,
+    DashboardState currentState,
+  ) {
+    if (loadedState.locationGrowthTrend != null) {
+      return LocationGrowthTrendWidget(
+        key: ValueKey('location_${DateTime.now().millisecondsSinceEpoch}'),
+        growthTrend: loadedState.locationGrowthTrend!,
+        selectedLocationCode: loadedState.locationGrowthLocationFilter,
+        availableLocations: _getAllLocations(loadedState),
+        onLocationChanged: (locationCode) {
+          context.read<DashboardBloc>().add(
+            LoadLocationGrowthTrends(locationCode: locationCode),
+          );
+        },
+        isLoading:
+            currentState is DashboardPartialLoading &&
+            currentState.loadingType == 'location_trends',
+      );
+    }
+
+    return _buildEmptyCard('No Location Data');
+  }
+
+  Widget _buildEmptyCard(String message) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: _getCardDecoration(theme),
+      child: Center(
+        child: Text(
+          message,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: _getSecondaryTextColor(theme),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Theme helper methods
+  Color _getSuccessColor(ThemeData theme) {
+    return AppColors.success;
+  }
+
+  Color _getSecondaryTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+  }
+
+  Color _getTertiaryTextColor(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark ? AppColors.darkTextMuted : AppColors.textTertiary;
+  }
+
+  BoxDecoration _getCardDecoration(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return isDark
+        ? BoxDecoration(
+            color: AppColors.darkSurface,
+            borderRadius: AppBorders.large,
+            border: Border.all(
+              color: AppColors.darkBorder.withValues(alpha: 0.3),
+            ),
+          )
+        : AppDecorations.dashboardCard;
+  }
 
   Widget _buildLoadingState(BuildContext context, String message) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3),
+          CircularProgressIndicator(
+            color: isDark
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.primary,
+            strokeWidth: 3,
+          ),
           AppSpacing.verticalSpaceXL,
           Text(
             message,
-            style: AppTextStyles.body1.copyWith(color: AppColors.textSecondary),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: _getSecondaryTextColor(theme),
+            ),
           ),
         ],
       ),
@@ -523,6 +504,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
   Widget _buildErrorState(BuildContext context, String message) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Center(
       child: Padding(
@@ -533,7 +515,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Container(
               padding: AppSpacing.paddingXXL,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: isDark
+                    ? AppColors.error.withValues(alpha: 0.1)
+                    : AppColors.errorLight,
                 borderRadius: AppBorders.circular,
               ),
               child: Icon(
@@ -545,10 +529,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             AppSpacing.verticalSpaceXL,
             Text(
               'Dashboard Error',
-              style: AppTextStyles.headline5.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.onBackground
-                    : AppColors.textPrimary,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -556,7 +538,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Container(
               padding: AppSpacing.paddingMD,
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: isDark
+                    ? AppColors.error.withValues(alpha: 0.1)
+                    : AppColors.errorLight,
                 borderRadius: AppBorders.md,
                 border: Border.all(
                   color: AppColors.error.withValues(alpha: 0.2),
@@ -564,7 +548,9 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
               ),
               child: Text(
                 message,
-                style: AppTextStyles.body2.copyWith(color: AppColors.error),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.error,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -577,16 +563,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     const LoadInitialDashboard(),
                   );
                 },
-                icon: Icon(Icons.refresh, color: AppColors.onPrimary),
+                icon: Icon(Icons.refresh, color: theme.colorScheme.onPrimary),
                 label: Text(
                   'Retry',
-                  style: AppTextStyles.button.copyWith(
-                    color: AppColors.onPrimary,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   padding: AppSpacing.buttonPaddingSymmetric,
                   shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
                 ),
@@ -600,6 +586,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Center(
       child: Padding(
@@ -610,30 +597,30 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Container(
               padding: AppSpacing.paddingXXL,
               decoration: BoxDecoration(
-                color: AppColors.backgroundSecondary,
+                color: isDark
+                    ? AppColors.darkSurfaceVariant
+                    : AppColors.backgroundSecondary,
                 borderRadius: AppBorders.circular,
               ),
               child: Icon(
                 Icons.dashboard_outlined,
                 size: 64,
-                color: AppColors.textMuted,
+                color: _getTertiaryTextColor(theme),
               ),
             ),
             AppSpacing.verticalSpaceXL,
             Text(
               'No Dashboard Data',
-              style: AppTextStyles.headline5.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.onBackground
-                    : AppColors.textPrimary,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
               ),
             ),
             AppSpacing.verticalSpaceSM,
             Text(
               'Dashboard data is not available at the moment',
-              style: AppTextStyles.body2.copyWith(
-                color: AppColors.textSecondary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: _getSecondaryTextColor(theme),
               ),
               textAlign: TextAlign.center,
             ),
@@ -646,16 +633,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     const LoadInitialDashboard(),
                   );
                 },
-                icon: Icon(Icons.dashboard, color: AppColors.onPrimary),
+                icon: Icon(Icons.dashboard, color: theme.colorScheme.onPrimary),
                 label: Text(
                   'Load Dashboard',
-                  style: AppTextStyles.button.copyWith(
-                    color: AppColors.onPrimary,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   padding: AppSpacing.buttonPaddingSymmetric,
                   shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
                 ),
@@ -724,30 +711,47 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   }
 
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: AppSpacing.paddingLG,
-      decoration: AppDecorations.card.copyWith(
-        color: AppColors.backgroundSecondary,
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
-      ),
+      decoration: isDark
+          ? BoxDecoration(
+              color: AppColors.darkSurfaceVariant,
+              borderRadius: AppBorders.large,
+              border: Border.all(
+                color: AppColors.darkBorder.withValues(alpha: 0.5),
+              ),
+            )
+          : AppDecorations.card.copyWith(
+              color: AppColors.backgroundSecondary,
+              border: Border.all(
+                color: AppColors.divider.withValues(alpha: 0.5),
+              ),
+            ),
       child: Row(
         children: [
-          Icon(Icons.access_time, size: 16, color: AppColors.textSecondary),
+          Icon(
+            Icons.access_time,
+            size: 16,
+            color: _getSecondaryTextColor(theme),
+          ),
           AppSpacing.horizontalSpaceSM,
           Text(
             'Last updated: ${Helpers.formatDateTime(state.lastUpdated)}',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.textSecondary,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: _getSecondaryTextColor(theme),
             ),
           ),
           const Spacer(),
           if (state.hasActiveFilters) ...[
-            Icon(Icons.filter_alt, size: 16, color: AppColors.primary),
+            Icon(Icons.filter_alt, size: 16, color: theme.colorScheme.primary),
             AppSpacing.horizontalSpaceXS,
             Text(
               'Filtered',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.primary,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -758,15 +762,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: AppColors.success,
+                color: _getSuccessColor(theme),
                 shape: BoxShape.circle,
               ),
             ),
             AppSpacing.horizontalSpaceXS,
             Text(
               'Fresh',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.success,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: _getSuccessColor(theme),
                 fontWeight: FontWeight.w500,
               ),
             ),

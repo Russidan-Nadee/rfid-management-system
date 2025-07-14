@@ -32,8 +32,8 @@ class AssetDistributionChartWidget extends StatelessWidget {
         height: 200,
         child: distribution.hasData ? _buildPieChart() : _buildEmptyState(),
       ),
-      legend: distribution.hasData ? _buildLegend() : null,
-      filters: distribution.hasData ? _buildSummary() : null,
+      legend: distribution.hasData ? _buildLegend(context) : null,
+      filters: distribution.hasData ? _buildSummary(context) : null,
     );
   }
 
@@ -65,26 +65,46 @@ class AssetDistributionChartWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLegend() {
-    return Wrap(
-      spacing: AppSpacing.medium,
-      runSpacing: AppSpacing.small,
-      children: distribution.pieChartData.map((data) {
-        final colorIndex = distribution.pieChartData.indexOf(data);
-        return _buildLegendItem(
-          color: _getColorForIndex(colorIndex),
-          label: data.displayName,
-          value: data.value.toString(),
-        );
-      }).toList(),
+  Widget _buildLegend(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: AppSpacing.paddingMedium,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: Wrap(
+        spacing: AppSpacing.medium,
+        runSpacing: AppSpacing.small,
+        children: distribution.pieChartData.map((data) {
+          final colorIndex = distribution.pieChartData.indexOf(data);
+          return _buildLegendItem(
+            context,
+            color: _getColorForIndex(colorIndex),
+            label: data.displayName,
+            value: data.value.toString(),
+          );
+        }).toList(),
+      ),
     );
   }
 
-  Widget _buildLegendItem({
+  Widget _buildLegendItem(
+    BuildContext context, {
     required Color color,
     required String label,
     required String value,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -94,32 +114,51 @@ class AssetDistributionChartWidget extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         AppSpacing.horizontalSpaceXS,
-        Text('$label ($value)', style: AppTextStyles.caption),
+        Text(
+          '$label ($value)',
+          style: AppTextStyles.caption.copyWith(
+            color: isDark ? AppColors.darkText : AppColors.textSecondary,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSummary() {
+  Widget _buildSummary(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: AppSpacing.paddingMedium,
-      decoration: AppDecorations.chip,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildSummaryItem(
+            context,
             label: 'Total Assets',
             value: distribution.summary.totalAssets.toString(),
             icon: Icons.inventory,
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildSummaryItem(
+            context,
             label: 'Departments',
             value: distribution.summary.totalDepartments.toString(),
             icon: Icons.business,
           ),
           if (distribution.summary.isFiltered) ...[
-            _buildDivider(),
+            _buildDivider(context),
             _buildSummaryItem(
+              context,
               label: 'Filter',
               value: distribution.summary.plantFilter,
               icon: Icons.filter_alt,
@@ -130,31 +169,51 @@ class AssetDistributionChartWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryItem({
+  Widget _buildSummaryItem(
+    BuildContext context, {
     required String label,
     required String value,
     required IconData icon,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
-        Icon(icon, size: 16, color: AppColors.primary),
+        Icon(
+          icon,
+          size: 16,
+          color: isDark ? AppColors.darkText : theme.colorScheme.primary,
+        ),
         AppSpacing.verticalSpaceXS,
         Text(
           value,
-          style: AppTextStyles.body2.copyWith(fontWeight: FontWeight.bold),
+          style: AppTextStyles.body2.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.darkText : AppColors.textPrimary,
+          ),
         ),
         Text(
           label,
           style: AppTextStyles.overline.copyWith(
-            color: AppColors.textSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(width: 1, height: 30, color: AppColors.divider);
+  Widget _buildDivider(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: 1,
+      height: 30,
+      color: isDark ? AppColors.darkBorder : AppColors.divider,
+    );
   }
 
   Widget _buildEmptyState() {
@@ -208,12 +267,18 @@ class CustomAssetDistributionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isLoading) {
       return DashboardCard(
         title: 'Asset Distribution',
         trailing: onRefresh != null
             ? IconButton(
-                icon: const Icon(Icons.refresh, size: 20),
+                icon: Icon(
+                  Icons.refresh,
+                  size: 20,
+                  color: theme.colorScheme.onSurface,
+                ),
                 onPressed: onRefresh,
               )
             : null,
@@ -226,7 +291,11 @@ class CustomAssetDistributionChart extends StatelessWidget {
       title: 'Asset Distribution',
       trailing: onRefresh != null
           ? IconButton(
-              icon: const Icon(Icons.refresh, size: 20),
+              icon: Icon(
+                Icons.refresh,
+                size: 20,
+                color: theme.colorScheme.onSurface,
+              ),
               onPressed: onRefresh,
             )
           : null,
@@ -243,12 +312,12 @@ class CustomAssetDistributionChart extends StatelessWidget {
 
           if (distribution.hasData && showLegend) ...[
             AppSpacing.verticalSpaceMedium,
-            _buildCustomLegend(),
+            _buildCustomLegend(context),
           ],
 
           if (distribution.hasData && showSummary) ...[
             AppSpacing.verticalSpaceMedium,
-            _buildCustomSummary(),
+            _buildCustomSummary(context),
           ],
         ],
       ),
@@ -307,10 +376,21 @@ class CustomAssetDistributionChart extends StatelessWidget {
     return null;
   }
 
-  Widget _buildCustomLegend() {
+  Widget _buildCustomLegend(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: AppSpacing.paddingSmall,
-      decoration: AppDecorations.chip,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.small,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
       child: Wrap(
         spacing: AppSpacing.medium,
         runSpacing: AppSpacing.small,
@@ -340,6 +420,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
                   '${data.displayName} (${data.value})',
                   style: AppTextStyles.caption.copyWith(
                     fontWeight: FontWeight.w500,
+                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -350,10 +431,19 @@ class CustomAssetDistributionChart extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomSummary() {
+  Widget _buildCustomSummary(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: AppSpacing.paddingMedium,
-      decoration: AppDecorations.info,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceVariant : AppColors.infoLight,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : Border.all(color: AppColors.info.withValues(alpha: 0.2)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -361,7 +451,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
             'Summary',
             style: AppTextStyles.body2.copyWith(
               fontWeight: FontWeight.w600,
-              color: AppColors.info,
+              color: isDark ? AppColors.darkText : AppColors.info,
             ),
           ),
           AppSpacing.verticalSpaceSmall,
@@ -369,17 +459,20 @@ class CustomAssetDistributionChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildSummaryChip(
+                context,
                 icon: Icons.inventory,
                 label: 'Assets',
                 value: distribution.summary.totalAssets.toString(),
               ),
               _buildSummaryChip(
+                context,
                 icon: Icons.business,
                 label: 'Departments',
                 value: distribution.summary.totalDepartments.toString(),
               ),
               if (distribution.summary.isFiltered)
                 _buildSummaryChip(
+                  context,
                   icon: Icons.filter_alt,
                   label: 'Filter',
                   value: distribution.summary.plantFilter,
@@ -391,29 +484,45 @@ class CustomAssetDistributionChart extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryChip({
+  Widget _buildSummaryChip(
+    BuildContext context, {
     required IconData icon,
     required String label,
     required String value,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: AppSpacing.paddingSmall,
-      decoration: AppDecorations.chip,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : AppColors.surface,
+        borderRadius: AppBorders.small,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
       child: Column(
         children: [
-          Icon(icon, size: 16, color: AppColors.info),
+          Icon(
+            icon,
+            size: 16,
+            color: isDark ? AppColors.darkText : AppColors.info,
+          ),
           AppSpacing.verticalSpaceXS,
           Text(
             value,
             style: AppTextStyles.caption.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.info,
+              color: isDark ? AppColors.darkText : AppColors.info,
             ),
           ),
           Text(
             label,
             style: AppTextStyles.overline.copyWith(
-              color: AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
             ),
           ),
         ],

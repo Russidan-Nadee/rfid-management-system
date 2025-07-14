@@ -49,7 +49,7 @@ class SettingsPageView extends StatelessWidget {
       ),
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkSurface.withValues(
-              alpha: 0.8,
+              alpha: 0.5,
             ) // #526D82 - เข้มกว่า SurfaceVariant
           : theme.colorScheme.background,
       body: BlocListener<SettingsBloc, SettingsState>(

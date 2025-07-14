@@ -50,7 +50,7 @@ class _ScanPageViewState extends State<ScanPageView> {
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkSurface.withValues(
-              alpha: 0.8,
+              alpha: 0.5,
             ) // Dark Mode: เหมือน settings
           : theme.colorScheme.background, // Light Mode: เดิม
       appBar: AppBar(
@@ -288,7 +288,7 @@ class _ScanPageViewState extends State<ScanPageView> {
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.error.withValues(
-                        alpha: 0.1,
+                        alpha: 0.2,
                       ) // Dark Mode: พื้นหลังแดงโปร่งใส
                     : AppColors.errorLight, // Light Mode: พื้นหลังแดงอ่อน
                 shape: BoxShape.circle,
@@ -299,7 +299,7 @@ class _ScanPageViewState extends State<ScanPageView> {
               ),
               child: Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: AppColors.error.withValues(alpha: 0.8),
                 size: 60,
               ),
             ),
@@ -338,7 +338,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors
                             .darkText // Dark Mode: สีขาว
-                      : AppColors.error,
+                      : AppColors.error.withValues(alpha: 0.8),
                 ), // Light Mode: สีแดง
                 textAlign: TextAlign.center,
               ),
