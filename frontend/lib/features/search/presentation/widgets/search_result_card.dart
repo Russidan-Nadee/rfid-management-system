@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_result_card.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/search_result_entity.dart';
 
 class SearchResultCard extends StatelessWidget {
@@ -30,15 +31,21 @@ class SearchResultCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: theme.colorScheme.onBackground.withValues(alpha: 0.05),
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkBorder.withValues(alpha: 0.3)
+              : theme.colorScheme.onBackground.withValues(alpha: 0.05),
           width: 1,
         ),
       ),
       child: InkWell(
         onTap: onTapped,
         borderRadius: BorderRadius.circular(8),
-        highlightColor: theme.colorScheme.primary.withValues(alpha: 0.05),
-        splashColor: theme.colorScheme.primary.withValues(alpha: 0.03),
+        highlightColor: Theme.of(context).brightness == Brightness.dark
+            ? theme.colorScheme.onSurface.withValues(alpha: 0.1)
+            : theme.colorScheme.primary.withValues(alpha: 0.05),
+        splashColor: Theme.of(context).brightness == Brightness.dark
+            ? theme.colorScheme.onSurface.withValues(alpha: 0.05)
+            : theme.colorScheme.primary.withValues(alpha: 0.03),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
           child: Row(
@@ -52,7 +59,9 @@ class SearchResultCard extends StatelessWidget {
                     Text(
                       result.title.isNotEmpty ? result.title : 'No description',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkText
+                            : theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 2,
@@ -63,9 +72,11 @@ class SearchResultCard extends StatelessWidget {
                     Text(
                       assetNo.isNotEmpty ? assetNo : 'No asset number',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
-                        ),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.darkTextSecondary
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -76,7 +87,9 @@ class SearchResultCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 14,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextSecondary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.3),
               ),
             ],
           ),

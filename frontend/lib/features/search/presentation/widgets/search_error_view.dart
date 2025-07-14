@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_error_view.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class SearchErrorView extends StatelessWidget {
   final String message;
@@ -27,7 +28,9 @@ class SearchErrorView extends StatelessWidget {
             Text(
               'Happened an error while searching for "$query"',
               style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.onErrorContainer,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkText
+                    : theme.colorScheme.onErrorContainer,
               ),
               textAlign: TextAlign.center,
             ),
@@ -35,7 +38,9 @@ class SearchErrorView extends StatelessWidget {
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextSecondary
+                    : theme.colorScheme.onBackground.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

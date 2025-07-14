@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_result_detail_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/app/theme/app_colors.dart';
 import '../../domain/entities/search_result_entity.dart';
 
 class SearchResultDetailDialog extends StatelessWidget {
@@ -24,11 +25,11 @@ class SearchResultDetailDialog extends StatelessWidget {
             // Header
             _buildHeader(context, theme),
 
-            // Content: All Fields (No duplicates)
+            // Content: Grid Layout
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: _buildAllFieldsSection(context, theme),
+                child: _buildGridLayout(context, theme),
               ),
             ),
 
@@ -45,7 +46,9 @@ class SearchResultDetailDialog extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurfaceVariant
+            : theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(16),
           topRight: Radius.circular(16),
@@ -53,7 +56,13 @@ class SearchResultDetailDialog extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(result.entityIcon, color: theme.colorScheme.primary, size: 24),
+          Icon(
+            result.entityIcon,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkText
+                : theme.colorScheme.primary,
+            size: 24,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -62,7 +71,9 @@ class SearchResultDetailDialog extends StatelessWidget {
                 Text(
                   'Item Details',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkText
+                        : theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -70,7 +81,9 @@ class SearchResultDetailDialog extends StatelessWidget {
                 Text(
                   result.entityType.toUpperCase(),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkTextSecondary
+                        : theme.colorScheme.primary.withValues(alpha: 0.7),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -79,16 +92,24 @@ class SearchResultDetailDialog extends StatelessWidget {
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(Icons.close, color: theme.colorScheme.primary),
+            icon: Icon(
+              Icons.close,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkText
+                  : theme.colorScheme.primary,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAllFieldsSection(BuildContext context, ThemeData theme) {
-    // แยกข้อมูลเป็น sections
+  Widget _buildGridLayout(BuildContext context, ThemeData theme) {
     final sections = _groupFieldsBySection();
+    final sectionWidgets = sections.entries
+        .where((entry) => entry.value.isNotEmpty)
+        .map((entry) => _buildSection(entry.key, entry.value, theme, context))
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,22 +118,60 @@ class SearchResultDetailDialog extends StatelessWidget {
           '📊 Complete Information',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkText
+                : theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 12),
 
-        // แสดงแต่ละ section
-        ...sections.entries.map((sectionEntry) {
-          return _buildSection(
-            sectionEntry.key,
-            sectionEntry.value,
-            theme,
-            context,
-          );
-        }).toList(),
+        // Responsive Grid Layout
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth;
+            final isMobile = availableWidth < 600;
+
+            if (isMobile) {
+              // Mobile: 1 column
+              return Column(children: sectionWidgets);
+            } else {
+              // Desktop/Tablet: 2 columns with IntrinsicHeight
+              return _buildTwoColumnGrid(sectionWidgets, theme, context);
+            }
+          },
+        ),
       ],
     );
+  }
+
+  Widget _buildTwoColumnGrid(
+    List<Widget> sections,
+    ThemeData theme,
+    BuildContext context,
+  ) {
+    final rows = <Widget>[];
+
+    for (int i = 0; i < sections.length; i += 2) {
+      final leftWidget = sections[i];
+      final rightWidget = i + 1 < sections.length ? sections[i + 1] : null;
+
+      rows.add(
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left column
+              Expanded(flex: 1, child: leftWidget),
+              const SizedBox(width: 12),
+              // Right column
+              Expanded(flex: 1, child: rightWidget ?? const SizedBox()),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(children: rows);
   }
 
   Widget _buildSection(
@@ -127,38 +186,48 @@ class SearchResultDetailDialog extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Section header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurfaceVariant
+                  : theme.colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               sectionTitle,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.primary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkText
+                    : theme.colorScheme.primary,
               ),
             ),
           ),
           const SizedBox(height: 6),
 
-          // Section content
+          // Section content - แสดงข้อมูลทั้งหมด
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurface.withValues(alpha: 0.3)
+                  : theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkBorder.withValues(alpha: 0.2)
+                    : theme.colorScheme.outline.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: fields.map((entry) {
                 return _buildCompactInfoRow(
                   _formatFieldName(entry.key),
@@ -191,7 +260,9 @@ class SearchResultDetailDialog extends StatelessWidget {
               '$label:',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextSecondary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ),
@@ -200,8 +271,12 @@ class SearchResultDetailDialog extends StatelessWidget {
               value.isEmpty ? '(empty)' : value,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: value.isEmpty
-                    ? theme.colorScheme.onSurface.withValues(alpha: 0.4)
-                    : theme.colorScheme.onSurface,
+                    ? (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkTextMuted
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.4))
+                    : (Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.darkText
+                          : theme.colorScheme.onSurface),
               ),
             ),
           ),
@@ -221,7 +296,9 @@ class SearchResultDetailDialog extends StatelessWidget {
               child: Icon(
                 Icons.copy,
                 size: 12,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextMuted
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -238,7 +315,9 @@ class SearchResultDetailDialog extends StatelessWidget {
         color: theme.colorScheme.surface,
         border: Border(
           top: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.2),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkBorder.withValues(alpha: 0.2)
+                : theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
       ),
@@ -327,10 +406,69 @@ class SearchResultDetailDialog extends StatelessWidget {
       // ข้ามแค่ field ที่ไม่มีค่าหรือเป็น null เท่านั้น
       if (value.isEmpty || value == 'null') continue;
 
-      allFields[entry.key] = value;
+      // ถ้าเป็น field "data" ที่มีข้อมูลรวมกัน ให้ parse แยกออกมา
+      if (entry.key.toLowerCase() == 'data' && value.contains(',')) {
+        final parsedData = _parseDataField(value);
+        allFields.addAll(parsedData);
+      } else {
+        allFields[entry.key] = value;
+      }
     }
 
     return allFields;
+  }
+
+  /// Parse ข้อมูลจาก field "data" ที่เป็น string รวมกัน
+  Map<String, String> _parseDataField(String dataString) {
+    final parsed = <String, String>{};
+
+    // ทำความสะอาด string ก่อน parse
+    String cleanedData = dataString
+        .replaceAll(RegExp(r'^\(|\)$'), '') // ลบ parentheses หน้าหลัง
+        .trim();
+
+    // แยก data string ตาม pattern key: value (รองรับทั้งมี comma และไม่มี)
+    final regex = RegExp(r'(\w+):\s*([^,]+?)(?:,\s*|\s*$)');
+    final matches = regex.allMatches(cleanedData);
+
+    for (final match in matches) {
+      final key = match.group(1)?.trim() ?? '';
+      final value = match.group(2)?.trim() ?? '';
+
+      if (key.isNotEmpty && value.isNotEmpty && value != 'null') {
+        parsed[key] = value;
+      }
+    }
+
+    // ถ้า regex ไม่ได้ผลหรือได้น้อยเกินไป ให้ใช้วิธี split manual
+    if (parsed.length <= 2) {
+      return _manualParseDataField(cleanedData);
+    }
+
+    return parsed;
+  }
+
+  /// Parse แบบ manual เป็น fallback
+  Map<String, String> _manualParseDataField(String dataString) {
+    final parsed = <String, String>{};
+
+    // แยกตาม comma แล้วหา pattern key: value
+    final parts = dataString.split(',');
+
+    for (final part in parts) {
+      final trimmed = part.trim();
+      if (trimmed.contains(':')) {
+        final colonIndex = trimmed.indexOf(':');
+        final key = trimmed.substring(0, colonIndex).trim();
+        final value = trimmed.substring(colonIndex + 1).trim();
+
+        if (key.isNotEmpty && value.isNotEmpty && value != 'null') {
+          parsed[key] = value;
+        }
+      }
+    }
+
+    return parsed;
   }
 
   /// ตรวจสอบประเภท field

@@ -83,14 +83,18 @@ class _SearchPageState extends State<SearchPage> {
     return BlocProvider(
       create: (context) => getIt<SearchBloc>(),
       child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurface.withValues(alpha: 0.5)
+            : theme.colorScheme.background,
         appBar: AppBar(
           title: Text(
             'Search',
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? theme.colorScheme.onSurface
+                  : AppColors.primary,
             ),
           ),
           backgroundColor: theme.colorScheme.surface,
@@ -141,7 +145,11 @@ class _SearchPageState extends State<SearchPage> {
                                 child: Text(
                                   'Search Results for "${state.query}"',
                                   style: AppTextStyles.cardTitle.copyWith(
-                                    color: theme.colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? theme.colorScheme.onSurface
+                                        : theme.colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -152,13 +160,23 @@ class _SearchPageState extends State<SearchPage> {
                                   vertical: AppSpacing.xs,
                                 ),
                                 decoration: AppDecorations.custom(
-                                  color: AppColors.primarySurface,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? theme.colorScheme.surface.withValues(
+                                          alpha: 0.1,
+                                        )
+                                      : AppColors.primarySurface,
                                   borderRadius: AppBorders.pill,
                                 ),
                                 child: Text(
                                   '${state.totalResults} items',
                                   style: AppTextStyles.caption.copyWith(
-                                    color: AppColors.primary,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? theme.colorScheme.onSurface
+                                        : AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -171,7 +189,11 @@ class _SearchPageState extends State<SearchPage> {
                                     vertical: AppSpacing.xs,
                                   ),
                                   decoration: AppDecorations.custom(
-                                    color: AppColors.successLight,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? AppColors.darkSurfaceVariant
+                                        : AppColors.successLight,
                                     borderRadius: AppBorders.pill,
                                   ),
                                   child: Row(
@@ -180,13 +202,21 @@ class _SearchPageState extends State<SearchPage> {
                                       Icon(
                                         Icons.cached,
                                         size: 12,
-                                        color: AppColors.success,
+                                        color:
+                                            Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.darkTextSecondary
+                                            : AppColors.success,
                                       ),
                                       AppSpacing.horizontalSpaceXS,
                                       Text(
                                         'Cached',
                                         style: AppTextStyles.caption.copyWith(
-                                          color: AppColors.success,
+                                          color:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? AppColors.darkTextSecondary
+                                              : AppColors.success,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),

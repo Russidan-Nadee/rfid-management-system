@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_input_bar.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class SearchInputBar extends StatelessWidget {
   final TextEditingController searchController;
@@ -21,46 +22,66 @@ class SearchInputBar extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color:
-          theme.colorScheme.surface, // Background color for the search bar area
+      color: theme.colorScheme.surface,
       child: TextField(
         controller: searchController,
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
-          hintText: 'Search...', // Placeholder text
+          hintText: 'Search...',
           hintStyle: TextStyle(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkTextMuted
+                : theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
           filled: true,
-          // Decoration: TextField fill color is a very light primary color
-          fillColor: theme.colorScheme.primary.withValues(
-            alpha: 0.05,
-          ), // Light blue fill for the search field
+          fillColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkSurfaceVariant
+              : theme.colorScheme.primary.withValues(alpha: 0.05),
           border: OutlineInputBorder(
-            // No border for the TextField
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide.none,
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: Theme.of(context).brightness == Brightness.dark
+                ? BorderSide(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1,
+                  )
+                : BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : theme.colorScheme.primary,
+              width: 2,
+            ),
+          ),
           prefixIcon: Icon(
             Icons.search,
-            color:
-                theme.colorScheme.primary, // Primary color for the search icon
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : theme.colorScheme.primary,
           ),
           suffixIcon: searchController.text.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: theme.colorScheme.onSurface.withValues(
-                      alpha: 0.6,
-                    ), // Clear icon color
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkTextSecondary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                   onPressed: onClear,
                 )
               : null,
         ),
         style: TextStyle(
-          color: theme.colorScheme.onSurface, // Text color in the input field
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkText
+              : theme.colorScheme.onSurface,
         ),
       ),
     );

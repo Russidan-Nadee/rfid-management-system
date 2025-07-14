@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_loading_view.dart
 import 'package:flutter/material.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class SearchLoadingView extends StatelessWidget {
   final String query;
@@ -13,9 +14,20 @@ class SearchLoadingView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(),
+          CircularProgressIndicator(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? theme.colorScheme.onSurface
+                : theme.colorScheme.primary,
+          ),
           const SizedBox(height: 16),
-          Text('Searching for "$query"...', style: theme.textTheme.bodyLarge),
+          Text(
+            'Searching for "$query"...',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkText
+                  : theme.colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
