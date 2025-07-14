@@ -1,127 +1,306 @@
 // Path: frontend/lib/features/export/presentation/bloc/export_bloc.dart
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:share_plus/share_plus.dart';
-import '../../domain/usecases/create_export_job_usecase.dart';
+import 'package:frontend/features/export/domain/entities/export_job_entity.dart';
 
-import '../../domain/entities/export_config_entity.dart';
-import '../../domain/repositories/export_repository.dart';
+import '../../domain/usecases/create_export_job_usecase.dart';
+import '../../domain/usecases/get_export_status_usecase.dart';
+import '../../domain/usecases/download_export_usecase.dart';
+import '../../domain/usecases/get_export_history_usecase.dart';
+import '../../domain/usecases/cancel_export_usecase.dart';
+import '../../data/models/export_config_model.dart';
 import 'export_event.dart';
 import 'export_state.dart';
 
 class ExportBloc extends Bloc<ExportEvent, ExportState> {
   final CreateExportJobUseCase createExportJobUseCase;
-
-  final ExportRepository exportRepository;
+  final GetExportStatusUseCase getExportStatusUseCase;
+  final DownloadExportUseCase downloadExportUseCase;
+  final GetExportHistoryUseCase getExportHistoryUseCase;
+  final CancelExportUseCase cancelExportUseCase;
 
   Timer? _statusTimer;
+  int? _currentPollingExportId;
 
   ExportBloc({
     required this.createExportJobUseCase,
-
-    required this.exportRepository,
+    required this.getExportStatusUseCase,
+    required this.downloadExportUseCase,
+    required this.getExportHistoryUseCase,
+    required this.cancelExportUseCase,
   }) : super(const ExportInitial()) {
     on<CreateAssetExport>(_onCreateAssetExport);
     on<CheckExportStatus>(_onCheckExportStatus);
     on<DownloadExport>(_onDownloadExport);
     on<DownloadHistoryExport>(_onDownloadHistoryExport);
     on<LoadExportHistory>(_onLoadExportHistory);
+    on<RefreshExportHistory>(_onRefreshExportHistory);
+    on<CancelExport>(_onCancelExport);
+    on<StartStatusPolling>(_onStartStatusPolling);
+    on<StopStatusPolling>(_onStopStatusPolling);
+    on<CheckPlatformSupport>(_onCheckPlatformSupport);
   }
 
+  /// Platform Support Check
+  bool get isPlatformSupported {
+    if (kIsWeb) return true;
+    if (!kIsWeb) {
+      return !Platform.isAndroid && !Platform.isIOS;
+    }
+    return false;
+  }
+
+  /// Create Asset Export
   Future<void> _onCreateAssetExport(
     CreateAssetExport event,
     Emitter<ExportState> emit,
   ) async {
+    // Platform check
+    if (!isPlatformSupported) {
+      emit(const ExportPlatformNotSupported());
+      return;
+    }
+
     emit(const ExportLoading(message: 'Creating export job...'));
 
     try {
-      print('🔍 Format from UI: ${event.format}');
-
-      final config = ExportConfigEntity(
+      // Create export config (simple - only format)
+      final config = ExportConfigModel(
         format: event.format,
-        filters: ExportFiltersEntity(status: ['A', 'C', 'I']),
+        filters: const ExportFiltersModel(
+          status: ['A', 'C', 'I'], // All status
+        ),
       );
 
-      print('🔍 Config format: ${config.format}');
-
+      // Call UseCase
       final result = await createExportJobUseCase.execute(
         exportType: 'assets',
         config: config,
       );
 
-      if (result.success && result.exportJob != null) {
-        emit(ExportJobCreated(result.exportJob!));
-        _startStatusPolling(result.exportJob!.exportId);
-      } else {
-        emit(ExportError(result.errorMessage ?? 'Failed to create export'));
-      }
+      result.fold((failure) => emit(ExportError(failure.message)), (exportJob) {
+        emit(ExportJobCreated(exportJob));
+        // Start polling for status updates
+        add(StartStatusPolling(exportJob.exportId));
+      });
     } catch (e) {
       emit(ExportError('Failed to create export: ${e.toString()}'));
     }
   }
 
+  /// Check Export Status
   Future<void> _onCheckExportStatus(
     CheckExportStatus event,
     Emitter<ExportState> emit,
   ) async {
-    try {} catch (e) {
-      _stopStatusPolling();
+    try {
+      final result = await getExportStatusUseCase.execute(event.exportId);
+
+      result.fold(
+        (failure) {
+          // Stop polling on error
+          add(const StopStatusPolling());
+          emit(ExportError(failure.message));
+        },
+        (exportJob) {
+          if (exportJob.isCompleted) {
+            // Stop polling when completed
+            add(const StopStatusPolling());
+            emit(ExportCompleted(exportJob));
+          } else if (exportJob.isFailed) {
+            // Stop polling on failure
+            add(const StopStatusPolling());
+            emit(ExportError(exportJob.errorMessage ?? 'Export failed'));
+          } else {
+            // Continue polling
+            emit(ExportStatusUpdated(exportJob));
+          }
+        },
+      );
+    } catch (e) {
+      add(const StopStatusPolling());
       emit(ExportError('Failed to check status: ${e.toString()}'));
     }
   }
 
+  /// Download Export
   Future<void> _onDownloadExport(
     DownloadExport event,
     Emitter<ExportState> emit,
   ) async {
+    // Platform check
+    if (!isPlatformSupported) {
+      emit(const ExportPlatformNotSupported());
+      return;
+    }
+
     emit(const ExportLoading(message: 'Downloading file...'));
 
-    try {} catch (e) {
+    try {
+      final result = await downloadExportUseCase.execute(event.exportId);
+
+      result.fold(
+        (failure) => emit(ExportError(failure.message)),
+        (_) => emit(ExportDownloadSuccess(event.exportId)),
+      );
+    } catch (e) {
       emit(ExportError('Download failed: ${e.toString()}'));
     }
   }
 
+  /// Download History Export (same as DownloadExport but maintains history state)
   Future<void> _onDownloadHistoryExport(
     DownloadHistoryExport event,
     Emitter<ExportState> emit,
   ) async {
-    try {} catch (e) {
-      print('💥 History download error: $e');
+    // Platform check
+    if (!isPlatformSupported) {
+      emit(const ExportPlatformNotSupported());
+      return;
+    }
+
+    // Store current state
+    final currentState = state;
+    List<ExportJobEntity> currentExports = [];
+
+    if (currentState is ExportHistoryLoaded) {
+      currentExports = currentState.exports;
+    }
+
+    try {
+      final result = await downloadExportUseCase.execute(event.exportId);
+
+      result.fold((failure) => emit(ExportError(failure.message)), (_) {
+        // Find the export job to get filename
+        final exportJob = currentExports.firstWhere(
+          (job) => job.exportId == event.exportId,
+          orElse: () => ExportJobEntity(
+            exportId: event.exportId,
+            exportType: 'assets',
+            status: 'C',
+            createdAt: DateTime.now(),
+            expiresAt: DateTime.now().add(Duration(hours: 24)),
+          ),
+        );
+
+        emit(
+          ExportHistoryDownloadSuccess(
+            exportJob.displayFilename,
+            currentExports,
+          ),
+        );
+      });
+    } catch (e) {
       emit(ExportError('Download failed: ${e.toString()}'));
     }
   }
 
+  /// Load Export History
   Future<void> _onLoadExportHistory(
     LoadExportHistory event,
     Emitter<ExportState> emit,
   ) async {
-    emit(const ExportLoading(message: 'Loading history...'));
+    emit(const ExportLoading(message: 'Loading export history...'));
 
     try {
-      final exports = await exportRepository.getExportHistory(limit: 50);
-      emit(ExportHistoryLoaded(exports));
+      final params = GetExportHistoryParams(
+        page: event.page,
+        limit: event.limit,
+        status: event.status,
+      );
+
+      final result = await getExportHistoryUseCase.execute(params);
+
+      result.fold((failure) => emit(ExportError(failure.message)), (exports) {
+        final hasMore = exports.length >= event.limit;
+        emit(
+          ExportHistoryLoaded(
+            exports,
+            hasMore: hasMore,
+            currentPage: event.page,
+          ),
+        );
+      });
     } catch (e) {
       emit(ExportError('Failed to load history: ${e.toString()}'));
     }
   }
 
-  void _startStatusPolling(int exportId) {
+  /// Refresh Export History
+  Future<void> _onRefreshExportHistory(
+    RefreshExportHistory event,
+    Emitter<ExportState> emit,
+  ) async {
+    // Refresh is just loading page 1
+    add(const LoadExportHistory(page: 1, limit: 20));
+  }
+
+  /// Cancel Export
+  Future<void> _onCancelExport(
+    CancelExport event,
+    Emitter<ExportState> emit,
+  ) async {
+    emit(const ExportLoading(message: 'Cancelling export...'));
+
+    try {
+      final result = await cancelExportUseCase.execute(event.exportId);
+
+      result.fold((failure) => emit(ExportError(failure.message)), (success) {
+        if (success) {
+          // Stop polling if we're cancelling the current job
+          if (_currentPollingExportId == event.exportId) {
+            add(const StopStatusPolling());
+          }
+          emit(ExportCancelled(event.exportId));
+        } else {
+          emit(const ExportError('Failed to cancel export'));
+        }
+      });
+    } catch (e) {
+      emit(ExportError('Failed to cancel export: ${e.toString()}'));
+    }
+  }
+
+  /// Start Status Polling
+  Future<void> _onStartStatusPolling(
+    StartStatusPolling event,
+    Emitter<ExportState> emit,
+  ) async {
+    // Stop existing polling
+    _stopStatusPolling();
+
+    // Start new polling
+    _currentPollingExportId = event.exportId;
     _statusTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      add(CheckExportStatus(exportId));
+      add(CheckExportStatus(event.exportId));
     });
   }
 
+  /// Stop Status Polling
+  Future<void> _onStopStatusPolling(
+    StopStatusPolling event,
+    Emitter<ExportState> emit,
+  ) async {
+    _stopStatusPolling();
+  }
+
+  /// Check Platform Support
+  Future<void> _onCheckPlatformSupport(
+    CheckPlatformSupport event,
+    Emitter<ExportState> emit,
+  ) async {
+    if (!isPlatformSupported) {
+      emit(const ExportPlatformNotSupported());
+    }
+  }
+
+  /// Helper method to stop polling
   void _stopStatusPolling() {
     _statusTimer?.cancel();
     _statusTimer = null;
-  }
-
-  Future<void> _shareFile(String filePath) async {
-    try {
-      await Share.shareXFiles([XFile(filePath)]);
-    } catch (e) {
-      print('Share failed: $e');
-    }
+    _currentPollingExportId = null;
   }
 
   @override

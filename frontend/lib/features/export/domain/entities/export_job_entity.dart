@@ -5,6 +5,7 @@ class ExportJobEntity extends Equatable {
   final int exportId;
   final String exportType;
   final String status;
+  final String? filename;
   final int? totalRecords;
   final int? fileSize;
   final DateTime createdAt;
@@ -16,6 +17,7 @@ class ExportJobEntity extends Equatable {
     required this.exportId,
     required this.exportType,
     required this.status,
+    this.filename,
     this.totalRecords,
     this.fileSize,
     required this.createdAt,
@@ -66,13 +68,47 @@ class ExportJobEntity extends Equatable {
     return '${(fileSize! / (1024 * 1024)).toStringAsFixed(1)}MB';
   }
 
-  Duration get timeUntilExpiry => expiresAt.difference(DateTime.now());
+  /// Display filename with fallback
+  String get displayFilename {
+    if (filename != null && filename!.isNotEmpty) {
+      return filename!;
+    }
+    return 'Export #$exportId';
+  }
+
+  /// Get file extension from filename
+  String? get fileExtension {
+    if (filename == null) return null;
+    final parts = filename!.split('.');
+    return parts.length > 1 ? parts.last.toLowerCase() : null;
+  }
+
+  /// Time helpers
+  Duration? get timeUntilExpiry {
+    return expiresAt.difference(DateTime.now());
+  }
+
+  String? get timeUntilExpiryFormatted {
+    final duration = timeUntilExpiry;
+    if (duration == null) return null;
+
+    if (duration.isNegative) return 'Expired';
+
+    if (duration.inDays > 0) {
+      return '${duration.inDays}d left';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours}h left';
+    } else {
+      return '${duration.inMinutes}m left';
+    }
+  }
 
   @override
   List<Object?> get props => [
     exportId,
     exportType,
     status,
+    filename,
     totalRecords,
     fileSize,
     createdAt,
@@ -83,6 +119,6 @@ class ExportJobEntity extends Equatable {
 
   @override
   String toString() {
-    return 'ExportJobEntity(id: $exportId, type: $exportType, status: $status)';
+    return 'ExportJobEntity(id: $exportId, type: $exportType, status: $status, filename: $filename)';
   }
 }
