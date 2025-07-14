@@ -53,15 +53,15 @@ class DashboardCard extends StatelessWidget {
   }
 
   Widget _buildContent(ThemeData theme) {
+    // ถ้าไม่มี title หรือ trailing ให้จัดกลางแกน Y
+    if (title == null && trailing == null) {
+      return Center(child: child);
+    }
+
+    // ถ้ามี title หรือ trailing ใช้ layout แบบเดิม
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (title != null || trailing != null) ...[
-          _buildHeader(theme),
-          AppSpacing.verticalSpaceMedium,
-        ],
-        child,
-      ],
+      children: [_buildHeader(theme), AppSpacing.verticalSpaceMedium, child],
     );
   }
 
@@ -147,51 +147,82 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // คำนวณขนาดตัวเลขตามหน้าจอ
+    double valueFontSize;
+    double iconSize;
+
+    if (screenWidth > 1440) {
+      // Desktop large
+      valueFontSize = 48;
+      iconSize = 32;
+    } else if (screenWidth > 1024) {
+      // Desktop
+      valueFontSize = 40;
+      iconSize = 28;
+    } else if (screenWidth > 600) {
+      // Tablet
+      valueFontSize = 36;
+      iconSize = 24;
+    } else {
+      // Mobile
+      valueFontSize = 32;
+      iconSize = 24;
+    }
 
     return DashboardCard(
       onTap: onTap,
       decoration: AppDecorations.summaryCard,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 24, color: iconColor ?? theme.primaryColor),
-            AppSpacing.verticalSpaceSmall,
-          ],
-          Text(
-            value,
-            style: AppTextStyles.statValue.copyWith(
-              color: valueColor ?? theme.primaryColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          AppSpacing.verticalSpaceXS,
-          Text(
-            title,
-            style: AppTextStyles.statLabel.copyWith(
-              color: theme.textTheme.bodyMedium?.color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          if (subtitle != null) ...[
-            AppSpacing.verticalSpaceXS,
+      child: Container(
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: iconSize,
+                color: iconColor ?? theme.primaryColor,
+              ),
+              AppSpacing.verticalSpaceSmall,
+            ],
             Text(
-              subtitle!,
-              style: AppTextStyles.caption.copyWith(
-                color: theme.textTheme.bodySmall?.color,
+              value,
+              style: AppTextStyles.statValue.copyWith(
+                color: valueColor ?? theme.primaryColor,
+                fontSize: valueFontSize, // ← ใช้ขนาดที่คำนวณ
               ),
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ],
-          if (trend != null) ...[
             AppSpacing.verticalSpaceXS,
-            _buildTrendIndicator(),
+            Text(
+              title,
+              style: AppTextStyles.statLabel.copyWith(
+                color: theme.textTheme.bodyMedium?.color,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (subtitle != null) ...[
+              AppSpacing.verticalSpaceXS,
+              Text(
+                subtitle!,
+                style: AppTextStyles.caption.copyWith(
+                  color: theme.textTheme.bodySmall?.color,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            if (trend != null) ...[
+              AppSpacing.verticalSpaceXS,
+              Center(child: _buildTrendIndicator()),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -208,6 +239,7 @@ class StatCard extends StatelessWidget {
 
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(trendIcon, size: 12, color: trendColor),
         AppSpacing.horizontalSpaceXS,
