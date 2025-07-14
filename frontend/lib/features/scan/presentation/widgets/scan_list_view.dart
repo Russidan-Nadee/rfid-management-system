@@ -24,7 +24,7 @@ extension FilterTheme on ThemeData {
       case 'inactive':
         return colorScheme.error;
       case 'unknown':
-        return AppColors.error; // เปลี่ยนเป็นสีแดง
+        return AppColors.error.withValues(alpha: 0.7); // เปลี่ยนเป็นสีแดง
       default:
         return colorScheme.primary;
     }
@@ -722,8 +722,9 @@ class _ScanListViewState extends State<ScanListView> {
             color: isSelected
                 ? color
                 : (label.toLowerCase() == 'unknown'
-                      ? AppColors
-                            .error // Unknown: เก็บขอบสีแดง
+                      ? AppColors.error.withValues(
+                          alpha: 0.7,
+                        ) // Unknown: เก็บขอบสีแดง
                       : (Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkTextSecondary.withValues(
                                 alpha: 0.2,

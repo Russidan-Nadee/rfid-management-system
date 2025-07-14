@@ -21,7 +21,7 @@ extension AssetStatusTheme on ThemeData {
       case 'I':
         return colorScheme.error;
       case 'UNKNOWN':
-        return AppColors.warning; // สีส้มสำหรับ Unknown
+        return AppColors.warning.withValues(alpha: 0.7); // สีส้มสำหรับ Unknown
       default:
         return colorScheme.primary;
     }
@@ -31,7 +31,9 @@ extension AssetStatusTheme on ThemeData {
   Color getAssetStatusColorByItem(ScannedItemEntity item) {
     // ใช้ isUnknown flag เป็นหลักแทน status string
     if (item.isUnknown == true) {
-      return AppColors.warning; // สีส้มสำหรับ Unknown items
+      return AppColors.warning.withValues(
+        alpha: 0.7,
+      ); // สีส้มสำหรับ Unknown items
     }
     return getAssetStatusColor(item.status);
   }
@@ -253,7 +255,7 @@ class AssetCard extends StatelessWidget {
     return Icon(
       item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
       color: item.isUnknown
-          ? AppColors.warning
+          ? AppColors.warning.withValues(alpha: 0.7)
           : (Theme.of(context).brightness == Brightness.dark
                 ? AppColors
                       .darkTextSecondary // Dark Mode: สีเทาอ่อน

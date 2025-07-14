@@ -229,7 +229,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
               ),
               child: Icon(
                 Icons.error_outline,
-                color: AppColors.error,
+                color: AppColors.error.withValues(alpha: 0.8),
                 size: 40,
               ),
             ),

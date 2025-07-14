@@ -85,7 +85,7 @@ class AssetDetailView extends StatelessWidget {
         ),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(
-                alpha: 0.8,
+                alpha: 0.1,
               ) // Dark Mode: เหมือน Scan Page
             : theme.colorScheme.background, // Light Mode: เดิม
         body: LayoutBuilder(
@@ -502,7 +502,7 @@ class AssetDetailView extends StatelessWidget {
   Color _getStatusColor(String status, ThemeData theme) {
     // เก็บสี Unknown เป็นสีแดงทั้ง Light และ Dark Mode
     if (item.isUnknown == true) {
-      return AppColors.error; // สีแดงสำหรับ Unknown
+      return AppColors.error.withValues(alpha: 0.7); // สีแดงสำหรับ Unknown
     }
 
     switch (status.toUpperCase()) {
