@@ -1,120 +1,108 @@
 // Path: frontend/lib/features/export/data/models/export_config_model.dart
-import '../../domain/entities/export_config_entity.dart';
+import 'package:equatable/equatable.dart';
+import 'period_model.dart';
 
-class ExportConfigModel extends ExportConfigEntity {
-  const ExportConfigModel({
-    required super.format,
-    super.filters,
-    super.columns,
-  });
+class ExportConfigModel extends Equatable {
+  final String format;
+  final ExportFiltersModel? filters;
 
-  /// Create model from Entity
-  factory ExportConfigModel.fromEntity(ExportConfigEntity entity) {
-    return ExportConfigModel(
-      format: entity.format,
-      filters: entity.filters != null
-          ? ExportFiltersModel.fromEntity(entity.filters!)
-          : null,
-      columns: entity.columns,
-    );
-  }
+  const ExportConfigModel({required this.format, this.filters});
 
-  /// Convert to JSON for API request
+  /// Convert to JSON for API request (ตรงกับ Backend)
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{'format': format};
 
     if (filters != null) {
-      final filtersJson = (filters as ExportFiltersModel).toJson();
+      final filtersJson = filters!.toJson();
       if (filtersJson.isNotEmpty) {
         json['filters'] = filtersJson;
       }
     }
 
-    if (columns != null && columns!.isNotEmpty) {
-      json['columns'] = columns;
-    }
-
     return json;
   }
 
-  /// Create from JSON (for local storage or API response)
+  /// Create from JSON
   factory ExportConfigModel.fromJson(Map<String, dynamic> json) {
     return ExportConfigModel(
       format: json['format']?.toString() ?? 'xlsx',
       filters: json['filters'] != null
           ? ExportFiltersModel.fromJson(json['filters'])
           : null,
-      columns: json['columns'] != null
-          ? List<String>.from(json['columns'])
-          : null,
     );
   }
 
-  /// Create preset configurations for quick exports
-  factory ExportConfigModel.allActiveAssets() {
+  /// Quick presets for common exports
+  factory ExportConfigModel.allAssets({String format = 'xlsx'}) {
     return ExportConfigModel(
-      format: 'xlsx',
-      filters: ExportFiltersModel.fromEntity(
-        const ExportFiltersEntity(status: ['A']),
+      format: format,
+      filters: null, // No filters = export all
+    );
+  }
+
+  factory ExportConfigModel.activeAssetsOnly({String format = 'xlsx'}) {
+    return ExportConfigModel(
+      format: format,
+      filters: const ExportFiltersModel(
+        status: ['A'], // Active only
       ),
     );
   }
 
-  factory ExportConfigModel.recentScans() {
-    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+  factory ExportConfigModel.withPeriod({
+    required PeriodModel period,
+    String format = 'xlsx',
+    List<String>? status,
+  }) {
     return ExportConfigModel(
-      format: 'csv',
-      filters: ExportFiltersModel.fromEntity(
-        ExportFiltersEntity(
-          dateRange: DateRangeEntity(from: sevenDaysAgo, to: DateTime.now()),
-        ),
-      ),
+      format: format,
+      filters: ExportFiltersModel(dateRange: period, status: status),
     );
   }
 
-  factory ExportConfigModel.monthlyReport() {
-    final now = DateTime.now();
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+  /// Business validation
+  bool get isValidFormat => ['xlsx', 'csv'].contains(format.toLowerCase());
+  bool get hasFilters => filters != null && filters!.hasAnyFilter;
 
-    return ExportConfigModel(
-      format: 'xlsx',
-      filters: ExportFiltersModel.fromEntity(
-        ExportFiltersEntity(
-          status: ['A', 'C'], // Active and Checked
-          dateRange: DateRangeEntity(from: firstDayOfMonth, to: lastDayOfMonth),
-        ),
-      ),
-    );
+  String get formatLabel {
+    switch (format.toLowerCase()) {
+      case 'xlsx':
+        return 'Excel (.xlsx)';
+      case 'csv':
+        return 'CSV (.csv)';
+      default:
+        return format.toUpperCase();
+    }
   }
 
-  // Removed copyWith() - using parent's copyWith from ExportConfigEntity
+  /// Copy with
+  ExportConfigModel copyWith({String? format, ExportFiltersModel? filters}) {
+    return ExportConfigModel(
+      format: format ?? this.format,
+      filters: filters ?? this.filters,
+    );
+  }
 
   @override
-  String toString() {
-    return 'ExportConfigModel(format: $format, hasFilters: $hasFilters)';
-  }
+  List<Object?> get props => [format, filters];
+
+  @override
+  String toString() =>
+      'ExportConfigModel(format: $format, hasFilters: $hasFilters)';
 }
 
-class ExportFiltersModel extends ExportFiltersEntity {
-  const ExportFiltersModel({
-    super.plantCodes,
-    super.locationCodes,
-    super.status,
-    super.dateRange,
-  });
+class ExportFiltersModel extends Equatable {
+  final List<String>? plantCodes;
+  final List<String>? locationCodes;
+  final List<String>? status;
+  final PeriodModel? dateRange;
 
-  /// Create model from Entity
-  factory ExportFiltersModel.fromEntity(ExportFiltersEntity entity) {
-    return ExportFiltersModel(
-      plantCodes: entity.plantCodes,
-      locationCodes: entity.locationCodes,
-      status: entity.status,
-      dateRange: entity.dateRange != null
-          ? DateRangeModel.fromEntity(entity.dateRange!)
-          : null,
-    );
-  }
+  const ExportFiltersModel({
+    this.plantCodes,
+    this.locationCodes,
+    this.status,
+    this.dateRange,
+  });
 
   /// Convert to JSON for API request
   Map<String, dynamic> toJson() {
@@ -133,7 +121,7 @@ class ExportFiltersModel extends ExportFiltersEntity {
     }
 
     if (dateRange != null) {
-      json['date_range'] = (dateRange as DateRangeModel).toJson();
+      json['date_range'] = dateRange!.toJson();
     }
 
     return json;
@@ -150,58 +138,54 @@ class ExportFiltersModel extends ExportFiltersEntity {
           : null,
       status: json['status'] != null ? List<String>.from(json['status']) : null,
       dateRange: json['date_range'] != null
-          ? DateRangeModel.fromJson(json['date_range'])
+          ? PeriodModel.fromJson(json['date_range'])
           : null,
     );
   }
 
-  /// Add filter values
+  /// Business logic
+  bool get hasAnyFilter =>
+      (plantCodes?.isNotEmpty ?? false) ||
+      (locationCodes?.isNotEmpty ?? false) ||
+      (status?.isNotEmpty ?? false) ||
+      dateRange != null;
+
+  bool get hasDateRange => dateRange != null;
+  bool get hasPlantFilter => plantCodes?.isNotEmpty ?? false;
+  bool get hasLocationFilter => locationCodes?.isNotEmpty ?? false;
+  bool get hasStatusFilter => status?.isNotEmpty ?? false;
+
+  int get filterCount {
+    int count = 0;
+    if (hasPlantFilter) count++;
+    if (hasLocationFilter) count++;
+    if (hasStatusFilter) count++;
+    if (hasDateRange) count++;
+    return count;
+  }
+
+  List<String> get activeFilterLabels {
+    final labels = <String>[];
+    if (hasPlantFilter) labels.add('Plants (${plantCodes!.length})');
+    if (hasLocationFilter) labels.add('Locations (${locationCodes!.length})');
+    if (hasStatusFilter) labels.add('Status (${status!.length})');
+    if (hasDateRange) labels.add('Date Range (${dateRange!.displayLabel})');
+    return labels;
+  }
+
+  /// Helper methods for UI
   ExportFiltersModel addPlantCode(String plantCode) {
     final newPlantCodes = List<String>.from(plantCodes ?? []);
     if (!newPlantCodes.contains(plantCode)) {
       newPlantCodes.add(plantCode);
     }
-    return ExportFiltersModel(
-      plantCodes: newPlantCodes,
-      locationCodes: locationCodes,
-      status: status,
-      dateRange: dateRange,
-    );
+    return copyWith(plantCodes: newPlantCodes);
   }
 
   ExportFiltersModel removePlantCode(String plantCode) {
     final newPlantCodes = List<String>.from(plantCodes ?? []);
     newPlantCodes.remove(plantCode);
-    return ExportFiltersModel(
-      plantCodes: newPlantCodes.isEmpty ? null : newPlantCodes,
-      locationCodes: locationCodes,
-      status: status,
-      dateRange: dateRange,
-    );
-  }
-
-  ExportFiltersModel addLocationCode(String locationCode) {
-    final newLocationCodes = List<String>.from(locationCodes ?? []);
-    if (!newLocationCodes.contains(locationCode)) {
-      newLocationCodes.add(locationCode);
-    }
-    return ExportFiltersModel(
-      plantCodes: plantCodes,
-      locationCodes: newLocationCodes,
-      status: status,
-      dateRange: dateRange,
-    );
-  }
-
-  ExportFiltersModel removeLocationCode(String locationCode) {
-    final newLocationCodes = List<String>.from(locationCodes ?? []);
-    newLocationCodes.remove(locationCode);
-    return ExportFiltersModel(
-      plantCodes: plantCodes,
-      locationCodes: newLocationCodes.isEmpty ? null : newLocationCodes,
-      status: status,
-      dateRange: dateRange,
-    );
+    return copyWith(plantCodes: newPlantCodes.isEmpty ? null : newPlantCodes);
   }
 
   ExportFiltersModel toggleStatus(String statusCode) {
@@ -211,170 +195,40 @@ class ExportFiltersModel extends ExportFiltersEntity {
     } else {
       newStatus.add(statusCode);
     }
+    return copyWith(status: newStatus.isEmpty ? null : newStatus);
+  }
+
+  ExportFiltersModel setPeriod(PeriodModel? period) {
+    return copyWith(dateRange: period);
+  }
+
+  ExportFiltersModel clearAll() {
+    return const ExportFiltersModel();
+  }
+
+  /// Copy with
+  ExportFiltersModel copyWith({
+    List<String>? plantCodes,
+    List<String>? locationCodes,
+    List<String>? status,
+    PeriodModel? dateRange,
+  }) {
     return ExportFiltersModel(
-      plantCodes: plantCodes,
-      locationCodes: locationCodes,
-      status: newStatus.isEmpty ? null : newStatus,
-      dateRange: dateRange,
+      plantCodes: plantCodes ?? this.plantCodes,
+      locationCodes: locationCodes ?? this.locationCodes,
+      status: status ?? this.status,
+      dateRange: dateRange ?? this.dateRange,
     );
-  }
-
-  ExportFiltersModel setDateRange(DateRangeEntity? dateRange) {
-    return ExportFiltersModel(
-      plantCodes: plantCodes,
-      locationCodes: locationCodes,
-      status: status,
-      dateRange: dateRange != null
-          ? DateRangeModel.fromEntity(dateRange)
-          : null,
-    );
-  }
-
-  // Removed copyWith() - using parent's copyWith from ExportFiltersEntity
-
-  @override
-  String toString() {
-    return 'ExportFiltersModel(filterCount: $filterCount)';
-  }
-}
-
-class DateRangeModel extends DateRangeEntity {
-  const DateRangeModel({required super.from, required super.to});
-
-  /// Create model from Entity
-  factory DateRangeModel.fromEntity(DateRangeEntity entity) {
-    return DateRangeModel(from: entity.from, to: entity.to);
-  }
-
-  /// Convert to JSON for API request
-  Map<String, dynamic> toJson() {
-    return {'from': from.toIso8601String(), 'to': to.toIso8601String()};
-  }
-
-  /// Create from JSON
-  factory DateRangeModel.fromJson(Map<String, dynamic> json) {
-    return DateRangeModel(
-      from: DateTime.parse(json['from']),
-      to: DateTime.parse(json['to']),
-    );
-  }
-
-  /// Create common date ranges
-  factory DateRangeModel.today() {
-    final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-    return DateRangeModel(from: startOfDay, to: endOfDay);
-  }
-
-  factory DateRangeModel.yesterday() {
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    final startOfDay = DateTime(yesterday.year, yesterday.month, yesterday.day);
-    final endOfDay = DateTime(
-      yesterday.year,
-      yesterday.month,
-      yesterday.day,
-      23,
-      59,
-      59,
-    );
-
-    return DateRangeModel(from: startOfDay, to: endOfDay);
-  }
-
-  factory DateRangeModel.thisWeek() {
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final startOfWeek = DateTime(
-      weekStart.year,
-      weekStart.month,
-      weekStart.day,
-    );
-    final endOfWeek = startOfWeek.add(
-      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
-    );
-
-    return DateRangeModel(from: startOfWeek, to: endOfWeek);
-  }
-
-  factory DateRangeModel.lastWeek() {
-    final now = DateTime.now();
-    final lastWeekStart = now.subtract(Duration(days: now.weekday + 6));
-    final startOfWeek = DateTime(
-      lastWeekStart.year,
-      lastWeekStart.month,
-      lastWeekStart.day,
-    );
-    final endOfWeek = startOfWeek.add(
-      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
-    );
-
-    return DateRangeModel(from: startOfWeek, to: endOfWeek);
-  }
-
-  factory DateRangeModel.thisMonth() {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-    return DateRangeModel(from: startOfMonth, to: endOfMonth);
-  }
-
-  factory DateRangeModel.lastMonth() {
-    final now = DateTime.now();
-    final startOfLastMonth = DateTime(now.year, now.month - 1, 1);
-    final endOfLastMonth = DateTime(now.year, now.month, 0, 23, 59, 59);
-
-    return DateRangeModel(from: startOfLastMonth, to: endOfLastMonth);
-  }
-
-  factory DateRangeModel.last7Days() {
-    final now = DateTime.now();
-    final sevenDaysAgo = now.subtract(const Duration(days: 7));
-
-    return DateRangeModel(from: sevenDaysAgo, to: now);
-  }
-
-  factory DateRangeModel.last30Days() {
-    final now = DateTime.now();
-    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
-
-    return DateRangeModel(from: thirtyDaysAgo, to: now);
-  }
-
-  /// Get preset date range options for UI
-  static List<DateRangeOption> getPresetOptions() {
-    return [
-      DateRangeOption('Today', DateRangeModel.today()),
-      DateRangeOption('Yesterday', DateRangeModel.yesterday()),
-      DateRangeOption('This Week', DateRangeModel.thisWeek()),
-      DateRangeOption('Last Week', DateRangeModel.lastWeek()),
-      DateRangeOption('This Month', DateRangeModel.thisMonth()),
-      DateRangeOption('Last Month', DateRangeModel.lastMonth()),
-      DateRangeOption('Last 7 Days', DateRangeModel.last7Days()),
-      DateRangeOption('Last 30 Days', DateRangeModel.last30Days()),
-    ];
   }
 
   @override
-  String toString() {
-    return 'DateRangeModel(from: $from, to: $to, duration: $daysDuration days)';
-  }
-}
-
-/// Helper class for date range UI options
-class DateRangeOption {
-  final String label;
-  final DateRangeModel dateRange;
-
-  const DateRangeOption(this.label, this.dateRange);
+  List<Object?> get props => [plantCodes, locationCodes, status, dateRange];
 
   @override
-  String toString() => label;
+  String toString() => 'ExportFiltersModel(filterCount: $filterCount)';
 }
 
-/// Export request model for API
+/// Export request model for API calls
 class ExportRequestModel {
   final String exportType;
   final ExportConfigModel exportConfig;
@@ -388,30 +242,37 @@ class ExportRequestModel {
     return {'exportType': exportType, 'exportConfig': exportConfig.toJson()};
   }
 
-  /// Create requests for quick exports
-  factory ExportRequestModel.allActiveAssets() {
+  /// Quick presets
+  factory ExportRequestModel.allAssets({String format = 'xlsx'}) {
     return ExportRequestModel(
       exportType: 'assets',
-      exportConfig: ExportConfigModel.allActiveAssets(),
+      exportConfig: ExportConfigModel.allAssets(format: format),
     );
   }
 
-  factory ExportRequestModel.recentScans() {
+  factory ExportRequestModel.activeAssetsOnly({String format = 'xlsx'}) {
     return ExportRequestModel(
-      exportType: 'scan_logs',
-      exportConfig: ExportConfigModel.recentScans(),
+      exportType: 'assets',
+      exportConfig: ExportConfigModel.activeAssetsOnly(format: format),
     );
   }
 
-  factory ExportRequestModel.monthlyReport() {
+  factory ExportRequestModel.withPeriod({
+    required PeriodModel period,
+    String format = 'xlsx',
+    List<String>? status,
+  }) {
     return ExportRequestModel(
-      exportType: 'status_history',
-      exportConfig: ExportConfigModel.monthlyReport(),
+      exportType: 'assets',
+      exportConfig: ExportConfigModel.withPeriod(
+        period: period,
+        format: format,
+        status: status,
+      ),
     );
   }
 
   @override
-  String toString() {
-    return 'ExportRequestModel(type: $exportType, format: ${exportConfig.format})';
-  }
+  String toString() =>
+      'ExportRequestModel(type: $exportType, format: ${exportConfig.format})';
 }

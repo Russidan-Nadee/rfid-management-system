@@ -1,4 +1,4 @@
-// Path: backend/src/controllers/exportController.js
+// Path: backend/src/features/export/exportController.js
 const ExportService = require('./exportService');
 const fs = require('fs').promises;
 const path = require('path');
@@ -34,20 +34,19 @@ class ExportController {
    }
 
    /**
-    * สร้าง export job ใหม่
-    * POST /api/v1/export/assets
+    * สร้าง export job ใหม่ - รองรับเฉพาะ assets
+    * POST /api/v1/export/jobs
     */
    async createExport(req, res) {
       try {
          const { exportType, exportConfig } = req.body;
          const { userId } = req.user;
 
-         // Validate export type
-         const validTypes = ['assets', 'scan_logs', 'status_history'];
-         if (!validTypes.includes(exportType)) {
+         // Validate export type - รองรับเฉพาะ assets
+         if (exportType !== 'assets') {
             return res.status(400).json({
                success: false,
-               message: 'Invalid export type',
+               message: 'Only assets export is supported',
                timestamp: new Date().toISOString()
             });
          }
@@ -61,6 +60,20 @@ class ExportController {
             });
          }
 
+         // Period validation - ถ้า validator ผ่านแล้วก็ปลอดภัย
+         const { filters } = exportConfig;
+         if (filters?.date_range) {
+            const dateValidation = this._validatePeriodParams(filters.date_range);
+            if (!dateValidation.isValid) {
+               return res.status(400).json({
+                  success: false,
+                  message: 'Invalid date range',
+                  errors: dateValidation.errors,
+                  timestamp: new Date().toISOString()
+               });
+            }
+         }
+
          // สร้าง export job
          const exportJob = await this.exportService.createExportJob({
             userId,
@@ -71,7 +84,8 @@ class ExportController {
          // Convert BigInt before sending response
          const convertedJob = this.convertBigIntToNumber(exportJob);
 
-         res.status(201).json({
+         // เพิ่ม warning ถ้ามี
+         const response = {
             success: true,
             message: 'Export job created successfully',
             data: {
@@ -82,16 +96,33 @@ class ExportController {
                expires_at: convertedJob.expires_at
             },
             timestamp: new Date().toISOString()
-         });
+         };
+
+         // เพิ่ม warning ถ้า validator เซ็ต default period
+         if (req.exportWarning) {
+            response.warning = req.exportWarning;
+         }
+
+         res.status(201).json(response);
 
       } catch (error) {
          console.error('Create export error:', error);
 
-         const statusCode = error.message.includes('pending') ? 409 : 500;
+         // Handle specific errors
+         let statusCode = 500;
+         let errorMessage = error.message;
+
+         if (error.message.includes('pending')) {
+            statusCode = 409;
+         } else if (error.message.includes('Invalid date range')) {
+            statusCode = 400;
+         } else if (error.message.includes('Date range cannot exceed')) {
+            statusCode = 400;
+         }
 
          res.status(statusCode).json({
             success: false,
-            message: error.message,
+            message: errorMessage,
             timestamp: new Date().toISOString()
          });
       }
@@ -135,6 +166,7 @@ class ExportController {
                export_id: convertedJob.export_id,
                export_type: convertedJob.export_type,
                status: convertedJob.status,
+               filename: path.basename(convertedJob.file_path),
                total_records: convertedJob.total_records,
                file_size: convertedJob.file_size,
                created_at: convertedJob.created_at,
@@ -293,7 +325,7 @@ class ExportController {
    }
 
    /**
-    * ดูประวัติ export ของ user
+    * ดูประวัติ export ของ user - เฉพาะ assets
     * GET /api/v1/export/history
     */
    async getExportHistory(req, res) {
@@ -310,8 +342,11 @@ class ExportController {
 
          const history = await this.exportService.getUserExportHistory(userId, options);
 
+         // Filter เฉพาะ assets exports
+         const assetsHistory = history.filter(item => item.export_type === 'assets');
+
          // แปลงข้อมูลให้เหมาะสำหรับ frontend และ convert BigInt
-         const formattedHistory = history.map(item => {
+         const formattedHistory = assetsHistory.map(item => {
             const converted = this.convertBigIntToNumber(item);
             return {
                export_id: converted.export_id,
@@ -335,7 +370,8 @@ class ExportController {
                pagination: {
                   currentPage: parseInt(page),
                   itemsPerPage: parseInt(limit),
-                  totalItems: history.length
+                  totalItems: formattedHistory.length,
+                  totalAssetsExports: formattedHistory.length
                }
             },
             timestamp: new Date().toISOString()
@@ -392,7 +428,7 @@ class ExportController {
    }
 
    /**
-    * ดึงข้อมูลสถิติ export
+    * ดึงข้อมูลสถิติ export - เฉพาะ assets
     * GET /api/v1/export/stats
     */
    async getExportStats(req, res) {
@@ -405,6 +441,7 @@ class ExportController {
 
          const stats = await this.exportService.exportModel.getExportStats(targetUserId);
 
+         // เพิ่มข้อมูลเฉพาะ assets exports
          res.status(200).json({
             success: true,
             message: 'Export statistics retrieved successfully',
@@ -412,7 +449,8 @@ class ExportController {
                pending: stats.P || 0,
                completed: stats.C || 0,
                failed: stats.F || 0,
-               total: (stats.P || 0) + (stats.C || 0) + (stats.F || 0)
+               total: (stats.P || 0) + (stats.C || 0) + (stats.F || 0),
+               export_type: 'assets_only'
             },
             timestamp: new Date().toISOString()
          });
@@ -506,7 +544,8 @@ class ExportController {
                   completed: dbStats.C || 0,
                   failed: dbStats.F || 0,
                   total: (dbStats.P || 0) + (dbStats.C || 0) + (dbStats.F || 0)
-               }
+               },
+               export_type: 'assets_only'
             },
             timestamp: new Date().toISOString()
          });
@@ -522,57 +561,42 @@ class ExportController {
    }
 
    /**
-    * เรียก cleanup แบบ force (Admin only) - ใช้สำหรับทดสอบ
-    * POST /api/v1/export/force-cleanup
+    * Validate period parameters (helper function)
+    * @private
     */
-   async forceCleanup(req, res) {
+   _validatePeriodParams(dateRange) {
+      const errors = [];
+
       try {
-         const { role } = req.user;
-
-         if (role !== 'admin') {
-            return res.status(403).json({
-               success: false,
-               message: 'Admin access required',
-               timestamp: new Date().toISOString()
-            });
+         if (!dateRange.from || !dateRange.to) {
+            errors.push('Both from and to dates are required');
+            return { isValid: false, errors };
          }
 
-         const { cleanup_type } = req.body;
-         const cleanupService = req.app.locals.cleanupService;
+         const from = new Date(dateRange.from);
+         const to = new Date(dateRange.to);
 
-         let result;
-
-         switch (cleanup_type) {
-            case 'expired':
-               result = { expiredFiles: await cleanupService.cleanupExpiredFiles() };
-               break;
-            case 'old_records':
-               result = { oldRecords: await cleanupService.cleanupOldRecords() };
-               break;
-            case 'orphaned':
-               result = { orphanedFiles: await cleanupService.cleanupOrphanedFiles() };
-               break;
-            case 'all':
-            default:
-               result = await cleanupService.manualCleanup();
-               break;
+         if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+            errors.push('Invalid date format');
          }
 
-         res.status(200).json({
-            success: true,
-            message: `Force cleanup completed (${cleanup_type || 'all'})`,
-            data: result,
-            timestamp: new Date().toISOString()
-         });
+         if (from >= to) {
+            errors.push('From date must be before to date');
+         }
+
+         const daysDiff = (to - from) / (1000 * 60 * 60 * 24);
+         if (daysDiff > 365) {
+            errors.push('Date range cannot exceed 1 year');
+         }
 
       } catch (error) {
-         console.error('Force cleanup error:', error);
-         res.status(500).json({
-            success: false,
-            message: error.message,
-            timestamp: new Date().toISOString()
-         });
+         errors.push('Date validation error');
       }
+
+      return {
+         isValid: errors.length === 0,
+         errors
+      };
    }
 }
 

@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/export/data/repositories/export_repository_impl.dart
-import 'dart:io';
-import '../../domain/entities/export_job_entity.dart';
-import '../../domain/entities/export_config_entity.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../../core/utils/either.dart';
 import '../../domain/repositories/export_repository.dart';
 import '../datasources/export_remote_datasource.dart';
+import '../models/export_job_model.dart';
 import '../models/export_config_model.dart';
 
 class ExportRepositoryImpl implements ExportRepository {
@@ -12,370 +12,333 @@ class ExportRepositoryImpl implements ExportRepository {
   ExportRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<ExportJobEntity> createExportJob({
+  Future<Either<Failure, ExportJobModel>> createExportJob({
     required String exportType,
-    required ExportConfigEntity config,
+    required ExportConfigModel config,
   }) async {
     try {
-      // Convert entity to model for API call
-      final configModel = ExportConfigModel.fromEntity(config);
-
-      // Call remote data source
-      final jobModel = await remoteDataSource.createExportJob(
-        exportType: exportType,
-        config: configModel,
-      );
-
-      // Return as entity (no conversion needed since model extends entity)
-      return jobModel;
-    } on ExportException catch (e) {
-      throw _mapExportException(e);
-    } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to create export job: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
-      );
-    }
-  }
-
-  @override
-  Future<ExportJobEntity> getExportJobStatus(int exportId) async {
-    try {
-      final jobModel = await remoteDataSource.getExportJobStatus(exportId);
-      return jobModel;
-    } on ExportException catch (e) {
-      throw _mapExportException(e);
-    } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to get export job status: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
-      );
-    }
-  }
-
-  @override
-  Future<String> downloadExportFile(int exportId) async {
-    try {
-      final filePath = await remoteDataSource.downloadExportFile(exportId);
-
-      // Validate downloaded file exists
-      if (!await _fileExists(filePath)) {
-        throw ExportRepositoryException(
-          'Downloaded file not found at: $filePath',
-          ExportRepositoryErrorType.fileSystem,
-        );
+      // Business validation
+      final validation = _validateExportRequest(exportType, config);
+      if (validation.isLeft) {
+        return Left(validation.left!);
       }
 
-      return filePath;
+      // Create request model
+      final request = ExportRequestModel(
+        exportType: exportType,
+        exportConfig: config,
+      );
+
+      // Call API
+      final exportJob = await remoteDataSource.createExportJob(
+        request: request,
+      );
+
+      return Right(exportJob);
     } on ExportException catch (e) {
-      throw _mapExportException(e);
+      return Left(_mapExportException(e));
     } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to download export file: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
+      return Left(
+        ServerFailure('Failed to create export job: ${e.toString()}'),
       );
     }
   }
 
   @override
-  Future<List<ExportJobEntity>> getExportHistory({
+  Future<Either<Failure, ExportJobModel>> getExportJobStatus(
+    int exportId,
+  ) async {
+    try {
+      // Input validation
+      if (exportId <= 0) {
+        return const Left(ValidationFailure(['Invalid export ID']));
+      }
+
+      final exportJob = await remoteDataSource.getExportJobStatus(exportId);
+      return Right(exportJob);
+    } on ExportException catch (e) {
+      return Left(_mapExportException(e));
+    } catch (e) {
+      return Left(
+        ServerFailure('Failed to get export status: ${e.toString()}'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> downloadExportFile(int exportId) async {
+    try {
+      // Input validation
+      if (exportId <= 0) {
+        return const Left(ValidationFailure(['Invalid export ID']));
+      }
+
+      // Check if export is ready before downloading
+      final statusResult = await getExportJobStatus(exportId);
+      if (statusResult.isLeft) {
+        return Left(statusResult.left!);
+      }
+
+      final exportJob = statusResult.right!;
+      if (!exportJob.canDownload) {
+        return Left(_getDownloadFailure(exportJob));
+      }
+
+      // Download file
+      await remoteDataSource.downloadExportFile(exportId);
+      return const Right(unit);
+    } on ExportException catch (e) {
+      return Left(_mapExportException(e));
+    } catch (e) {
+      return Left(ServerFailure('Failed to download export: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ExportJobModel>>> getExportHistory({
     int page = 1,
     int limit = 20,
     String? status,
   }) async {
     try {
-      // Validate pagination parameters
+      // Input validation
       if (page < 1) {
-        throw ExportRepositoryException(
-          'Page number must be greater than 0',
-          ExportRepositoryErrorType.validation,
-        );
+        return const Left(ValidationFailure(['Page must be greater than 0']));
       }
 
       if (limit < 1 || limit > 100) {
-        throw ExportRepositoryException(
-          'Limit must be between 1 and 100',
-          ExportRepositoryErrorType.validation,
+        return const Left(
+          ValidationFailure(['Limit must be between 1 and 100']),
         );
       }
 
-      final jobModels = await remoteDataSource.getExportHistory(
+      final exports = await remoteDataSource.getExportHistory(
         page: page,
         limit: limit,
         status: status,
       );
 
-      // Convert models to entities (no conversion needed since model extends entity)
-      return jobModels;
+      // Filter only assets exports (extra safety)
+      final assetsExports = exports
+          .where((export) => export.exportType == 'assets')
+          .toList();
+
+      return Right(assetsExports);
     } on ExportException catch (e) {
-      throw _mapExportException(e);
+      return Left(_mapExportException(e));
     } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to get export history: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
+      return Left(
+        ServerFailure('Failed to get export history: ${e.toString()}'),
       );
     }
   }
 
   @override
-  Future<bool> cancelExportJob(int exportId) async {
+  Future<Either<Failure, bool>> cancelExportJob(int exportId) async {
     try {
-      // Validate export ID
+      // Input validation
       if (exportId <= 0) {
-        throw ExportRepositoryException(
-          'Invalid export ID: $exportId',
-          ExportRepositoryErrorType.validation,
+        return const Left(ValidationFailure(['Invalid export ID']));
+      }
+
+      // Check if export can be cancelled
+      final statusResult = await getExportJobStatus(exportId);
+      if (statusResult.isLeft) {
+        return Left(statusResult.left!);
+      }
+
+      final exportJob = statusResult.right!;
+      if (!exportJob.isPending) {
+        return Left(
+          ValidationFailure([
+            'Cannot cancel export with status: ${exportJob.statusLabel}',
+          ]),
         );
       }
 
-      // Check if export can be cancelled (must be pending)
-      final job = await getExportJobStatus(exportId);
-      if (!job.isPending) {
-        throw ExportRepositoryException(
-          'Cannot cancel export with status: ${job.statusLabel}',
-          ExportRepositoryErrorType.validation,
-        );
-      }
-
-      return await remoteDataSource.cancelExportJob(exportId);
-    } on ExportRepositoryException {
-      rethrow;
+      final success = await remoteDataSource.cancelExportJob(exportId);
+      return Right(success);
     } on ExportException catch (e) {
-      throw _mapExportException(e);
+      return Left(_mapExportException(e));
     } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to cancel export job: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
-      );
-    }
-  }
-
-  @override
-  Future<bool> deleteExportJob(int exportId) async {
-    try {
-      // Validate export ID
-      if (exportId <= 0) {
-        throw ExportRepositoryException(
-          'Invalid export ID: $exportId',
-          ExportRepositoryErrorType.validation,
-        );
-      }
-
-      // Check if export can be deleted (must be completed or failed)
-      final job = await getExportJobStatus(exportId);
-      if (job.isPending) {
-        throw ExportRepositoryException(
-          'Cannot delete pending export. Cancel it first.',
-          ExportRepositoryErrorType.validation,
-        );
-      }
-
-      return await remoteDataSource.deleteExportJob(exportId);
-    } on ExportRepositoryException {
-      rethrow;
-    } on ExportException catch (e) {
-      throw _mapExportException(e);
-    } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to delete export job: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
-      );
-    }
-  }
-
-  @override
-  Future<ExportStatsEntity> getExportStats() async {
-    try {
-      final statsModel = await remoteDataSource.getExportStats();
-
-      // Convert model to entity
-      return ExportStatsEntity(
-        totalExports: statsModel.totalExports,
-        pendingExports: statsModel.pendingExports,
-        completedExports: statsModel.completedExports,
-        failedExports: statsModel.failedExports,
-        totalFilesSize: statsModel.totalFilesSize,
-        lastExportDate: statsModel.lastExportDate,
-      );
-    } on ExportException catch (e) {
-      throw _mapExportException(e);
-    } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to get export statistics: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
-      );
-    }
-  }
-
-  @override
-  Future<int> cleanupExpiredFiles() async {
-    try {
-      return await remoteDataSource.cleanupExpiredFiles();
-    } on ExportException catch (e) {
-      throw _mapExportException(e);
-    } catch (e) {
-      throw ExportRepositoryException(
-        'Failed to cleanup expired files: ${e.toString()}',
-        ExportRepositoryErrorType.unknown,
+      return Left(
+        ServerFailure('Failed to cancel export job: ${e.toString()}'),
       );
     }
   }
 
   // Helper methods
 
-  Future<bool> _fileExists(String filePath) async {
-    final file = File(filePath);
-    return await file.exists();
+  /// Validate export request according to business rules
+  Either<Failure, Unit> _validateExportRequest(
+    String exportType,
+    ExportConfigModel config,
+  ) {
+    final errors = <String>[];
+
+    // Validate export type - only assets allowed
+    if (exportType != 'assets') {
+      errors.add('Only assets export is supported');
+    }
+
+    // Validate format
+    if (!config.isValidFormat) {
+      errors.add('Invalid format. Must be xlsx or csv');
+    }
+
+    // Validate period if provided
+    if (config.filters?.dateRange != null) {
+      final period = config.filters!.dateRange!;
+      final validation = period.validate();
+      if (!validation.isValid) {
+        errors.addAll(validation.errors);
+      }
+    }
+
+    if (errors.isNotEmpty) {
+      return Left(ValidationFailure(errors));
+    }
+
+    return const Right(unit);
   }
 
-  ExportRepositoryException _mapExportException(ExportException e) {
-    final repositoryErrorType = _mapErrorType(e.errorType);
+  /// Get appropriate failure for download issues
+  Failure _getDownloadFailure(ExportJobModel exportJob) {
+    if (exportJob.isPending) {
+      return const ValidationFailure([
+        'Export is still processing. Please wait and try again.',
+      ]);
+    } else if (exportJob.isFailed) {
+      return ValidationFailure([
+        'Export failed: ${exportJob.errorMessage ?? 'Unknown error'}',
+      ]);
+    } else if (exportJob.isExpired) {
+      return const ValidationFailure(['Export file has expired']);
+    } else {
+      return const ValidationFailure([
+        'Export file is not available for download',
+      ]);
+    }
+  }
 
-    return ExportRepositoryException(
-      e.message,
-      repositoryErrorType,
-      e.originalError,
+  /// Map ExportException to Failure
+  Failure _mapExportException(ExportException e) {
+    switch (e.errorType) {
+      case ExportErrorType.api:
+        return ServerFailure(e.message);
+      case ExportErrorType.network:
+        return NetworkFailure(e.message);
+      case ExportErrorType.timeout:
+        return TimeoutFailure();
+      case ExportErrorType.authentication:
+        return UnauthorizedFailure();
+      case ExportErrorType.permission:
+        return ForbiddenFailure();
+      case ExportErrorType.validation:
+        return ValidationFailure([e.message]);
+      case ExportErrorType.notFound:
+        return NotFoundFailure(e.message);
+      case ExportErrorType.server:
+        return InternalServerFailure();
+      case ExportErrorType.download:
+        return ServerFailure('Download failed: ${e.message}');
+      case ExportErrorType.fileSystem:
+        return ServerFailure('File system error: ${e.message}');
+      case ExportErrorType.platform:
+        return ValidationFailure([e.message]);
+      case ExportErrorType.unknown:
+        return ServerFailure('Unknown error: ${e.message}');
+    }
+  }
+}
+
+/// Result wrapper for better error handling in UI
+class ExportResult<T> {
+  final bool success;
+  final T? data;
+  final String? errorMessage;
+  final String? errorCode;
+
+  const ExportResult._({
+    required this.success,
+    this.data,
+    this.errorMessage,
+    this.errorCode,
+  });
+
+  factory ExportResult.success(T data) {
+    return ExportResult._(success: true, data: data);
+  }
+
+  factory ExportResult.failure({required String message, String? code}) {
+    return ExportResult._(
+      success: false,
+      errorMessage: message,
+      errorCode: code,
     );
   }
 
-  ExportRepositoryErrorType _mapErrorType(ExportErrorType errorType) {
-    switch (errorType) {
-      case ExportErrorType.api:
-        return ExportRepositoryErrorType.api;
-      case ExportErrorType.network:
-        return ExportRepositoryErrorType.network;
-      case ExportErrorType.timeout:
-        return ExportRepositoryErrorType.timeout;
-      case ExportErrorType.authentication:
-        return ExportRepositoryErrorType.authentication;
-      case ExportErrorType.permission:
-        return ExportRepositoryErrorType.permission;
-      case ExportErrorType.validation:
-        return ExportRepositoryErrorType.validation;
-      case ExportErrorType.notFound:
-        return ExportRepositoryErrorType.notFound;
-      case ExportErrorType.server:
-        return ExportRepositoryErrorType.server;
-      case ExportErrorType.download:
-        return ExportRepositoryErrorType.download;
-      case ExportErrorType.fileSystem:
-        return ExportRepositoryErrorType.fileSystem;
-      case ExportErrorType.unknown:
-        return ExportRepositoryErrorType.unknown;
-    }
-  }
-}
-
-/// Repository-specific exception for better error handling
-class ExportRepositoryException implements Exception {
-  final String message;
-  final ExportRepositoryErrorType errorType;
-  final dynamic originalError;
-
-  const ExportRepositoryException(
-    this.message,
-    this.errorType, [
-    this.originalError,
-  ]);
-
-  bool get isNetworkError => errorType == ExportRepositoryErrorType.network;
-  bool get isAuthenticationError =>
-      errorType == ExportRepositoryErrorType.authentication;
-  bool get isValidationError =>
-      errorType == ExportRepositoryErrorType.validation;
-  bool get isServerError => errorType == ExportRepositoryErrorType.server;
-  bool get isFileSystemError =>
-      errorType == ExportRepositoryErrorType.fileSystem;
-
-  String get userFriendlyMessage {
-    switch (errorType) {
-      case ExportRepositoryErrorType.network:
-        return 'Please check your internet connection and try again';
-      case ExportRepositoryErrorType.timeout:
-        return 'Request timed out. Please try again';
-      case ExportRepositoryErrorType.authentication:
-        return 'Please login again to continue';
-      case ExportRepositoryErrorType.permission:
-        return 'You don\'t have permission to perform this action';
-      case ExportRepositoryErrorType.validation:
-        return message; // Use original validation message
-      case ExportRepositoryErrorType.notFound:
-        return 'The requested export was not found';
-      case ExportRepositoryErrorType.server:
-        return 'Server error. Please try again later';
-      case ExportRepositoryErrorType.download:
-        return 'Failed to download file. Please try again';
-      case ExportRepositoryErrorType.fileSystem:
-        return 'File operation failed. Please check storage permissions';
-      case ExportRepositoryErrorType.api:
-      case ExportRepositoryErrorType.unknown:
-        return 'An unexpected error occurred. Please try again';
-    }
-  }
-
-  @override
-  String toString() => 'ExportRepositoryException: $message';
-}
-
-enum ExportRepositoryErrorType {
-  api,
-  network,
-  timeout,
-  authentication,
-  permission,
-  validation,
-  notFound,
-  server,
-  download,
-  fileSystem,
-  unknown,
-}
-
-/// Result wrapper for better error handling in use cases
-class ExportRepositoryResult<T> {
-  final bool success;
-  final T? data;
-  final ExportRepositoryException? error;
-
-  const ExportRepositoryResult._({
-    required this.success,
-    this.data,
-    this.error,
-  });
-
-  factory ExportRepositoryResult.success(T data) {
-    return ExportRepositoryResult._(success: true, data: data);
-  }
-
-  factory ExportRepositoryResult.failure(ExportRepositoryException error) {
-    return ExportRepositoryResult._(success: false, error: error);
-  }
-
   bool get hasData => data != null;
-  bool get hasError => error != null;
+  bool get hasError => errorMessage != null;
 
-  /// Execute operation and wrap result
-  static Future<ExportRepositoryResult<T>> execute<T>(
-    Future<T> Function() operation,
-  ) async {
-    try {
-      final result = await operation();
-      return ExportRepositoryResult.success(result);
-    } on ExportRepositoryException catch (e) {
-      return ExportRepositoryResult.failure(e);
-    } catch (e) {
-      return ExportRepositoryResult.failure(
-        ExportRepositoryException(
-          'Unexpected error: ${e.toString()}',
-          ExportRepositoryErrorType.unknown,
-          e,
-        ),
-      );
-    }
+  /// Convert Either to ExportResult for easier UI handling
+  static ExportResult<T> fromEither<T>(Either<Failure, T> either) {
+    return either.fold(
+      (failure) =>
+          ExportResult.failure(message: failure.message, code: failure.code),
+      (data) => ExportResult.success(data),
+    );
   }
 
   @override
   String toString() {
-    return 'ExportRepositoryResult(success: $success, hasData: $hasData, hasError: $hasError)';
+    return 'ExportResult(success: $success, hasData: $hasData, error: $errorMessage)';
+  }
+}
+
+/// Extension for easier Either handling in Repository
+extension EitherExtension<L, R> on Either<L, R> {
+  /// Execute async operation and wrap in Either
+  static Future<Either<Failure, T>> execute<T>(
+    Future<T> Function() operation,
+  ) async {
+    try {
+      final result = await operation();
+      return Right(result);
+    } on ExportException catch (e) {
+      return Left(_mapExportException(e));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
+
+  static Failure _mapExportException(ExportException e) {
+    // Same mapping logic as in repository
+    switch (e.errorType) {
+      case ExportErrorType.api:
+        return ServerFailure(e.message);
+      case ExportErrorType.network:
+        return NetworkFailure(e.message);
+      case ExportErrorType.timeout:
+        return TimeoutFailure();
+      case ExportErrorType.authentication:
+        return UnauthorizedFailure();
+      case ExportErrorType.permission:
+        return ForbiddenFailure();
+      case ExportErrorType.validation:
+        return ValidationFailure([e.message]);
+      case ExportErrorType.notFound:
+        return NotFoundFailure(e.message);
+      case ExportErrorType.server:
+        return InternalServerFailure();
+      case ExportErrorType.download:
+        return ServerFailure('Download failed: ${e.message}');
+      case ExportErrorType.fileSystem:
+        return ServerFailure('File system error: ${e.message}');
+      case ExportErrorType.platform:
+        return ValidationFailure([e.message]);
+      case ExportErrorType.unknown:
+        return ServerFailure('Unknown error: ${e.message}');
+    }
   }
 }

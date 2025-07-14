@@ -60,7 +60,7 @@ class ExportService {
          const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');
          await this._ensureDirectoryExists(uploadsDir);
 
-         // Fetch data
+         // Fetch data - รองรับเฉพาะ assets
          const data = await this._fetchExportData(exportJob);
          console.log(`📊 Fetched ${data.length} records`);
 
@@ -125,237 +125,145 @@ class ExportService {
    }
 
    /**
-    * ดึงข้อมูลสำหรับ export ตาม type
+    * ดึงข้อมูลสำหรับ export - รองรับเฉพาะ assets
     * @param {Object} exportJob - Export job
     * @returns {Promise<Array>} ข้อมูลที่จะ export
     * @private
     */
    async _fetchExportData(exportJob) {
-      const { export_type, export_config } = exportJob;
-      const config = export_config || {};
+      const { export_type } = exportJob;
 
-      switch (export_type) {
-         case 'assets':
-            return this._fetchAssetData(config);
-         case 'scan_logs':
-            return this._fetchScanLogData(config);
-         case 'status_history':
-            return this._fetchStatusHistoryData(config);
-         default:
-            throw new Error(`Unsupported export type: ${export_type}`);
+      // รองรับเฉพาะ assets export
+      if (export_type === 'assets') {
+         return this._fetchAssetData(exportJob.export_config || {});
+      } else {
+         throw new Error(`Export type '${export_type}' is no longer supported. Only 'assets' export is available.`);
       }
    }
 
    /**
-    * ดึงข้อมูล assets
+    * ดึงข้อมูล assets พร้อมทุก field และ master data
     * @param {Object} config - การตั้งค่า export
-    * @returns {Promise<Array>} ข้อมูล assets
+    * @returns {Promise<Array>} ข้อมูล assets ครบทั้งหมด 24 columns
     * @private
     */
    async _fetchAssetData(config) {
-      const { filters = {}, columns = [] } = config;
+      const { filters = {} } = config;
+
+      // Apply business rules และ default period
+      const processedFilters = this._applyBusinessRulesForAssets(filters);
 
       // Build where conditions
       const whereConditions = {};
 
-      if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereConditions.plant_code = { in: filters.plant_codes };
+      // Plant filter
+      if (processedFilters.plant_codes && processedFilters.plant_codes.length > 0) {
+         whereConditions.plant_code = { in: processedFilters.plant_codes };
       }
 
-      if (filters.location_codes && filters.location_codes.length > 0) {
-         whereConditions.location_code = { in: filters.location_codes };
+      // Location filter
+      if (processedFilters.location_codes && processedFilters.location_codes.length > 0) {
+         whereConditions.location_code = { in: processedFilters.location_codes };
       }
 
-      if (filters.status && filters.status.length > 0) {
-         whereConditions.status = { in: filters.status };
+      // Status filter
+      if (processedFilters.status && processedFilters.status.length > 0) {
+         whereConditions.status = { in: processedFilters.status };
       }
 
-      if (filters.date_range) {
+      // Period filter - ใช้ created_at field (หลังจาก business rules แล้ว)
+      if (processedFilters.date_range) {
          whereConditions.created_at = {};
-         if (filters.date_range.from) {
-            whereConditions.created_at.gte = new Date(filters.date_range.from);
+         if (processedFilters.date_range.from) {
+            whereConditions.created_at.gte = new Date(processedFilters.date_range.from);
          }
-         if (filters.date_range.to) {
-            whereConditions.created_at.lte = new Date(filters.date_range.to);
+         if (processedFilters.date_range.to) {
+            whereConditions.created_at.lte = new Date(processedFilters.date_range.to);
          }
       }
 
+      // ดึงข้อมูล assets พร้อม include ทุก master tables
       const assets = await prisma.asset_master.findMany({
          where: whereConditions,
          include: {
-            mst_plant: { select: { description: true } },
-            mst_location: { select: { description: true } },
-            mst_unit: { select: { name: true } },
-            mst_user: { select: { full_name: true } }
+            mst_plant: {
+               select: {
+                  plant_code: true,
+                  description: true
+               }
+            },
+            mst_location: {
+               select: {
+                  location_code: true,
+                  description: true
+               }
+            },
+            mst_unit: {
+               select: {
+                  unit_code: true,
+                  name: true
+               }
+            },
+            mst_department: {
+               select: {
+                  dept_code: true,
+                  description: true
+               }
+            },
+            mst_category: {
+               select: {
+                  category_code: true,
+                  category_name: true,
+                  description: true
+               }
+            },
+            mst_brand: {
+               select: {
+                  brand_code: true,
+                  brand_name: true,
+                  description: true
+               }
+            },
+            mst_user: {
+               select: {
+                  user_id: true,
+                  full_name: true
+               }
+            }
          },
          orderBy: { asset_no: 'asc' }
       });
 
-      // Format response to match original structure
+      // Return ทุก field ครบทั้งหมด 24 columns
       return assets.map(asset => ({
+         // Asset Master Fields ทั้งหมด (15 fields)
          asset_no: asset.asset_no,
          description: asset.description,
+         plant_code: asset.plant_code,
+         location_code: asset.location_code,
+         dept_code: asset.dept_code,
          serial_no: asset.serial_no,
          inventory_no: asset.inventory_no,
          quantity: asset.quantity,
+         unit_code: asset.unit_code,
+         category_code: asset.category_code,
+         brand_code: asset.brand_code,
          status: asset.status,
+         created_by: asset.created_by,
          created_at: asset.created_at,
+         deactivated_at: asset.deactivated_at,
+
+         // Master Data Descriptions (9 fields)
          plant_description: asset.mst_plant?.description,
          location_description: asset.mst_location?.description,
+         department_description: asset.mst_department?.description,
          unit_name: asset.mst_unit?.name,
+         category_name: asset.mst_category?.category_name,
+         category_description: asset.mst_category?.description,
+         brand_name: asset.mst_brand?.brand_name,
+         brand_description: asset.mst_brand?.description,
          created_by_name: asset.mst_user?.full_name
       }));
-   }
-
-   /**
-    * ดึงข้อมูล scan logs
-    * @param {Object} config - การตั้งค่า export
-    * @returns {Promise<Array>} ข้อมูล scan logs
-    * @private
-    */
-   async _fetchScanLogData(config) {
-      const { filters = {} } = config;
-
-      const whereConditions = {};
-
-      if (filters.date_range) {
-         whereConditions.scanned_at = {};
-         if (filters.date_range.from) {
-            whereConditions.scanned_at.gte = new Date(filters.date_range.from);
-         }
-         if (filters.date_range.to) {
-            whereConditions.scanned_at.lte = new Date(filters.date_range.to);
-         }
-      }
-
-      if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereConditions.asset_master = {
-            plant_code: { in: filters.plant_codes }
-         };
-      }
-
-      const scanLogs = await prisma.asset_scan_log.findMany({
-         where: whereConditions,
-         include: {
-            asset_master: {
-               select: { description: true }
-            },
-            mst_user: {
-               select: { full_name: true }
-            },
-            mst_location: {
-               include: {
-                  mst_plant: {
-                     select: { description: true }
-                  }
-               }
-            }
-         },
-         orderBy: { scanned_at: 'desc' }
-      });
-
-      return scanLogs.map(log => ({
-         scan_id: log.scan_id,
-         asset_no: log.asset_no,
-         scanned_at: log.scanned_at,
-         asset_description: log.asset_master?.description,
-         scanned_by_name: log.mst_user?.full_name,
-         location_description: log.mst_location?.description,
-         plant_description: log.mst_location?.mst_plant?.description
-      }));
-   }
-
-   /**
-    * ดึงข้อมูล status history
-    * @param {Object} config - การตั้งค่า export
-    * @returns {Promise<Array>} ข้อมูล status history
-    * @private
-    */
-   async _fetchStatusHistoryData(config) {
-      const { filters = {} } = config;
-
-      const whereConditions = {};
-
-      if (filters.date_range) {
-         whereConditions.changed_at = {};
-         if (filters.date_range.from) {
-            whereConditions.changed_at.gte = new Date(filters.date_range.from);
-         }
-         if (filters.date_range.to) {
-            whereConditions.changed_at.lte = new Date(filters.date_range.to);
-         }
-      }
-
-      if (filters.plant_codes && filters.plant_codes.length > 0) {
-         whereConditions.asset_master = {
-            plant_code: { in: filters.plant_codes }
-         };
-      }
-
-      const statusHistory = await prisma.asset_status_history.findMany({
-         where: whereConditions,
-         include: {
-            asset_master: {
-               include: {
-                  mst_plant: { select: { description: true } },
-                  mst_location: { select: { description: true } }
-               }
-            },
-            mst_user: {
-               select: { full_name: true }
-            }
-         },
-         orderBy: { changed_at: 'desc' }
-      });
-
-      return statusHistory.map(history => ({
-         history_id: history.history_id,
-         asset_no: history.asset_no,
-         old_status: history.old_status,
-         new_status: history.new_status,
-         changed_at: history.changed_at,
-         remarks: history.remarks,
-         asset_description: history.asset_master?.description,
-         changed_by_name: history.mst_user?.full_name,
-         plant_description: history.asset_master?.mst_plant?.description,
-         location_description: history.asset_master?.mst_location?.description
-      }));
-   }
-
-   /**
-    * สร้างไฟล์ export
-    * @param {Object} exportJob - Export job
-    * @param {Array} data - ข้อมูลที่จะ export
-    * @returns {Promise<string>} path ของไฟล์ที่สร้าง
-    * @private
-    */
-   async _generateExportFile(exportJob, data) {
-      const config = exportJob.export_config || {};
-      const format = config.format || 'xlsx';
-
-      console.log('Export format:', format);
-      console.log('Export config:', config);
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `${exportJob.export_type}_${exportJob.export_id}_${timestamp}.${format}`;
-
-      console.log('File name:', fileName);
-
-      // สร้าง directory ก่อน
-      const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');
-      await this._ensureDirectoryExists(uploadsDir);
-
-      const filePath = path.join(uploadsDir, fileName);
-
-      if (format === 'xlsx') {
-         await this._generateExcelFile(filePath, data);
-      } else if (format === 'csv') {
-         await this._generateCsvFile(filePath, data);
-      } else {
-         throw new Error(`Unsupported format: ${format}`);
-      }
-
-      return filePath;
    }
 
    /**
@@ -368,7 +276,7 @@ class ExportService {
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(data);
 
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Export Data');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Assets Export');
       XLSX.writeFile(workbook, filePath);
    }
 
@@ -479,16 +387,115 @@ class ExportService {
    }
 
    /**
-    * สร้าง directory ถ้าไม่มี
-    * @param {string} dirPath - path ของ directory
+    * ใช้ business rules สำหรับ assets export
+    * @param {Object} filters - filters จาก request
+    * @returns {Object} processed filters
     * @private
     */
-   async _ensureDirectoryExists(dirPath) {
-      try {
-         await fs.access(dirPath);
-      } catch {
-         await fs.mkdir(dirPath, { recursive: true });
+   _applyBusinessRulesForAssets(filters) {
+      let processedFilters = { ...filters };
+
+      // 1. Date Range Validation และ Default Setting
+      if (!processedFilters.date_range) {
+         // ถ้าไม่มี date_range เซ็ต default เป็น 30 วันล่าสุด
+         const now = new Date();
+         const thirtyDaysAgo = new Date();
+         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+         processedFilters.date_range = {
+            from: thirtyDaysAgo.toISOString(),
+            to: now.toISOString()
+         };
+
+         console.log('📅 Applied default 30-day period for assets export');
+      } else {
+         // 2. Re-validate date range สำหรับ security
+         const validation = this._validateDateRange(processedFilters.date_range);
+         if (!validation.isValid) {
+            throw new Error(`Invalid date range: ${validation.errors.join(', ')}`);
+         }
+
+         // 3. Log warning สำหรับ large date ranges
+         const daysDiff = this._calculateDaysDifference(
+            processedFilters.date_range.from,
+            processedFilters.date_range.to
+         );
+
+         if (daysDiff > 180) { // มากกว่า 6 เดือน
+            console.warn(`⚠️  Large date range: ${daysDiff} days in assets export`);
+         }
       }
+
+      // 4. Status Filter Default (ถ้าไม่ระบุ ให้ export ทุก status)
+      if (!processedFilters.status || processedFilters.status.length === 0) {
+         console.log('📊 No status filter specified, exporting all statuses (A, C, I)');
+      }
+
+      return processedFilters;
+   }
+
+   /**
+    * Validate date range (business layer validation)
+    * @param {Object} dateRange - {from, to}
+    * @returns {Object} {isValid, errors}
+    * @private
+    */
+   _validateDateRange(dateRange) {
+      const errors = [];
+
+      try {
+         const from = new Date(dateRange.from);
+         const to = new Date(dateRange.to);
+         const now = new Date();
+         const twoYearsAgo = new Date();
+         twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+
+         // Check date validity
+         if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+            errors.push('Invalid date format');
+         }
+
+         // Check logical order
+         if (from >= to) {
+            errors.push('From date must be before to date');
+         }
+
+         // Check reasonable bounds
+         if (from < twoYearsAgo) {
+            errors.push('From date cannot be more than 2 years ago');
+         }
+
+         if (to > now) {
+            errors.push('To date cannot be in the future');
+         }
+
+         // Check range size (1 year limit)
+         const daysDiff = (to - from) / (1000 * 60 * 60 * 24);
+         if (daysDiff > 365) {
+            errors.push('Date range cannot exceed 1 year');
+         }
+
+      } catch (error) {
+         errors.push('Date processing error');
+      }
+
+      return {
+         isValid: errors.length === 0,
+         errors
+      };
+   }
+
+   /**
+    * Calculate days difference between two dates
+    * @param {string} fromDate - ISO date string
+    * @param {string} toDate - ISO date string  
+    * @returns {number} days difference
+    * @private
+    */
+   _calculateDaysDifference(fromDate, toDate) {
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      return Math.ceil((to - from) / (1000 * 60 * 60 * 24));
    }
 
    /**

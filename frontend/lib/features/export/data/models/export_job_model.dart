@@ -1,80 +1,150 @@
 // Path: frontend/lib/features/export/data/models/export_job_model.dart
-import '../../domain/entities/export_job_entity.dart';
+import 'package:equatable/equatable.dart';
 
-class ExportJobModel extends ExportJobEntity {
+class ExportJobModel extends Equatable {
+  final int exportId;
+  final String exportType;
+  final String status;
+  final String? filename; // ← เพิ่มใหม่
+  final int? totalRecords;
+  final int? fileSize;
+  final DateTime? createdAt;
+  final DateTime? expiresAt;
+  final String? errorMessage;
+  final String? downloadUrl;
+
   const ExportJobModel({
-    required super.exportId,
-    required super.exportType,
-    required super.status,
-    super.totalRecords,
-    super.fileSize,
-    required super.createdAt,
-    required super.expiresAt,
-    super.errorMessage,
-    super.downloadUrl,
+    required this.exportId,
+    required this.exportType,
+    required this.status,
+    this.filename, // ← เพิ่มใหม่
+    this.totalRecords,
+    this.fileSize,
+    this.createdAt,
+    this.expiresAt,
+    this.errorMessage,
+    this.downloadUrl,
   });
 
-  /// Create model from API JSON response
+  /// Create from API JSON response
   factory ExportJobModel.fromJson(Map<String, dynamic> json) {
     return ExportJobModel(
       exportId: _parseId(json['export_id']),
-      exportType: json['export_type']?.toString() ?? '',
+      exportType: json['export_type']?.toString() ?? 'assets',
       status: json['status']?.toString() ?? 'P',
+      filename: json['filename']?.toString(), // ← เพิ่มใหม่
       totalRecords: _parseOptionalInt(json['total_records']),
       fileSize: _parseOptionalInt(json['file_size']),
-      createdAt: _parseDateTime(json['created_at']) ?? DateTime.now(),
-      expiresAt:
-          _parseDateTime(json['expires_at']) ??
-          DateTime.now().add(const Duration(days: 7)),
+      createdAt: _parseDateTime(json['created_at']),
+      expiresAt: _parseDateTime(json['expires_at']),
       errorMessage: json['error_message']?.toString(),
       downloadUrl: json['download_url']?.toString(),
     );
   }
 
-  /// Convert model to JSON for API requests
+  /// Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'export_id': exportId,
       'export_type': exportType,
       'status': status,
+      if (filename != null) 'filename': filename, // ← เพิ่มใหม่
       if (totalRecords != null) 'total_records': totalRecords,
       if (fileSize != null) 'file_size': fileSize,
-      'created_at': createdAt.toIso8601String(),
-      'expires_at': expiresAt.toIso8601String(),
+      if (createdAt != null) 'created_at': createdAt?.toIso8601String(),
+      if (expiresAt != null) 'expires_at': expiresAt?.toIso8601String(),
       if (errorMessage != null) 'error_message': errorMessage,
       if (downloadUrl != null) 'download_url': downloadUrl,
     };
   }
 
-  /// Convert Entity to Model
-  factory ExportJobModel.fromEntity(ExportJobEntity entity) {
-    return ExportJobModel(
-      exportId: entity.exportId,
-      exportType: entity.exportType,
-      status: entity.status,
-      totalRecords: entity.totalRecords,
-      fileSize: entity.fileSize,
-      createdAt: entity.createdAt,
-      expiresAt: entity.expiresAt,
-      errorMessage: entity.errorMessage,
-      downloadUrl: entity.downloadUrl,
-    );
+  /// Business logic helpers
+  bool get isCompleted => status.toUpperCase() == 'C';
+  bool get isPending => status.toUpperCase() == 'P';
+  bool get isFailed => status.toUpperCase() == 'F';
+
+  bool get isExpired {
+    if (expiresAt == null) return false;
+    return DateTime.now().isAfter(expiresAt!);
   }
 
-  /// Create model from API list response (for export history)
-  factory ExportJobModel.fromListJson(Map<String, dynamic> json) {
-    // Handle different API response formats
-    if (json.containsKey('data')) {
-      return ExportJobModel.fromJson(json['data']);
+  bool get canDownload => isCompleted && !isExpired && downloadUrl != null;
+
+  /// UI Display helpers
+  String get statusLabel {
+    switch (status.toUpperCase()) {
+      case 'P':
+        return 'Processing';
+      case 'C':
+        return 'Completed';
+      case 'F':
+        return 'Failed';
+      default:
+        return status;
     }
-    return ExportJobModel.fromJson(json);
   }
 
-  /// Copy with new values (useful for updates)
+  String get exportTypeLabel {
+    switch (exportType) {
+      case 'assets':
+        return 'Assets Export';
+      default:
+        return exportType;
+    }
+  }
+
+  String get fileSizeFormatted {
+    if (fileSize == null) return '-';
+
+    if (fileSize! < 1024) return '${fileSize}B';
+    if (fileSize! < 1024 * 1024) {
+      return '${(fileSize! / 1024).toStringAsFixed(1)}KB';
+    }
+    return '${(fileSize! / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
+
+  /// Display filename with fallback
+  String get displayFilename {
+    if (filename != null && filename!.isNotEmpty) {
+      return filename!;
+    }
+    return 'Export #$exportId';
+  }
+
+  /// Get file extension from filename
+  String? get fileExtension {
+    if (filename == null) return null;
+    final parts = filename!.split('.');
+    return parts.length > 1 ? parts.last.toLowerCase() : null;
+  }
+
+  /// Time helpers
+  Duration? get timeUntilExpiry {
+    if (expiresAt == null) return null;
+    return expiresAt!.difference(DateTime.now());
+  }
+
+  String? get timeUntilExpiryFormatted {
+    final duration = timeUntilExpiry;
+    if (duration == null) return null;
+
+    if (duration.isNegative) return 'Expired';
+
+    if (duration.inDays > 0) {
+      return '${duration.inDays}d left';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours}h left';
+    } else {
+      return '${duration.inMinutes}m left';
+    }
+  }
+
+  /// Copy with
   ExportJobModel copyWith({
     int? exportId,
     String? exportType,
     String? status,
+    String? filename,
     int? totalRecords,
     int? fileSize,
     DateTime? createdAt,
@@ -86,6 +156,7 @@ class ExportJobModel extends ExportJobEntity {
       exportId: exportId ?? this.exportId,
       exportType: exportType ?? this.exportType,
       status: status ?? this.status,
+      filename: filename ?? this.filename,
       totalRecords: totalRecords ?? this.totalRecords,
       fileSize: fileSize ?? this.fileSize,
       createdAt: createdAt ?? this.createdAt,
@@ -95,40 +166,24 @@ class ExportJobModel extends ExportJobEntity {
     );
   }
 
-  /// Create mock model for testing/development
+  /// Create mock for testing
   factory ExportJobModel.mock({
     int? exportId,
-    String? exportType,
     String? status,
+    String? filename,
   }) {
     final now = DateTime.now();
     return ExportJobModel(
       exportId: exportId ?? 1,
-      exportType: exportType ?? 'assets',
+      exportType: 'assets',
       status: status ?? 'C',
+      filename: filename ?? 'assets_1_2025-07-14T10-30-00-000Z.xlsx',
       totalRecords: 142,
       fileSize: 1024 * 256, // 256KB
       createdAt: now.subtract(const Duration(hours: 2)),
-      expiresAt: now.add(const Duration(days: 7)),
-      downloadUrl: '/api/v1/export/download/${exportId ?? 1}',
+      expiresAt: now.add(const Duration(days: 1)),
+      downloadUrl: '/api/v1/export/download/1',
     );
-  }
-
-  /// Create list of mock models for testing
-  static List<ExportJobModel> mockList() {
-    return [
-      ExportJobModel.mock(exportId: 1, exportType: 'assets', status: 'C'),
-      ExportJobModel.mock(exportId: 2, exportType: 'scan_logs', status: 'P'),
-      ExportJobModel.mock(
-        exportId: 3,
-        exportType: 'status_history',
-        status: 'F',
-      ).copyWith(
-        errorMessage: 'Date range too large',
-        fileSize: null,
-        totalRecords: null,
-      ),
-    ];
   }
 
   // Utility parsing methods
@@ -148,86 +203,74 @@ class ExportJobModel extends ExportJobEntity {
 
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
-    if (value is String) {
+    if (value is String && value.isNotEmpty) {
       try {
         return DateTime.parse(value);
       } catch (e) {
-        // Try different date formats
-        return _tryParseAlternativeDateFormats(value);
+        return null;
       }
     }
-    return null;
-  }
-
-  static DateTime? _tryParseAlternativeDateFormats(String dateString) {
-    // Common API date formats
-    final formats = [
-      // ISO format variations
-      RegExp(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z'),
-      RegExp(r'(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z'),
-      RegExp(r'(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})'),
-      // MySQL datetime format
-      RegExp(r'(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})'),
-    ];
-
-    for (final format in formats) {
-      final match = format.firstMatch(dateString);
-      if (match != null) {
-        try {
-          return DateTime.parse(dateString);
-        } catch (e) {
-          continue;
-        }
-      }
-    }
-
     return null;
   }
 
   @override
+  List<Object?> get props => [
+    exportId,
+    exportType,
+    status,
+    filename,
+    totalRecords,
+    fileSize,
+    createdAt,
+    expiresAt,
+    errorMessage,
+    downloadUrl,
+  ];
+
+  @override
   String toString() {
-    return 'ExportJobModel(id: $exportId, type: $exportType, status: $status)';
+    return 'ExportJobModel(id: $exportId, type: $exportType, status: $status, filename: $filename)';
   }
 }
 
-/// Model for create export job response
-class CreateExportJobResponse {
+/// Response wrapper for API calls
+class ExportJobResponse {
   final ExportJobModel exportJob;
   final String message;
   final DateTime timestamp;
 
-  const CreateExportJobResponse({
+  const ExportJobResponse({
     required this.exportJob,
     required this.message,
     required this.timestamp,
   });
 
-  factory CreateExportJobResponse.fromJson(Map<String, dynamic> json) {
-    return CreateExportJobResponse(
+  factory ExportJobResponse.fromJson(Map<String, dynamic> json) {
+    return ExportJobResponse(
       exportJob: ExportJobModel.fromJson(json['data'] ?? json),
-      message: json['message']?.toString() ?? 'Export job created',
-      timestamp:
-          ExportJobModel._parseDateTime(json['timestamp']) ?? DateTime.now(),
+      message: json['message']?.toString() ?? 'Success',
+      timestamp: _parseTimestamp(json['timestamp']),
     );
   }
 
-  @override
-  String toString() {
-    return 'CreateExportJobResponse(exportId: ${exportJob.exportId}, message: $message)';
+  static DateTime _parseTimestamp(dynamic value) {
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+    return DateTime.now();
   }
 }
 
-/// Model for export history response
+/// History response with simplified pagination
 class ExportHistoryResponse {
   final List<ExportJobModel> exports;
-  final PaginationMeta? pagination;
   final String message;
 
-  const ExportHistoryResponse({
-    required this.exports,
-    this.pagination,
-    required this.message,
-  });
+  const ExportHistoryResponse({required this.exports, required this.message});
 
   factory ExportHistoryResponse.fromJson(Map<String, dynamic> json) {
     final dataList = json['data'] as List<dynamic>? ?? [];
@@ -237,53 +280,15 @@ class ExportHistoryResponse {
 
     return ExportHistoryResponse(
       exports: exports,
-      pagination: json['meta']?['pagination'] != null
-          ? PaginationMeta.fromJson(json['meta']['pagination'])
-          : null,
-      message: json['message']?.toString() ?? 'Export history retrieved',
+      message: json['message']?.toString() ?? 'Success',
     );
   }
 
-  bool get hasMore => pagination?.hasNextPage ?? false;
-  int get totalCount => pagination?.totalItems ?? exports.length;
+  bool get hasExports => exports.isNotEmpty;
+  int get totalCount => exports.length;
 
   @override
   String toString() {
-    return 'ExportHistoryResponse(count: ${exports.length}, hasMore: $hasMore)';
-  }
-}
-
-/// Pagination metadata model
-class PaginationMeta {
-  final int currentPage;
-  final int totalPages;
-  final int totalItems;
-  final int itemsPerPage;
-  final bool hasNextPage;
-  final bool hasPrevPage;
-
-  const PaginationMeta({
-    required this.currentPage,
-    required this.totalPages,
-    required this.totalItems,
-    required this.itemsPerPage,
-    required this.hasNextPage,
-    required this.hasPrevPage,
-  });
-
-  factory PaginationMeta.fromJson(Map<String, dynamic> json) {
-    return PaginationMeta(
-      currentPage: json['currentPage']?.toInt() ?? 1,
-      totalPages: json['totalPages']?.toInt() ?? 1,
-      totalItems: json['totalItems']?.toInt() ?? 0,
-      itemsPerPage: json['itemsPerPage']?.toInt() ?? 20,
-      hasNextPage: json['hasNextPage'] == true,
-      hasPrevPage: json['hasPrevPage'] == true,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'PaginationMeta(page: $currentPage/$totalPages, total: $totalItems)';
+    return 'ExportHistoryResponse(count: ${exports.length})';
   }
 }

@@ -102,7 +102,7 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   bool get _isWideScreen =>
-      MediaQuery.of(context).size.width >= AppConstants.tabletBreakpoint;
+      MediaQuery.of(context).size.width >= AppConstants.mobileBreakpoint;
 
   @override
   Widget build(BuildContext context) {

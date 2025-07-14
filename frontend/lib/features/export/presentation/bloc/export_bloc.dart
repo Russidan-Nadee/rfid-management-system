@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../domain/usecases/create_export_job_usecase.dart';
-import '../../domain/usecases/get_export_status_usecase.dart';
-import '../../domain/usecases/download_export_usecase.dart';
+
 import '../../domain/entities/export_config_entity.dart';
 import '../../domain/repositories/export_repository.dart';
 import 'export_event.dart';
@@ -12,16 +11,14 @@ import 'export_state.dart';
 
 class ExportBloc extends Bloc<ExportEvent, ExportState> {
   final CreateExportJobUseCase createExportJobUseCase;
-  final GetExportStatusUseCase getExportStatusUseCase;
-  final DownloadExportUseCase downloadExportUseCase;
+
   final ExportRepository exportRepository;
 
   Timer? _statusTimer;
 
   ExportBloc({
     required this.createExportJobUseCase,
-    required this.getExportStatusUseCase,
-    required this.downloadExportUseCase,
+
     required this.exportRepository,
   }) : super(const ExportInitial()) {
     on<CreateAssetExport>(_onCreateAssetExport);
@@ -67,21 +64,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     CheckExportStatus event,
     Emitter<ExportState> emit,
   ) async {
-    try {
-      final result = await getExportStatusUseCase.execute(event.exportId);
-
-      if (result.success && result.exportJob != null) {
-        final job = result.exportJob!;
-
-        if (job.isCompleted) {
-          _stopStatusPolling();
-          add(DownloadExport(job.exportId));
-        } else if (job.isFailed) {
-          _stopStatusPolling();
-          emit(ExportError(job.errorMessage ?? 'Export failed'));
-        }
-      }
-    } catch (e) {
+    try {} catch (e) {
       _stopStatusPolling();
       emit(ExportError('Failed to check status: ${e.toString()}'));
     }
@@ -93,19 +76,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
   ) async {
     emit(const ExportLoading(message: 'Downloading file...'));
 
-    try {
-      final result = await downloadExportUseCase.execute(
-        exportId: event.exportId,
-      );
-
-      if (result.success && result.filePath != null) {
-        emit(ExportCompleted(result.filePath!, result.fileName!));
-        await _shareFile(result.filePath!);
-        add(const LoadExportHistory());
-      } else {
-        emit(ExportError(result.errorMessage ?? 'Download failed'));
-      }
-    } catch (e) {
+    try {} catch (e) {
       emit(ExportError('Download failed: ${e.toString()}'));
     }
   }
@@ -114,23 +85,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     DownloadHistoryExport event,
     Emitter<ExportState> emit,
   ) async {
-    try {
-      print('🎯 Downloading history export: ${event.exportId}');
-
-      final result = await downloadExportUseCase.execute(
-        exportId: event.exportId,
-      );
-
-      if (result.success && result.filePath != null) {
-        print('✅ History download success: ${result.fileName}');
-        await _shareFile(result.filePath!);
-        emit(ExportCompleted(result.filePath!, result.fileName!));
-        add(const LoadExportHistory());
-      } else {
-        print('❌ History download failed: ${result.errorMessage}');
-        emit(ExportError(result.errorMessage ?? 'Download failed'));
-      }
-    } catch (e) {
+    try {} catch (e) {
       print('💥 History download error: $e');
       emit(ExportError('Download failed: ${e.toString()}'));
     }

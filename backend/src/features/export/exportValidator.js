@@ -21,15 +21,15 @@ const handleValidationErrors = (req, res, next) => {
 
 /**
  * Validator สำหรับสร้าง export job
- * POST /api/v1/export/assets
+ * POST /api/v1/export/jobs
  */
 const createExportValidator = [
    body('exportType')
       .trim()
       .notEmpty()
       .withMessage('Export type is required')
-      .isIn(['assets', 'scan_logs', 'status_history'])
-      .withMessage('Export type must be one of: assets, scan_logs, status_history'),
+      .equals('assets')
+      .withMessage('Only assets export is supported'),
 
    body('exportConfig')
       .notEmpty()
@@ -95,6 +95,7 @@ const createExportValidator = [
          return true;
       }),
 
+   // Period Validation - ใหม่
    body('exportConfig.filters.date_range')
       .optional()
       .isObject()
@@ -103,16 +104,51 @@ const createExportValidator = [
    body('exportConfig.filters.date_range.from')
       .optional()
       .isISO8601()
-      .withMessage('From date must be a valid ISO 8601 date'),
+      .withMessage('From date must be a valid ISO 8601 date (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss)')
+      .custom((fromDate) => {
+         if (fromDate) {
+            const date = new Date(fromDate);
+            const twoYearsAgo = new Date();
+            twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+
+            if (date < twoYearsAgo) {
+               throw new Error('From date cannot be more than 2 years ago');
+            }
+
+            if (date > new Date()) {
+               throw new Error('From date cannot be in the future');
+            }
+         }
+         return true;
+      }),
 
    body('exportConfig.filters.date_range.to')
       .optional()
       .isISO8601()
-      .withMessage('To date must be a valid ISO 8601 date')
+      .withMessage('To date must be a valid ISO 8601 date (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss)')
       .custom((toDate, { req }) => {
-         const fromDate = req.body.exportConfig?.filters?.date_range?.from;
-         if (fromDate && toDate && new Date(toDate) < new Date(fromDate)) {
-            throw new Error('To date must be after from date');
+         if (toDate) {
+            const date = new Date(toDate);
+            const now = new Date();
+
+            // ตรวจสอบไม่เกินวันปัจจุบัน
+            if (date > now) {
+               throw new Error('To date cannot be in the future');
+            }
+
+            // ตรวจสอบ from < to
+            const fromDate = req.body.exportConfig?.filters?.date_range?.from;
+            if (fromDate && new Date(toDate) <= new Date(fromDate)) {
+               throw new Error('To date must be after from date');
+            }
+
+            // ตรวจสอบช่วงเวลาไม่เกิน 1 ปี (365 วัน)
+            if (fromDate) {
+               const daysDifference = (new Date(toDate) - new Date(fromDate)) / (1000 * 60 * 60 * 24);
+               if (daysDifference > 365) {
+                  throw new Error('Date range cannot exceed 1 year (365 days)');
+               }
+            }
          }
          return true;
       }),
@@ -213,47 +249,34 @@ const validateExportConfigByType = (req, res, next) => {
 
    const errors = [];
 
-   switch (exportType) {
-      case 'assets':
-         // Assets export สามารถมี filters ทั้งหมด
-         break;
-
-      case 'scan_logs':
-         // Scan logs ควรมี date_range
-         if (!exportConfig.filters?.date_range) {
-            errors.push({
-               path: 'exportConfig.filters.date_range',
-               msg: 'Date range is recommended for scan logs export',
-               value: exportConfig.filters?.date_range
-            });
-         }
-         break;
-
-      case 'status_history':
-         // Status history ควรมี date_range
-         if (!exportConfig.filters?.date_range) {
-            errors.push({
-               path: 'exportConfig.filters.date_range',
-               msg: 'Date range is recommended for status history export',
-               value: exportConfig.filters?.date_range
-            });
-         }
-         break;
+   // ตรวจสอบเฉพาะ assets export
+   if (exportType !== 'assets') {
+      errors.push({
+         path: 'exportType',
+         msg: 'Only assets export is supported',
+         value: exportType
+      });
    }
 
-   // ตรวจสอบขนาดของ date range ไม่เกิน 1 ปี
+   // ตรวจสอบ date_range สำหรับ assets (ถ้ามี)
    const dateRange = exportConfig.filters?.date_range;
    if (dateRange && dateRange.from && dateRange.to) {
       const fromDate = new Date(dateRange.from);
       const toDate = new Date(dateRange.to);
-      const diffYears = (toDate - fromDate) / (1000 * 60 * 60 * 24 * 365);
 
-      if (diffYears > 1) {
+      // Double-check ช่วงเวลา
+      const daysDifference = (toDate - fromDate) / (1000 * 60 * 60 * 24);
+      if (daysDifference > 365) {
          errors.push({
             path: 'exportConfig.filters.date_range',
             msg: 'Date range cannot exceed 1 year',
             value: dateRange
          });
+      }
+
+      // Warning สำหรับช่วงเวลายาว (มากกว่า 6 เดือน)
+      if (daysDifference > 180) {
+         console.warn(`⚠️  Large date range detected: ${daysDifference} days for user ${req.user?.userId}`);
       }
    }
 
@@ -276,13 +299,9 @@ const validateExportSize = async (req, res, next) => {
    try {
       const { exportType, exportConfig } = req.body;
 
-      // สำหรับ production ควรมีการ estimate ขนาดข้อมูลก่อน export
-      // ตัวอย่างนี้เป็นการตรวจสอบพื้นฐาน
-
+      // สำหรับ assets export
       const maxRecordsLimit = {
          assets: 100000,        // สูงสุด 100,000 assets
-         scan_logs: 500000,     // สูงสุด 500,000 scan logs
-         status_history: 200000  // สูงสุด 200,000 history records
       };
 
       const currentLimit = maxRecordsLimit[exportType];
@@ -298,8 +317,24 @@ const validateExportSize = async (req, res, next) => {
             exportConfig.filters.date_range);
 
       if (!hasFilters) {
-         // ควรมี warning สำหรับการ export ทั้งหมด
-         req.exportWarning = `Exporting all ${exportType} without filters may result in large file size`;
+         // ถ้าไม่มี filter ให้เซ็ต default date range เป็น 30 วันล่าสุด
+         console.warn(`⚠️  No filters specified, setting default 30 days range for user ${req.user?.userId}`);
+
+         const now = new Date();
+         const thirtyDaysAgo = new Date();
+         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+         // เซ็ต default date range
+         if (!exportConfig.filters) {
+            exportConfig.filters = {};
+         }
+
+         exportConfig.filters.date_range = {
+            from: thirtyDaysAgo.toISOString(),
+            to: now.toISOString()
+         };
+
+         req.exportWarning = 'No filters specified. Export limited to last 30 days for performance.';
       }
 
       next();
@@ -307,6 +342,61 @@ const validateExportSize = async (req, res, next) => {
    } catch (error) {
       next();
    }
+};
+
+/**
+ * Utility function สำหรับตรวจสอบ date range
+ */
+const validateDateRange = (fromDate, toDate) => {
+   const from = new Date(fromDate);
+   const to = new Date(toDate);
+   const now = new Date();
+   const twoYearsAgo = new Date();
+   twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+
+   const validationResult = {
+      isValid: true,
+      errors: []
+   };
+
+   // ตרวจสอบ format
+   if (isNaN(from.getTime())) {
+      validationResult.isValid = false;
+      validationResult.errors.push('Invalid from date format');
+   }
+
+   if (isNaN(to.getTime())) {
+      validationResult.isValid = false;
+      validationResult.errors.push('Invalid to date format');
+   }
+
+   if (!validationResult.isValid) {
+      return validationResult;
+   }
+
+   // ตรวจสอบช่วงเวลา
+   if (from >= to) {
+      validationResult.isValid = false;
+      validationResult.errors.push('From date must be before to date');
+   }
+
+   if (from < twoYearsAgo) {
+      validationResult.isValid = false;
+      validationResult.errors.push('From date cannot be more than 2 years ago');
+   }
+
+   if (to > now) {
+      validationResult.isValid = false;
+      validationResult.errors.push('To date cannot be in the future');
+   }
+
+   const daysDifference = (to - from) / (1000 * 60 * 60 * 24);
+   if (daysDifference > 365) {
+      validationResult.isValid = false;
+      validationResult.errors.push('Date range cannot exceed 1 year');
+   }
+
+   return validationResult;
 };
 
 module.exports = {
@@ -317,5 +407,6 @@ module.exports = {
    cancelExportValidator,
    validateExportConfigByType,
    validateExportSize,
-   handleValidationErrors
+   handleValidationErrors,
+   validateDateRange
 };
