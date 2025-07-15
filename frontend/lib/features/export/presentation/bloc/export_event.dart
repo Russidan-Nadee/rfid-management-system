@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/export/presentation/bloc/export_event.dart
 import 'package:equatable/equatable.dart';
+import '../../data/models/export_config_model.dart';
 
 abstract class ExportEvent extends Equatable {
   const ExportEvent();
@@ -8,20 +9,21 @@ abstract class ExportEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Create Asset Export Event (คล้ายเดิม)
+/// Create Asset Export Event - Updated to accept complete configuration
 class CreateAssetExport extends ExportEvent {
-  final String format;
+  final ExportConfigModel config;
 
-  const CreateAssetExport(this.format);
-
-  @override
-  List<Object?> get props => [format];
+  const CreateAssetExport(this.config);
 
   @override
-  String toString() => 'CreateAssetExport(format: $format)';
+  List<Object?> get props => [config];
+
+  @override
+  String toString() =>
+      'CreateAssetExport(format: ${config.format}, hasFilters: ${config.hasFilters})';
 }
 
-/// Check Export Status Event (คล้ายเดิม)
+/// Check Export Status Event
 class CheckExportStatus extends ExportEvent {
   final int exportId;
 
@@ -34,7 +36,7 @@ class CheckExportStatus extends ExportEvent {
   String toString() => 'CheckExportStatus(exportId: $exportId)';
 }
 
-/// Download Export Event (คล้ายเดิม)
+/// Download Export Event
 class DownloadExport extends ExportEvent {
   final int exportId;
 
@@ -47,7 +49,7 @@ class DownloadExport extends ExportEvent {
   String toString() => 'DownloadExport(exportId: $exportId)';
 }
 
-/// Download History Export Event (คล้ายเดิม)
+/// Download History Export Event
 class DownloadHistoryExport extends ExportEvent {
   final int exportId;
 
@@ -60,7 +62,7 @@ class DownloadHistoryExport extends ExportEvent {
   String toString() => 'DownloadHistoryExport(exportId: $exportId)';
 }
 
-/// Load Export History Event (คล้ายเดิม)
+/// Load Export History Event
 class LoadExportHistory extends ExportEvent {
   final int page;
   final int limit;
@@ -76,7 +78,7 @@ class LoadExportHistory extends ExportEvent {
       'LoadExportHistory(page: $page, limit: $limit, status: $status)';
 }
 
-/// Cancel Export Event (ใหม่)
+/// Cancel Export Event
 class CancelExport extends ExportEvent {
   final int exportId;
 
@@ -89,7 +91,7 @@ class CancelExport extends ExportEvent {
   String toString() => 'CancelExport(exportId: $exportId)';
 }
 
-/// Start Status Polling Event (ใหม่ - สำหรับ real-time update)
+/// Start Status Polling Event
 class StartStatusPolling extends ExportEvent {
   final int exportId;
 
@@ -102,7 +104,7 @@ class StartStatusPolling extends ExportEvent {
   String toString() => 'StartStatusPolling(exportId: $exportId)';
 }
 
-/// Stop Status Polling Event (ใหม่)
+/// Stop Status Polling Event
 class StopStatusPolling extends ExportEvent {
   const StopStatusPolling();
 
@@ -110,7 +112,7 @@ class StopStatusPolling extends ExportEvent {
   String toString() => 'StopStatusPolling()';
 }
 
-/// Refresh Export History Event (ใหม่ - สำหรับ pull-to-refresh)
+/// Refresh Export History Event
 class RefreshExportHistory extends ExportEvent {
   const RefreshExportHistory();
 
@@ -118,10 +120,18 @@ class RefreshExportHistory extends ExportEvent {
   String toString() => 'RefreshExportHistory()';
 }
 
-/// Check Platform Support Event (ใหม่ - เช็ค mobile ไม่ได้ใช้)
+/// Check Platform Support Event
 class CheckPlatformSupport extends ExportEvent {
   const CheckPlatformSupport();
 
   @override
   String toString() => 'CheckPlatformSupport()';
+}
+
+/// Load Master Data Event - New event for loading filter options
+class LoadMasterData extends ExportEvent {
+  const LoadMasterData();
+
+  @override
+  String toString() => 'LoadMasterData()';
 }

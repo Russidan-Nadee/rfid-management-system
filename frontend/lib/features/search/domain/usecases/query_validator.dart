@@ -34,7 +34,6 @@ class QueryValidator {
   static final RegExp _assetCodePattern = RegExp(r'^[A-Z0-9]{6,12}$');
   static final RegExp _plantCodePattern = RegExp(r'^[A-Z0-9]{2,8}$');
   static final RegExp _serialPattern = RegExp(r'^[A-Z0-9\-]{4,20}$');
-  static final RegExp _deptCodePattern = RegExp(r'^[A-Z0-9]{2,6}$');
 
   /// Validate and sanitize search query
   ValidationResult<String> validateQuery(String query) {

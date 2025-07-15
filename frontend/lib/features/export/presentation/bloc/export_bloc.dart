@@ -10,7 +10,6 @@ import '../../domain/usecases/get_export_status_usecase.dart';
 import '../../domain/usecases/download_export_usecase.dart';
 import '../../domain/usecases/get_export_history_usecase.dart';
 import '../../domain/usecases/cancel_export_usecase.dart';
-import '../../data/models/export_config_model.dart';
 import 'export_event.dart';
 import 'export_state.dart';
 
@@ -66,15 +65,40 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     emit(const ExportLoading(message: 'Creating export job...'));
 
     try {
-      // Create export config (simple - only format)
-      final config = ExportConfigModel(
-        format: event.format,
-        filters: const ExportFiltersModel(
-          status: ['A', 'C', 'I'], // All status
-        ),
-      );
+      // Use the complete configuration from UI (includes date range + filters)
+      final config = event.config;
 
-      // Call UseCase
+      // Validate configuration
+      if (!config.isValidFormat) {
+        emit(
+          const ExportError(
+            'Invalid export format. Please select xlsx or csv.',
+          ),
+        );
+        return;
+      }
+
+      // Log configuration for debugging
+      print('🎯 Export Configuration:');
+      print('   Format: ${config.format}');
+      print('   Has Filters: ${config.hasFilters}');
+      if (config.filters?.dateRange != null) {
+        final dateRange = config.filters!.dateRange!;
+        print(
+          '   Date Range: ${dateRange.from} to ${dateRange.to} (${dateRange.daysDuration} days)',
+        );
+      }
+      if (config.filters?.plantCodes?.isNotEmpty == true) {
+        print('   Plants: ${config.filters!.plantCodes}');
+      }
+      if (config.filters?.locationCodes?.isNotEmpty == true) {
+        print('   Locations: ${config.filters!.locationCodes}');
+      }
+      if (config.filters?.status?.isNotEmpty == true) {
+        print('   Status: ${config.filters!.status}');
+      }
+
+      // Call UseCase with complete configuration
       final result = await createExportJobUseCase.execute(
         exportType: 'assets',
         config: config,

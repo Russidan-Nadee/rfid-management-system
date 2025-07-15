@@ -106,7 +106,6 @@ class SummaryCardsWidget extends StatelessWidget {
     required String trend,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return StatCard(
       icon: icon,
@@ -326,8 +325,6 @@ class LegacySummaryCardsWidget extends StatelessWidget {
   }
 
   Widget _buildLoadingCards(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Padding(
       padding: AppSpacing.screenPaddingHorizontal,
       child: LayoutBuilder(

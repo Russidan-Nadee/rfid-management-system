@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/export/presentation/bloc/export_bloc.dart';
 import 'package:frontend/features/export/presentation/bloc/export_state.dart';
+import 'package:frontend/features/export/presentation/bloc/export_event.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../data/models/export_config_model.dart';
+import '../../data/models/period_model.dart';
 import 'export_header_card.dart';
 import 'export_type_section.dart';
 import 'file_format_section.dart';
-import 'create_export_button.dart';
+import 'date_selection_widget.dart';
 
 class ExportConfigWidget extends StatefulWidget {
   const ExportConfigWidget({super.key});
@@ -20,11 +23,35 @@ class ExportConfigWidget extends StatefulWidget {
 
 class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
+  PeriodModel? _selectedPeriod;
+  ExportFiltersModel? _selectedFilters;
 
   void _onFormatSelected(String format) {
     setState(() {
       _selectedFormat = format;
     });
+  }
+
+  void _onPeriodSelected(PeriodModel? period) {
+    setState(() {
+      _selectedPeriod = period;
+    });
+  }
+
+  void _onExportPressed() {
+    // Build complete export configuration
+    final config = ExportConfigModel(
+      format: _selectedFormat,
+      filters: ExportFiltersModel(
+        plantCodes: _selectedFilters?.plantCodes,
+        locationCodes: _selectedFilters?.locationCodes,
+        status: _selectedFilters?.status,
+        dateRange: _selectedPeriod,
+      ),
+    );
+
+    // Dispatch to BLoC
+    context.read<ExportBloc>().add(CreateAssetExport(config));
   }
 
   @override
@@ -34,8 +61,13 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         if (state is ExportJobCreated) {
           Helpers.showSuccess(context, 'Export job created! Processing...');
         } else if (state is ExportCompleted) {
-          Helpers.showSuccess(context, 'Export completed and shared!');
+          Helpers.showSuccess(
+            context,
+            'Export completed and ready to download!',
+          );
         } else if (state is ExportError) {
+          Helpers.showError(context, state.message);
+        } else if (state is ExportPlatformNotSupported) {
           Helpers.showError(context, state.message);
         }
       },
@@ -56,13 +88,13 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
   Widget _buildLargeScreenLayout(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = screenWidth * 0.9; // 90% ของหน้าจอ
-    final clampedWidth = maxWidth.clamp(600.0, 1200.0); // ขยายขอบเขต
+    final maxWidth = screenWidth * 0.9;
+    final clampedWidth = maxWidth.clamp(600.0, 1200.0);
 
     return Padding(
       padding: EdgeInsets.all(AppSpacing.xl),
       child: SizedBox(
-        width: double.infinity, // เต็มความกว้าง
+        width: double.infinity,
         child: Container(
           constraints: BoxConstraints(maxWidth: clampedWidth),
           margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -85,6 +117,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header Card
         const ExportHeaderCard(),
 
         SizedBox(
@@ -96,9 +129,8 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
           ),
         ),
 
-        // Export Type and File Format in Row for large screens
+        // Export Type and File Format
         if (isLargeScreen)
-          // Add IntrinsicHeight to make all cards same height
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -116,11 +148,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
             ),
           )
         else
-          // Mobile: Stack vertically (unchanged)
           Column(
             children: [
               const ExportTypeSection(),
-
               SizedBox(
                 height: AppSpacing.responsiveSpacing(
                   context,
@@ -129,7 +159,6 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                   desktop: AppSpacing.xxxl,
                 ),
               ),
-
               FileFormatSection(
                 selectedFormat: _selectedFormat,
                 onFormatSelected: _onFormatSelected,
@@ -141,12 +170,39 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         SizedBox(
           height: AppSpacing.responsiveSpacing(
             context,
+            mobile: AppSpacing.xl,
+            tablet: AppSpacing.xxl,
+            desktop: AppSpacing.xxxl,
+          ),
+        ),
+
+        // Date Selection
+        DateSelectionWidget(
+          selectedPeriod: _selectedPeriod,
+          onPeriodSelected: _onPeriodSelected,
+          isLargeScreen: isLargeScreen,
+        ),
+
+        SizedBox(
+          height: AppSpacing.responsiveSpacing(
+            context,
+            mobile: AppSpacing.lg,
+            tablet: AppSpacing.xl,
+            desktop: AppSpacing.xxl,
+          ),
+        ),
+
+        // Advanced Filters (Collapsible)
+        SizedBox(
+          height: AppSpacing.responsiveSpacing(
+            context,
             mobile: AppSpacing.xxl,
             tablet: AppSpacing.xxxl,
             desktop: AppSpacing.xxxxl,
           ),
         ),
 
+        // Export Button
         _buildExportButton(context, isLargeScreen: isLargeScreen),
       ],
     );
@@ -161,13 +217,99 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
       final buttonWidth = (screenWidth * 0.3).clamp(200.0, 400.0);
 
       return Center(
-        child: SizedBox(
-          width: buttonWidth,
-          child: CreateExportButton(selectedFormat: _selectedFormat),
-        ),
+        child: SizedBox(width: buttonWidth, child: _buildExportButtonContent()),
       );
     } else {
-      return CreateExportButton(selectedFormat: _selectedFormat);
+      return _buildExportButtonContent();
     }
+  }
+
+  Widget _buildExportButtonContent() {
+    return BlocBuilder<ExportBloc, ExportState>(
+      builder: (context, state) {
+        final isLoading = state is ExportLoading;
+
+        return Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: isLoading
+                ? Theme.of(context).colorScheme.surfaceVariant
+                : Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              if (!isLoading)
+                BoxShadow(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isLoading ? null : _onExportPressed,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                child: isLoading
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: AppSpacing.lg),
+                          Text(
+                            state.message,
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.upload,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 20,
+                          ),
+                          SizedBox(width: AppSpacing.sm),
+                          Text(
+                            'Export File',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -28,7 +28,6 @@ class FileFormatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
-    final isLargeScreen = screenWidth >= 1024;
 
     // Responsive padding and sizing
     final cardPadding = screenWidth >= 1024

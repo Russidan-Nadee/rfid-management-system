@@ -80,8 +80,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     if (state is SettingsLoaded) {
-      final currentSettings = (state as SettingsLoaded).settings;
-
       try {
         await updateSettingsUseCase.updateRememberLogin(event.remember);
         final updatedSettings = await getSettingsUseCase.execute();
@@ -97,8 +95,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     Emitter<SettingsState> emit,
   ) async {
     if (state is SettingsLoaded) {
-      final currentSettings = (state as SettingsLoaded).settings;
-
       try {
         await updateSettingsUseCase.updateAutoLogout(event.minutes);
         final updatedSettings = await getSettingsUseCase.execute();

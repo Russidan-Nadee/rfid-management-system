@@ -148,8 +148,6 @@ class _ScanPageViewState extends State<ScanPageView> {
   }
 
   Widget _buildLoadingView(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -273,8 +271,6 @@ class _ScanPageViewState extends State<ScanPageView> {
   }
 
   Widget _buildErrorView(BuildContext context, String message) {
-    final theme = Theme.of(context);
-
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,

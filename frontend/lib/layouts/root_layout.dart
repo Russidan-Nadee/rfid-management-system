@@ -345,8 +345,6 @@ class _TabBarRootLayoutState extends State<TabBarRootLayout>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Asset Management'),
