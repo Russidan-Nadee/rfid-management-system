@@ -36,11 +36,7 @@ class _ScanPageViewState extends State<ScanPageView> {
   void initState() {
     super.initState();
     print('ScanPage: initState called');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<ScanBloc>().add(const StartScan());
-      }
-    });
+    // ลบ auto scan ออก - ไม่มี auto scan แล้ว
   }
 
   @override
@@ -116,7 +112,10 @@ class _ScanPageViewState extends State<ScanPageView> {
           builder: (context, state) {
             print('ScanPage: Building UI for state ${state.runtimeType}');
 
-            if (state is ScanLoading || state is ScanInitial) {
+            if (state is ScanInitial) {
+              print('ScanPage: Showing ready state');
+              return _buildReadyState(context);
+            } else if (state is ScanLoading) {
               print('ScanPage: Showing loading view');
               return _buildLoadingView(context);
             } else if (state is ScanSuccess) {
@@ -139,9 +138,179 @@ class _ScanPageViewState extends State<ScanPageView> {
               return _buildLoadingView(context);
             }
 
-            print('ScanPage: Unknown state - fallback to loading: $state');
-            return _buildLoadingView(context);
+            print('ScanPage: Unknown state - fallback to ready: $state');
+            return _buildReadyState(context);
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // RFID Scanner Icon
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkText.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังขาวโปร่งใส
+                    : AppColors.primary.withValues(
+                        alpha: 0.1,
+                      ), // Light Mode: พื้นหลังน้ำเงินโปร่งใส
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText.withValues(
+                          alpha: 0.3,
+                        ) // Dark Mode: ขอบขาวโปร่งใส
+                      : AppColors.primary.withValues(
+                          alpha: 0.3,
+                        ), // Light Mode: ขอบน้ำเงินโปร่งใส
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.qr_code_scanner,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors
+                          .darkText // Dark Mode: สีขาว
+                    : AppColors.primary, // Light Mode: สีน้ำเงิน
+                size: 60,
+              ),
+            ),
+
+            AppSpacing.verticalSpaceXXL,
+
+            Text(
+              'RFID Scanner Ready',
+              style: AppTextStyles.headline4.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors
+                          .darkText // Dark Mode: สีขาว
+                    : AppColors.primary, // Light Mode: สีน้ำเงิน
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            AppSpacing.verticalSpaceLG,
+
+            Container(
+              padding: AppSpacing.paddingMD,
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.primary.withValues(
+                        alpha: 0.1,
+                      ) // Dark Mode: พื้นหลังโปร่งใส
+                    : AppColors.primarySurface, // Light Mode: พื้นหลังอ่อน
+                borderRadius: AppBorders.md,
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText.withValues(
+                          alpha: 0.2,
+                        ) // Dark Mode: ขอบขาวโปร่งใส
+                      : AppColors.primary.withValues(
+                          alpha: 0.2,
+                        ), // Light Mode: ขอบน้ำเงินโปร่งใส
+                ),
+              ),
+              child: Text(
+                'Press the button below to start scanning RFID tags',
+                style: AppTextStyles.body2.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors
+                            .darkText // Dark Mode: สีขาว
+                      : AppColors.primary, // Light Mode: สีน้ำเงิน
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+            AppSpacing.verticalSpaceXXL,
+
+            SizedBox(
+              width: 250,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  print('ScanPage: Start Scanning button pressed');
+                  context.read<ScanBloc>().add(const StartScan());
+                },
+                icon: Icon(Icons.play_arrow, color: AppColors.onPrimary),
+                label: Text(
+                  'Start Scanning',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.onPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 32,
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                  elevation: 3,
+                ),
+              ),
+            ),
+
+            AppSpacing.verticalSpaceLG,
+
+            Container(
+              padding: AppSpacing.paddingMD,
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurfaceVariant.withValues(
+                        alpha: 0.3,
+                      ) // Dark Mode: พื้นหลังเทาเข้ม
+                    : AppColors
+                          .backgroundSecondary, // Light Mode: พื้นหลังเทาอ่อน
+                borderRadius: AppBorders.md,
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkBorder.withValues(
+                          alpha: 0.3,
+                        ) // Dark Mode: ขอบเทา
+                      : AppColors.divider.withValues(
+                          alpha: 0.5,
+                        ), // Light Mode: ขอบเทาอ่อน
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors
+                              .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                        : AppColors.textSecondary, // Light Mode: สีเทา
+                    size: 16,
+                  ),
+                  AppSpacing.horizontalSpaceSM,
+                  Text(
+                    'Make sure RFID scanner is connected',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors
+                                .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                          : AppColors.textSecondary, // Light Mode: สีเทา
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

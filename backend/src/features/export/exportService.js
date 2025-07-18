@@ -155,6 +155,7 @@ class ExportService {
 
       // Build where conditions
       const whereConditions = {};
+      console.log('🗄️ Database whereConditions:', JSON.stringify(whereConditions, null, 2));
 
       // Plant filter
       if (processedFilters.plant_codes && processedFilters.plant_codes.length > 0) {
@@ -394,9 +395,11 @@ class ExportService {
     */
    _applyBusinessRulesForAssets(filters) {
       let processedFilters = { ...filters };
+      console.log('🔍 Input filters:', JSON.stringify(filters, null, 2));
 
       // 1. Date Range Validation และ Default Setting
       if (!processedFilters.date_range) {
+         console.log('📅 Checking date_range:', processedFilters.date_range);
          // ถ้าไม่มี date_range เซ็ต default เป็น 30 วันล่าสุด
          const now = new Date();
          const thirtyDaysAgo = new Date();
@@ -432,6 +435,7 @@ class ExportService {
       }
 
       return processedFilters;
+      console.log('✅ Final processed filters:', JSON.stringify(processedFilters, null, 2));
    }
 
    /**

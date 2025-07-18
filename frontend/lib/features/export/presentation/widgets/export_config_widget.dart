@@ -35,10 +35,13 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   void _onPeriodSelected(PeriodModel? period) {
     setState(() {
       _selectedPeriod = period;
+      print('✅ _selectedPeriod updated: $_selectedPeriod');
     });
   }
 
   void _onExportPressed() {
+    print('🚀 Export pressed with _selectedPeriod: $_selectedPeriod');
+
     // Build complete export configuration
     final config = ExportConfigModel(
       format: _selectedFormat,

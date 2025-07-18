@@ -1,4 +1,6 @@
 // Path: lib/di/scan_injection.dart
+import 'package:frontend/features/scan/data/datasources/rfid_datasource.dart';
+
 import '../features/scan/data/datasources/mock_rfid_datasource.dart';
 import '../features/scan/data/repositories/scan_repository_impl.dart';
 import '../features/scan/domain/repositories/scan_repository.dart';
@@ -15,13 +17,13 @@ import 'injection.dart';
 /// Configure Scan feature dependencies
 void configureScanDependencies() {
   // Data Sources
-  getIt.registerLazySingleton<MockRfidDataSource>(() => MockRfidDataSource());
+  getIt.registerLazySingleton<RfidDataSource>(() => RfidDataSource());
 
   // Repositories
   getIt.registerLazySingleton<ScanRepository>(() {
     return ScanRepositoryImpl(
       apiService: getIt<ApiService>(),
-      mockRfidDataSource: getIt<MockRfidDataSource>(),
+      rfidDataSource: getIt<RfidDataSource>(),
     );
   });
 
@@ -66,4 +68,3 @@ void configureScanDependencies() {
     );
   });
 }
-

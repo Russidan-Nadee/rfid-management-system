@@ -7,37 +7,18 @@ import '../../domain/repositories/scan_repository.dart';
 import '../models/scanned_item_model.dart';
 import '../models/asset_status_update_model.dart';
 import '../models/create_asset_models.dart';
-import '../datasources/mock_rfid_datasource.dart';
+import '../datasources/rfid_datasource.dart';
 
 class ScanRepositoryImpl implements ScanRepository {
   final ApiService apiService;
-  final MockRfidDataSource mockRfidDataSource;
+  final RfidDataSource rfidDataSource;
 
-  ScanRepositoryImpl({
-    required this.apiService,
-    required this.mockRfidDataSource,
-  });
+  ScanRepositoryImpl({required this.apiService, required this.rfidDataSource});
 
   @override
-  Future<List<DepartmentEntity>> getDepartments() async {
-    try {
-      final response = await apiService.get<List<dynamic>>(
-        '/departments',
-        fromJson: (json) => json as List<dynamic>,
-      );
-
-      if (response.success && response.data != null) {
-        return response.data!
-            .map(
-              (json) => DepartmentModel.fromJson(json as Map<String, dynamic>),
-            )
-            .toList();
-      } else {
-        throw Exception('Failed to fetch departments');
-      }
-    } catch (e) {
-      throw Exception('Failed to get departments: $e');
-    }
+  Future<List<String>> generateMockAssetNumbers() async {
+    // ใช้ real RFID แทน mock
+    return await rfidDataSource.generateAssetNumbers();
   }
 
   @override
@@ -49,29 +30,13 @@ class ScanRepositoryImpl implements ScanRepository {
       );
 
       if (response.success && response.data != null) {
-        // Get cached location data from Mock
-        final cachedLocation = MockRfidDataSource.getCachedLocationData(
-          assetNo,
-        );
-
-        // Merge API data with cached location
-        final mergedData = Map<String, dynamic>.from(response.data!);
-        if (cachedLocation != null) {
-          mergedData.addAll(cachedLocation);
-        }
-
-        return ScannedItemModel.fromJson(mergedData);
+        return ScannedItemModel.fromJson(response.data!);
       } else {
         throw Exception('Asset not found');
       }
     } catch (e) {
       throw Exception('Failed to get asset details: $e');
     }
-  }
-
-  @override
-  Future<List<String>> generateMockAssetNumbers() async {
-    return mockRfidDataSource.generateAssetNumbers();
   }
 
   @override
@@ -188,6 +153,28 @@ class ScanRepositoryImpl implements ScanRepository {
       }
     } catch (e) {
       throw Exception('Failed to get units: $e');
+    }
+  }
+
+  @override
+  Future<List<DepartmentEntity>> getDepartments() async {
+    try {
+      final response = await apiService.get<List<dynamic>>(
+        '/departments',
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!
+            .map(
+              (json) => DepartmentModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception('Failed to fetch departments');
+      }
+    } catch (e) {
+      throw Exception('Failed to get departments: $e');
     }
   }
 }
