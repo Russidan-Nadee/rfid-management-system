@@ -1,3 +1,4 @@
+// Path: frontend/lib/core/constants/api_constants.dart
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 
@@ -5,38 +6,141 @@ class ApiConstants {
   // Environment Configuration
   static const String _devHost = 'localhost';
   static const String _devPort = '3000';
-  static const String _prodHost = 'your-api.com'; // Change for production
+  static const String _prodHost = 'your-api.com';
   static const String _apiVersion = 'api/v1';
 
-  // Base URL with Environment Support
+  // **เพิ่มตัวแปรสำหรับ manual control**
+  static String? _manualIP;
+  static bool _forceRealDevice = false;
+
+  // Base URL with Smart Detection
   static String get baseUrl {
-    final host = kDebugMode ? _devHost : _prodHost;
+    final host = kDebugMode ? _getDevHost() : _prodHost;
     final port = kDebugMode ? _devPort : '443';
     final protocol = kDebugMode ? 'http' : 'https';
 
+    return '$protocol://$host:$port/$_apiVersion';
+  }
+
+  // **Simple device detection**
+  static String _getDevHost() {
+    // Manual override
+    if (_manualIP != null) {
+      return _manualIP!;
+    }
+
     if (kIsWeb) {
-      return '$protocol://$host:$port/$_apiVersion';
+      return _devHost; // localhost สำหรับ web
     } else if (Platform.isAndroid) {
-      // Android Emulator maps localhost to 10.0.2.2
-      final androidHost = kDebugMode ? '10.0.2.2' : _prodHost;
-      return '$protocol://$androidHost:$port/$_apiVersion';
+      // Simple detection: emulator vs real device
+      if (_forceRealDevice || _isLikelyRealDevice()) {
+        return _getRealDeviceIP();
+      } else {
+        return '10.0.2.2'; // Android Emulator default
+      }
     } else {
-      return '$protocol://$host:$port/$_apiVersion';
+      return _devHost; // iOS/Desktop ใช้ localhost
     }
   }
 
-  // Alternative: Manual Override (for testing different environments)
+  // **Simple real device detection**
+  static bool _isLikelyRealDevice() {
+    // ตรวจสอบ environment variables ง่ายๆ
+    final env = Platform.environment;
+
+    // ถ้ามี ANDROID_EMULATOR แสดงว่าเป็น emulator
+    if (env.containsKey('ANDROID_EMULATOR')) return false;
+
+    // ถ้า model มี sdk แสดงว่าเป็น emulator
+    final model = env['ANDROID_PRODUCT_MODEL'] ?? '';
+    if (model.toLowerCase().contains('sdk')) return false;
+
+    // Default: assume real device (user can override)
+    return true;
+  }
+
+  // **Get IP for real device**
+  static String _getRealDeviceIP() {
+    // Try common development IPs
+    return '172.101.1.173'; // เปลี่ยนเป็น IP ของคุณ
+  }
+
+  // **Manual control methods**
+  static void setManualIP(String ip) {
+    _manualIP = ip;
+    print('API: Manual IP set to $ip');
+  }
+
+  static void useEmulator() {
+    _manualIP = null;
+    _forceRealDevice = false;
+    print('API: Switched to emulator mode (10.0.2.2)');
+  }
+
+  static void useRealDevice([String? ip]) {
+    _forceRealDevice = true;
+    if (ip != null) {
+      _manualIP = ip;
+    }
+    print('API: Switched to real device mode (${ip ?? _getRealDeviceIP()})');
+  }
+
+  static void autoDetect() {
+    _manualIP = null;
+    _forceRealDevice = false;
+    print('API: Switched to auto-detect mode');
+  }
+
+  // **Alternative: Custom Base URL**
   static String customBaseUrl({
     String? host,
     String? port,
     bool useHttps = false,
   }) {
-    final targetHost =
-        host ?? (kIsWeb || !Platform.isAndroid ? 'localhost' : '10.0.2.2');
-    final targetPort = port ?? '3000';
+    final targetHost = host ?? _getDevHost();
+    final targetPort = port ?? _devPort;
     final protocol = useHttps ? 'https' : 'http';
 
     return '$protocol://$targetHost:$targetPort/$_apiVersion';
+  }
+
+  // **Debug Helper**
+  static void printCurrentConfig() {
+    if (kDebugMode) {
+      print('=== API Configuration ===');
+      print('Platform: ${kIsWeb ? 'Web' : Platform.operatingSystem}');
+
+      if (Platform.isAndroid) {
+        print('Manual IP: ${_manualIP ?? 'None'}');
+        print('Force Real Device: $_forceRealDevice');
+        print(
+          'Detected Mode: ${_isLikelyRealDevice() ? 'Real Device' : 'Emulator'}',
+        );
+      }
+
+      print('Current Host: ${_getDevHost()}');
+      print('Base URL: $baseUrl');
+      print('Environment: ${kDebugMode ? 'Development' : 'Production'}');
+      print('========================');
+    }
+  }
+
+  // **Quick IP changer for testing**
+  static void tryCommonIPs() {
+    final commonIPs = [
+      '172.101.1.173',
+      '192.168.1.100',
+      '192.168.0.100',
+      '192.168.1.10',
+      '192.168.0.10',
+      '10.0.0.100',
+    ];
+
+    print('Common IPs to try:');
+    for (int i = 0; i < commonIPs.length; i++) {
+      print('${i + 1}. ${commonIPs[i]}');
+    }
+    print('Use: ApiConstants.setManualIP("172.101.1.173")');
   }
 
   static const Duration timeout = Duration(seconds: 30);
@@ -80,6 +184,9 @@ class ApiConstants {
       '$scanBase/asset/$assetNo/check';
   static String scanAssetStatusHistory(String assetNo) =>
       '$scanBase/asset/$assetNo/status/history';
+  static String scanAssetDetailByEpc(String epcCode) => '/scan/epc/$epcCode';
+  static String scanAssetCheckByEpc(String epcCode) =>
+      '/scan/epc/$epcCode/check';
 
   // Scan Logging
   static const String scanLog = '$scanBase/log';
@@ -105,15 +212,4 @@ class ApiConstants {
       '$exportBase/download/$exportId';
   static String exportJobCancel(int exportId) => '$exportJobs/$exportId';
   static String exportJobDelete(int exportId) => '$exportJobs/$exportId';
-
-  // Debug Helper
-  static void printCurrentConfig() {
-    if (kDebugMode) {
-      print('=== API Configuration ===');
-      print('Platform: ${kIsWeb ? 'Web' : Platform.operatingSystem}');
-      print('Base URL: $baseUrl');
-      print('Environment: ${kDebugMode ? 'Development' : 'Production'}');
-      print('========================');
-    }
-  }
 }

@@ -1,4 +1,3 @@
-// Path: frontend/lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,8 +7,16 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'app/theme/app_colors.dart';
 import 'app.dart';
 
+// เพิ่ม import ApiConstants
+import 'core/constants/api_constants.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // **เพิ่มบรรทัดนี้**
+  ApiConstants.setManualIP(
+    '192.168.1.100',
+  ); // <-- แก้เป็น IP ของ Laptop ที่รัน backend
 
   // Configure system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(

@@ -8,7 +8,7 @@ abstract class ScanRepository {
   Future<ScannedItemEntity> getAssetDetails(String assetNo);
   Future<List<String>> generateMockAssetNumbers();
   Future<AssetStatusUpdateResponse> updateAssetStatus(
-    String assetNo,
+    String epcCode,
     AssetStatusUpdateRequest request,
   );
   Future<void> logAssetScan(String assetNo, String scannedBy);

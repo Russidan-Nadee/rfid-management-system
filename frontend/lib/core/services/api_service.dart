@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 import '../models/api_response.dart';
@@ -19,6 +20,17 @@ class ApiService {
     final headers = Map<String, String>.from(ApiConstants.defaultHeaders);
 
     if (requiresAuth) {
+      // ===== Development Mode: ไม่ใช้ token =====
+      if (kDebugMode) {
+        const bool skipAuth = true; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
+
+        if (skipAuth) {
+          // ไม่ส่ง Authorization header
+          return headers;
+        }
+      }
+
+      // ===== Production Mode: ใช้ token จริง =====
       final token = await _storage.getAuthToken();
       if (token != null) {
         headers['Authorization'] = 'Bearer $token';
