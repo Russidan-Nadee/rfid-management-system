@@ -162,6 +162,61 @@ class AssetModel extends BaseModel {
       });
    }
 
+   // ===== NEW EPC METHODS =====
+   async getAssetByEpc(epcCode) {
+      return await this.prisma.asset_master.findUnique({
+         where: { epc_code: epcCode }
+      });
+   }
+
+   async getAssetWithDetailsByEpc(epcCode) {
+      const asset = await this.prisma.asset_master.findUnique({
+         where: { epc_code: epcCode },
+         include: {
+            mst_plant: true,
+            mst_location: true,
+            mst_unit: true,
+            mst_user: true,
+            asset_scan_log: {
+               take: 1,
+               orderBy: { scanned_at: 'desc' },
+               include: { mst_user: true }
+            }
+         }
+      });
+
+      if (!asset) return null;
+
+      const scanCount = await this.prisma.asset_scan_log.count({
+         where: { asset_no: asset.asset_no }
+      });
+
+      return {
+         ...asset,
+         plant_description: asset.mst_plant?.description,
+         location_description: asset.mst_location?.description,
+         unit_name: asset.mst_unit?.name,
+         created_by_name: asset.mst_user?.full_name,
+         last_scan_at: asset.asset_scan_log[0]?.scanned_at,
+         last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
+         total_scans: scanCount
+      };
+   }
+
+   async updateAssetStatusByEpc(epcCode, updateData) {
+      // หา asset ก่อน
+      const asset = await this.getAssetByEpc(epcCode);
+      if (!asset) throw new Error('Asset not found');
+
+      // update ผ่าน asset_no
+      await this.prisma.asset_master.update({
+         where: { asset_no: asset.asset_no },
+         data: updateData
+      });
+
+      return this.getAssetWithDetailsByEpc(epcCode);
+   }
+
    async getAssetsByPlant(plantCode) {
       return await this.prisma.asset_master.findMany({
          where: {
@@ -244,7 +299,8 @@ class AssetModel extends BaseModel {
             { asset_no: { contains: searchTerm } },
             { description: { contains: searchTerm } },
             { serial_no: { contains: searchTerm } },
-            { inventory_no: { contains: searchTerm } }
+            { inventory_no: { contains: searchTerm } },
+            { epc_code: { contains: searchTerm } } // เพิ่ม EPC search
          ];
       }
 
@@ -288,6 +344,13 @@ class AssetModel extends BaseModel {
    async checkInventoryExists(inventoryNo) {
       const asset = await this.prisma.asset_master.findUnique({
          where: { inventory_no: inventoryNo }
+      });
+      return !!asset;
+   }
+
+   async checkEpcExists(epcCode) {
+      const asset = await this.prisma.asset_master.findUnique({
+         where: { epc_code: epcCode }
       });
       return !!asset;
    }

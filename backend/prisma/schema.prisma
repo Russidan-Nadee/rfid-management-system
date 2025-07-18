@@ -10,6 +10,7 @@ datasource db {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model asset_master {
   asset_no       String               @id @db.VarChar(20)
+  epc_code       String?              @db.VarChar(50)
   description    String?              @db.VarChar(255)
   plant_code     String?              @db.VarChar(10)
   location_code  String?              @db.VarChar(10)

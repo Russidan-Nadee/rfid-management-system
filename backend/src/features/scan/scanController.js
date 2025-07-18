@@ -271,6 +271,35 @@ const assetController = {
       }
    },
 
+   // ===== NEW EPC METHODS =====
+   async getAssetByEpc(req, res) {
+      try {
+         const { epc_code } = req.params;
+         const asset = await assetService.getAssetWithDetailsByEpc(epc_code);
+
+         return sendResponse(res, 200, true, 'Asset retrieved successfully', asset);
+      } catch (error) {
+         console.error('Get asset by EPC error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
+   async updateAssetStatusByEpc(req, res) {
+      try {
+         const { epc_code } = req.params;
+         const { status, updated_by, remarks } = req.body;
+
+         const updatedAsset = await assetService.updateAssetStatusByEpc(epc_code, status, updated_by, remarks);
+
+         return sendResponse(res, 200, true, 'Asset status updated successfully', updatedAsset);
+      } catch (error) {
+         console.error('Update asset status by EPC error:', error);
+         const statusCode = error.message.includes('not found') ? 404 : 500;
+         return sendResponse(res, statusCode, false, error.message);
+      }
+   },
+
    async searchAssets(req, res) {
       try {
          const { search, page = 1, limit = 50, plant_code, location_code, unit_code, status } = req.query;
@@ -379,7 +408,8 @@ const assetController = {
             inventory_no,
             quantity = 1,
             unit_code,
-            created_by
+            created_by,
+            epc_code // เพิ่ม EPC field
          } = req.body;
 
          // Check if asset_no already exists
@@ -404,6 +434,14 @@ const assetController = {
             }
          }
 
+         // Check if epc_code is unique (if provided)
+         if (epc_code) {
+            const existingEpc = await assetService.checkEpcExists(epc_code);
+            if (existingEpc) {
+               return sendResponse(res, 409, false, 'EPC code already exists');
+            }
+         }
+
          // Validate foreign keys exist
          await Promise.all([
             plantService.getPlantByCode(plant_code),
@@ -423,6 +461,7 @@ const assetController = {
             inventory_no,
             quantity,
             unit_code,
+            epc_code,
             status: 'C',
             created_by,
             created_at: new Date()

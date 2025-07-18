@@ -34,6 +34,13 @@ router.get('/departments', generalRateLimit, departmentController.getDepartments
 // Asset lookup during scanning
 router.get('/scan/asset/:asset_no', generalRateLimit, assetValidators.getAssetByNo, assetController.getAssetByNo);
 
+// ===== NEW EPC-BASED OPERATIONS =====
+// Asset lookup by EPC during scanning
+router.get('/scan/epc/:epc_code', generalRateLimit, assetValidators.getAssetByEpc, assetController.getAssetByEpc);
+
+// Update asset status by EPC after scan (mark as checked)
+router.patch('/scan/epc/:epc_code/check', generalRateLimit, assetValidators.updateAssetStatusByEpc, assetController.updateAssetStatusByEpc);
+
 // Create unknown asset found during scan
 router.post('/scan/asset/create', generalRateLimit, assetValidators.createAsset, assetController.createAsset);
 

@@ -204,6 +204,77 @@ class AssetService extends BaseService {
       }
    }
 
+   // ===== NEW EPC METHODS =====
+   async getAssetByEpc(epcCode) {
+      try {
+         const asset = await this.model.getAssetByEpc(epcCode);
+         if (!asset) {
+            throw new Error('Asset not found');
+         }
+         return asset;
+      } catch (error) {
+         throw new Error(`Error fetching asset by EPC: ${error.message}`);
+      }
+   }
+
+   async getAssetWithDetailsByEpc(epcCode) {
+      try {
+         const asset = await this.model.getAssetWithDetailsByEpc(epcCode);
+         if (!asset) {
+            throw new Error('Asset not found');
+         }
+         return asset;
+      } catch (error) {
+         throw new Error(`Error fetching asset with details by EPC: ${error.message}`);
+      }
+   }
+
+   async updateAssetStatusByEpc(epcCode, status, updatedBy, remarks = null) {
+      try {
+         const validStatuses = ['C', 'A', 'I'];
+         if (!validStatuses.includes(status)) {
+            throw new Error('Invalid status. Must be C, A, or I');
+         }
+
+         // Get current asset by EPC
+         const currentAsset = await this.getAssetByEpc(epcCode);
+         const oldStatus = currentAsset.status;
+
+         // Use Prisma transaction
+         const result = await prisma.$transaction(async (tx) => {
+            const updateData = { status };
+            if (status === 'I') {
+               updateData.deactivated_at = new Date();
+            }
+
+            // Update asset status
+            await tx.asset_master.update({
+               where: { asset_no: currentAsset.asset_no },
+               data: updateData
+            });
+
+            // Insert status history
+            await tx.asset_status_history.create({
+               data: {
+                  asset_no: currentAsset.asset_no,
+                  old_status: oldStatus,
+                  new_status: status,
+                  changed_at: new Date(),
+                  changed_by: updatedBy,
+                  remarks: remarks
+               }
+            });
+
+            return true;
+         });
+
+         return await this.getAssetWithDetailsByEpc(epcCode);
+
+      } catch (error) {
+         throw new Error(`Error updating asset status by EPC: ${error.message}`);
+      }
+   }
+
    async getAssetWithDetails(assetNo) {
       try {
          const asset = await this.model.getAssetWithDetails(assetNo);
@@ -370,6 +441,14 @@ class AssetService extends BaseService {
       }
    }
 
+   async checkEpcExists(epcCode) {
+      try {
+         return await this.model.checkEpcExists(epcCode);
+      } catch (error) {
+         return false;
+      }
+   }
+
    async updateAsset(assetNo, updateData) {
       try {
          const existingAsset = await this.getAssetByNo(assetNo);
@@ -385,6 +464,13 @@ class AssetService extends BaseService {
             const inventoryExists = await this.checkInventoryExists(updateData.inventory_no);
             if (inventoryExists) {
                throw new Error('Inventory number already exists');
+            }
+         }
+
+         if (updateData.epc_code && updateData.epc_code !== existingAsset.epc_code) {
+            const epcExists = await this.checkEpcExists(updateData.epc_code);
+            if (epcExists) {
+               throw new Error('EPC code already exists');
             }
          }
 

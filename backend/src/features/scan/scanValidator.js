@@ -31,6 +31,17 @@ const commonValidations = {
       return required ? validation.notEmpty().withMessage(`${fieldName} is required`) : validation;
    },
 
+   epcCode: (fieldName, required = true) => {
+      const validation = param(fieldName)
+         .trim()
+         .isLength({ min: 1, max: 50 })
+         .withMessage(`${fieldName} must be between 1 and 50 characters`)
+         .matches(/^[A-Za-z0-9_-]+$/)
+         .withMessage(`${fieldName} must contain only alphanumeric characters, hyphens, and underscores`);
+
+      return required ? validation.notEmpty().withMessage(`${fieldName} is required`) : validation;
+   },
+
    id: (fieldName, required = true) => {
       const validation = param(fieldName)
          .trim()
@@ -153,6 +164,38 @@ const assetValidators = {
       handleValidationErrors
    ],
 
+   // ===== NEW EPC VALIDATORS =====
+   getAssetByEpc: [
+      commonValidations.epcCode('epc_code'),
+      handleValidationErrors
+   ],
+
+   updateAssetStatusByEpc: [
+      commonValidations.epcCode('epc_code'),
+
+      body('status')
+         .trim()
+         .notEmpty()
+         .withMessage('Status is required')
+         .isIn(['C', 'A', 'I'])
+         .withMessage('Status must be C (Created), A (Active), or I (Inactive)'),
+
+      body('updated_by')
+         .trim()
+         .notEmpty()
+         .withMessage('Updated by is required')
+         .isLength({ min: 1, max: 100 })
+         .withMessage('Updated by must be between 1 and 100 characters'),
+
+      body('remarks')
+         .optional()
+         .trim()
+         .isLength({ max: 500 })
+         .withMessage('Remarks must not exceed 500 characters'),
+
+      handleValidationErrors
+   ],
+
    getAssets: [
       commonValidations.assetStatus(), // Only assets have status
       query('plant_code')
@@ -271,6 +314,14 @@ const assetValidators = {
          .isLength({ max: 100 })
          .withMessage('Inventory number must not exceed 100 characters'),
 
+      body('epc_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('EPC code must not exceed 50 characters')
+         .matches(/^[A-Za-z0-9_-]*$/)
+         .withMessage('EPC code must contain only alphanumeric characters, hyphens, and underscores'),
+
       handleValidationErrors
    ],
 
@@ -318,6 +369,14 @@ const assetValidators = {
          .trim()
          .isLength({ max: 100 })
          .withMessage('Inventory number must not exceed 100 characters'),
+
+      body('epc_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('EPC code must not exceed 50 characters')
+         .matches(/^[A-Za-z0-9_-]*$/)
+         .withMessage('EPC code must contain only alphanumeric characters, hyphens, and underscores'),
 
       handleValidationErrors
    ],
