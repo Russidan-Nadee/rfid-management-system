@@ -13,10 +13,8 @@ import 'core/constants/api_constants.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // **เพิ่มบรรทัดนี้**
-  ApiConstants.setManualIP(
-    '192.168.1.100',
-  ); // <-- แก้เป็น IP ของ Laptop ที่รัน backend
+  // **แก้ IP เป็นตัวจริง**
+  ApiConstants.setManualIP('172.101.35.153'); // <-- แก้เป็น IP จริงของ Laptop
 
   // Configure system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(

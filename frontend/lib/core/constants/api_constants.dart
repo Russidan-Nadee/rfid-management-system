@@ -59,10 +59,10 @@ class ApiConstants {
     return true;
   }
 
-  // **Get IP for real device**
+  // **Get IP for real device - แก้เป็น IP จริง**
   static String _getRealDeviceIP() {
     // Try common development IPs
-    return '172.101.1.173'; // เปลี่ยนเป็น IP ของคุณ
+    return '172.101.35.153'; // <-- แก้เป็น IP จริงของ Laptop
   }
 
   // **Manual control methods**
@@ -128,7 +128,7 @@ class ApiConstants {
   // **Quick IP changer for testing**
   static void tryCommonIPs() {
     final commonIPs = [
-      '172.101.1.173',
+      '172.101.35.153', // IP ปัจจุบัน
       '192.168.1.100',
       '192.168.0.100',
       '192.168.1.10',
@@ -140,7 +140,7 @@ class ApiConstants {
     for (int i = 0; i < commonIPs.length; i++) {
       print('${i + 1}. ${commonIPs[i]}');
     }
-    print('Use: ApiConstants.setManualIP("172.101.1.173")');
+    print('Use: ApiConstants.setManualIP("172.101.35.153")');
   }
 
   static const Duration timeout = Duration(seconds: 30);
