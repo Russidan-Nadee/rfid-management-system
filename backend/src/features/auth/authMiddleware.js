@@ -1,12 +1,16 @@
-// =======================
-// 8. backend/src/middlewares/authMiddleware.js
-// =======================
+// backend/src/features/auth/authMiddleware.js
+
 const { verifyToken } = require('../../core/auth/jwtUtils');
 
 const authenticateToken = (req, res, next) => {
    try {
       const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+      let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+      // Support query parameter authentication for downloads
+      if (!token && req.query.access_token) {
+         token = req.query.access_token;
+      }
 
       if (!token) {
          return res.status(401).json({
@@ -38,7 +42,12 @@ const authenticateToken = (req, res, next) => {
 const optionalAuth = (req, res, next) => {
    try {
       const authHeader = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
+      let token = authHeader && authHeader.split(' ')[1];
+
+      // Support query parameter authentication for optional auth
+      if (!token && req.query.access_token) {
+         token = req.query.access_token;
+      }
 
       if (token) {
          try {

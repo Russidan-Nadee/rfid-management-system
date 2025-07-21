@@ -1,5 +1,5 @@
-// Path: frontend/lib/features/export/data/datasources/export_remote_datasource.dart
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -36,9 +36,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   Future<ExportJobModel> createExportJob({
     required ExportRequestModel request,
   }) async {
-    // Platform check - Web only
-    _checkWebPlatform();
-
     try {
       print('🔄 Creating export job: ${request.exportType}');
       print('📊 Config: ${request.exportConfig.toJson()}');
@@ -88,9 +85,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
 
   @override
   Future<void> downloadExportFile(int exportId) async {
-    // Platform check - Web only
-    _checkWebPlatform();
-
     try {
       print('📥 Starting download for export: $exportId');
 
@@ -210,25 +204,8 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
 
   // Helper methods
 
-  /// Platform check - Web only
-  void _checkWebPlatform() {
-    if (!kIsWeb) {
-      throw ExportException(
-        'Export feature is only available on web browser. Please use the web version.',
-        ExportErrorType.platform,
-      );
-    }
-  }
-
   /// Download file for web using browser download
   Future<void> _downloadFileForWeb(int exportId, String? filename) async {
-    if (!kIsWeb) {
-      throw ExportException(
-        'Web download not supported on this platform',
-        ExportErrorType.platform,
-      );
-    }
-
     try {
       // Get auth token for download
       final token = await apiService.getAuthToken();
@@ -275,13 +252,26 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     }
   }
 
-  /// Create download link for web (simplified - needs dart:html for full implementation)
-  void _createDownloadLink(String url, String token, String? filename) {
-    // This would be implemented with dart:html in a real app
-    // For now, throw to indicate web-specific implementation needed
-    throw UnimplementedError(
-      'Web download implementation requires dart:html integration',
-    );
+  /// Create download link for web
+  void _createDownloadLink(String url, String token, String? filename) async {
+    try {
+      // Build URL with auth token
+      final downloadUrl = '$url?access_token=$token';
+      final uri = Uri.parse(downloadUrl);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        print('✅ Download initiated via url_launcher');
+      } else {
+        throw Exception('Could not launch download URL');
+      }
+    } catch (e) {
+      print('❌ Download failed: $e');
+      throw ExportException(
+        'Failed to initiate download: ${e.toString()}',
+        ExportErrorType.download,
+      );
+    }
   }
 
   /// Create API exception

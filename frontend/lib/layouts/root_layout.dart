@@ -1,5 +1,7 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
@@ -16,79 +18,176 @@ class RootLayout extends StatefulWidget {
 }
 
 class _RootLayoutState extends State<RootLayout> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   bool _isRailExtended = true;
 
-  final _navigatorKeys = List.generate(
-    5,
-    (index) => GlobalKey<NavigatorState>(),
-  );
+  late List<GlobalKey<NavigatorState>> _navigatorKeys;
 
-  // Navigation destinations data
-  static const List<NavigationDestination> _destinations = [
-    NavigationDestination(
-      icon: Icon(Icons.sensors_outlined),
-      selectedIcon: Icon(Icons.sensors_rounded),
-      label: 'Scan',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard_rounded),
-      label: 'Dashboard',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search_rounded),
-      label: 'Search',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.upload_outlined),
-      selectedIcon: Icon(Icons.upload_rounded),
-      label: 'Export',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person_rounded),
-      label: 'Settings',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Set default index based on platform
+    _currentIndex = _isMobile ? 0 : _getDefaultDesktopIndex();
+    _navigatorKeys = List.generate(
+      _getDestinations().length,
+      (index) => GlobalKey<NavigatorState>(),
+    );
+  }
 
-  // Navigation rail destinations
-  static const List<NavigationRailDestination> _railDestinations = [
-    NavigationRailDestination(
-      icon: Icon(Icons.sensors_outlined),
-      selectedIcon: Icon(Icons.sensors_rounded),
-      label: Text('Scan'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.dashboard_outlined),
-      selectedIcon: Icon(Icons.dashboard_rounded),
-      label: Text('Dashboard'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.search_outlined),
-      selectedIcon: Icon(Icons.search_rounded),
-      label: Text('Search'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.upload_outlined),
-      selectedIcon: Icon(Icons.upload_rounded),
-      label: Text('Export'),
-    ),
-    NavigationRailDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person_rounded),
-      label: Text('Settings'),
-    ),
-  ];
+  // Platform detection helpers
+  bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _isDesktop =>
+      !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+  bool get _isWeb => kIsWeb;
 
-  List<Widget> get _pages => [
-    const ScanPage(),
-    const DashboardPage(),
-    const SearchPage(),
-    const ExportPage(),
-    const SettingsPage(),
-  ];
+  // Get default index for desktop/web (Dashboard = index 1 in mobile, but could be 0 in desktop)
+  int _getDefaultDesktopIndex() {
+    final destinations = _getDestinations();
+    for (int i = 0; i < destinations.length; i++) {
+      if (destinations[i].label == 'Dashboard') {
+        return i;
+      }
+    }
+    return 0; // fallback
+  }
+
+  // Platform-specific destinations for bottom navigation
+  List<NavigationDestination> _getDestinations() {
+    List<NavigationDestination> destinations = [];
+
+    // Scan - Mobile only
+    if (_isMobile) {
+      destinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.sensors_outlined),
+          selectedIcon: Icon(Icons.sensors_rounded),
+          label: 'Scan',
+        ),
+      );
+    }
+
+    // Dashboard - All platforms
+    destinations.add(
+      const NavigationDestination(
+        icon: Icon(Icons.dashboard_outlined),
+        selectedIcon: Icon(Icons.dashboard_rounded),
+        label: 'Dashboard',
+      ),
+    );
+
+    // Search - All platforms
+    destinations.add(
+      const NavigationDestination(
+        icon: Icon(Icons.search_outlined),
+        selectedIcon: Icon(Icons.search_rounded),
+        label: 'Search',
+      ),
+    );
+
+    // Export - Desktop/Web only
+    if (!_isMobile) {
+      destinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.upload_outlined),
+          selectedIcon: Icon(Icons.upload_rounded),
+          label: 'Export',
+        ),
+      );
+    }
+
+    // Settings - All platforms
+    destinations.add(
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person_rounded),
+        label: 'Settings',
+      ),
+    );
+
+    return destinations;
+  }
+
+  // Platform-specific destinations for navigation rail
+  List<NavigationRailDestination> _getRailDestinations() {
+    List<NavigationRailDestination> destinations = [];
+
+    // Scan - Mobile only (but this won't be used since rail is for desktop)
+    if (_isMobile) {
+      destinations.add(
+        const NavigationRailDestination(
+          icon: Icon(Icons.sensors_outlined),
+          selectedIcon: Icon(Icons.sensors_rounded),
+          label: Text('Scan'),
+        ),
+      );
+    }
+
+    // Dashboard - All platforms
+    destinations.add(
+      const NavigationRailDestination(
+        icon: Icon(Icons.dashboard_outlined),
+        selectedIcon: Icon(Icons.dashboard_rounded),
+        label: Text('Dashboard'),
+      ),
+    );
+
+    // Search - All platforms
+    destinations.add(
+      const NavigationRailDestination(
+        icon: Icon(Icons.search_outlined),
+        selectedIcon: Icon(Icons.search_rounded),
+        label: Text('Search'),
+      ),
+    );
+
+    // Export - Desktop/Web only
+    if (!_isMobile) {
+      destinations.add(
+        const NavigationRailDestination(
+          icon: Icon(Icons.upload_outlined),
+          selectedIcon: Icon(Icons.upload_rounded),
+          label: Text('Export'),
+        ),
+      );
+    }
+
+    // Settings - All platforms
+    destinations.add(
+      const NavigationRailDestination(
+        icon: Icon(Icons.person_outline),
+        selectedIcon: Icon(Icons.person_rounded),
+        label: Text('Settings'),
+      ),
+    );
+
+    return destinations;
+  }
+
+  // Platform-specific pages
+  List<Widget> _getPages() {
+    List<Widget> pages = [];
+
+    // Scan - Mobile only
+    if (_isMobile) {
+      pages.add(const ScanPage());
+    }
+
+    // Dashboard - All platforms
+    pages.add(const DashboardPage());
+
+    // Search - All platforms
+    pages.add(const SearchPage());
+
+    // Export - Desktop/Web only
+    if (!_isMobile) {
+      pages.add(const ExportPage());
+    }
+
+    // Settings - All platforms
+    pages.add(const SettingsPage());
+
+    return pages;
+  }
 
   void _onNavTap(int index) {
     if (index == _currentIndex) {
@@ -125,13 +224,14 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   Widget _buildNavigationRail(ThemeData theme) {
+    final railDestinations = _getRailDestinations();
+
     return SizedBox(
       width: _isRailExtended ? 256 : 80,
       child: Material(
         color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors
-                  .primaryDark // เข้มขึ้นใน dark mode
-            : AppColors.primary, // เดิมใน light mode
+            ? AppColors.primaryDark
+            : AppColors.primary,
         child: Column(
           children: [
             // Header ที่มีปุ่มคงที่
@@ -146,9 +246,9 @@ class _RootLayoutState extends State<RootLayout> {
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                itemCount: _railDestinations.length,
+                itemCount: railDestinations.length,
                 itemBuilder: (context, index) {
-                  final destination = _railDestinations[index];
+                  final destination = railDestinations[index];
                   final isSelected = index == _currentIndex;
 
                   return _buildCustomNavItem(
@@ -259,42 +359,41 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   Widget _buildCustomBottomNav() {
-    return MediaQuery.removePadding(
-      context: context,
-      removeBottom: true,
-      child: Container(
-        height: 70,
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.primaryDark
-              : AppColors.primary,
-          border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
-        ),
+    final destinations = _getDestinations();
+
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.primaryDark
+            : AppColors.primary,
+        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
+      ),
+      child: SafeArea(
+        top: false,
         child: Row(
-          children: _destinations.asMap().entries.map((entry) {
+          children: destinations.asMap().entries.map((entry) {
             final index = entry.key;
             final destination = entry.value;
             final isSelected = index == _currentIndex;
 
             return Expanded(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: InkResponse(
-                    onTap: () => _onNavTap(index),
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    radius: 28,
-                    child: Icon(
-                      isSelected
-                          ? (destination.selectedIcon as Icon).icon
-                          : (destination.icon as Icon).icon,
-                      color: isSelected
-                          ? AppColors.onPrimary
-                          : AppColors.onPrimary.withValues(alpha: 0.6),
-                      size: isSelected ? 28 : 26,
-                    ),
+              child: InkResponse(
+                onTap: () => _onNavTap(index),
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                radius: 28,
+                child: Container(
+                  height: double.infinity,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    isSelected
+                        ? (destination.selectedIcon as Icon).icon
+                        : (destination.icon as Icon).icon,
+                    color: isSelected
+                        ? AppColors.onPrimary
+                        : AppColors.onPrimary.withValues(alpha: 0.6),
+                    size: isSelected ? 28 : 26,
                   ),
                 ),
               ),
@@ -306,13 +405,12 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   Widget _buildMainContent() {
+    final pages = _getPages();
+
     return Navigator(
       key: _navigatorKeys[_currentIndex],
       pages: [
-        MaterialPage(
-          key: ValueKey(_currentIndex),
-          child: _pages[_currentIndex],
-        ),
+        MaterialPage(key: ValueKey(_currentIndex), child: pages[_currentIndex]),
       ],
       onPopPage: (route, result) => route.didPop(result),
     );
@@ -330,11 +428,85 @@ class TabBarRootLayout extends StatefulWidget {
 class _TabBarRootLayoutState extends State<TabBarRootLayout>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late int _initialIndex;
+
+  // Platform detection helpers
+  bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+  // Platform-specific tabs
+  List<Tab> _getTabs() {
+    List<Tab> tabs = [];
+
+    // Scan - Mobile only
+    if (_isMobile) {
+      tabs.add(const Tab(icon: Icon(Icons.sensors), text: 'Scan'));
+    }
+
+    // Dashboard - All platforms
+    tabs.add(const Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'));
+
+    // Search - All platforms
+    tabs.add(const Tab(icon: Icon(Icons.search), text: 'Search'));
+
+    // Export - Desktop/Web only
+    if (!_isMobile) {
+      tabs.add(const Tab(icon: Icon(Icons.upload), text: 'Export'));
+    }
+
+    // Settings - All platforms
+    tabs.add(const Tab(icon: Icon(Icons.settings), text: 'Settings'));
+
+    return tabs;
+  }
+
+  // Platform-specific pages
+  List<Widget> _getTabPages() {
+    List<Widget> pages = [];
+
+    // Scan - Mobile only
+    if (_isMobile) {
+      pages.add(const ScanPage());
+    }
+
+    // Dashboard - All platforms
+    pages.add(const DashboardPage());
+
+    // Search - All platforms
+    pages.add(const SearchPage());
+
+    // Export - Desktop/Web only
+    if (!_isMobile) {
+      pages.add(const ExportPage());
+    }
+
+    // Settings - All platforms
+    pages.add(const SettingsPage());
+
+    return pages;
+  }
+
+  int _getDefaultIndex() {
+    final tabs = _getTabs();
+    if (_isMobile) return 0; // Start with Scan on mobile
+
+    // Find Dashboard index for desktop/web
+    for (int i = 0; i < tabs.length; i++) {
+      if (tabs[i].text == 'Dashboard') {
+        return i;
+      }
+    }
+    return 0; // fallback
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this, initialIndex: 2);
+    _initialIndex = _getDefaultIndex();
+    _tabController = TabController(
+      length: _getTabs().length,
+      vsync: this,
+      initialIndex: _initialIndex,
+    );
   }
 
   @override
@@ -345,32 +517,20 @@ class _TabBarRootLayoutState extends State<TabBarRootLayout>
 
   @override
   Widget build(BuildContext context) {
+    final tabs = _getTabs();
+    final pages = _getTabPages();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Asset Management'),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.sensors), text: 'Scan'),
-            Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'),
-            Tab(icon: Icon(Icons.search), text: 'Search'),
-            Tab(icon: Icon(Icons.upload), text: 'Export'),
-            Tab(icon: Icon(Icons.settings), text: 'Settings'),
-          ],
+          tabs: tabs,
           isScrollable:
               MediaQuery.of(context).size.width < AppConstants.tabletBreakpoint,
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          ScanPage(),
-          DashboardPage(),
-          SearchPage(),
-          ExportPage(),
-          SettingsPage(),
-        ],
-      ),
+      body: TabBarView(controller: _tabController, children: pages),
     );
   }
 }
