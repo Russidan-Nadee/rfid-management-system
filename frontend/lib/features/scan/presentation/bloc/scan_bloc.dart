@@ -5,7 +5,6 @@ import '../../domain/repositories/scan_repository.dart';
 import '../../domain/usecases/get_asset_details_usecase.dart';
 import '../../domain/usecases/update_asset_status_usecase.dart';
 import '../../../auth/domain/usecases/get_current_user_usecase.dart';
-import '../../data/datasources/mock_rfid_datasource.dart';
 import 'scan_event.dart';
 import 'scan_state.dart';
 
@@ -60,28 +59,20 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
               e.toString().contains('404') ||
               e.toString().contains('not found')) {
             // เอา cached location มาใส่ใน unknown item
-            final cachedLocation = MockRfidDataSource.getCachedLocationData(
-              assetNo,
-            );
 
             final unknownItem = ScannedItemEntity(
               assetNo: assetNo,
               description: 'Unknown Item',
               status: 'Unknown',
               isUnknown: true,
+
               // ส่ง location data จาก cache
-              plantCode: cachedLocation?['plant_code'],
-              locationCode: cachedLocation?['location_code'],
-              locationName: cachedLocation?['location_name'],
             );
 
             scannedItems.add(unknownItem);
           } else {
             print('Unexpected error for asset $assetNo: $e');
             // เอา cached location มาใส่ใน unknown item
-            final cachedLocation = MockRfidDataSource.getCachedLocationData(
-              assetNo,
-            );
 
             final unknownItem = ScannedItemEntity(
               assetNo: assetNo,
@@ -89,9 +80,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
               status: 'Unknown',
               isUnknown: true,
               // ส่ง location data จาก cache
-              plantCode: cachedLocation?['plant_code'],
-              locationCode: cachedLocation?['location_code'],
-              locationName: cachedLocation?['location_name'],
             );
 
             scannedItems.add(unknownItem);

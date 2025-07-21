@@ -41,23 +41,36 @@ class ScanRepositoryImpl implements ScanRepository {
 
   @override
   Future<AssetStatusUpdateResponse> updateAssetStatus(
-    String epcCode,
+    String assetNo,
     AssetStatusUpdateRequest request,
   ) async {
     try {
+      print('Repository: Updating asset status for Asset No: $assetNo');
+      print('Repository: Request data: ${request.toJson()}');
+
       final response = await apiService.patch<Map<String, dynamic>>(
-        ApiConstants.scanAssetCheckByEpc(epcCode),
+        ApiConstants.scanAssetCheck(assetNo), // ใช้ method ที่มีอยู่แล้ว
         body: request.toJson(),
         fromJson: (json) => json,
       );
 
-      return AssetStatusUpdateResponse.fromJson({
+      print(
+        'Repository: Update response - Success: ${response.success}, Message: ${response.message}',
+      );
+
+      final updateResponse = AssetStatusUpdateResponse.fromJson({
         'success': response.success,
         'message': response.message,
         'data': response.data,
         'timestamp': response.timestamp.toIso8601String(),
       });
+
+      print(
+        'Repository: Parsed update response - Success: ${updateResponse.success}',
+      );
+      return updateResponse;
     } catch (e) {
+      print('Repository: Exception updating asset status: $e');
       throw Exception('Failed to update asset status: $e');
     }
   }

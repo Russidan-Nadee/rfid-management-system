@@ -22,7 +22,7 @@ class ApiService {
     if (requiresAuth) {
       // ===== Development Mode: ไม่ใช้ token =====
       if (kDebugMode) {
-        const bool skipAuth = true; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
+        const bool skipAuth = false; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
 
         if (skipAuth) {
           // ไม่ส่ง Authorization header
