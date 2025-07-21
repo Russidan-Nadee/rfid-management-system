@@ -14,14 +14,14 @@ import '../../domain/entities/master_data_entity.dart';
 import '../bloc/asset_creation_bloc.dart';
 
 class CreateAssetPage extends StatelessWidget {
-  final String assetNo;
+  final String epcCode; // ← เปลี่ยนจาก assetNo เป็น epcCode
   final String? plantCode;
   final String? locationCode;
   final String? locationName;
 
   const CreateAssetPage({
     super.key,
-    required this.assetNo,
+    required this.epcCode, // ← EPC Code จากการสแกน
     this.plantCode,
     this.locationCode,
     this.locationName,
@@ -32,7 +32,7 @@ class CreateAssetPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => getIt<AssetCreationBloc>()..add(LoadMasterData()),
       child: CreateAssetView(
-        assetNo: assetNo,
+        epcCode: epcCode, // ← ส่ง EPC Code
         plantCode: plantCode,
         locationCode: locationCode,
         locationName: locationName,
@@ -42,14 +42,14 @@ class CreateAssetPage extends StatelessWidget {
 }
 
 class CreateAssetView extends StatefulWidget {
-  final String assetNo;
+  final String epcCode; // ← เปลี่ยนจาก assetNo เป็น epcCode
   final String? plantCode;
   final String? locationCode;
   final String? locationName;
 
   const CreateAssetView({
     super.key,
-    required this.assetNo,
+    required this.epcCode, // ← EPC Code จากการสแกน
     this.plantCode,
     this.locationCode,
     this.locationName,
@@ -61,6 +61,8 @@ class CreateAssetView extends StatefulWidget {
 
 class _CreateAssetViewState extends State<CreateAssetView> {
   final _formKey = GlobalKey<FormState>();
+  final _assetNoController =
+      TextEditingController(); // ← เพิ่ม controller สำหรับ Asset Number
   final _descriptionController = TextEditingController();
   final _serialController = TextEditingController();
   final _inventoryController = TextEditingController();
@@ -281,8 +283,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
       key: _formKey,
       child: Column(
         children: [
-          // Header Card
-          CreateAssetHeader(assetNo: widget.assetNo),
+          // Header Card - แสดง EPC Code
+          CreateAssetHeader(epcCode: widget.epcCode),
 
           // Form Content
           Expanded(
@@ -293,8 +295,12 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                 children: [
                   // Basic Information Section
                   BasicInfoSection(
-                    assetNo: widget.assetNo,
+                    epcCode: widget.epcCode, // ← ส่ง EPC Code
+                    assetNoController:
+                        _assetNoController, // ← ส่ง Asset Number controller
                     descriptionController: _descriptionController,
+                    assetNoValidator:
+                        Validators.assetNumber, // ← เพิ่ม validator
                     descriptionValidator: Validators.description,
                   ),
 
@@ -369,7 +375,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
         final userId = await getIt.get<GetCurrentUserUseCase>().execute();
 
         final request = CreateAssetRequest(
-          assetNo: widget.assetNo,
+          assetNo: _assetNoController.text, // ← Asset Number ที่ user กรอก
+          epcCode: widget.epcCode, // ← EPC Code จากการสแกน
           description: _descriptionController.text,
           plantCode: _selectedPlant!,
           locationCode: widget.locationCode ?? _selectedLocation!,
@@ -394,6 +401,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
 
   @override
   void dispose() {
+    _assetNoController.dispose(); // ← เพิ่ม dispose
     _descriptionController.dispose();
     _serialController.dispose();
     _inventoryController.dispose();

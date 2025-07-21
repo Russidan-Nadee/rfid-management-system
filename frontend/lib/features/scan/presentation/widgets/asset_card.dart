@@ -163,7 +163,7 @@ class AssetCard extends StatelessWidget {
 
         // Asset Number - แก้ให้อ่านง่ายใน dark mode
         Text(
-          'Asset No: ${item.assetNo}',
+          'EPC Code: ${item.assetNo}',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors
@@ -267,12 +267,12 @@ class AssetCard extends StatelessWidget {
 
   void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
-      // Navigate to Create Asset Page for unknown items (ลบ location data ออก)
+      // Navigate to Create Asset Page for unknown items
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
           builder: (context) => CreateAssetPage(
-            assetNo: item.assetNo,
-            // ลบ plantCode, locationCode, locationName ออก
+            epcCode: item.assetNo, // ← ส่ง EPC Code (ที่เก็บใน assetNo field)
+            // ลบ plantCode, locationCode, locationName ออกตามเดิม
           ),
         ),
       );

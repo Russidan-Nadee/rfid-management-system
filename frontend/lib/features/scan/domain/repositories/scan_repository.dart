@@ -5,7 +5,7 @@ import '../../data/models/asset_status_update_model.dart';
 
 abstract class ScanRepository {
   // Existing methods (unchanged)
-  Future<ScannedItemEntity> getAssetDetails(String assetNo);
+  Future<ScannedItemEntity> getAssetDetails(String epcCode);
   Future<List<String>> generateMockAssetNumbers();
   Future<AssetStatusUpdateResponse> updateAssetStatus(
     String epcCode,

@@ -1,11 +1,10 @@
-// Path: frontend/lib/features/scan/presentation/pages/create_asset/widgets/create_asset_header.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/create_asset_header.dart
 import 'package:flutter/material.dart';
 import '../../../../../../app/theme/app_colors.dart';
 
 class CreateAssetHeader extends StatelessWidget {
-  final String assetNo;
-
-  const CreateAssetHeader({super.key, required this.assetNo});
+  final String epcCode;
+  const CreateAssetHeader({super.key, required this.epcCode});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +45,7 @@ class CreateAssetHeader extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              assetNo,
+              epcCode,
               style: TextStyle(
                 color: AppColors.onPrimary,
                 fontWeight: FontWeight.w500,

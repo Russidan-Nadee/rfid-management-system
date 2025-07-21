@@ -15,7 +15,7 @@ class AppEntryPoint extends StatelessWidget {
   Widget build(BuildContext context) {
     // ===== DEVELOPMENT MODE: ข้าม Auth ตรงไป Layout =====
     if (kDebugMode) {
-      const bool skipAuth = true; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
+      const bool skipAuth = false; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
 
       if (skipAuth) {
         return const RootLayout();

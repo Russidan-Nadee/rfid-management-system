@@ -22,10 +22,10 @@ class ScanRepositoryImpl implements ScanRepository {
   }
 
   @override
-  Future<ScannedItemEntity> getAssetDetails(String assetNo) async {
+  Future<ScannedItemEntity> getAssetDetails(String epcCode) async {
     try {
       final response = await apiService.get<Map<String, dynamic>>(
-        ApiConstants.scanAssetDetail(assetNo),
+        ApiConstants.scanAssetDetailByEpc(epcCode),
         fromJson: (json) => json,
       );
 
@@ -41,12 +41,12 @@ class ScanRepositoryImpl implements ScanRepository {
 
   @override
   Future<AssetStatusUpdateResponse> updateAssetStatus(
-    String assetNo,
+    String epcCode,
     AssetStatusUpdateRequest request,
   ) async {
     try {
       final response = await apiService.patch<Map<String, dynamic>>(
-        ApiConstants.scanAssetCheck(assetNo),
+        ApiConstants.scanAssetCheckByEpc(epcCode),
         body: request.toJson(),
         fromJson: (json) => json,
       );

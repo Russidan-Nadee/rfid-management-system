@@ -1,16 +1,22 @@
-// Path: frontend/lib/features/scan/presentation/pages/create_asset/widgets/basic_info_section.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/basic_info_section.dart
 import 'package:flutter/material.dart';
 import '../../../../../../app/theme/app_colors.dart';
 
 class BasicInfoSection extends StatelessWidget {
-  final String assetNo;
+  final String epcCode; // ← เปลี่ยนเป็น EPC Code (read-only)
+  final TextEditingController
+  assetNoController; // ← เพิ่ม Asset Number controller
   final TextEditingController descriptionController;
+  final String? Function(String?)?
+  assetNoValidator; // ← เพิ่ม validator สำหรับ Asset Number
   final String? Function(String?)? descriptionValidator;
 
   const BasicInfoSection({
     super.key,
-    required this.assetNo,
+    required this.epcCode, // ← EPC Code จากการสแกน
+    required this.assetNoController, // ← Asset Number ให้ user กรอก
     required this.descriptionController,
+    this.assetNoValidator,
     this.descriptionValidator,
   });
 
@@ -21,11 +27,22 @@ class BasicInfoSection extends StatelessWidget {
       icon: Icons.inventory_2_outlined,
       color: AppColors.primary,
       children: [
-        // Asset Number (Read-only)
+        // EPC Code (Read-only)
         _buildReadOnlyField(
-          label: 'Asset Number',
-          value: assetNo,
+          label: 'EPC Code',
+          value: epcCode,
           icon: Icons.qr_code,
+        ),
+        const SizedBox(height: 16),
+
+        // Asset Number (Input field)
+        _buildTextFormField(
+          controller: assetNoController,
+          label: 'Asset Number',
+          icon: Icons.tag,
+          isRequired: true,
+          validator: assetNoValidator,
+          hint: 'Enter asset number (e.g., A001234)',
         ),
         const SizedBox(height: 16),
 

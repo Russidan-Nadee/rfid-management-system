@@ -63,6 +63,7 @@ class CreateAssetRequestModel {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{
       'asset_no': request.assetNo,
+      'epc_code': request.epcCode,
       'description': request.description,
       'plant_code': request.plantCode,
       'location_code': request.locationCode,

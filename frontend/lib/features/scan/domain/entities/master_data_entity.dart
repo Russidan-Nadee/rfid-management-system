@@ -65,6 +65,7 @@ class DepartmentEntity extends Equatable {
 
 class CreateAssetRequest extends Equatable {
   final String assetNo;
+  final String epcCode;
   final String description;
   final String plantCode;
   final String locationCode;
@@ -77,6 +78,7 @@ class CreateAssetRequest extends Equatable {
 
   const CreateAssetRequest({
     required this.assetNo,
+    required this.epcCode,
     required this.description,
     required this.plantCode,
     required this.locationCode,
@@ -91,6 +93,7 @@ class CreateAssetRequest extends Equatable {
   @override
   List<Object?> get props => [
     assetNo,
+    epcCode,
     description,
     plantCode,
     locationCode,
