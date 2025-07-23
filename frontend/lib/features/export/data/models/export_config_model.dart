@@ -1,6 +1,5 @@
 // Path: frontend/lib/features/export/data/models/export_config_model.dart
 import 'package:equatable/equatable.dart';
-import 'period_model.dart';
 
 class ExportConfigModel extends Equatable {
   final String format;
@@ -49,17 +48,6 @@ class ExportConfigModel extends Equatable {
     );
   }
 
-  factory ExportConfigModel.withPeriod({
-    required PeriodModel period,
-    String format = 'xlsx',
-    List<String>? status,
-  }) {
-    return ExportConfigModel(
-      format: format,
-      filters: ExportFiltersModel(dateRange: period, status: status),
-    );
-  }
-
   /// Business validation
   bool get isValidFormat => ['xlsx', 'csv'].contains(format.toLowerCase());
   bool get hasFilters => filters != null && filters!.hasAnyFilter;
@@ -95,14 +83,8 @@ class ExportFiltersModel extends Equatable {
   final List<String>? plantCodes;
   final List<String>? locationCodes;
   final List<String>? status;
-  final PeriodModel? dateRange;
 
-  const ExportFiltersModel({
-    this.plantCodes,
-    this.locationCodes,
-    this.status,
-    this.dateRange,
-  });
+  const ExportFiltersModel({this.plantCodes, this.locationCodes, this.status});
 
   /// Convert to JSON for API request
   Map<String, dynamic> toJson() {
@@ -120,9 +102,7 @@ class ExportFiltersModel extends Equatable {
       json['status'] = status;
     }
 
-    if (dateRange != null) {
-      json['date_range'] = dateRange!.toJson();
-    }
+    // ไม่มี date_range แล้ว
 
     return json;
   }
@@ -137,9 +117,6 @@ class ExportFiltersModel extends Equatable {
           ? List<String>.from(json['location_codes'])
           : null,
       status: json['status'] != null ? List<String>.from(json['status']) : null,
-      dateRange: json['date_range'] != null
-          ? PeriodModel.fromJson(json['date_range'])
-          : null,
     );
   }
 
@@ -147,10 +124,8 @@ class ExportFiltersModel extends Equatable {
   bool get hasAnyFilter =>
       (plantCodes?.isNotEmpty ?? false) ||
       (locationCodes?.isNotEmpty ?? false) ||
-      (status?.isNotEmpty ?? false) ||
-      dateRange != null;
+      (status?.isNotEmpty ?? false);
 
-  bool get hasDateRange => dateRange != null;
   bool get hasPlantFilter => plantCodes?.isNotEmpty ?? false;
   bool get hasLocationFilter => locationCodes?.isNotEmpty ?? false;
   bool get hasStatusFilter => status?.isNotEmpty ?? false;
@@ -160,7 +135,6 @@ class ExportFiltersModel extends Equatable {
     if (hasPlantFilter) count++;
     if (hasLocationFilter) count++;
     if (hasStatusFilter) count++;
-    if (hasDateRange) count++;
     return count;
   }
 
@@ -169,7 +143,6 @@ class ExportFiltersModel extends Equatable {
     if (hasPlantFilter) labels.add('Plants (${plantCodes!.length})');
     if (hasLocationFilter) labels.add('Locations (${locationCodes!.length})');
     if (hasStatusFilter) labels.add('Status (${status!.length})');
-    if (hasDateRange) labels.add('Date Range (${dateRange!.displayLabel})');
     return labels;
   }
 
@@ -198,10 +171,6 @@ class ExportFiltersModel extends Equatable {
     return copyWith(status: newStatus.isEmpty ? null : newStatus);
   }
 
-  ExportFiltersModel setPeriod(PeriodModel? period) {
-    return copyWith(dateRange: period);
-  }
-
   ExportFiltersModel clearAll() {
     return const ExportFiltersModel();
   }
@@ -211,18 +180,16 @@ class ExportFiltersModel extends Equatable {
     List<String>? plantCodes,
     List<String>? locationCodes,
     List<String>? status,
-    PeriodModel? dateRange,
   }) {
     return ExportFiltersModel(
       plantCodes: plantCodes ?? this.plantCodes,
       locationCodes: locationCodes ?? this.locationCodes,
       status: status ?? this.status,
-      dateRange: dateRange ?? this.dateRange,
     );
   }
 
   @override
-  List<Object?> get props => [plantCodes, locationCodes, status, dateRange];
+  List<Object?> get props => [plantCodes, locationCodes, status];
 
   @override
   String toString() => 'ExportFiltersModel(filterCount: $filterCount)';
@@ -254,21 +221,6 @@ class ExportRequestModel {
     return ExportRequestModel(
       exportType: 'assets',
       exportConfig: ExportConfigModel.activeAssetsOnly(format: format),
-    );
-  }
-
-  factory ExportRequestModel.withPeriod({
-    required PeriodModel period,
-    String format = 'xlsx',
-    List<String>? status,
-  }) {
-    return ExportRequestModel(
-      exportType: 'assets',
-      exportConfig: ExportConfigModel.withPeriod(
-        period: period,
-        format: format,
-        status: status,
-      ),
     );
   }
 

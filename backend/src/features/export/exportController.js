@@ -60,21 +60,9 @@ class ExportController {
             });
          }
 
-         // Period validation - ถ้า validator ผ่านแล้วก็ปลอดภัย
-         const { filters } = exportConfig;
-         if (filters?.date_range) {
-            const dateValidation = this._validatePeriodParams(filters.date_range);
-            if (!dateValidation.isValid) {
-               return res.status(400).json({
-                  success: false,
-                  message: 'Invalid date range',
-                  errors: dateValidation.errors,
-                  timestamp: new Date().toISOString()
-               });
-            }
-         }
+         console.log('📊 Export Configuration:', JSON.stringify(exportConfig, null, 2));
 
-         // สร้าง export job
+         // สร้าง export job (ไม่มี date range validation แล้ว)
          const exportJob = await this.exportService.createExportJob({
             userId,
             exportType,
@@ -114,10 +102,6 @@ class ExportController {
 
          if (error.message.includes('pending')) {
             statusCode = 409;
-         } else if (error.message.includes('Invalid date range')) {
-            statusCode = 400;
-         } else if (error.message.includes('Date range cannot exceed')) {
-            statusCode = 400;
          }
 
          res.status(statusCode).json({
@@ -558,45 +542,6 @@ class ExportController {
             timestamp: new Date().toISOString()
          });
       }
-   }
-
-   /**
-    * Validate period parameters (helper function)
-    * @private
-    */
-   _validatePeriodParams(dateRange) {
-      const errors = [];
-
-      try {
-         if (!dateRange.from || !dateRange.to) {
-            errors.push('Both from and to dates are required');
-            return { isValid: false, errors };
-         }
-
-         const from = new Date(dateRange.from);
-         const to = new Date(dateRange.to);
-
-         if (isNaN(from.getTime()) || isNaN(to.getTime())) {
-            errors.push('Invalid date format');
-         }
-
-         if (from >= to) {
-            errors.push('From date must be before to date');
-         }
-
-         const daysDiff = (to - from) / (1000 * 60 * 60 * 24);
-         if (daysDiff > 365) {
-            errors.push('Date range cannot exceed 1 year');
-         }
-
-      } catch (error) {
-         errors.push('Date validation error');
-      }
-
-      return {
-         isValid: errors.length === 0,
-         errors
-      };
    }
 }
 

@@ -269,10 +269,6 @@ class StatCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ],
-            if (trend != null) ...[
-              AppSpacing.verticalSpaceXS,
-              Center(child: _buildTrendIndicator(context)),
-            ],
           ],
         ),
       ),
@@ -302,48 +298,6 @@ class StatCard extends StatelessWidget {
               ),
             ],
           );
-  }
-
-  Widget _buildTrendIndicator(BuildContext context) {
-    final theme = Theme.of(context);
-    final effectiveTrendColor = trendColor ?? _getTrendColor(theme);
-
-    IconData trendIcon;
-    if (trend!.startsWith('+')) {
-      trendIcon = Icons.trending_up;
-    } else if (trend!.startsWith('-')) {
-      trendIcon = Icons.trending_down;
-    } else {
-      trendIcon = Icons.trending_flat;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(trendIcon, size: 12, color: effectiveTrendColor),
-        AppSpacing.horizontalSpaceXS,
-        Text(
-          trend!,
-          style: AppTextStyles.caption.copyWith(
-            color: effectiveTrendColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _getTrendColor(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    if (trend!.startsWith('+')) {
-      return isDark ? AppColors.success : AppColors.trendUp;
-    } else if (trend!.startsWith('-')) {
-      return isDark ? AppColors.error : AppColors.trendDown;
-    } else {
-      return isDark ? AppColors.darkTextSecondary : AppColors.trendStable;
-    }
   }
 
   Color _getSecondaryTextColor(ThemeData theme) {

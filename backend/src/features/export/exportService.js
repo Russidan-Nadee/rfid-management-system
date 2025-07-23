@@ -142,7 +142,7 @@ class ExportService {
    }
 
    /**
-    * ดึงข้อมูล assets พร้อมทุก field และ master data
+    * ดึงข้อมูล assets พร้อมทุก field และ master data (ทั้งหมด ไม่มี date range)
     * @param {Object} config - การตั้งค่า export
     * @returns {Promise<Array>} ข้อมูล assets ครบทั้งหมด 24 columns
     * @private
@@ -150,38 +150,31 @@ class ExportService {
    async _fetchAssetData(config) {
       const { filters = {} } = config;
 
-      // Apply business rules และ default period
-      const processedFilters = this._applyBusinessRulesForAssets(filters);
+      console.log('🗄️ Fetching all assets data (no date restrictions)');
 
-      // Build where conditions
+      // Build where conditions (ไม่มี date range แล้ว)
       const whereConditions = {};
-      console.log('🗄️ Database whereConditions:', JSON.stringify(whereConditions, null, 2));
 
       // Plant filter
-      if (processedFilters.plant_codes && processedFilters.plant_codes.length > 0) {
-         whereConditions.plant_code = { in: processedFilters.plant_codes };
+      if (filters.plant_codes && filters.plant_codes.length > 0) {
+         whereConditions.plant_code = { in: filters.plant_codes };
+         console.log(`🏭 Plant filter: ${filters.plant_codes.join(', ')}`);
       }
 
       // Location filter
-      if (processedFilters.location_codes && processedFilters.location_codes.length > 0) {
-         whereConditions.location_code = { in: processedFilters.location_codes };
+      if (filters.location_codes && filters.location_codes.length > 0) {
+         whereConditions.location_code = { in: filters.location_codes };
+         console.log(`📍 Location filter: ${filters.location_codes.join(', ')}`);
       }
 
       // Status filter
-      if (processedFilters.status && processedFilters.status.length > 0) {
-         whereConditions.status = { in: processedFilters.status };
+      if (filters.status && filters.status.length > 0) {
+         whereConditions.status = { in: filters.status };
+         console.log(`📊 Status filter: ${filters.status.join(', ')}`);
       }
 
-      // Period filter - ใช้ created_at field (หลังจาก business rules แล้ว)
-      if (processedFilters.date_range) {
-         whereConditions.created_at = {};
-         if (processedFilters.date_range.from) {
-            whereConditions.created_at.gte = new Date(processedFilters.date_range.from);
-         }
-         if (processedFilters.date_range.to) {
-            whereConditions.created_at.lte = new Date(processedFilters.date_range.to);
-         }
-      }
+      // ไม่มี date range filter แล้ว - export ทั้งหมด
+      console.log('📅 No date range filter - exporting all historical data');
 
       // ดึงข้อมูล assets พร้อม include ทุก master tables
       const assets = await prisma.asset_master.findMany({
@@ -234,6 +227,8 @@ class ExportService {
          },
          orderBy: { asset_no: 'asc' }
       });
+
+      console.log(`✅ Retrieved ${assets.length} assets (all historical data)`);
 
       // Return ทุก field ครบทั้งหมด 24 columns
       return assets.map(asset => ({
@@ -385,121 +380,6 @@ class ExportService {
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 24);
       return expiryDate;
-   }
-
-   /**
-    * ใช้ business rules สำหรับ assets export
-    * @param {Object} filters - filters จาก request
-    * @returns {Object} processed filters
-    * @private
-    */
-   _applyBusinessRulesForAssets(filters) {
-      let processedFilters = { ...filters };
-      console.log('🔍 Input filters:', JSON.stringify(filters, null, 2));
-
-      // 1. Date Range Validation และ Default Setting
-      if (!processedFilters.date_range) {
-         console.log('📅 Checking date_range:', processedFilters.date_range);
-         // ถ้าไม่มี date_range เซ็ต default เป็น 30 วันล่าสุด
-         const now = new Date();
-         const thirtyDaysAgo = new Date();
-         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-         processedFilters.date_range = {
-            from: thirtyDaysAgo.toISOString(),
-            to: now.toISOString()
-         };
-
-         console.log('📅 Applied default 30-day period for assets export');
-      } else {
-         // 2. Re-validate date range สำหรับ security
-         const validation = this._validateDateRange(processedFilters.date_range);
-         if (!validation.isValid) {
-            throw new Error(`Invalid date range: ${validation.errors.join(', ')}`);
-         }
-
-         // 3. Log warning สำหรับ large date ranges
-         const daysDiff = this._calculateDaysDifference(
-            processedFilters.date_range.from,
-            processedFilters.date_range.to
-         );
-
-         if (daysDiff > 180) { // มากกว่า 6 เดือน
-            console.warn(`⚠️  Large date range: ${daysDiff} days in assets export`);
-         }
-      }
-
-      // 4. Status Filter Default (ถ้าไม่ระบุ ให้ export ทุก status)
-      if (!processedFilters.status || processedFilters.status.length === 0) {
-         console.log('📊 No status filter specified, exporting all statuses (A, C, I)');
-      }
-
-      return processedFilters;
-      console.log('✅ Final processed filters:', JSON.stringify(processedFilters, null, 2));
-   }
-
-   /**
-    * Validate date range (business layer validation)
-    * @param {Object} dateRange - {from, to}
-    * @returns {Object} {isValid, errors}
-    * @private
-    */
-   _validateDateRange(dateRange) {
-      const errors = [];
-
-      try {
-         const from = new Date(dateRange.from);
-         const to = new Date(dateRange.to);
-         const now = new Date();
-         const twoYearsAgo = new Date();
-         twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-
-         // Check date validity
-         if (isNaN(from.getTime()) || isNaN(to.getTime())) {
-            errors.push('Invalid date format');
-         }
-
-         // Check logical order
-         if (from >= to) {
-            errors.push('From date must be before to date');
-         }
-
-         // Check reasonable bounds
-         if (from < twoYearsAgo) {
-            errors.push('From date cannot be more than 2 years ago');
-         }
-
-         if (to > now) {
-            errors.push('To date cannot be in the future');
-         }
-
-         // Check range size (1 year limit)
-         const daysDiff = (to - from) / (1000 * 60 * 60 * 24);
-         if (daysDiff > 365) {
-            errors.push('Date range cannot exceed 1 year');
-         }
-
-      } catch (error) {
-         errors.push('Date processing error');
-      }
-
-      return {
-         isValid: errors.length === 0,
-         errors
-      };
-   }
-
-   /**
-    * Calculate days difference between two dates
-    * @param {string} fromDate - ISO date string
-    * @param {string} toDate - ISO date string  
-    * @returns {number} days difference
-    * @private
-    */
-   _calculateDaysDifference(fromDate, toDate) {
-      const from = new Date(fromDate);
-      const to = new Date(toDate);
-      return Math.ceil((to - from) / (1000 * 60 * 60 * 24));
    }
 
    /**

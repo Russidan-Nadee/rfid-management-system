@@ -186,15 +186,6 @@ class ExportRepositoryImpl implements ExportRepository {
       errors.add('Invalid format. Must be xlsx or csv');
     }
 
-    // Validate period if provided
-    if (config.filters?.dateRange != null) {
-      final period = config.filters!.dateRange!;
-      final validation = period.validate();
-      if (!validation.isValid) {
-        errors.addAll(validation.errors);
-      }
-    }
-
     if (errors.isNotEmpty) {
       return Left(ValidationFailure(errors));
     }

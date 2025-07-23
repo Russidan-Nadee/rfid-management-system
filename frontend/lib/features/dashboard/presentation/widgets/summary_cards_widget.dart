@@ -424,44 +424,8 @@ class _LegacySummaryCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          if (trend.isNotEmpty) ...[
-            AppSpacing.verticalSpaceXS,
-            _buildTrendIndicator(),
-          ],
         ],
       ),
-    );
-  }
-
-  Widget _buildTrendIndicator() {
-    final isDark = theme.brightness == Brightness.dark;
-    IconData trendIcon;
-    Color trendColor;
-
-    if (trend.startsWith('+')) {
-      trendIcon = Icons.trending_up;
-      trendColor = isDark ? AppColors.success : AppColors.trendUp;
-    } else if (trend.startsWith('-')) {
-      trendIcon = Icons.trending_down;
-      trendColor = isDark ? AppColors.error : AppColors.trendDown;
-    } else {
-      trendIcon = Icons.trending_flat;
-      trendColor = isDark ? AppColors.darkTextSecondary : AppColors.trendStable;
-    }
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(trendIcon, size: 12, color: trendColor),
-        AppSpacing.horizontalSpaceXS,
-        Text(
-          trend,
-          style: AppTextStyles.caption.copyWith(
-            color: trendColor,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -65,7 +65,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     emit(const ExportLoading(message: 'Creating export job...'));
 
     try {
-      // Use the complete configuration from UI (includes date range + filters)
+      // Use the complete configuration from UI
       final config = event.config;
 
       // Validate configuration
@@ -78,16 +78,11 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
         return;
       }
 
-      // Log configuration for debugging
+      // Log configuration for debugging (no date range anymore)
       print('🎯 Export Configuration:');
       print('   Format: ${config.format}');
       print('   Has Filters: ${config.hasFilters}');
-      if (config.filters?.dateRange != null) {
-        final dateRange = config.filters!.dateRange!;
-        print(
-          '   Date Range: ${dateRange.from} to ${dateRange.to} (${dateRange.daysDuration} days)',
-        );
-      }
+
       if (config.filters?.plantCodes?.isNotEmpty == true) {
         print('   Plants: ${config.filters!.plantCodes}');
       }
@@ -97,6 +92,8 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
       if (config.filters?.status?.isNotEmpty == true) {
         print('   Status: ${config.filters!.status}');
       }
+
+      print('   Note: Exporting ALL data (no date restrictions)');
 
       // Call UseCase with complete configuration
       final result = await createExportJobUseCase.execute(

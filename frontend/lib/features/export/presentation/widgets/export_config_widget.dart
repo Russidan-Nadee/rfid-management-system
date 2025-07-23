@@ -8,11 +8,9 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../data/models/export_config_model.dart';
-import '../../data/models/period_model.dart';
 import 'export_header_card.dart';
 import 'export_type_section.dart';
 import 'file_format_section.dart';
-import 'date_selection_widget.dart';
 
 class ExportConfigWidget extends StatefulWidget {
   const ExportConfigWidget({super.key});
@@ -23,8 +21,6 @@ class ExportConfigWidget extends StatefulWidget {
 
 class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
-  PeriodModel? _selectedPeriod;
-  ExportFiltersModel? _selectedFilters;
 
   void _onFormatSelected(String format) {
     setState(() {
@@ -32,25 +28,13 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
     });
   }
 
-  void _onPeriodSelected(PeriodModel? period) {
-    setState(() {
-      _selectedPeriod = period;
-      print('✅ _selectedPeriod updated: $_selectedPeriod');
-    });
-  }
-
   void _onExportPressed() {
-    print('🚀 Export pressed with _selectedPeriod: $_selectedPeriod');
+    print('🚀 Export pressed - exporting all data');
 
-    // Build complete export configuration
+    // Build simple export configuration (no date range, no filters)
     final config = ExportConfigModel(
       format: _selectedFormat,
-      filters: ExportFiltersModel(
-        plantCodes: _selectedFilters?.plantCodes,
-        locationCodes: _selectedFilters?.locationCodes,
-        status: _selectedFilters?.status,
-        dateRange: _selectedPeriod,
-      ),
+      filters: null, // No filters = export all data
     );
 
     // Dispatch to BLoC
@@ -179,23 +163,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
           ),
         ),
 
-        // Date Selection
-        DateSelectionWidget(
-          selectedPeriod: _selectedPeriod,
-          onPeriodSelected: _onPeriodSelected,
-          isLargeScreen: isLargeScreen,
-        ),
+        // All Data Notice Card
+        _buildAllDataNoticeCard(context, isLargeScreen),
 
-        SizedBox(
-          height: AppSpacing.responsiveSpacing(
-            context,
-            mobile: AppSpacing.lg,
-            tablet: AppSpacing.xl,
-            desktop: AppSpacing.xxl,
-          ),
-        ),
-
-        // Advanced Filters (Collapsible)
         SizedBox(
           height: AppSpacing.responsiveSpacing(
             context,
@@ -208,6 +178,63 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         // Export Button
         _buildExportButton(context, isLargeScreen: isLargeScreen),
       ],
+    );
+  }
+
+  Widget _buildAllDataNoticeCard(BuildContext context, bool isLargeScreen) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(
+        AppSpacing.responsiveSpacing(
+          context,
+          mobile: AppSpacing.lg,
+          tablet: AppSpacing.xl,
+          desktop: AppSpacing.xl,
+        ),
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.primary,
+            size: isLargeScreen ? 24 : 20,
+          ),
+          SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Export All Data',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: isLargeScreen ? 16 : 14,
+                  ),
+                ),
+                SizedBox(height: AppSpacing.xs),
+                Text(
+                  'This will export all assets data without any date restrictions. All historical records will be included.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                    fontSize: isLargeScreen ? 14 : 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -297,7 +324,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                           ),
                           SizedBox(width: AppSpacing.sm),
                           Text(
-                            'Export File',
+                            'Export All Data',
                             style: Theme.of(context).textTheme.labelLarge
                                 ?.copyWith(
                                   color: Theme.of(
