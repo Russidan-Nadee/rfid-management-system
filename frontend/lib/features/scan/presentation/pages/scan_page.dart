@@ -11,6 +11,7 @@ import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
 import '../widgets/scan_list_view.dart';
+import '../widgets/location_selection_widget.dart';
 
 class ScanPage extends StatelessWidget {
   const ScanPage({super.key});
@@ -118,6 +119,9 @@ class _ScanPageViewState extends State<ScanPageView> {
             } else if (state is ScanLoading) {
               print('ScanPage: Showing loading view');
               return _buildLoadingView(context);
+            } else if (state is ScanLocationSelection) {
+              print('ScanPage: Showing location selection view');
+              return _buildLocationSelectionView(context, state);
             } else if (state is ScanSuccess) {
               print(
                 'ScanPage: Showing scan results, items count = ${state.scannedItems.length}',
@@ -143,6 +147,22 @@ class _ScanPageViewState extends State<ScanPageView> {
           },
         ),
       ),
+    );
+  }
+
+  // เพิ่ม method ใหม่สำหรับแสดง location selection
+  Widget _buildLocationSelectionView(
+    BuildContext context,
+    ScanLocationSelection state,
+  ) {
+    return LocationSelectionWidget(
+      locations: state.availableLocations,
+      onLocationSelected: (selectedLocation) {
+        print('ScanPage: Location selected: $selectedLocation');
+        context.read<ScanBloc>().add(
+          LocationSelected(selectedLocation: selectedLocation),
+        );
+      },
     );
   }
 

@@ -17,23 +17,49 @@ class ScanLoading extends ScanState {
   const ScanLoading();
 }
 
+// เพิ่ม state ใหม่สำหรับ location selection
+class ScanLocationSelection extends ScanState {
+  final List<ScannedItemEntity> scannedItems;
+  final List<String> availableLocations;
+
+  const ScanLocationSelection({
+    required this.scannedItems,
+    required this.availableLocations,
+  });
+
+  @override
+  List<Object?> get props => [scannedItems, availableLocations];
+
+  @override
+  String toString() {
+    return 'ScanLocationSelection(items: ${scannedItems.length}, locations: ${availableLocations.length})';
+  }
+}
+
 class ScanSuccess extends ScanState {
   final List<ScannedItemEntity> scannedItems;
   final String selectedFilter;
   final String selectedLocation;
+  final String? currentLocation; // เพิ่ม field สำหรับ location ที่ user เลือก
 
   const ScanSuccess({
     required this.scannedItems,
     this.selectedFilter = 'All',
     this.selectedLocation = 'All Locations',
+    this.currentLocation,
   });
 
   @override
-  List<Object?> get props => [scannedItems, selectedFilter, selectedLocation];
+  List<Object?> get props => [
+    scannedItems,
+    selectedFilter,
+    selectedLocation,
+    currentLocation,
+  ];
 
   @override
   String toString() {
-    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation)';
+    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation)';
   }
 
   // Get unique location names from scanned items
@@ -115,12 +141,37 @@ class ScanSuccess extends ScanState {
     List<ScannedItemEntity>? scannedItems,
     String? selectedFilter,
     String? selectedLocation,
+    String? currentLocation,
   }) {
     return ScanSuccess(
       scannedItems: scannedItems ?? this.scannedItems,
       selectedFilter: selectedFilter ?? this.selectedFilter,
       selectedLocation: selectedLocation ?? this.selectedLocation,
+      currentLocation: currentLocation ?? this.currentLocation,
     );
+  }
+
+  // เพิ่ม method สำหรับเปรียบเทียบ assets กับ location ที่เลือก
+  Map<String, List<ScannedItemEntity>> get locationComparison {
+    if (currentLocation == null) return {};
+
+    final correctItems = scannedItems
+        .where((item) => item.locationName == currentLocation)
+        .toList();
+
+    final wrongItems = scannedItems
+        .where(
+          (item) => item.locationName != currentLocation && !item.isUnknown,
+        )
+        .toList();
+
+    final unknownItems = scannedItems.where((item) => item.isUnknown).toList();
+
+    return {
+      'correct': correctItems,
+      'wrong': wrongItems,
+      'unknown': unknownItems,
+    };
   }
 }
 
@@ -130,11 +181,12 @@ class ScanSuccessFiltered extends ScanSuccess {
     required super.scannedItems,
     super.selectedFilter = 'All',
     super.selectedLocation = 'All Locations',
+    super.currentLocation,
   });
 
   @override
   String toString() {
-    return 'ScanSuccessFiltered(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation)';
+    return 'ScanSuccessFiltered(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation)';
   }
 }
 

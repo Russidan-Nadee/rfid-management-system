@@ -21,6 +21,16 @@ class RefreshScanResults extends ScanEvent {
   const RefreshScanResults();
 }
 
+// เพิ่ม event ใหม่สำหรับเลือก location
+class LocationSelected extends ScanEvent {
+  final String selectedLocation;
+
+  const LocationSelected({required this.selectedLocation});
+
+  @override
+  List<Object?> get props => [selectedLocation];
+}
+
 class UpdateAssetStatus extends ScanEvent {
   final String assetNo;
   final String updatedBy;

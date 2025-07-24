@@ -7,7 +7,7 @@ import '../../domain/repositories/scan_repository.dart';
 import '../models/scanned_item_model.dart';
 import '../models/asset_status_update_model.dart';
 import '../models/create_asset_models.dart';
-import '../datasources/rfid_datasource.dart';
+import '../datasources/mock_rfid_datasource.dart';
 
 class ScanRepositoryImpl implements ScanRepository {
   final ApiService apiService;
@@ -188,6 +188,31 @@ class ScanRepositoryImpl implements ScanRepository {
       }
     } catch (e) {
       throw Exception('Failed to get departments: $e');
+    }
+  }
+
+  @override
+  Future<List<ScannedItemEntity>> getAssetsByLocation(
+    String locationCode,
+  ) async {
+    try {
+      final response = await apiService.get<Map<String, dynamic>>(
+        ApiConstants.locationAssets(locationCode),
+        fromJson: (json) => json,
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data!['data'] as List<dynamic>;
+        return data
+            .map(
+              (json) => ScannedItemModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+      } else {
+        throw Exception('Failed to fetch assets for location');
+      }
+    } catch (e) {
+      throw Exception('Failed to get assets by location: $e');
     }
   }
 }

@@ -21,6 +21,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     required this.getCurrentUserUseCase,
   }) : super(const ScanInitial()) {
     on<StartScan>(_onStartScan);
+    on<LocationSelected>(_onLocationSelected); // เพิ่ม handler ใหม่
     on<ClearScanResults>(_onClearScanResults);
     on<RefreshScanResults>(_onRefreshScanResults);
     on<UpdateAssetStatus>(_onUpdateAssetStatus);
@@ -58,28 +59,21 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           if (e.toString().contains('Asset not found') ||
               e.toString().contains('404') ||
               e.toString().contains('not found')) {
-            // เอา cached location มาใส่ใน unknown item
-
             final unknownItem = ScannedItemEntity(
               assetNo: assetNo,
               description: 'Unknown Item',
               status: 'Unknown',
               isUnknown: true,
-
-              // ส่ง location data จาก cache
             );
 
             scannedItems.add(unknownItem);
           } else {
             print('Unexpected error for asset $assetNo: $e');
-            // เอา cached location มาใส่ใน unknown item
-
             final unknownItem = ScannedItemEntity(
               assetNo: assetNo,
               description: 'Unknown Item',
               status: 'Unknown',
               isUnknown: true,
-              // ส่ง location data จาก cache
             );
 
             scannedItems.add(unknownItem);
@@ -87,15 +81,64 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         }
       }
 
-      emit(
-        ScanSuccess(
-          scannedItems: scannedItems,
-          selectedFilter: 'All',
-          selectedLocation: 'All Locations',
-        ),
-      );
+      // หาก locations ที่ unique
+      final uniqueLocations = scannedItems
+          .where(
+            (item) =>
+                item.locationName != null && item.locationName!.isNotEmpty,
+          )
+          .map((item) => item.locationName!)
+          .toSet()
+          .toList();
+
+      uniqueLocations.sort();
+
+      // Logic ใหม่: ถ้ามี location เดียว -> auto select
+      if (uniqueLocations.length <= 1) {
+        final selectedLocation = uniqueLocations.isNotEmpty
+            ? uniqueLocations.first
+            : 'Unknown Location';
+
+        emit(
+          ScanSuccess(
+            scannedItems: scannedItems,
+            selectedFilter: 'All',
+            selectedLocation: 'All Locations',
+            currentLocation:
+                selectedLocation, // บันทึก location ที่ auto select
+          ),
+        );
+      } else {
+        // ถ้ามีหลาย locations -> แสดง selection
+        emit(
+          ScanLocationSelection(
+            scannedItems: scannedItems,
+            availableLocations: uniqueLocations,
+          ),
+        );
+      }
     } catch (e) {
       emit(ScanError(message: 'Scan failed: ${e.toString()}'));
+    }
+  }
+
+  // Handler ใหม่สำหรับเลือก location
+  Future<void> _onLocationSelected(
+    LocationSelected event,
+    Emitter<ScanState> emit,
+  ) async {
+    if (state is ScanLocationSelection) {
+      final currentState = state as ScanLocationSelection;
+
+      emit(
+        ScanSuccess(
+          scannedItems: currentState.scannedItems,
+          selectedFilter: 'All',
+          selectedLocation: 'All Locations',
+          currentLocation:
+              event.selectedLocation, // บันทึก location ที่ user เลือก
+        ),
+      );
     }
   }
 
@@ -139,12 +182,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     List<ScannedItemEntity>? previousScannedItems;
     String currentFilter = 'All';
     String currentLocation = 'All Locations';
+    String? selectedCurrentLocation;
 
     if (state is ScanSuccess) {
       final currentState = state as ScanSuccess;
       previousScannedItems = currentState.scannedItems;
       currentFilter = currentState.selectedFilter;
       currentLocation = currentState.selectedLocation;
+      selectedCurrentLocation = currentState.currentLocation;
     }
 
     emit(AssetStatusUpdating(assetNo: event.assetNo));
@@ -170,6 +215,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             scannedItems: updatedItems,
             selectedFilter: currentFilter,
             selectedLocation: currentLocation,
+            currentLocation: selectedCurrentLocation, // เก็บ current location
           ),
         );
       }
@@ -181,6 +227,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             scannedItems: previousScannedItems,
             selectedFilter: currentFilter,
             selectedLocation: currentLocation,
+            currentLocation: selectedCurrentLocation, // เก็บ current location
           ),
         );
       }
@@ -222,6 +269,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: updatedItems,
           selectedFilter: currentState.selectedFilter,
           selectedLocation: currentState.selectedLocation,
+          currentLocation:
+              currentState.currentLocation, // เก็บ current location
         ),
       );
     }
@@ -237,6 +286,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: currentState.scannedItems,
           selectedFilter: event.filter,
           selectedLocation: currentState.selectedLocation,
+          currentLocation:
+              currentState.currentLocation, // เก็บ current location
         ),
       );
     }
@@ -255,6 +306,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: currentState.scannedItems,
           selectedLocation: event.location,
           selectedFilter: 'All', // Reset status filter เมื่อเปลี่ยน location
+          currentLocation:
+              currentState.currentLocation, // เก็บ current location
         ),
       );
     }
