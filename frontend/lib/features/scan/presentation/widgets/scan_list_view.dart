@@ -81,6 +81,30 @@ class _ScanListViewState extends State<ScanListView> {
     super.dispose();
   }
 
+  // ⭐ เพิ่ม method สำหรับ trigger expected counts loading
+  void _triggerLoadExpectedCounts(ScanSuccess state) {
+    if (state.expectedCounts.isEmpty) {
+      // ดึง unique location codes (ไม่ใช่ names)
+      final locationCodes = state.scannedItems
+          .where(
+            (item) =>
+                item.locationCode != null && item.locationCode!.isNotEmpty,
+          )
+          .map((item) => item.locationCode!)
+          .toSet()
+          .toList();
+
+      if (locationCodes.isNotEmpty) {
+        print(
+          'ScanListView: Triggering load expected counts for: $locationCodes',
+        );
+        context.read<ScanBloc>().add(
+          LoadExpectedCounts(locationCodes: locationCodes),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -110,6 +134,11 @@ class _ScanListViewState extends State<ScanListView> {
           return _buildEmptyState(theme);
         }
 
+        // ⭐ Trigger load expected counts เมื่อ state เป็น ScanSuccess
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _triggerLoadExpectedCounts(state);
+        });
+
         final filteredItems = state.filteredItems;
         final selectedFilter = state.selectedFilter;
         final selectedLocation = state.selectedLocation;
@@ -125,11 +154,12 @@ class _ScanListViewState extends State<ScanListView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Location Filter
+              // Location Filter ⭐ Enhanced
               _buildLocationFilter(
                 theme,
                 availableLocations,
                 selectedLocation,
+                state, // ส่ง state เพื่อดู expectedCounts
                 context,
               ),
 
@@ -224,10 +254,12 @@ class _ScanListViewState extends State<ScanListView> {
     );
   }
 
+  // ⭐ Enhanced Location Filter with Comparison Data
   Widget _buildLocationFilter(
     ThemeData theme,
     List<String> availableLocations,
     String selectedLocation,
+    ScanSuccess state, // เพิ่ม parameter เพื่อดู expectedCounts
     BuildContext context,
   ) {
     // กรอง locations ตาม search query
@@ -457,6 +489,7 @@ class _ScanListViewState extends State<ScanListView> {
                                     theme,
                                     location,
                                     selectedLocation,
+                                    state, // ⭐ ส่ง state เพื่อดู comparison data
                                   ),
                                 );
                               }).toList(),
@@ -466,6 +499,169 @@ class _ScanListViewState extends State<ScanListView> {
                 : const SizedBox(),
           ),
         ],
+      ),
+    );
+  }
+
+  // ⭐ Enhanced Location Chip with Comparison Data
+  Widget _buildLocationChip(
+    BuildContext context,
+    ThemeData theme,
+    String location,
+    String selectedLocation,
+    ScanSuccess state, // เพิ่ม parameter
+  ) {
+    final isSelected = selectedLocation == location;
+    final isAllLocations = location == 'All Locations';
+    final isCurrentLocation = state.currentLocation == location;
+
+    // Get comparison data
+    int scannedCount = 0;
+    int expectedCount = 0;
+
+    if (!isAllLocations) {
+      // นับ scanned items ใน location นี้
+      scannedCount = state.scannedItems
+          .where((item) => item.locationName == location)
+          .length;
+
+      // หา expected count จาก state.expectedCounts
+      // ต้องหา locationCode ที่ตรงกับ locationName
+      final locationCode = state.scannedItems
+          .where((item) => item.locationName == location)
+          .map((item) => item.locationCode)
+          .where((code) => code != null)
+          .firstOrNull;
+
+      if (locationCode != null) {
+        expectedCount = state.expectedCounts[locationCode] ?? 0;
+      }
+    }
+
+    // Determine chip color
+    Color chipColor;
+    Color textColor;
+    Color borderColor;
+
+    if (isAllLocations) {
+      // All Locations - standard color
+      chipColor = isSelected
+          ? theme.colorScheme.primary
+          : theme.colorScheme.primary.withValues(
+              alpha: FilterTheme.surfaceOpacity,
+            );
+      textColor = isSelected
+          ? theme.colorScheme.onPrimary
+          : (Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkText
+                : theme.colorScheme.primary);
+      borderColor = theme.colorScheme.primary;
+    } else if (isCurrentLocation) {
+      // Current location - blue
+      chipColor = isSelected
+          ? theme.colorScheme.primary
+          : theme.colorScheme.primary.withValues(
+              alpha: FilterTheme.surfaceOpacity,
+            );
+      textColor = isSelected
+          ? theme.colorScheme.onPrimary
+          : theme.colorScheme.primary;
+      borderColor = theme.colorScheme.primary;
+    } else if (scannedCount > 0) {
+      // Wrong location (has scanned items) - orange
+      chipColor = isSelected
+          ? AppColors.warning
+          : AppColors.warning.withValues(alpha: FilterTheme.surfaceOpacity);
+      textColor = isSelected ? Colors.white : AppColors.warning;
+      borderColor = AppColors.warning;
+    } else {
+      // Empty location - muted
+      chipColor = isSelected
+          ? theme.colorScheme.primary
+          : theme.colorScheme.primary.withValues(
+              alpha: FilterTheme.surfaceOpacity,
+            );
+      textColor = isSelected
+          ? theme.colorScheme.onPrimary
+          : (Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : theme.colorScheme.primary);
+      borderColor = Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkTextSecondary.withValues(alpha: 0.2)
+          : theme.colorScheme.primary;
+    }
+
+    return GestureDetector(
+      onTap: () => context.read<ScanBloc>().add(
+        LocationFilterChanged(location: location),
+      ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: AppSpacing.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: chipColor,
+          borderRadius: AppBorders.lg,
+          border: Border.all(
+            color: borderColor,
+            width: isSelected
+                ? ScanListConstants.borderWidthSelected.toDouble()
+                : ScanListConstants.borderWidthNormal.toDouble(),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isAllLocations ? Icons.public : Icons.location_on,
+              size: 16,
+              color: textColor,
+            ),
+            AppSpacing.horizontalSpaceXS,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Location name
+                Text(
+                  _getDisplayText(location),
+                  style: AppTextStyles.filterLabel.copyWith(
+                    color: textColor,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  ),
+                ),
+                // ⭐ Count display
+                if (!isAllLocations && (scannedCount > 0 || expectedCount > 0))
+                  Text(
+                    isCurrentLocation && expectedCount > 0
+                        ? '($scannedCount/$expectedCount)' // Current location: show scanned/expected
+                        : '($scannedCount)', // Other locations: show scanned only
+                    style: AppTextStyles.caption.copyWith(
+                      color: textColor.withValues(alpha: 0.8),
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+            // Status indicator
+            if (!isAllLocations &&
+                isCurrentLocation &&
+                expectedCount > 0 &&
+                scannedCount < expectedCount) ...[
+              AppSpacing.horizontalSpaceXS,
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: textColor.withValues(alpha: 0.7),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -504,18 +700,16 @@ class _ScanListViewState extends State<ScanListView> {
                   Icon(
                     Icons.filter_list,
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors
-                              .darkText // Dark Mode: สีขาว
+                        ? AppColors.darkText
                         : theme.colorScheme.primary,
-                  ), // Light Mode: สีน้ำเงิน
+                  ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
                     'Filter by Status',
                     style: AppTextStyles.filterLabel.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
+                          ? AppColors.darkText
+                          : theme.colorScheme.primary,
                     ),
                   ),
                   const Spacer(),
@@ -525,9 +719,8 @@ class _ScanListViewState extends State<ScanListView> {
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
+                          ? AppColors.darkText
+                          : theme.colorScheme.primary,
                     ),
                   ),
                 ],
@@ -596,99 +789,6 @@ class _ScanListViewState extends State<ScanListView> {
                 : const SizedBox(),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildLocationChip(
-    BuildContext context,
-    ThemeData theme,
-    String location,
-    String selectedLocation,
-  ) {
-    final isSelected = selectedLocation == location;
-    final isAllLocations = location == 'All Locations';
-
-    return GestureDetector(
-      onTap: () => context.read<ScanBloc>().add(
-        LocationFilterChanged(location: location),
-      ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: AppSpacing.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isAllLocations
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.primary)
-              : (isAllLocations
-                    ? theme.colorScheme.primary.withValues(
-                        alpha: FilterTheme.surfaceOpacity,
-                      )
-                    : theme.colorScheme.primary.withValues(
-                        alpha: FilterTheme.surfaceOpacity,
-                      )),
-          borderRadius: AppBorders.lg,
-          border: Border.all(
-            color: isSelected
-                ? (isAllLocations
-                      ? theme.colorScheme.primary
-                      : theme.colorScheme.primary)
-                : (Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkTextSecondary.withValues(
-                          alpha: 0.2,
-                        ) // Dark Mode: เทาอ่อน ลด 30%
-                      : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
-            width: isSelected
-                ? ScanListConstants.borderWidthSelected.toDouble()
-                : ScanListConstants.borderWidthNormal.toDouble(),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isAllLocations) ...[
-              Icon(
-                Icons.public,
-                size: 16,
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
-              ),
-              AppSpacing.horizontalSpaceXS,
-            ] else ...[
-              Icon(
-                Icons.location_on,
-                size: 16,
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
-              ),
-              AppSpacing.horizontalSpaceXS,
-            ],
-            Text(
-              _getDisplayText(location),
-              style: AppTextStyles.filterLabel.copyWith(
-                color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : (Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary), // Light Mode: สีน้ำเงิน
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

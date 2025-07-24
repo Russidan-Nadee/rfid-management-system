@@ -41,12 +41,14 @@ class ScanSuccess extends ScanState {
   final String selectedFilter;
   final String selectedLocation;
   final String? currentLocation; // เพิ่ม field สำหรับ location ที่ user เลือก
+  final Map<String, int> expectedCounts; // ⭐ เพิ่มใหม่
 
   const ScanSuccess({
     required this.scannedItems,
     this.selectedFilter = 'All',
     this.selectedLocation = 'All Locations',
     this.currentLocation,
+    this.expectedCounts = const {}, // ⭐ เพิ่มใหม่
   });
 
   @override
@@ -55,11 +57,12 @@ class ScanSuccess extends ScanState {
     selectedFilter,
     selectedLocation,
     currentLocation,
+    expectedCounts, // ⭐ เพิ่มใหม่
   ];
 
   @override
   String toString() {
-    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation)';
+    return 'ScanSuccess(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation, expectedCounts: ${expectedCounts.length})';
   }
 
   // Get unique location names from scanned items
@@ -136,18 +139,20 @@ class ScanSuccess extends ScanState {
     };
   }
 
-  // Copy with method for state updates
+  // Copy with method for state updates ⭐ เพิ่ม expectedCounts
   ScanSuccess copyWith({
     List<ScannedItemEntity>? scannedItems,
     String? selectedFilter,
     String? selectedLocation,
     String? currentLocation,
+    Map<String, int>? expectedCounts, // ⭐ เพิ่มใหม่
   }) {
     return ScanSuccess(
       scannedItems: scannedItems ?? this.scannedItems,
       selectedFilter: selectedFilter ?? this.selectedFilter,
       selectedLocation: selectedLocation ?? this.selectedLocation,
       currentLocation: currentLocation ?? this.currentLocation,
+      expectedCounts: expectedCounts ?? this.expectedCounts, // ⭐ เพิ่มใหม่
     );
   }
 
@@ -182,11 +187,12 @@ class ScanSuccessFiltered extends ScanSuccess {
     super.selectedFilter = 'All',
     super.selectedLocation = 'All Locations',
     super.currentLocation,
+    super.expectedCounts = const {}, // ⭐ เพิ่มใหม่
   });
 
   @override
   String toString() {
-    return 'ScanSuccessFiltered(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation)';
+    return 'ScanSuccessFiltered(items: ${scannedItems.length}, filter: $selectedFilter, location: $selectedLocation, current: $currentLocation, expectedCounts: ${expectedCounts.length})';
   }
 }
 

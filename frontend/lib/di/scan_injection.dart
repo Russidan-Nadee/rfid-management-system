@@ -1,12 +1,12 @@
-// Path: lib/di/scan_injection.dart
+// Path: frontend/lib/di/scan_injection.dart
 import 'package:frontend/features/scan/data/datasources/mock_rfid_datasource.dart';
-import 'package:frontend/features/scan/domain/usecases/get_assets_by_location_usecase.dart';
 import '../features/scan/data/repositories/scan_repository_impl.dart';
 import '../features/scan/domain/repositories/scan_repository.dart';
 import '../features/scan/domain/usecases/get_asset_details_usecase.dart';
 import '../features/scan/domain/usecases/update_asset_status_usecase.dart';
 import '../features/scan/domain/usecases/create_asset_usecase.dart';
 import '../features/scan/domain/usecases/get_master_data_usecase.dart';
+import '../features/scan/domain/usecases/get_assets_by_location_usecase.dart';
 import '../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../features/scan/presentation/bloc/scan_bloc.dart';
 import '../features/scan/presentation/bloc/asset_creation_bloc.dart';
@@ -48,6 +48,11 @@ void configureScanDependencies() {
     () => GetMasterDataUseCase(getIt<ScanRepository>()),
   );
 
+  // ⭐ เพิ่ม GetAssetsByLocationUseCase ใหม่
+  getIt.registerLazySingleton<GetAssetsByLocationUseCase>(
+    () => GetAssetsByLocationUseCase(getIt<ScanRepository>()),
+  );
+
   // BLoCs (Factory - new instance each time)
   getIt.registerFactory<ScanBloc>(() {
     return ScanBloc(
@@ -55,6 +60,8 @@ void configureScanDependencies() {
       getAssetDetailsUseCase: getIt<GetAssetDetailsUseCase>(),
       updateAssetStatusUseCase: getIt<UpdateAssetStatusUseCase>(),
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
+      getAssetsByLocationUseCase:
+          getIt<GetAssetsByLocationUseCase>(), // ⭐ เพิ่มใหม่
     );
   });
 

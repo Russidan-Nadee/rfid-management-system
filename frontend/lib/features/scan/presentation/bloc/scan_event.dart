@@ -87,3 +87,12 @@ class LocationFilterChanged extends ScanEvent {
   @override
   List<Object?> get props => [location];
 }
+
+class LoadExpectedCounts extends ScanEvent {
+  final List<String> locationCodes;
+
+  const LoadExpectedCounts({required this.locationCodes});
+
+  @override
+  List<Object?> get props => [locationCodes];
+}

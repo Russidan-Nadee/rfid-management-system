@@ -4,6 +4,7 @@ import '../../domain/entities/scanned_item_entity.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../../domain/usecases/get_asset_details_usecase.dart';
 import '../../domain/usecases/update_asset_status_usecase.dart';
+import '../../domain/usecases/get_assets_by_location_usecase.dart'; // ⭐ เพิ่มใหม่
 import '../../../auth/domain/usecases/get_current_user_usecase.dart';
 import 'scan_event.dart';
 import 'scan_state.dart';
@@ -13,15 +14,17 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
   final GetAssetDetailsUseCase getAssetDetailsUseCase;
   final UpdateAssetStatusUseCase updateAssetStatusUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
+  final GetAssetsByLocationUseCase getAssetsByLocationUseCase; // ⭐ เพิ่มใหม่
 
   ScanBloc({
     required this.scanRepository,
     required this.getAssetDetailsUseCase,
     required this.updateAssetStatusUseCase,
     required this.getCurrentUserUseCase,
+    required this.getAssetsByLocationUseCase, // ⭐ เพิ่มใหม่
   }) : super(const ScanInitial()) {
     on<StartScan>(_onStartScan);
-    on<LocationSelected>(_onLocationSelected); // เพิ่ม handler ใหม่
+    on<LocationSelected>(_onLocationSelected);
     on<ClearScanResults>(_onClearScanResults);
     on<RefreshScanResults>(_onRefreshScanResults);
     on<UpdateAssetStatus>(_onUpdateAssetStatus);
@@ -30,6 +33,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     on<AssetCreatedFromUnknown>(_onAssetCreatedFromUnknown);
     on<FilterChanged>(_onFilterChanged);
     on<LocationFilterChanged>(_onLocationFilterChanged);
+    on<LoadExpectedCounts>(_onLoadExpectedCounts); // ⭐ เพิ่มใหม่
   }
 
   Future<void> _onStartScan(StartScan event, Emitter<ScanState> emit) async {
@@ -183,6 +187,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     String currentFilter = 'All';
     String currentLocation = 'All Locations';
     String? selectedCurrentLocation;
+    Map<String, int> currentExpectedCounts = {}; // ⭐ เพิ่มใหม่
 
     if (state is ScanSuccess) {
       final currentState = state as ScanSuccess;
@@ -190,6 +195,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       currentFilter = currentState.selectedFilter;
       currentLocation = currentState.selectedLocation;
       selectedCurrentLocation = currentState.currentLocation;
+      currentExpectedCounts = currentState.expectedCounts; // ⭐ เพิ่มใหม่
     }
 
     emit(AssetStatusUpdating(assetNo: event.assetNo));
@@ -215,7 +221,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             scannedItems: updatedItems,
             selectedFilter: currentFilter,
             selectedLocation: currentLocation,
-            currentLocation: selectedCurrentLocation, // เก็บ current location
+            currentLocation: selectedCurrentLocation,
+            expectedCounts: currentExpectedCounts, // ⭐ เพิ่มใหม่
           ),
         );
       }
@@ -227,7 +234,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             scannedItems: previousScannedItems,
             selectedFilter: currentFilter,
             selectedLocation: currentLocation,
-            currentLocation: selectedCurrentLocation, // เก็บ current location
+            currentLocation: selectedCurrentLocation,
+            expectedCounts: currentExpectedCounts, // ⭐ เพิ่มใหม่
           ),
         );
       }
@@ -269,8 +277,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: updatedItems,
           selectedFilter: currentState.selectedFilter,
           selectedLocation: currentState.selectedLocation,
-          currentLocation:
-              currentState.currentLocation, // เก็บ current location
+          currentLocation: currentState.currentLocation,
+          expectedCounts: currentState.expectedCounts, // ⭐ เพิ่มใหม่
         ),
       );
     }
@@ -286,8 +294,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: currentState.scannedItems,
           selectedFilter: event.filter,
           selectedLocation: currentState.selectedLocation,
-          currentLocation:
-              currentState.currentLocation, // เก็บ current location
+          currentLocation: currentState.currentLocation,
+          expectedCounts: currentState.expectedCounts, // ⭐ เพิ่มใหม่
         ),
       );
     }
@@ -306,10 +314,37 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
           scannedItems: currentState.scannedItems,
           selectedLocation: event.location,
           selectedFilter: 'All', // Reset status filter เมื่อเปลี่ยน location
-          currentLocation:
-              currentState.currentLocation, // เก็บ current location
+          currentLocation: currentState.currentLocation,
+          expectedCounts: currentState.expectedCounts, // ⭐ เพิ่มใหม่
         ),
       );
+    }
+  }
+
+  // ⭐ เพิ่ม handler ใหม่สำหรับ LoadExpectedCounts
+  Future<void> _onLoadExpectedCounts(
+    LoadExpectedCounts event,
+    Emitter<ScanState> emit,
+  ) async {
+    if (state is ScanSuccess) {
+      final currentState = state as ScanSuccess;
+
+      try {
+        print(
+          'ScanBloc: Loading expected counts for locations: ${event.locationCodes}',
+        );
+
+        final expectedCounts = await getAssetsByLocationUseCase
+            .getMultipleLocationCounts(event.locationCodes);
+
+        print('ScanBloc: Expected counts loaded: $expectedCounts');
+
+        emit(currentState.copyWith(expectedCounts: expectedCounts));
+      } catch (e) {
+        print('ScanBloc: Error loading expected counts: $e');
+        // ไม่ emit error state เพื่อไม่กระทบ UI หลัก
+        // แค่ log error และเก็บ state เดิม
+      }
     }
   }
 }
