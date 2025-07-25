@@ -1,14 +1,18 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
+import '../features/setting/presentation/bloc/settings_bloc.dart';
+import '../features/setting/presentation/bloc/settings_state.dart';
 import '../app/app_constants.dart';
 import '../app/theme/app_colors.dart';
+import '../l10n/app_localizations.dart';
 
 class RootLayout extends StatefulWidget {
   const RootLayout({super.key});
@@ -29,7 +33,7 @@ class _RootLayoutState extends State<RootLayout> {
     // Set default index based on platform
     _currentIndex = _isMobile ? 0 : _getDefaultDesktopIndex();
     _navigatorKeys = List.generate(
-      _getDestinations().length,
+      _getDestinationsCount(),
       (index) => GlobalKey<NavigatorState>(),
     );
   }
@@ -40,67 +44,71 @@ class _RootLayoutState extends State<RootLayout> {
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   bool get _isWeb => kIsWeb;
 
-  // Get default index for desktop/web (Dashboard = index 1 in mobile, but could be 0 in desktop)
+  // Get total destinations count
+  int _getDestinationsCount() {
+    int count = 3; // Dashboard, Search, Settings (always present)
+    if (_isMobile) count++; // Scan
+    if (!_isMobile) count++; // Export
+    return count;
+  }
+
+  // Get default index for desktop/web (Dashboard should be first for desktop)
   int _getDefaultDesktopIndex() {
-    final destinations = _getDestinations();
-    for (int i = 0; i < destinations.length; i++) {
-      if (destinations[i].label == 'Dashboard') {
-        return i;
-      }
-    }
-    return 0; // fallback
+    return _isMobile
+        ? 1
+        : 0; // Dashboard is at index 1 for mobile (after Scan), index 0 for desktop
   }
 
   // Platform-specific destinations for bottom navigation
-  List<NavigationDestination> _getDestinations() {
+  List<NavigationDestination> _getDestinations(AppLocalizations appLoc) {
     List<NavigationDestination> destinations = [];
 
     // Scan - Mobile only
     if (_isMobile) {
       destinations.add(
-        const NavigationDestination(
-          icon: Icon(Icons.sensors_outlined),
-          selectedIcon: Icon(Icons.sensors_rounded),
-          label: 'Scan',
+        NavigationDestination(
+          icon: const Icon(Icons.sensors_outlined),
+          selectedIcon: const Icon(Icons.sensors_rounded),
+          label: appLoc.scan,
         ),
       );
     }
 
     // Dashboard - All platforms
     destinations.add(
-      const NavigationDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard_rounded),
-        label: 'Dashboard',
+      NavigationDestination(
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard_rounded),
+        label: appLoc.dashboard,
       ),
     );
 
     // Search - All platforms
     destinations.add(
-      const NavigationDestination(
-        icon: Icon(Icons.search_outlined),
-        selectedIcon: Icon(Icons.search_rounded),
-        label: 'Search',
+      NavigationDestination(
+        icon: const Icon(Icons.search_outlined),
+        selectedIcon: const Icon(Icons.search_rounded),
+        label: appLoc.search,
       ),
     );
 
     // Export - Desktop/Web only
     if (!_isMobile) {
       destinations.add(
-        const NavigationDestination(
-          icon: Icon(Icons.upload_outlined),
-          selectedIcon: Icon(Icons.upload_rounded),
-          label: 'Export',
+        NavigationDestination(
+          icon: const Icon(Icons.upload_outlined),
+          selectedIcon: const Icon(Icons.upload_rounded),
+          label: appLoc.export,
         ),
       );
     }
 
     // Settings - All platforms
     destinations.add(
-      const NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person_rounded),
-        label: 'Settings',
+      NavigationDestination(
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: const Icon(Icons.person_rounded),
+        label: appLoc.settings,
       ),
     );
 
@@ -108,55 +116,57 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   // Platform-specific destinations for navigation rail
-  List<NavigationRailDestination> _getRailDestinations() {
+  List<NavigationRailDestination> _getRailDestinations(
+    AppLocalizations appLoc,
+  ) {
     List<NavigationRailDestination> destinations = [];
 
     // Scan - Mobile only (but this won't be used since rail is for desktop)
     if (_isMobile) {
       destinations.add(
-        const NavigationRailDestination(
-          icon: Icon(Icons.sensors_outlined),
-          selectedIcon: Icon(Icons.sensors_rounded),
-          label: Text('Scan'),
+        NavigationRailDestination(
+          icon: const Icon(Icons.sensors_outlined),
+          selectedIcon: const Icon(Icons.sensors_rounded),
+          label: Text(appLoc.scan),
         ),
       );
     }
 
     // Dashboard - All platforms
     destinations.add(
-      const NavigationRailDestination(
-        icon: Icon(Icons.dashboard_outlined),
-        selectedIcon: Icon(Icons.dashboard_rounded),
-        label: Text('Dashboard'),
+      NavigationRailDestination(
+        icon: const Icon(Icons.dashboard_outlined),
+        selectedIcon: const Icon(Icons.dashboard_rounded),
+        label: Text(appLoc.dashboard),
       ),
     );
 
     // Search - All platforms
     destinations.add(
-      const NavigationRailDestination(
-        icon: Icon(Icons.search_outlined),
-        selectedIcon: Icon(Icons.search_rounded),
-        label: Text('Search'),
+      NavigationRailDestination(
+        icon: const Icon(Icons.search_outlined),
+        selectedIcon: const Icon(Icons.search_rounded),
+        label: Text(appLoc.search),
       ),
     );
 
     // Export - Desktop/Web only
     if (!_isMobile) {
       destinations.add(
-        const NavigationRailDestination(
-          icon: Icon(Icons.upload_outlined),
-          selectedIcon: Icon(Icons.upload_rounded),
-          label: Text('Export'),
+        NavigationRailDestination(
+          icon: const Icon(Icons.upload_outlined),
+          selectedIcon: const Icon(Icons.upload_rounded),
+          label: Text(appLoc.export),
         ),
       );
     }
 
     // Settings - All platforms
     destinations.add(
-      const NavigationRailDestination(
-        icon: Icon(Icons.person_outline),
-        selectedIcon: Icon(Icons.person_rounded),
-        label: Text('Settings'),
+      NavigationRailDestination(
+        icon: const Icon(Icons.person_outline),
+        selectedIcon: const Icon(Icons.person_rounded),
+        label: Text(appLoc.settings),
       ),
     );
 
@@ -205,26 +215,50 @@ class _RootLayoutState extends State<RootLayout> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return BlocBuilder<SettingsBloc, SettingsState>(
+      builder: (context, settingsState) {
+        // Get current language from settings, fallback to 'en'
+        String currentLanguage = 'en';
+        if (settingsState is SettingsLoaded) {
+          currentLanguage = settingsState.settings.language;
+        }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          // Navigation Rail for wide screens
-          if (_isWideScreen) _buildNavigationRail(theme),
+        // Create locale and override context
+        final locale = Locale(currentLanguage);
 
-          // Main content area
-          Expanded(child: _buildMainContent()),
-        ],
-      ),
+        return Localizations.override(
+          context: context,
+          locale: locale,
+          child: Builder(
+            builder: (localizedContext) {
+              final theme = Theme.of(localizedContext);
+              final appLoc = AppLocalizations.of(localizedContext);
 
-      // Bottom Navigation Bar for narrow screens
-      bottomNavigationBar: _isWideScreen ? null : _buildCustomBottomNav(),
+              return Scaffold(
+                body: Row(
+                  children: [
+                    // Navigation Rail for wide screens
+                    if (_isWideScreen) _buildNavigationRail(theme, appLoc),
+
+                    // Main content area
+                    Expanded(child: _buildMainContent()),
+                  ],
+                ),
+
+                // Bottom Navigation Bar for narrow screens
+                bottomNavigationBar: _isWideScreen
+                    ? null
+                    : _buildCustomBottomNav(appLoc),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildNavigationRail(ThemeData theme) {
-    final railDestinations = _getRailDestinations();
+  Widget _buildNavigationRail(ThemeData theme, AppLocalizations appLoc) {
+    final railDestinations = _getRailDestinations(appLoc);
 
     return SizedBox(
       width: _isRailExtended ? 256 : 80,
@@ -234,7 +268,7 @@ class _RootLayoutState extends State<RootLayout> {
             : AppColors.primary,
         child: Column(
           children: [
-            // Header ที่มีปุ่มคงที่
+            // Header with toggle button
             Container(
               height: 64,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -242,7 +276,7 @@ class _RootLayoutState extends State<RootLayout> {
               child: _buildRailToggleButton(theme),
             ),
 
-            // Custom Navigation Items แทน NavigationRail
+            // Custom Navigation Items
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -358,8 +392,8 @@ class _RootLayoutState extends State<RootLayout> {
     );
   }
 
-  Widget _buildCustomBottomNav() {
-    final destinations = _getDestinations();
+  Widget _buildCustomBottomNav(AppLocalizations appLoc) {
+    final destinations = _getDestinations(appLoc);
 
     return Container(
       height: 60,
@@ -413,124 +447,6 @@ class _RootLayoutState extends State<RootLayout> {
         MaterialPage(key: ValueKey(_currentIndex), child: pages[_currentIndex]),
       ],
       onPopPage: (route, result) => route.didPop(result),
-    );
-  }
-}
-
-// Alternative implementation with TabBar
-class TabBarRootLayout extends StatefulWidget {
-  const TabBarRootLayout({super.key});
-
-  @override
-  State<TabBarRootLayout> createState() => _TabBarRootLayoutState();
-}
-
-class _TabBarRootLayoutState extends State<TabBarRootLayout>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  late int _initialIndex;
-
-  // Platform detection helpers
-  bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-
-  // Platform-specific tabs
-  List<Tab> _getTabs() {
-    List<Tab> tabs = [];
-
-    // Scan - Mobile only
-    if (_isMobile) {
-      tabs.add(const Tab(icon: Icon(Icons.sensors), text: 'Scan'));
-    }
-
-    // Dashboard - All platforms
-    tabs.add(const Tab(icon: Icon(Icons.dashboard), text: 'Dashboard'));
-
-    // Search - All platforms
-    tabs.add(const Tab(icon: Icon(Icons.search), text: 'Search'));
-
-    // Export - Desktop/Web only
-    if (!_isMobile) {
-      tabs.add(const Tab(icon: Icon(Icons.upload), text: 'Export'));
-    }
-
-    // Settings - All platforms
-    tabs.add(const Tab(icon: Icon(Icons.settings), text: 'Settings'));
-
-    return tabs;
-  }
-
-  // Platform-specific pages
-  List<Widget> _getTabPages() {
-    List<Widget> pages = [];
-
-    // Scan - Mobile only
-    if (_isMobile) {
-      pages.add(const ScanPage());
-    }
-
-    // Dashboard - All platforms
-    pages.add(const DashboardPage());
-
-    // Search - All platforms
-    pages.add(const SearchPage());
-
-    // Export - Desktop/Web only
-    if (!_isMobile) {
-      pages.add(const ExportPage());
-    }
-
-    // Settings - All platforms
-    pages.add(const SettingsPage());
-
-    return pages;
-  }
-
-  int _getDefaultIndex() {
-    final tabs = _getTabs();
-    if (_isMobile) return 0; // Start with Scan on mobile
-
-    // Find Dashboard index for desktop/web
-    for (int i = 0; i < tabs.length; i++) {
-      if (tabs[i].text == 'Dashboard') {
-        return i;
-      }
-    }
-    return 0; // fallback
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initialIndex = _getDefaultIndex();
-    _tabController = TabController(
-      length: _getTabs().length,
-      vsync: this,
-      initialIndex: _initialIndex,
-    );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tabs = _getTabs();
-    final pages = _getTabPages();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Asset Management'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: tabs,
-          isScrollable:
-              MediaQuery.of(context).size.width < AppConstants.tabletBreakpoint,
-        ),
-      ),
-      body: TabBarView(controller: _tabController, children: pages),
     );
   }
 }
