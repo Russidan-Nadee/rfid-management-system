@@ -5,6 +5,7 @@ import 'package:frontend/features/export/presentation/bloc/export_bloc.dart';
 import 'package:frontend/features/export/presentation/bloc/export_state.dart';
 import 'package:frontend/features/export/presentation/bloc/export_event.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../data/models/export_config_model.dart';
@@ -183,6 +184,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
   Widget _buildAllDataNoticeCard(BuildContext context, bool isLargeScreen) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
@@ -195,10 +197,14 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         ),
       ),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.1),
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : theme.colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.2),
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.3)
+              : theme.colorScheme.primary.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -206,7 +212,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         children: [
           Icon(
             Icons.info_outline,
-            color: theme.colorScheme.primary,
+            color: isDark
+                ? theme.colorScheme.primary
+                : theme.colorScheme.primary,
             size: isLargeScreen ? 24 : 20,
           ),
           SizedBox(width: AppSpacing.md),
@@ -217,7 +225,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 Text(
                   'Export All Data',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: isDark
+                        ? AppColors.darkText
+                        : theme.colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     fontSize: isLargeScreen ? 16 : 14,
                   ),
@@ -226,7 +236,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 Text(
                   'This will export all assets data without any date restrictions. All historical records will be included.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : theme.colorScheme.onSurface.withValues(alpha: 0.8),
                     fontSize: isLargeScreen ? 14 : 13,
                   ),
                 ),
@@ -257,6 +269,8 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   Widget _buildExportButtonContent() {
     return BlocBuilder<ExportBloc, ExportState>(
       builder: (context, state) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
         final isLoading = state is ExportLoading;
 
         return Container(
@@ -264,15 +278,15 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
           height: 56,
           decoration: BoxDecoration(
             color: isLoading
-                ? Theme.of(context).colorScheme.surfaceVariant
-                : Theme.of(context).colorScheme.primary,
+                ? (isDark
+                      ? AppColors.darkSurfaceVariant
+                      : theme.colorScheme.surfaceVariant)
+                : theme.colorScheme.primary,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               if (!isLoading)
                 BoxShadow(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.3),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -298,19 +312,20 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                                isDark
+                                    ? AppColors.darkTextSecondary
+                                    : theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
                           SizedBox(width: AppSpacing.lg),
                           Text(
                             state.message,
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: isDark
+                                  ? AppColors.darkTextSecondary
+                                  : theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       )
@@ -319,19 +334,16 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                         children: [
                           Icon(
                             Icons.upload,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: theme.colorScheme.onPrimary,
                             size: 20,
                           ),
                           SizedBox(width: AppSpacing.sm),
                           Text(
                             'Export All Data',
-                            style: Theme.of(context).textTheme.labelLarge
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),

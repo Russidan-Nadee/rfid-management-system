@@ -38,14 +38,17 @@ class _ExportPageState extends State<ExportPage>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
 
     return BlocProvider(
       create: (context) => getIt<ExportBloc>()..add(const LoadExportHistory()),
       child: Scaffold(
-        backgroundColor: theme.colorScheme.background,
-        appBar: _buildAppBar(context, theme, isLargeScreen),
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurface.withValues(alpha: 0.5)
+            : theme.colorScheme.background,
+        appBar: _buildAppBar(context, theme, isDark, isLargeScreen),
         body: _buildBody(context, isLargeScreen),
       ),
     );
@@ -54,6 +57,7 @@ class _ExportPageState extends State<ExportPage>
   PreferredSizeWidget _buildAppBar(
     BuildContext context,
     ThemeData theme,
+    bool isDark,
     bool isLargeScreen,
   ) {
     if (isLargeScreen) {
@@ -64,13 +68,17 @@ class _ExportPageState extends State<ExportPage>
             context: context,
             style: AppTextStyles.headline4.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+              color: isDark ? AppColors.darkText : AppColors.primary,
             ),
             desktopFactor: 1.1,
           ),
         ),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
+        backgroundColor: isDark
+            ? AppColors.darkSurface
+            : theme.colorScheme.surface,
+        foregroundColor: isDark
+            ? AppColors.darkText
+            : theme.colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
         centerTitle: false,
@@ -82,21 +90,27 @@ class _ExportPageState extends State<ExportPage>
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
-            color: AppColors.primary,
+            color: isDark ? AppColors.darkText : AppColors.primary,
           ),
         ),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
+        backgroundColor: isDark
+            ? AppColors.darkSurface
+            : theme.colorScheme.surface,
+        foregroundColor: isDark
+            ? AppColors.darkText
+            : theme.colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 1,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
+          indicatorColor: isDark
+              ? theme.colorScheme.primary
+              : AppColors.primary,
           indicatorWeight: 3,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: theme.colorScheme.onSurface.withValues(
-            alpha: 0.6,
-          ),
+          labelColor: isDark ? theme.colorScheme.primary : AppColors.primary,
+          unselectedLabelColor: isDark
+              ? AppColors.darkTextSecondary
+              : theme.colorScheme.onSurface.withValues(alpha: 0.6),
           labelStyle: AppTextStyles.button.copyWith(fontSize: 13),
           unselectedLabelStyle: AppTextStyles.button.copyWith(fontSize: 13),
           tabs: const [
@@ -125,6 +139,9 @@ class _ExportPageState extends State<ExportPage>
   }
 
   Widget _buildLargeScreenLayout(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Row(
       children: [
         // Sidebar Navigation
@@ -134,10 +151,12 @@ class _ExportPageState extends State<ExportPage>
             return Container(
               width: 280,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: isDark ? AppColors.darkSurface : AppColors.surface,
                 border: Border(
                   right: BorderSide(
-                    color: AppColors.divider.withValues(alpha: 0.5),
+                    color: isDark
+                        ? AppColors.darkBorder.withValues(alpha: 0.3)
+                        : AppColors.divider.withValues(alpha: 0.5),
                     width: 1,
                   ),
                 ),
@@ -149,13 +168,14 @@ class _ExportPageState extends State<ExportPage>
                     child: Text(
                       'Export Tools',
                       style: AppTextStyles.headline6.copyWith(
-                        color: AppColors.primary,
+                        color: isDark ? AppColors.darkText : AppColors.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   _buildSidebarTab(
                     context,
+                    isDark,
                     icon: Icons.upload,
                     title: 'Create Export',
                     subtitle: 'Generate new export files',
@@ -164,6 +184,7 @@ class _ExportPageState extends State<ExportPage>
                   ),
                   _buildSidebarTab(
                     context,
+                    isDark,
                     icon: Icons.history,
                     title: 'Export History',
                     subtitle: 'View and download exports',
@@ -176,17 +197,23 @@ class _ExportPageState extends State<ExportPage>
                     child: Container(
                       padding: AppSpacing.paddingMD,
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
+                        color: isDark
+                            ? AppColors.darkSurfaceVariant
+                            : AppColors.primarySurface,
                         borderRadius: AppBorders.md,
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.2),
+                          color: isDark
+                              ? AppColors.darkBorder.withValues(alpha: 0.3)
+                              : AppColors.primary.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: AppColors.primary,
+                            color: isDark
+                                ? AppColors.primary
+                                : AppColors.primary,
                             size: 16,
                           ),
                           AppSpacing.horizontalSpaceSM,
@@ -194,7 +221,9 @@ class _ExportPageState extends State<ExportPage>
                             child: Text(
                               'Export files expire after 7 days',
                               style: AppTextStyles.caption.copyWith(
-                                color: AppColors.primary,
+                                color: isDark
+                                    ? AppColors.primary
+                                    : AppColors.primary,
                               ),
                             ),
                           ),
@@ -227,7 +256,8 @@ class _ExportPageState extends State<ExportPage>
   }
 
   Widget _buildSidebarTab(
-    BuildContext context, {
+    BuildContext context,
+    bool isDark, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -246,13 +276,19 @@ class _ExportPageState extends State<ExportPage>
       child: ListTile(
         leading: Icon(
           icon,
-          color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+          color: isSelected
+              ? AppColors.onPrimary
+              : (isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary),
           size: 24,
         ),
         title: Text(
           title,
           style: AppTextStyles.body1.copyWith(
-            color: isSelected ? AppColors.onPrimary : AppColors.textPrimary,
+            color: isSelected
+                ? AppColors.onPrimary
+                : (isDark ? AppColors.darkText : AppColors.textPrimary),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -261,7 +297,9 @@ class _ExportPageState extends State<ExportPage>
           style: AppTextStyles.caption.copyWith(
             color: isSelected
                 ? AppColors.onPrimary.withValues(alpha: 0.8)
-                : AppColors.textSecondary,
+                : (isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary),
           ),
         ),
         onTap: onTap,

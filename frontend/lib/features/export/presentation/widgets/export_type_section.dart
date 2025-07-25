@@ -12,13 +12,14 @@ class ExportTypeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, theme, isLargeScreen),
+        _buildSectionHeader(context, theme, isDark, isLargeScreen),
         SizedBox(
           height: AppSpacing.responsiveSpacing(
             context,
@@ -27,7 +28,7 @@ class ExportTypeSection extends StatelessWidget {
             desktop: AppSpacing.xl,
           ),
         ),
-        _buildAssetCard(context, theme, isLargeScreen),
+        _buildAssetCard(context, theme, isDark, isLargeScreen),
       ],
     );
   }
@@ -35,13 +36,14 @@ class ExportTypeSection extends StatelessWidget {
   Widget _buildSectionHeader(
     BuildContext context,
     ThemeData theme,
+    bool isDark,
     bool isLargeScreen,
   ) {
     return Row(
       children: [
         Icon(
           Icons.category,
-          color: AppColors.primary,
+          color: isDark ? theme.colorScheme.primary : theme.colorScheme.primary,
           size: isLargeScreen ? 24 : 20,
         ),
         AppSpacing.horizontalSpaceSM,
@@ -50,7 +52,7 @@ class ExportTypeSection extends StatelessWidget {
           style: AppTextStyles.responsive(
             context: context,
             style: AppTextStyles.cardTitle.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: isDark ? AppColors.darkText : theme.colorScheme.onSurface,
             ),
             desktopFactor: 1.1,
           ),
@@ -62,12 +64,17 @@ class ExportTypeSection extends StatelessWidget {
   Widget _buildAssetCard(
     BuildContext context,
     ThemeData theme,
+    bool isDark,
     bool isLargeScreen,
   ) {
-    return _buildLargeScreenCard(context);
+    return _buildLargeScreenCard(context, theme, isDark);
   }
 
-  Widget _buildLargeScreenCard(BuildContext context) {
+  Widget _buildLargeScreenCard(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(
@@ -78,22 +85,18 @@ class ExportTypeSection extends StatelessWidget {
           desktop: AppSpacing.xl,
         ),
       ),
-      decoration: AppDecorations.buttonPrimary.copyWith(
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+      decoration: _buildCardDecoration(theme, isDark),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header section
           Row(
             children: [
-              Icon(Icons.inventory_2, color: AppColors.onPrimary, size: 28),
+              Icon(
+                Icons.inventory_2,
+                color: isDark ? AppColors.onPrimary : AppColors.onPrimary,
+                size: 28,
+              ),
               AppSpacing.horizontalSpaceLG,
               Expanded(
                 child: Column(
@@ -104,7 +107,9 @@ class ExportTypeSection extends StatelessWidget {
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.headline5.copyWith(
-                          color: AppColors.onPrimary,
+                          color: isDark
+                              ? AppColors.onPrimary
+                              : AppColors.onPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                         desktopFactor: 1.05,
@@ -116,7 +121,9 @@ class ExportTypeSection extends StatelessWidget {
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.body2.copyWith(
-                          color: AppColors.onPrimary.withValues(alpha: 0.9),
+                          color: isDark
+                              ? AppColors.onPrimary.withValues(alpha: 0.9)
+                              : AppColors.onPrimary.withValues(alpha: 0.9),
                         ),
                         desktopFactor: 1.0,
                       ),
@@ -135,20 +142,56 @@ class ExportTypeSection extends StatelessWidget {
               horizontal: AppSpacing.sm,
               vertical: AppSpacing.xs,
             ),
-            decoration: AppDecorations.custom(
-              color: AppColors.onPrimary.withValues(alpha: 0.2),
-              borderRadius: AppBorders.sm,
-            ),
+            decoration: _buildBadgeDecoration(isDark),
             child: Text(
               'All Status (Active, Inactive, Created)',
               style: AppTextStyles.caption.copyWith(
-                color: AppColors.onPrimary,
+                color: isDark ? AppColors.onPrimary : AppColors.onPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  BoxDecoration _buildCardDecoration(ThemeData theme, bool isDark) {
+    if (isDark) {
+      // Dark theme: ใช้ gradient ที่อ่อนลง
+      return BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        borderRadius: AppBorders.lg,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      );
+    } else {
+      // Light theme: ใช้ gradient เดิม
+      return AppDecorations.buttonPrimary.copyWith(
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      );
+    }
+  }
+
+  BoxDecoration _buildBadgeDecoration(bool isDark) {
+    return AppDecorations.custom(
+      color: AppColors.onPrimary.withValues(alpha: isDark ? 0.15 : 0.2),
+      borderRadius: AppBorders.sm,
     );
   }
 }

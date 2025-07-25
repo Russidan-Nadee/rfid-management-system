@@ -22,6 +22,7 @@ class ExportItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLarge =
         isLargeScreen ?? (screenWidth >= AppConstants.tabletBreakpoint);
@@ -31,16 +32,20 @@ class ExportItemCard extends StatelessWidget {
     );
 
     if (isLarge) {
-      return _buildLargeScreenCard(context, theme);
+      return _buildLargeScreenCard(context, theme, isDark);
     } else {
-      return _buildCompactCard(context, theme);
+      return _buildCompactCard(context, theme, isDark);
     }
   }
 
-  Widget _buildLargeScreenCard(BuildContext context, ThemeData theme) {
+  Widget _buildLargeScreenCard(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.lg),
-      decoration: _buildCardDecoration(theme, true),
+      decoration: _buildCardDecoration(theme, isDark, true),
       child: Padding(
         padding: EdgeInsets.all(
           AppSpacing.responsiveSpacing(
@@ -55,7 +60,7 @@ class ExportItemCard extends StatelessWidget {
             // Status Icon
             Container(
               padding: AppSpacing.paddingMD,
-              decoration: _buildStatusIconDecoration(),
+              decoration: _buildStatusIconDecoration(isDark),
               child: Icon(_getStatusIcon(), color: _getStatusColor(), size: 32),
             ),
 
@@ -67,7 +72,9 @@ class ExportItemCard extends StatelessWidget {
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline6.copyWith(
-                  color: theme.colorScheme.onSurface,
+                  color: isDark
+                      ? AppColors.darkText
+                      : theme.colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
                 desktopFactor: 1.1,
@@ -77,18 +84,22 @@ class ExportItemCard extends StatelessWidget {
             AppSpacing.horizontalSpaceXL,
 
             // Status Badge
-            _buildStatusBadge(context),
+            _buildStatusBadge(context, isDark),
 
             AppSpacing.horizontalSpaceXL,
 
             // Records
             if (export.totalRecords != null) ...[
-              Icon(Icons.numbers, size: 16, color: AppColors.info),
+              Icon(
+                Icons.numbers,
+                size: 16,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.info,
+              ),
               AppSpacing.horizontalSpaceXS,
               Text(
                 '${export.totalRecords} records',
                 style: AppTextStyles.body2.copyWith(
-                  color: AppColors.info,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.info,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -96,12 +107,18 @@ class ExportItemCard extends StatelessWidget {
             ],
 
             // Created Date
-            Icon(Icons.schedule, size: 16, color: AppColors.textSecondary),
+            Icon(
+              Icons.schedule,
+              size: 16,
+              color: isDark ? AppColors.darkTextMuted : AppColors.textSecondary,
+            ),
             AppSpacing.horizontalSpaceXS,
             Text(
               _formatDate(export.createdAt),
               style: AppTextStyles.body2.copyWith(
-                color: AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextMuted
+                    : AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -110,12 +127,18 @@ class ExportItemCard extends StatelessWidget {
 
             // File Size
             if (export.fileSize != null) ...[
-              Icon(Icons.storage, size: 16, color: AppColors.success),
+              Icon(
+                Icons.storage,
+                size: 16,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.success,
+              ),
               AppSpacing.horizontalSpaceXS,
               Text(
                 export.fileSizeFormatted,
                 style: AppTextStyles.body2.copyWith(
-                  color: AppColors.success,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.success,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -125,80 +148,87 @@ class ExportItemCard extends StatelessWidget {
             const Spacer(),
 
             // Download Button
-            _buildActionButton(context, true),
+            _buildActionButton(context, isDark, true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCompactCard(BuildContext context, ThemeData theme) {
+  Widget _buildCompactCard(BuildContext context, ThemeData theme, bool isDark) {
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.lg),
-      decoration: _buildCardDecoration(theme, false),
+      decoration: _buildCardDecoration(theme, isDark, false),
       child: ListTile(
         contentPadding: AppSpacing.paddingLG,
-        leading: _buildStatusIcon(),
+        leading: _buildStatusIcon(isDark),
         title: Text(
           'Export ID: ${export.exportId}',
           style: AppTextStyles.cardTitle.copyWith(
-            color: theme.colorScheme.onSurface,
+            color: isDark ? AppColors.darkText : theme.colorScheme.onSurface,
           ),
         ),
         subtitle: Padding(
           padding: EdgeInsets.only(top: AppSpacing.xs),
-          child: _buildCompactDetails(context),
+          child: _buildCompactDetails(context, isDark),
         ),
-        trailing: _buildActionButton(context, false),
+        trailing: _buildActionButton(context, isDark, false),
       ),
     );
   }
 
-  
-  Widget _buildCompactDetails(BuildContext context) {
+  Widget _buildCompactDetails(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Status: ${export.statusLabel}',
-          style: AppTextStyles.cardSubtitle,
+          style: AppTextStyles.cardSubtitle.copyWith(
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
+          ),
         ),
         if (export.totalRecords != null) ...[
           AppSpacing.verticalSpaceXS,
           Text(
             'Records: ${export.totalRecords}',
             style: AppTextStyles.caption.copyWith(
-              color: AppColors.textTertiary,
+              color: isDark ? AppColors.darkTextMuted : AppColors.textTertiary,
             ),
           ),
         ],
         AppSpacing.verticalSpaceXS,
         Text(
           'Created: ${_formatDate(export.createdAt)}',
-          style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+          style: AppTextStyles.caption.copyWith(
+            color: isDark ? AppColors.darkTextMuted : AppColors.textTertiary,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStatusIcon() {
+  Widget _buildStatusIcon(bool isDark) {
     return Container(
       padding: AppSpacing.paddingXS,
-      decoration: _buildStatusIconDecoration(),
+      decoration: _buildStatusIconDecoration(isDark),
       child: Icon(_getStatusIcon(), color: _getStatusColor(), size: 20),
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
+  Widget _buildStatusBadge(BuildContext context, bool isDark) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: _getStatusColor().withValues(alpha: 0.1),
+        color: _getStatusColor().withValues(alpha: isDark ? 0.2 : 0.1),
         borderRadius: AppBorders.sm,
-        border: Border.all(color: _getStatusColor().withValues(alpha: 0.3)),
+        border: Border.all(
+          color: _getStatusColor().withValues(alpha: isDark ? 0.4 : 0.3),
+        ),
       ),
       child: Text(
         export.statusLabel,
@@ -211,7 +241,7 @@ class ExportItemCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, bool isLarge) {
+  Widget _buildActionButton(BuildContext context, bool isDark, bool isLarge) {
     final canDownload = export.canDownload;
 
     if (isLarge) {
@@ -221,7 +251,9 @@ class ExportItemCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: canDownload
               ? AppColors.primary
-              : AppColors.backgroundSecondary,
+              : (isDark
+                    ? AppColors.darkSurfaceVariant
+                    : AppColors.backgroundSecondary),
           borderRadius: AppBorders.md,
           boxShadow: canDownload
               ? [
@@ -245,7 +277,9 @@ class ExportItemCard extends StatelessWidget {
                   Icons.download,
                   color: canDownload
                       ? AppColors.onPrimary
-                      : AppColors.textMuted,
+                      : (isDark
+                            ? AppColors.darkTextMuted
+                            : AppColors.textMuted),
                   size: 18,
                 ),
                 AppSpacing.horizontalSpaceXS,
@@ -254,7 +288,9 @@ class ExportItemCard extends StatelessWidget {
                   style: AppTextStyles.caption.copyWith(
                     color: canDownload
                         ? AppColors.onPrimary
-                        : AppColors.textMuted,
+                        : (isDark
+                              ? AppColors.darkTextMuted
+                              : AppColors.textMuted),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -268,18 +304,31 @@ class ExportItemCard extends StatelessWidget {
         onPressed: canDownload ? onTap : null,
         icon: Icon(
           Icons.file_upload,
-          color: canDownload ? AppColors.primary : AppColors.textMuted,
+          color: canDownload
+              ? AppColors.primary
+              : (isDark ? AppColors.darkTextMuted : AppColors.textMuted),
         ),
       );
     }
   }
 
-  BoxDecoration _buildCardDecoration(ThemeData theme, bool isLarge) {
+  BoxDecoration _buildCardDecoration(
+    ThemeData theme,
+    bool isDark,
+    bool isLarge,
+  ) {
     return AppDecorations.card.copyWith(
+      color: isDark ? AppColors.darkSurface : theme.colorScheme.surface,
+      border: Border.all(
+        color: isDark
+            ? AppColors.darkBorder.withValues(alpha: 0.3)
+            : AppColors.cardBorder,
+        width: 1,
+      ),
       boxShadow: isLarge
           ? [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.08),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -288,9 +337,9 @@ class ExportItemCard extends StatelessWidget {
     );
   }
 
-  BoxDecoration _buildStatusIconDecoration() {
+  BoxDecoration _buildStatusIconDecoration(bool isDark) {
     return AppDecorations.custom(
-      color: _getStatusColor().withValues(alpha: 0.1),
+      color: _getStatusColor().withValues(alpha: isDark ? 0.2 : 0.1),
       borderRadius: AppBorders.circular,
     );
   }

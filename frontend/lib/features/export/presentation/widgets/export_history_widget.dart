@@ -48,6 +48,8 @@ class ExportHistoryWidget extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context, bool isLargeScreen) {
+    final theme = Theme.of(context);
+
     return Center(
       child: Container(
         constraints: BoxConstraints(
@@ -60,7 +62,9 @@ class ExportHistoryWidget extends StatelessWidget {
               width: isLargeScreen ? 48 : 40,
               height: isLargeScreen ? 48 : 40,
               child: CircularProgressIndicator(
-                color: AppColors.primary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primary,
                 strokeWidth: isLargeScreen ? 4 : 3,
               ),
             ),
@@ -77,7 +81,9 @@ class ExportHistoryWidget extends StatelessWidget {
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.body1.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkTextSecondary
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 desktopFactor: 1.1,
               ),
@@ -97,12 +103,18 @@ class ExportHistoryWidget extends StatelessWidget {
       return _buildEmptyState(context, isLargeScreen);
     }
 
+    final theme = Theme.of(context);
+
     return RefreshIndicator(
       onRefresh: () async {
         context.read<ExportBloc>().add(const LoadExportHistory());
       },
-      color: AppColors.primary,
-      backgroundColor: AppColors.surface,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? theme.colorScheme.primary
+          : theme.colorScheme.primary,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? AppColors.darkSurface
+          : theme.colorScheme.surface,
       child: _buildResponsiveLayout(context, exports, isLargeScreen),
     );
   }
@@ -196,13 +208,17 @@ class ExportHistoryWidget extends StatelessWidget {
                 ),
               ),
               decoration: BoxDecoration(
-                color: AppColors.backgroundSecondary,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurfaceVariant
+                    : theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
                 borderRadius: AppBorders.circular,
               ),
               child: Icon(
                 Icons.history,
                 size: isLargeScreen ? 80 : 64,
-                color: AppColors.textMuted,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextMuted
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
             SizedBox(
@@ -218,9 +234,9 @@ class ExportHistoryWidget extends StatelessWidget {
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline4.copyWith(
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.onBackground
-                      : AppColors.textPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText
+                      : theme.colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
                 desktopFactor: 1.2,
@@ -232,7 +248,9 @@ class ExportHistoryWidget extends StatelessWidget {
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.body1.copyWith(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkTextSecondary
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 desktopFactor: 1.1,
               ),
@@ -256,10 +274,14 @@ class ExportHistoryWidget extends StatelessWidget {
                 ),
               ),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurfaceVariant
+                    : theme.colorScheme.primary.withValues(alpha: 0.05),
                 borderRadius: AppBorders.md,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkBorder.withValues(alpha: 0.3)
+                      : theme.colorScheme.primary.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -267,7 +289,9 @@ class ExportHistoryWidget extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: AppColors.primary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.primary,
                     size: isLargeScreen ? 20 : 16,
                   ),
                   AppSpacing.horizontalSpaceSM,
@@ -277,7 +301,9 @@ class ExportHistoryWidget extends StatelessWidget {
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.body2.copyWith(
-                          color: AppColors.primary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.primary,
                           fontWeight: FontWeight.w500,
                         ),
                         desktopFactor: 1.05,
@@ -326,13 +352,17 @@ class ExportHistoryWidget extends StatelessWidget {
                 ),
               ),
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error.withValues(alpha: 0.1)
+                    : theme.colorScheme.errorContainer.withValues(alpha: 0.5),
                 borderRadius: AppBorders.circular,
               ),
               child: Icon(
                 Icons.error_outline,
                 size: isLargeScreen ? 80 : 64,
-                color: AppColors.error,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error
+                    : theme.colorScheme.error,
               ),
             ),
             SizedBox(
@@ -348,9 +378,9 @@ class ExportHistoryWidget extends StatelessWidget {
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline4.copyWith(
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.onBackground
-                      : AppColors.textPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText
+                      : theme.colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
                 desktopFactor: 1.2,
@@ -367,17 +397,25 @@ class ExportHistoryWidget extends StatelessWidget {
                 ),
               ),
               decoration: BoxDecoration(
-                color: AppColors.errorLight,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.error.withValues(alpha: 0.1)
+                    : theme.colorScheme.errorContainer.withValues(alpha: 0.5),
                 borderRadius: AppBorders.md,
                 border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.error.withValues(alpha: 0.3)
+                      : theme.colorScheme.error.withValues(alpha: 0.2),
                 ),
               ),
               child: Text(
                 message,
                 style: AppTextStyles.responsive(
                   context: context,
-                  style: AppTextStyles.body1.copyWith(color: AppColors.error),
+                  style: AppTextStyles.body1.copyWith(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.error
+                        : theme.colorScheme.error,
+                  ),
                   desktopFactor: 1.05,
                 ),
                 textAlign: TextAlign.center,
@@ -400,7 +438,9 @@ class ExportHistoryWidget extends StatelessWidget {
                 },
                 icon: Icon(
                   Icons.refresh,
-                  color: AppColors.onPrimary,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.onPrimary
+                      : AppColors.onPrimary,
                   size: isLargeScreen ? 20 : 18,
                 ),
                 label: Text(
@@ -408,15 +448,23 @@ class ExportHistoryWidget extends StatelessWidget {
                   style: AppTextStyles.responsive(
                     context: context,
                     style: AppTextStyles.button.copyWith(
-                      color: AppColors.onPrimary,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.onPrimary
+                          : AppColors.onPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                     desktopFactor: 1.1,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary,
+                  foregroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.onPrimary
+                      : AppColors.onPrimary,
                   padding: EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
                     vertical: AppSpacing.lg,

@@ -12,13 +12,14 @@ class ExportHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
 
     return Container(
       padding: _getResponsivePadding(context, isLargeScreen),
-      decoration: _buildCardDecoration(theme, isLargeScreen),
-      child: _buildContent(context, theme, isLargeScreen),
+      decoration: _buildCardDecoration(theme, isDark, isLargeScreen),
+      child: _buildContent(context, theme, isDark, isLargeScreen),
     );
   }
 
@@ -33,17 +34,25 @@ class ExportHeaderCard extends StatelessWidget {
     );
   }
 
-  BoxDecoration _buildCardDecoration(ThemeData theme, bool isLargeScreen) {
+  BoxDecoration _buildCardDecoration(
+    ThemeData theme,
+    bool isDark,
+    bool isLargeScreen,
+  ) {
     return AppDecorations.card.copyWith(
-      color: AppColors.primarySurface,
+      color: isDark ? AppColors.darkSurfaceVariant : AppColors.primarySurface,
       border: Border.all(
-        color: AppColors.primary.withValues(alpha: 0.2),
+        color: isDark
+            ? AppColors.darkBorder.withValues(alpha: 0.3)
+            : AppColors.primary.withValues(alpha: 0.2),
         width: isLargeScreen ? 2 : 1,
       ),
       boxShadow: isLargeScreen
           ? [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.2)
+                    : AppColors.primary.withValues(alpha: 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -61,16 +70,21 @@ class ExportHeaderCard extends StatelessWidget {
   Widget _buildContent(
     BuildContext context,
     ThemeData theme,
+    bool isDark,
     bool isLargeScreen,
   ) {
     if (isLargeScreen) {
-      return _buildLargeScreenContent(context, theme);
+      return _buildLargeScreenContent(context, theme, isDark);
     } else {
-      return _buildCompactContent(context, theme);
+      return _buildCompactContent(context, theme, isDark);
     }
   }
 
-  Widget _buildLargeScreenContent(BuildContext context, ThemeData theme) {
+  Widget _buildLargeScreenContent(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Row(
       children: [
         // Icon section
@@ -85,43 +99,35 @@ class ExportHeaderCard extends StatelessWidget {
 
         AppSpacing.horizontalSpaceXL,
 
-        // Content section (expanded to fill remaining width)
+        // Content section
         Expanded(
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text content
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Export Configuration',
-                      style: AppTextStyles.responsive(
-                        context: context,
-                        style: AppTextStyles.headline4.copyWith(
-                          color: _getTextColor(theme),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        desktopFactor: 1.1,
-                      ),
-                    ),
-                    AppSpacing.verticalSpaceXS,
-                    Text(
-                      'Configure your export format and filters to generate custom reports',
-                      style: AppTextStyles.responsive(
-                        context: context,
-                        style: AppTextStyles.body1.copyWith(
-                          color: _getSubtitleColor(theme),
-                        ),
-                        desktopFactor: 1.05,
-                      ),
-                    ),
-                  ],
+              Text(
+                'Export Configuration',
+                style: AppTextStyles.responsive(
+                  context: context,
+                  style: AppTextStyles.headline4.copyWith(
+                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  desktopFactor: 1.1,
                 ),
               ),
-
-              AppSpacing.horizontalSpaceXL,
+              AppSpacing.verticalSpaceXS,
+              Text(
+                'Configure your export format and filters to generate custom reports',
+                style: AppTextStyles.responsive(
+                  context: context,
+                  style: AppTextStyles.body1.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
+                  ),
+                  desktopFactor: 1.05,
+                ),
+              ),
             ],
           ),
         ),
@@ -129,7 +135,11 @@ class ExportHeaderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactContent(BuildContext context, ThemeData theme) {
+  Widget _buildCompactContent(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Row(
       children: [
         Container(
@@ -148,14 +158,16 @@ class ExportHeaderCard extends StatelessWidget {
               Text(
                 'Export Configuration',
                 style: AppTextStyles.cardTitle.copyWith(
-                  color: _getTextColor(theme),
+                  color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 ),
               ),
               AppSpacing.verticalSpaceXS,
               Text(
                 'Configure your export format and filters',
                 style: AppTextStyles.cardSubtitle.copyWith(
-                  color: _getSubtitleColor(theme),
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
                 ),
               ),
             ],
@@ -163,17 +175,5 @@ class ExportHeaderCard extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Color _getTextColor(ThemeData theme) {
-    return theme.brightness == Brightness.dark
-        ? AppColors.onPrimary
-        : AppColors.textPrimary;
-  }
-
-  Color _getSubtitleColor(ThemeData theme) {
-    return theme.brightness == Brightness.dark
-        ? AppColors.onPrimary.withValues(alpha: 0.8)
-        : AppColors.textSecondary;
   }
 }
