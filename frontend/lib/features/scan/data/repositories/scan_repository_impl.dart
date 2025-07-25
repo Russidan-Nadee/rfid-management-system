@@ -196,22 +196,33 @@ class ScanRepositoryImpl implements ScanRepository {
     String locationCode,
   ) async {
     try {
-      final response = await apiService.get<Map<String, dynamic>>(
-        ApiConstants.locationAssets(locationCode),
-        fromJson: (json) => json,
+      print('Repository: Getting assets for location: $locationCode');
+
+      final response = await apiService.get<List<dynamic>>(
+        '/assets',
+        queryParams: {'location_code': locationCode},
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      print('Repository: API Response - Success: ${response.success}');
+      print(
+        'Repository: API Response - Data length: ${response.data?.length ?? 0}',
       );
 
       if (response.success && response.data != null) {
-        final data = response.data!['data'] as List<dynamic>;
-        return data
+        final assets = response.data!
             .map(
               (json) => ScannedItemModel.fromJson(json as Map<String, dynamic>),
             )
             .toList();
+
+        print('Repository: Converted ${assets.length} assets');
+        return assets;
       } else {
         throw Exception('Failed to fetch assets for location');
       }
     } catch (e) {
+      print('Repository: Error getting assets by location: $e');
       throw Exception('Failed to get assets by location: $e');
     }
   }

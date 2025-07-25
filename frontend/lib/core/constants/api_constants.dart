@@ -202,7 +202,7 @@ class ApiConstants {
   // Helper Methods
   static String plantAssets(String plantCode) => '$plants/$plantCode/assets';
   static String locationAssets(String locationCode) =>
-      '$locations/$locationCode/assets';
+      '/assets?location_code=$locationCode';
   static String plantLocations(String plantCode) =>
       '$plants/$plantCode/locations';
 
