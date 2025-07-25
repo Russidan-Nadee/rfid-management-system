@@ -37,7 +37,10 @@ class FileFormatCard extends StatelessWidget {
     final iconSize = screenWidth >= 1024 ? 28.0 : 24.0;
 
     return GestureDetector(
-      onTap: () => onTap(format),
+      onTap: () {
+        print('🔍 Card tapped: $format');
+        onTap(format);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: cardPadding,

@@ -24,19 +24,24 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
 
   void _onFormatSelected(String format) {
+    print('Format selected: $format');
     setState(() {
       _selectedFormat = format;
     });
+    print('_selectedFormat updated to: $_selectedFormat');
   }
 
   void _onExportPressed() {
-    print('🚀 Export pressed - exporting all data');
+    print('Export pressed - exporting all data');
+    print('Selected format: $_selectedFormat');
 
     // Build simple export configuration (no date range, no filters)
     final config = ExportConfigModel(
       format: _selectedFormat,
       filters: null, // No filters = export all data
     );
+
+    print('Config format: ${config.format}');
 
     // Dispatch to BLoC
     context.read<ExportBloc>().add(CreateAssetExport(config));

@@ -104,14 +104,30 @@ class ExportService {
    }
 
    async _generateExportFile(exportJob, data) {
-      const config = exportJob.export_config || {};
+      // Parse export_config ถ้าเป็น string
+      let config;
+      if (typeof exportJob.export_config === 'string') {
+         try {
+            config = JSON.parse(exportJob.export_config);
+            console.log('🔍 Parsed config from string:', config);
+         } catch (error) {
+            console.error('Error parsing export_config:', error);
+            config = {};
+         }
+      } else {
+         config = exportJob.export_config || {};
+      }
+
       const format = config.format || 'xlsx';
+      console.log('🔍 Final format to generate:', format);
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `${exportJob.export_type}_${exportJob.export_id}_${timestamp}.${format}`;
 
       const uploadsDir = path.join(process.cwd(), 'uploads', 'exports');
       const filePath = path.join(uploadsDir, fileName);
+
+      console.log(`💾 Generating ${format.toUpperCase()} file: ${fileName}`);
 
       if (format === 'xlsx') {
          await this._generateExcelFile(filePath, data);
@@ -121,6 +137,7 @@ class ExportService {
          throw new Error(`Unsupported format: ${format}`);
       }
 
+      console.log(`✅ File generated successfully: ${filePath}`);
       return filePath;
    }
 
