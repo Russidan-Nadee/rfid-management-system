@@ -12,6 +12,7 @@ import '../bloc/export_bloc.dart';
 import '../bloc/export_event.dart';
 import '../bloc/export_state.dart';
 import 'export_item_card.dart';
+import '../../../../l10n/features/export/export_localizations.dart';
 
 class ExportHistoryWidget extends StatelessWidget {
   const ExportHistoryWidget({super.key});
@@ -20,25 +21,47 @@ class ExportHistoryWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
+    final locale = ExportLocalizations.of(context);
 
     return BlocListener<ExportBloc, ExportState>(
       listener: (context, state) {
         if (state is ExportHistoryDownloadSuccess) {
-          Helpers.showSuccess(context, 'File shared: ${state.fileName}');
+          Helpers.showSuccess(
+            context,
+            '${locale.fileShared}: ${state.fileName}',
+          );
         } else if (state is ExportError) {
-          Helpers.showError(context, 'Error: ${state.message}');
+          Helpers.showError(
+            context,
+            '${locale.errorGeneric}: ${state.message}',
+          );
         }
       },
       child: BlocBuilder<ExportBloc, ExportState>(
         builder: (context, state) {
           if (state is ExportLoading) {
-            return _buildLoadingState(context, isLargeScreen);
+            return _buildLoadingState(context, isLargeScreen, locale);
           } else if (state is ExportHistoryLoaded) {
-            return _buildHistoryList(context, state.exports, isLargeScreen);
+            return _buildHistoryList(
+              context,
+              state.exports,
+              isLargeScreen,
+              locale,
+            );
           } else if (state is ExportHistoryDownloadSuccess) {
-            return _buildHistoryList(context, state.exports, isLargeScreen);
+            return _buildHistoryList(
+              context,
+              state.exports,
+              isLargeScreen,
+              locale,
+            );
           } else if (state is ExportError) {
-            return _buildErrorState(context, state.message, isLargeScreen);
+            return _buildErrorState(
+              context,
+              state.message,
+              isLargeScreen,
+              locale,
+            );
           } else {
             return const SizedBox();
           }
@@ -47,7 +70,11 @@ class ExportHistoryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingState(BuildContext context, bool isLargeScreen) {
+  Widget _buildLoadingState(
+    BuildContext context,
+    bool isLargeScreen,
+    ExportLocalizations locale,
+  ) {
     final theme = Theme.of(context);
 
     return Center(
@@ -77,7 +104,7 @@ class ExportHistoryWidget extends StatelessWidget {
               ),
             ),
             Text(
-              'Loading export history...',
+              locale.loadingExportHistory,
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.body1.copyWith(
@@ -98,9 +125,10 @@ class ExportHistoryWidget extends StatelessWidget {
     BuildContext context,
     List<ExportJobEntity> exports,
     bool isLargeScreen,
+    ExportLocalizations locale,
   ) {
     if (exports.isEmpty) {
-      return _buildEmptyState(context, isLargeScreen);
+      return _buildEmptyState(context, isLargeScreen, locale);
     }
 
     final theme = Theme.of(context);
@@ -115,7 +143,7 @@ class ExportHistoryWidget extends StatelessWidget {
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkSurface
           : theme.colorScheme.surface,
-      child: _buildResponsiveLayout(context, exports, isLargeScreen),
+      child: _buildResponsiveLayout(context, exports, isLargeScreen, locale),
     );
   }
 
@@ -123,17 +151,22 @@ class ExportHistoryWidget extends StatelessWidget {
     BuildContext context,
     List<ExportJobEntity> exports,
     bool isLargeScreen,
+    ExportLocalizations locale,
   ) {
     if (isLargeScreen) {
-      return _buildGridLayout(context, exports);
+      return _buildGridLayout(context, exports, locale);
     } else {
-      return _buildListLayout(context, exports);
+      return _buildListLayout(context, exports, locale);
     }
   }
 
-  Widget _buildGridLayout(BuildContext context, List<ExportJobEntity> exports) {
+  Widget _buildGridLayout(
+    BuildContext context,
+    List<ExportJobEntity> exports,
+    ExportLocalizations locale,
+  ) {
     return Container(
-      width: double.infinity, // เต็มความกว้างหน้าจอ
+      width: double.infinity,
       padding: EdgeInsets.all(
         AppSpacing.responsiveSpacing(
           context,
@@ -162,7 +195,11 @@ class ExportHistoryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildListLayout(BuildContext context, List<ExportJobEntity> exports) {
+  Widget _buildListLayout(
+    BuildContext context,
+    List<ExportJobEntity> exports,
+    ExportLocalizations locale,
+  ) {
     return ListView.builder(
       padding: AppSpacing.screenPaddingAll,
       itemCount: exports.length,
@@ -180,7 +217,11 @@ class ExportHistoryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, bool isLargeScreen) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    bool isLargeScreen,
+    ExportLocalizations locale,
+  ) {
     final theme = Theme.of(context);
     final maxWidth = isLargeScreen ? 500.0 : double.infinity;
 
@@ -230,7 +271,7 @@ class ExportHistoryWidget extends StatelessWidget {
               ),
             ),
             Text(
-              'No export history',
+              locale.noExportHistory,
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline4.copyWith(
@@ -244,7 +285,7 @@ class ExportHistoryWidget extends StatelessWidget {
             ),
             AppSpacing.verticalSpaceSM,
             Text(
-              'Create your first export to see it here',
+              locale.createFirstExport,
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.body1.copyWith(
@@ -297,7 +338,7 @@ class ExportHistoryWidget extends StatelessWidget {
                   AppSpacing.horizontalSpaceSM,
                   Flexible(
                     child: Text(
-                      'Go to Create Export tab to get started',
+                      locale.goToCreateExportTab,
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.body2.copyWith(
@@ -324,6 +365,7 @@ class ExportHistoryWidget extends StatelessWidget {
     BuildContext context,
     String message,
     bool isLargeScreen,
+    ExportLocalizations locale,
   ) {
     final theme = Theme.of(context);
     final maxWidth = isLargeScreen ? 500.0 : double.infinity;
@@ -374,7 +416,7 @@ class ExportHistoryWidget extends StatelessWidget {
               ),
             ),
             Text(
-              'Error loading history',
+              locale.errorLoadingHistory,
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline4.copyWith(
@@ -444,7 +486,7 @@ class ExportHistoryWidget extends StatelessWidget {
                   size: isLargeScreen ? 20 : 18,
                 ),
                 label: Text(
-                  'Retry',
+                  locale.retry,
                   style: AppTextStyles.responsive(
                     context: context,
                     style: AppTextStyles.button.copyWith(

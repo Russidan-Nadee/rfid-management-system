@@ -5,6 +5,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/app_constants.dart';
+import '../../../../l10n/features/export/export_localizations.dart';
 
 class ExportHeaderCard extends StatelessWidget {
   const ExportHeaderCard({super.key});
@@ -15,11 +16,12 @@ class ExportHeaderCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
+    final l10n = ExportLocalizations.of(context);
 
     return Container(
       padding: _getResponsivePadding(context, isLargeScreen),
       decoration: _buildCardDecoration(theme, isDark, isLargeScreen),
-      child: _buildContent(context, theme, isDark, isLargeScreen),
+      child: _buildContent(context, theme, isDark, isLargeScreen, l10n),
     );
   }
 
@@ -72,11 +74,12 @@ class ExportHeaderCard extends StatelessWidget {
     ThemeData theme,
     bool isDark,
     bool isLargeScreen,
+    ExportLocalizations l10n,
   ) {
     if (isLargeScreen) {
-      return _buildLargeScreenContent(context, theme, isDark);
+      return _buildLargeScreenContent(context, theme, isDark, l10n);
     } else {
-      return _buildCompactContent(context, theme, isDark);
+      return _buildCompactContent(context, theme, isDark, l10n);
     }
   }
 
@@ -84,6 +87,7 @@ class ExportHeaderCard extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     bool isDark,
+    ExportLocalizations l10n,
   ) {
     return Row(
       children: [
@@ -105,7 +109,7 @@ class ExportHeaderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Export Configuration',
+                l10n.exportConfiguration,
                 style: AppTextStyles.responsive(
                   context: context,
                   style: AppTextStyles.headline4.copyWith(
@@ -117,7 +121,7 @@ class ExportHeaderCard extends StatelessWidget {
               ),
               AppSpacing.verticalSpaceXS,
               Text(
-                'Configure your export format and filters to generate custom reports',
+                l10n.exportConfigurationDescription,
                 style: AppTextStyles.responsive(
                   context: context,
                   style: AppTextStyles.body1.copyWith(
@@ -139,6 +143,7 @@ class ExportHeaderCard extends StatelessWidget {
     BuildContext context,
     ThemeData theme,
     bool isDark,
+    ExportLocalizations l10n,
   ) {
     return Row(
       children: [
@@ -156,14 +161,14 @@ class ExportHeaderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Export Configuration',
+                l10n.exportConfiguration,
                 style: AppTextStyles.cardTitle.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 ),
               ),
               AppSpacing.verticalSpaceXS,
               Text(
-                'Configure your export format and filters',
+                l10n.exportConfigurationDescription,
                 style: AppTextStyles.cardSubtitle.copyWith(
                   color: isDark
                       ? AppColors.darkTextSecondary

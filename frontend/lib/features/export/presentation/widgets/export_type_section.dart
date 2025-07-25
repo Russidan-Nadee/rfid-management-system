@@ -1,10 +1,10 @@
-// Path: frontend/lib/features/export/presentation/widgets/export_type_section.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/app_constants.dart';
+import 'package:frontend/l10n/features/export/export_localizations.dart';
 
 class ExportTypeSection extends StatelessWidget {
   const ExportTypeSection({super.key});
@@ -15,11 +15,12 @@ class ExportTypeSection extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
+    final l10n = ExportLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, theme, isDark, isLargeScreen),
+        _buildSectionHeader(context, theme, isDark, isLargeScreen, l10n),
         SizedBox(
           height: AppSpacing.responsiveSpacing(
             context,
@@ -28,7 +29,7 @@ class ExportTypeSection extends StatelessWidget {
             desktop: AppSpacing.xl,
           ),
         ),
-        _buildAssetCard(context, theme, isDark, isLargeScreen),
+        _buildAssetCard(context, theme, isDark, isLargeScreen, l10n),
       ],
     );
   }
@@ -38,6 +39,7 @@ class ExportTypeSection extends StatelessWidget {
     ThemeData theme,
     bool isDark,
     bool isLargeScreen,
+    ExportLocalizations l10n,
   ) {
     return Row(
       children: [
@@ -48,7 +50,7 @@ class ExportTypeSection extends StatelessWidget {
         ),
         AppSpacing.horizontalSpaceSM,
         Text(
-          'Export Type',
+          l10n.exportType, // แทน Export Type
           style: AppTextStyles.responsive(
             context: context,
             style: AppTextStyles.cardTitle.copyWith(
@@ -66,14 +68,16 @@ class ExportTypeSection extends StatelessWidget {
     ThemeData theme,
     bool isDark,
     bool isLargeScreen,
+    ExportLocalizations l10n,
   ) {
-    return _buildLargeScreenCard(context, theme, isDark);
+    return _buildLargeScreenCard(context, theme, isDark, l10n);
   }
 
   Widget _buildLargeScreenCard(
     BuildContext context,
     ThemeData theme,
     bool isDark,
+    ExportLocalizations l10n,
   ) {
     return Container(
       width: double.infinity,
@@ -103,7 +107,7 @@ class ExportTypeSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Assets Export',
+                      l10n.assetsExport, // แทน Assets Export
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.headline5.copyWith(
@@ -117,7 +121,7 @@ class ExportTypeSection extends StatelessWidget {
                     ),
                     AppSpacing.verticalSpaceXS,
                     Text(
-                      'Export all asset information including locations, status, and descriptions',
+                      l10n.assetsExportDescription, // แทนรายละเอียดคำอธิบาย
                       style: AppTextStyles.responsive(
                         context: context,
                         style: AppTextStyles.body2.copyWith(
@@ -144,7 +148,7 @@ class ExportTypeSection extends StatelessWidget {
             ),
             decoration: _buildBadgeDecoration(isDark),
             child: Text(
-              'All Status (Active, Inactive, Created)',
+              l10n.allStatusLabel, // แทนข้อความสถานะ
               style: AppTextStyles.caption.copyWith(
                 color: isDark ? AppColors.onPrimary : AppColors.onPrimary,
                 fontWeight: FontWeight.w500,

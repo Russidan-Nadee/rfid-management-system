@@ -7,6 +7,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/app_constants.dart';
+import '../../../../l10n/features/export/export_localizations.dart';
 import '../bloc/export_bloc.dart';
 import '../bloc/export_event.dart';
 import '../widgets/export_config_widget.dart';
@@ -41,6 +42,7 @@ class _ExportPageState extends State<ExportPage>
     final isDark = theme.brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isLargeScreen = screenWidth >= AppConstants.tabletBreakpoint;
+    final l10n = ExportLocalizations.of(context);
 
     return BlocProvider(
       create: (context) => getIt<ExportBloc>()..add(const LoadExportHistory()),
@@ -48,7 +50,7 @@ class _ExportPageState extends State<ExportPage>
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.5)
             : theme.colorScheme.background,
-        appBar: _buildAppBar(context, theme, isDark, isLargeScreen),
+        appBar: _buildAppBar(context, theme, isDark, isLargeScreen, l10n),
         body: _buildBody(context, isLargeScreen),
       ),
     );
@@ -59,11 +61,12 @@ class _ExportPageState extends State<ExportPage>
     ThemeData theme,
     bool isDark,
     bool isLargeScreen,
+    ExportLocalizations l10n,
   ) {
     if (isLargeScreen) {
       return AppBar(
         title: Text(
-          'Export Management',
+          l10n.pageTitle,
           style: AppTextStyles.responsive(
             context: context,
             style: AppTextStyles.headline4.copyWith(
@@ -86,7 +89,7 @@ class _ExportPageState extends State<ExportPage>
     } else {
       return AppBar(
         title: Text(
-          'Export',
+          l10n.exportPageTitle,
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -113,16 +116,16 @@ class _ExportPageState extends State<ExportPage>
               : theme.colorScheme.onSurface.withValues(alpha: 0.6),
           labelStyle: AppTextStyles.button.copyWith(fontSize: 13),
           unselectedLabelStyle: AppTextStyles.button.copyWith(fontSize: 13),
-          tabs: const [
+          tabs: [
             Tab(
-              icon: Icon(Icons.upload, size: 20),
-              text: 'Create Export',
-              iconMargin: EdgeInsets.only(bottom: 4),
+              icon: const Icon(Icons.upload, size: 20),
+              text: l10n.createExportTab,
+              iconMargin: const EdgeInsets.only(bottom: 4),
             ),
             Tab(
-              icon: Icon(Icons.history, size: 20),
-              text: 'History',
-              iconMargin: EdgeInsets.only(bottom: 4),
+              icon: const Icon(Icons.history, size: 20),
+              text: l10n.historyTab,
+              iconMargin: const EdgeInsets.only(bottom: 4),
             ),
           ],
         ),
@@ -141,6 +144,7 @@ class _ExportPageState extends State<ExportPage>
   Widget _buildLargeScreenLayout(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = ExportLocalizations.of(context);
 
     return Row(
       children: [
@@ -166,7 +170,7 @@ class _ExportPageState extends State<ExportPage>
                   Padding(
                     padding: AppSpacing.paddingXL,
                     child: Text(
-                      'Export Tools',
+                      l10n.exportTools,
                       style: AppTextStyles.headline6.copyWith(
                         color: isDark ? AppColors.darkText : AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -176,18 +180,20 @@ class _ExportPageState extends State<ExportPage>
                   _buildSidebarTab(
                     context,
                     isDark,
+                    l10n,
                     icon: Icons.upload,
-                    title: 'Create Export',
-                    subtitle: 'Generate new export files',
+                    title: l10n.createExportTab,
+                    subtitle: l10n.createExportDescription,
                     isSelected: _tabController.index == 0,
                     onTap: () => _tabController.animateTo(0),
                   ),
                   _buildSidebarTab(
                     context,
                     isDark,
+                    l10n,
                     icon: Icons.history,
-                    title: 'Export History',
-                    subtitle: 'View and download exports',
+                    title: l10n.historyTab,
+                    subtitle: l10n.exportHistoryDescription,
                     isSelected: _tabController.index == 1,
                     onTap: () => _tabController.animateTo(1),
                   ),
@@ -219,7 +225,7 @@ class _ExportPageState extends State<ExportPage>
                           AppSpacing.horizontalSpaceSM,
                           Expanded(
                             child: Text(
-                              'Export files expire after 7 days',
+                              l10n.exportFilesExpire,
                               style: AppTextStyles.caption.copyWith(
                                 color: isDark
                                     ? AppColors.primary
@@ -257,7 +263,8 @@ class _ExportPageState extends State<ExportPage>
 
   Widget _buildSidebarTab(
     BuildContext context,
-    bool isDark, {
+    bool isDark,
+    ExportLocalizations l10n, {
     required IconData icon,
     required String title,
     required String subtitle,

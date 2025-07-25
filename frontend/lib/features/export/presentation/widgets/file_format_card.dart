@@ -38,7 +38,6 @@ class FileFormatCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        print('🔍 Card tapped: $format');
         onTap(format);
       },
       child: AnimatedContainer(

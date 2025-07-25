@@ -8,6 +8,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../l10n/features/export/export_localizations.dart';
 import '../../data/models/export_config_model.dart';
 import 'export_header_card.dart';
 import 'export_type_section.dart';
@@ -24,16 +25,19 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
 
   void _onFormatSelected(String format) {
-    print('Format selected: $format');
+    print('${ExportLocalizations.of(context).formatSelected}$format');
     setState(() {
       _selectedFormat = format;
     });
-    print('_selectedFormat updated to: $_selectedFormat');
+    print(
+      '${ExportLocalizations.of(context).selectedFormatLabel}$_selectedFormat',
+    );
   }
 
   void _onExportPressed() {
-    print('Export pressed - exporting all data');
-    print('Selected format: $_selectedFormat');
+    final l10n = ExportLocalizations.of(context);
+    print(l10n.exportPressed);
+    print('${l10n.selectedFormatLabel}$_selectedFormat');
 
     // Build simple export configuration (no date range, no filters)
     final config = ExportConfigModel(
@@ -41,7 +45,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
       filters: null, // No filters = export all data
     );
 
-    print('Config format: ${config.format}');
+    print('${l10n.configFormatLabel}${config.format}');
 
     // Dispatch to BLoC
     context.read<ExportBloc>().add(CreateAssetExport(config));
@@ -49,15 +53,14 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ExportLocalizations.of(context);
+
     return BlocListener<ExportBloc, ExportState>(
       listener: (context, state) {
         if (state is ExportJobCreated) {
-          Helpers.showSuccess(context, 'Export job created! Processing...');
+          Helpers.showSuccess(context, l10n.exportJobCreated);
         } else if (state is ExportCompleted) {
-          Helpers.showSuccess(
-            context,
-            'Export completed and ready to download!',
-          );
+          Helpers.showSuccess(context, l10n.exportCompleted);
           context.read<ExportBloc>().add(
             DownloadExport(state.exportJob.exportId),
           );
@@ -131,7 +134,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(child: ExportTypeSection()),
+                const Expanded(child: ExportTypeSection()),
                 AppSpacing.horizontalSpaceXXL,
                 Expanded(
                   child: FileFormatSection(
@@ -193,6 +196,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   Widget _buildAllDataNoticeCard(BuildContext context, bool isLargeScreen) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = ExportLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -231,7 +235,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Export Data',
+                  l10n.exportData,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: isDark
                         ? AppColors.darkText
@@ -242,7 +246,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 ),
                 SizedBox(height: AppSpacing.xs),
                 Text(
-                  'This will export all assets data without any date restrictions. All historical records will be included.',
+                  l10n.exportDataDescription,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark
                         ? AppColors.darkTextSecondary
@@ -280,6 +284,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         final theme = Theme.of(context);
         final isDark = theme.brightness == Brightness.dark;
         final isLoading = state is ExportLoading;
+        final l10n = ExportLocalizations.of(context);
 
         return Container(
           width: double.infinity,
@@ -347,7 +352,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                           ),
                           SizedBox(width: AppSpacing.sm),
                           Text(
-                            'Export All Data',
+                            l10n.exportData,
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: theme.colorScheme.onPrimary,
                               fontWeight: FontWeight.bold,

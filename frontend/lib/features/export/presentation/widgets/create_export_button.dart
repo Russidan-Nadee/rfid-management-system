@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/export/presentation/widgets/create_export_button.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/l10n/features/export/export_localizations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
@@ -136,12 +137,12 @@ class CreateExportButton extends StatelessWidget {
   }
 }
 
-/// Specialized version for Export functionality
+/// Specialized version for Export functionality, uses localization
 class ExportActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final String? loadingMessage;
-  final String format;
+  final String format; // e.g. 'xlsx' or 'csv'
   final bool hasDateRange;
   final bool hasFilters;
 
@@ -157,7 +158,7 @@ class ExportActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = _buildLabel();
+    final label = _buildLabel(context);
 
     return CreateExportButton(
       onPressed: onPressed,
@@ -168,20 +169,47 @@ class ExportActionButton extends StatelessWidget {
     );
   }
 
-  String _buildLabel() {
-    final formatLabel = format.toUpperCase();
+  /// Build localized label based on format and filters
+  String _buildLabel(BuildContext context) {
+    final l10n = ExportLocalizations.of(context);
+    final formatLower = format.toLowerCase();
 
-    if (hasDateRange && hasFilters) {
-      return 'Export $formatLabel (Filtered)';
-    } else if (hasDateRange) {
-      return 'Export $formatLabel (Date Range)';
-    } else if (hasFilters) {
-      return 'Export $formatLabel (Filtered)';
+    if (formatLower == 'xlsx') {
+      if (hasDateRange && hasFilters) {
+        return l10n.exportXLSXFiltered;
+      } else if (hasDateRange) {
+        return l10n.exportXLSXDateRange;
+      } else if (hasFilters) {
+        return l10n.exportXLSXFiltered;
+      } else {
+        return l10n.exportXLSX;
+      }
+    } else if (formatLower == 'csv') {
+      if (hasDateRange && hasFilters) {
+        return l10n.exportCSVFiltered;
+      } else if (hasDateRange) {
+        return l10n.exportCSVDateRange;
+      } else if (hasFilters) {
+        return l10n.exportCSVFiltered;
+      } else {
+        return l10n.exportCSV;
+      }
     } else {
-      return 'Export $formatLabel';
+      // fallback if format unknown
+      final upperFormat = format.toUpperCase();
+      if (hasDateRange && hasFilters) {
+        return 'Export $upperFormat (Filtered)';
+      } else if (hasDateRange) {
+        return 'Export $upperFormat (Date Range)';
+      } else if (hasFilters) {
+        return 'Export $upperFormat (Filtered)';
+      } else {
+        return 'Export $upperFormat';
+      }
     }
   }
 
+  /// Return icon based on format
   IconData _getFormatIcon() {
     switch (format.toLowerCase()) {
       case 'xlsx':
@@ -194,7 +222,7 @@ class ExportActionButton extends StatelessWidget {
   }
 }
 
-/// Compact version for small spaces
+/// Compact button for smaller UI spaces
 class CompactExportButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
@@ -209,6 +237,7 @@ class CompactExportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEnabled = !isLoading && onPressed != null;
+    final l10n = ExportLocalizations.of(context);
 
     return Container(
       width: 120,
@@ -255,7 +284,7 @@ class CompactExportButton extends StatelessWidget {
                 ),
               AppSpacing.horizontalSpaceXS,
               Text(
-                'Export',
+                l10n.exportPageTitle,
                 style: AppTextStyles.caption.copyWith(
                   color: isEnabled
                       ? AppColors.onPrimary

@@ -1,26 +1,27 @@
-// Path: frontend/lib/features/export/presentation/widgets/file_format_section.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/app_constants.dart';
 import 'file_format_card.dart';
+import 'package:frontend/l10n/features/export/export_localizations.dart';
 
 class FileFormatSection extends StatelessWidget {
   final String selectedFormat;
   final Function(String) onFormatSelected;
-  final bool? isLargeScreen; // เพิ่ม parameter ใหม่
+  final bool? isLargeScreen; // optional parameter
 
   const FileFormatSection({
     super.key,
     required this.selectedFormat,
     required this.onFormatSelected,
-    this.isLargeScreen, // optional parameter
+    this.isLargeScreen,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ExportLocalizations.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isLarge =
         isLargeScreen ?? (screenWidth >= AppConstants.tabletBreakpoint);
@@ -28,7 +29,7 @@ class FileFormatSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, theme),
+        _buildSectionHeader(context, theme, l10n),
         SizedBox(
           height: AppSpacing.responsiveSpacing(
             context,
@@ -37,18 +38,22 @@ class FileFormatSection extends StatelessWidget {
             desktop: AppSpacing.xl,
           ),
         ),
-        _buildFormatCards(context, isLarge),
+        _buildFormatCards(context, isLarge, l10n),
       ],
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, ThemeData theme) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    ThemeData theme,
+    ExportLocalizations l10n,
+  ) {
     return Row(
       children: [
         Icon(Icons.file_copy, color: AppColors.primary, size: 20),
         AppSpacing.horizontalSpaceSM,
         Text(
-          'File Format',
+          l10n.exportFormat, // แปลว่า "File Format" หรือข้อความที่กำหนดใน localization
           style: AppTextStyles.cardTitle.copyWith(
             color: theme.colorScheme.onSurface,
           ),
@@ -57,15 +62,22 @@ class FileFormatSection extends StatelessWidget {
     );
   }
 
-  Widget _buildFormatCards(BuildContext context, bool isLarge) {
+  Widget _buildFormatCards(
+    BuildContext context,
+    bool isLarge,
+    ExportLocalizations l10n,
+  ) {
     if (isLarge) {
-      return _buildLargeScreenLayout(context);
+      return _buildLargeScreenLayout(context, l10n);
     } else {
-      return _buildCompactLayout(context);
+      return _buildCompactLayout(context, l10n);
     }
   }
 
-  Widget _buildLargeScreenLayout(BuildContext context) {
+  Widget _buildLargeScreenLayout(
+    BuildContext context,
+    ExportLocalizations l10n,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,8 +87,9 @@ class FileFormatSection extends StatelessWidget {
               child: FileFormatCard(
                 isSelected: selectedFormat == 'xlsx',
                 format: 'xlsx',
-                title: 'Excel (.xlsx)',
-                subtitle: 'Spreadsheet with formatting',
+                title: l10n.excelFormat, // 'Excel (.xlsx)'
+                subtitle: l10n
+                    .excelFormatDescription, // 'Spreadsheet with formatting'
                 icon: Icons.table_chart,
                 color: AppColors.excel,
                 onTap: onFormatSelected,
@@ -87,8 +100,9 @@ class FileFormatSection extends StatelessWidget {
               child: FileFormatCard(
                 isSelected: selectedFormat == 'csv',
                 format: 'csv',
-                title: 'CSV (.csv)',
-                subtitle: 'Plain text, comma-separated',
+                title: l10n.csvFormat, // 'CSV (.csv)'
+                subtitle:
+                    l10n.csvFormatDescription, // 'Plain text, comma-separated'
                 icon: Icons.text_snippet,
                 color: AppColors.csv,
                 onTap: onFormatSelected,
@@ -100,15 +114,15 @@ class FileFormatSection extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactLayout(BuildContext context) {
+  Widget _buildCompactLayout(BuildContext context, ExportLocalizations l10n) {
     return Row(
       children: [
         Expanded(
           child: FileFormatCard(
             isSelected: selectedFormat == 'xlsx',
             format: 'xlsx',
-            title: 'Excel (.xlsx)',
-            subtitle: 'Spreadsheet with formatting',
+            title: l10n.excelFormat,
+            subtitle: l10n.excelFormatDescription,
             icon: Icons.table_chart,
             color: AppColors.excel,
             onTap: onFormatSelected,
@@ -119,8 +133,8 @@ class FileFormatSection extends StatelessWidget {
           child: FileFormatCard(
             isSelected: selectedFormat == 'csv',
             format: 'csv',
-            title: 'CSV (.csv)',
-            subtitle: 'Plain text, comma-separated',
+            title: l10n.csvFormat,
+            subtitle: l10n.csvFormatDescription,
             icon: Icons.text_snippet,
             color: AppColors.csv,
             onTap: onFormatSelected,
