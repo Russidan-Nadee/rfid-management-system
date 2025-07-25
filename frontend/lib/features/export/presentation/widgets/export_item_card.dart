@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/export/presentation/widgets/export_item_card.dart
 import 'package:flutter/material.dart';
+import 'package:frontend/l10n/features/export/export_localizations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
@@ -243,6 +244,7 @@ class ExportItemCard extends StatelessWidget {
 
   Widget _buildActionButton(BuildContext context, bool isDark, bool isLarge) {
     final canDownload = export.canDownload;
+    final l10n = ExportLocalizations.of(context);
 
     if (isLarge) {
       return Container(
@@ -284,7 +286,7 @@ class ExportItemCard extends StatelessWidget {
                 ),
                 AppSpacing.horizontalSpaceXS,
                 Text(
-                  'Download',
+                  l10n.download,
                   style: AppTextStyles.caption.copyWith(
                     color: canDownload
                         ? AppColors.onPrimary
