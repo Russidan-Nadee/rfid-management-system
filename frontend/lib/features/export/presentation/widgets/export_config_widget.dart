@@ -53,6 +53,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
             context,
             'Export completed and ready to download!',
           );
+          context.read<ExportBloc>().add(
+            DownloadExport(state.exportJob.exportId),
+          );
         } else if (state is ExportError) {
           Helpers.showError(context, state.message);
         } else if (state is ExportPlatformNotSupported) {
@@ -223,7 +226,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Export All Data',
+                  'Export Data',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: isDark
                         ? AppColors.darkText
