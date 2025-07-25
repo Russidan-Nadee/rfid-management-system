@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frontend/app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 import '../../domain/entities/search_result_entity.dart';
 
 class SearchResultDetailDialog extends StatelessWidget {
@@ -12,6 +13,7 @@ class SearchResultDetailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
 
     return Dialog(
       backgroundColor: theme.colorScheme.surface,
@@ -23,25 +25,29 @@ class SearchResultDetailDialog extends StatelessWidget {
         child: Column(
           children: [
             // Header
-            _buildHeader(context, theme),
+            _buildHeader(context, theme, l10n),
 
             // Content: Grid Layout
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: _buildGridLayout(context, theme),
+                child: _buildGridLayout(context, theme, l10n),
               ),
             ),
 
             // Footer Buttons
-            _buildFooter(context, theme),
+            _buildFooter(context, theme, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ThemeData theme) {
+  Widget _buildHeader(
+    BuildContext context,
+    ThemeData theme,
+    SearchLocalizations l10n,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -69,7 +75,7 @@ class SearchResultDetailDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Item Details',
+                  l10n.itemDetails,
                   style: theme.textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? AppColors.darkText
@@ -104,18 +110,25 @@ class SearchResultDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildGridLayout(BuildContext context, ThemeData theme) {
-    final sections = _groupFieldsBySection();
+  Widget _buildGridLayout(
+    BuildContext context,
+    ThemeData theme,
+    SearchLocalizations l10n,
+  ) {
+    final sections = _groupFieldsBySection(l10n);
     final sectionWidgets = sections.entries
         .where((entry) => entry.value.isNotEmpty)
-        .map((entry) => _buildSection(entry.key, entry.value, theme, context))
+        .map(
+          (entry) =>
+              _buildSection(entry.key, entry.value, theme, context, l10n),
+        )
         .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '📊 Complete Information',
+          l10n.completeInformation,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: Theme.of(context).brightness == Brightness.dark
@@ -179,6 +192,7 @@ class SearchResultDetailDialog extends StatelessWidget {
     List<MapEntry<String, String>> fields,
     ThemeData theme,
     BuildContext context,
+    SearchLocalizations l10n,
   ) {
     if (fields.isEmpty) return const SizedBox.shrink();
 
@@ -234,6 +248,7 @@ class SearchResultDetailDialog extends StatelessWidget {
                   entry.value,
                   theme,
                   context,
+                  l10n,
                 );
               }).toList(),
             ),
@@ -248,6 +263,7 @@ class SearchResultDetailDialog extends StatelessWidget {
     String value,
     ThemeData theme,
     BuildContext context,
+    SearchLocalizations l10n,
   ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -268,7 +284,7 @@ class SearchResultDetailDialog extends StatelessWidget {
           ),
           Expanded(
             child: SelectableText(
-              value.isEmpty ? '(empty)' : value,
+              value.isEmpty ? l10n.empty : value,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: value.isEmpty
                     ? (Theme.of(context).brightness == Brightness.dark
@@ -286,7 +302,7 @@ class SearchResultDetailDialog extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: value));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('$label copied'),
+                  content: Text('$label ${l10n.copied}'),
                   duration: const Duration(seconds: 1),
                 ),
               );
@@ -307,7 +323,11 @@ class SearchResultDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter(BuildContext context, ThemeData theme) {
+  Widget _buildFooter(
+    BuildContext context,
+    ThemeData theme,
+    SearchLocalizations l10n,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -330,9 +350,9 @@ class SearchResultDetailDialog extends StatelessWidget {
               foregroundColor: theme.colorScheme.primary,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: const Text(
-              'Close',
-              style: TextStyle(fontWeight: FontWeight.w600),
+            child: Text(
+              l10n.close,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -343,15 +363,17 @@ class SearchResultDetailDialog extends StatelessWidget {
   /// Helper methods for processing data
 
   /// จัดกลุ่ม fields เป็น sections ตามประเภท
-  Map<String, List<MapEntry<String, String>>> _groupFieldsBySection() {
+  Map<String, List<MapEntry<String, String>>> _groupFieldsBySection(
+    SearchLocalizations l10n,
+  ) {
     final allFields = _getAllFields();
     final sections = <String, List<MapEntry<String, String>>>{
-      '📦 Asset Information': [],
-      '🏭 Location & Plant': [],
-      '🏢 Department': [],
-      '👤 User Information': [],
-      '📅 Timestamps': [],
-      '📋 Other Information': [],
+      l10n.assetInformation: [],
+      l10n.locationAndPlant: [],
+      l10n.department: [],
+      l10n.userInformation: [],
+      l10n.timestamps: [],
+      l10n.otherInformation: [],
     };
 
     for (final entry in allFields.entries) {
@@ -359,31 +381,31 @@ class SearchResultDetailDialog extends StatelessWidget {
 
       // เช็ค plant fields ก่อน (รวม plant_description)
       if (fieldName.contains('plant')) {
-        sections['🏭 Location & Plant']!.add(entry);
+        sections[l10n.locationAndPlant]!.add(entry);
       }
       // เช็ค location fields
       else if (fieldName.contains('location')) {
-        sections['🏭 Location & Plant']!.add(entry);
+        sections[l10n.locationAndPlant]!.add(entry);
       }
       // เช็ค department fields ก่อน (รวม dept_description)
       else if (fieldName.contains('dept')) {
-        sections['🏢 Department']!.add(entry);
+        sections[l10n.department]!.add(entry);
       }
       // User Information
       else if (_isUserField(fieldName)) {
-        sections['👤 User Information']!.add(entry);
+        sections[l10n.userInformation]!.add(entry);
       }
       // Timestamps
       else if (_isTimestampField(fieldName)) {
-        sections['📅 Timestamps']!.add(entry);
+        sections[l10n.timestamps]!.add(entry);
       }
       // Asset Information (เช็คหลังสุด)
       else if (_isAssetField(fieldName)) {
-        sections['📦 Asset Information']!.add(entry);
+        sections[l10n.assetInformation]!.add(entry);
       }
       // Other
       else {
-        sections['📋 Other Information']!.add(entry);
+        sections[l10n.otherInformation]!.add(entry);
       }
     }
     // เรียงลำดับ fields ใน section

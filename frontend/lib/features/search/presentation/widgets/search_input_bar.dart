@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_input_bar.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 
 class SearchInputBar extends StatelessWidget {
   final TextEditingController searchController;
@@ -19,6 +20,7 @@ class SearchInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -28,7 +30,7 @@ class SearchInputBar extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
-          hintText: 'Search...',
+          hintText: l10n.searchPlaceholder,
           hintStyle: TextStyle(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.darkTextMuted

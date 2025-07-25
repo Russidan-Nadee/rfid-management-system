@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_error_view.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 
 class SearchErrorView extends StatelessWidget {
   final String message;
@@ -17,6 +18,8 @@ class SearchErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -26,7 +29,7 @@ class SearchErrorView extends StatelessWidget {
             Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              'Happened an error while searching for "$query"',
+              '${l10n.errorOccurred} "$query"',
               style: theme.textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkText
@@ -51,7 +54,7 @@ class SearchErrorView extends StatelessWidget {
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
               ),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),

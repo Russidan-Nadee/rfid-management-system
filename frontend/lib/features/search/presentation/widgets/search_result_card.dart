@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_result_card.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 import '../../domain/entities/search_result_entity.dart';
 
 class SearchResultCard extends StatelessWidget {
@@ -20,6 +21,7 @@ class SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
 
     // ดึง asset_no จาก data
     final assetNo = result.data['asset_no']?.toString() ?? '';
@@ -57,7 +59,9 @@ class SearchResultCard extends StatelessWidget {
                   children: [
                     // บรรทัดแรก: Description (จาก title)
                     Text(
-                      result.title.isNotEmpty ? result.title : 'No description',
+                      result.title.isNotEmpty
+                          ? result.title
+                          : l10n.noDescription,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkText
@@ -70,7 +74,7 @@ class SearchResultCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     // บรรทัดที่สอง: Asset No
                     Text(
-                      assetNo.isNotEmpty ? assetNo : 'No asset number',
+                      assetNo.isNotEmpty ? assetNo : l10n.noAssetNumber,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? AppColors.darkTextSecondary

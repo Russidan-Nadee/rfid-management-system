@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_empty_view.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 
 class SearchEmptyView extends StatelessWidget {
   final String query;
@@ -10,6 +11,8 @@ class SearchEmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -25,7 +28,7 @@ class SearchEmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No results found for "$query"',
+              '${l10n.noResultsFound} "$query"',
               style: theme.textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkText
@@ -35,7 +38,7 @@ class SearchEmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Try a different search term or check your spelling.',
+              l10n.noResultsFoundMessage,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkTextSecondary

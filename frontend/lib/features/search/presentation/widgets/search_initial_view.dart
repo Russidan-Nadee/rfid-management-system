@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_initial_view.dart
 import 'package:flutter/material.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 
 class SearchInitialView extends StatelessWidget {
   const SearchInitialView({super.key});
@@ -8,6 +9,8 @@ class SearchInitialView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -21,7 +24,7 @@ class SearchInitialView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Start your search',
+            l10n.startYourSearch,
             style: theme.textTheme.titleLarge?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkText
@@ -30,7 +33,7 @@ class SearchInitialView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Type a query to see results',
+            l10n.typeQueryToSeeResults,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkTextSecondary

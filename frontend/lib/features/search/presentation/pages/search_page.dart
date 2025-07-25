@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../l10n/features/search/search_localizations.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
@@ -79,6 +80,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = SearchLocalizations.of(context);
 
     return BlocProvider(
       create: (context) => getIt<SearchBloc>(),
@@ -88,7 +90,7 @@ class _SearchPageState extends State<SearchPage> {
             : theme.colorScheme.background,
         appBar: AppBar(
           title: Text(
-            'Search',
+            l10n.pageTitle,
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
@@ -143,7 +145,7 @@ class _SearchPageState extends State<SearchPage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  'Search Results for "${state.query}"',
+                                  '${l10n.searchResultsFor} "${state.query}"',
                                   style: AppTextStyles.cardTitle.copyWith(
                                     color:
                                         Theme.of(context).brightness ==
@@ -170,7 +172,7 @@ class _SearchPageState extends State<SearchPage> {
                                   borderRadius: AppBorders.pill,
                                 ),
                                 child: Text(
-                                  '${state.totalResults} items',
+                                  '${state.totalResults} ${l10n.totalItems}',
                                   style: AppTextStyles.caption.copyWith(
                                     color:
                                         Theme.of(context).brightness ==
@@ -210,7 +212,7 @@ class _SearchPageState extends State<SearchPage> {
                                       ),
                                       AppSpacing.horizontalSpaceXS,
                                       Text(
-                                        'Cached',
+                                        l10n.cached,
                                         style: AppTextStyles.caption.copyWith(
                                           color:
                                               Theme.of(context).brightness ==
