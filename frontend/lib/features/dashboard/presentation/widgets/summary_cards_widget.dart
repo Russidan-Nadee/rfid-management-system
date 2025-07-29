@@ -7,6 +7,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/app_constants.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
@@ -42,6 +43,7 @@ class SummaryCardsWidget extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
     final screenWidth = constraints.maxWidth;
 
     int crossAxisCount;
@@ -74,21 +76,23 @@ class SummaryCardsWidget extends StatelessWidget {
         children: [
           _buildStatCard(
             context: context,
+            l10n: l10n,
             icon: LucideIcons.boxes,
             iconColor: isDark
                 ? theme.colorScheme.onSurface
                 : theme.colorScheme.primary,
-            title: 'All Assets',
+            title: l10n.allAssets,
             value: Helpers.formatNumber(stats.overview.totalAssets.value),
             trend: stats.overview.totalAssets.trend,
           ),
           _buildStatCard(
             context: context,
+            l10n: l10n,
             icon: LucideIcons.packagePlus,
             iconColor: isDark
                 ? theme.colorScheme.onSurface
                 : theme.colorScheme.primary,
-            title: 'New Assets',
+            title: l10n.newAssets,
             value: Helpers.formatNumber(stats.overview.createdAssets.value),
             trend: stats.overview.createdAssets.trend,
           ),
@@ -99,6 +103,7 @@ class SummaryCardsWidget extends StatelessWidget {
 
   Widget _buildStatCard({
     required BuildContext context,
+    required DashboardLocalizations l10n,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -259,6 +264,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
         builder: (context, constraints) {
           final theme = Theme.of(context);
           final isDark = theme.brightness == Brightness.dark;
+          final l10n = DashboardLocalizations.of(context);
           final screenWidth = constraints.maxWidth;
 
           int crossAxisCount;
@@ -285,6 +291,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
             children: [
               _LegacySummaryCard(
                 context: context,
+                l10n: l10n,
                 icon: LucideIcons.boxes,
                 iconColor: isDark
                     ? theme.colorScheme.onSurface
@@ -292,7 +299,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
                 labelColor: isDark
                     ? theme.colorScheme.onSurface
                     : theme.colorScheme.primary,
-                label: 'All Assets',
+                label: l10n.allAssets,
                 value: Helpers.formatNumber(stats.overview.totalAssets.value),
                 valueColor: isDark
                     ? theme.colorScheme.onSurface
@@ -302,6 +309,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
               ),
               _LegacySummaryCard(
                 context: context,
+                l10n: l10n,
                 icon: LucideIcons.packagePlus,
                 iconColor: isDark
                     ? theme.colorScheme.onSurface
@@ -309,7 +317,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
                 labelColor: isDark
                     ? theme.colorScheme.onSurface
                     : theme.colorScheme.primary,
-                label: 'New Assets',
+                label: l10n.newAssets,
                 value: Helpers.formatNumber(stats.overview.createdAssets.value),
                 valueColor: isDark
                     ? theme.colorScheme.onSurface
@@ -357,6 +365,7 @@ class LegacySummaryCardsWidget extends StatelessWidget {
 
 class _LegacySummaryCard extends StatelessWidget {
   final BuildContext context;
+  final DashboardLocalizations l10n;
   final IconData icon;
   final String label;
   final String value;
@@ -368,6 +377,7 @@ class _LegacySummaryCard extends StatelessWidget {
 
   const _LegacySummaryCard({
     required this.context,
+    required this.l10n,
     required this.icon,
     required this.label,
     required this.value,
@@ -427,5 +437,170 @@ class _LegacySummaryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// Enhanced Summary Cards with additional features
+class EnhancedSummaryCardsWidget extends StatelessWidget {
+  final DashboardStats stats;
+  final bool isLoading;
+  final bool showTrends;
+  final bool showSubtitles;
+  final VoidCallback? onAllAssetsTab;
+  final VoidCallback? onNewAssetsTab;
+
+  const EnhancedSummaryCardsWidget({
+    super.key,
+    required this.stats,
+    this.isLoading = false,
+    this.showTrends = true,
+    this.showSubtitles = false,
+    this.onAllAssetsTab,
+    this.onNewAssetsTab,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
+    if (isLoading) {
+      return _buildEnhancedLoadingCards(context);
+    }
+
+    return Padding(
+      padding: AppSpacing.screenPaddingHorizontal,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return _buildEnhancedGrid(context, constraints, l10n);
+        },
+      ),
+    );
+  }
+
+  Widget _buildEnhancedGrid(
+    BuildContext context,
+    BoxConstraints constraints,
+    DashboardLocalizations l10n,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final screenWidth = constraints.maxWidth;
+
+    int crossAxisCount;
+    double childAspectRatio;
+
+    if (screenWidth > AppConstants.desktopBreakpoint) {
+      crossAxisCount = 4;
+      childAspectRatio = 1.2;
+    } else if (screenWidth > AppConstants.tabletBreakpoint) {
+      crossAxisCount = 2;
+      childAspectRatio = 1.3;
+    } else {
+      crossAxisCount = 2;
+      childAspectRatio = 1.1;
+    }
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: crossAxisCount,
+      childAspectRatio: childAspectRatio,
+      crossAxisSpacing: AppSpacing.medium,
+      mainAxisSpacing: AppSpacing.medium,
+      children: [
+        _buildEnhancedStatCard(
+          context: context,
+          l10n: l10n,
+          icon: LucideIcons.boxes,
+          title: l10n.allAssets,
+          value: Helpers.formatNumber(stats.overview.totalAssets.value),
+          trend: showTrends ? stats.overview.totalAssets.trend : null,
+          subtitle: showSubtitles ? l10n.totalAssets : null,
+          onTap: onAllAssetsTab,
+          color: isDark
+              ? theme.colorScheme.onSurface
+              : theme.colorScheme.primary,
+        ),
+        _buildEnhancedStatCard(
+          context: context,
+          l10n: l10n,
+          icon: LucideIcons.packagePlus,
+          title: l10n.newAssets,
+          value: Helpers.formatNumber(stats.overview.createdAssets.value),
+          trend: showTrends ? stats.overview.createdAssets.trend : null,
+          subtitle: showSubtitles ? l10n.assets : null,
+          onTap: onNewAssetsTab,
+          color: AppColors.success,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnhancedStatCard({
+    required BuildContext context,
+    required DashboardLocalizations l10n,
+    required IconData icon,
+    required String title,
+    required String value,
+    required Color color,
+    String? trend,
+    String? subtitle,
+    VoidCallback? onTap,
+  }) {
+    return StatCard(
+      icon: icon,
+      iconColor: color,
+      title: title,
+      value: value,
+      valueColor: color,
+      trend: trend,
+      subtitle: subtitle,
+      trendColor: trend != null
+          ? _getTrendColor(trend, Theme.of(context))
+          : null,
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildEnhancedLoadingCards(BuildContext context) {
+    return Padding(
+      padding: AppSpacing.screenPaddingHorizontal,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          int crossAxisCount;
+          double childAspectRatio;
+
+          if (screenWidth > AppConstants.desktopBreakpoint) {
+            crossAxisCount = 4;
+            childAspectRatio = 1.2;
+          } else if (screenWidth > AppConstants.tabletBreakpoint) {
+            crossAxisCount = 2;
+            childAspectRatio = 1.3;
+          } else {
+            crossAxisCount = 2;
+            childAspectRatio = 1.1;
+          }
+
+          return SkeletonGrid(
+            itemCount: 2,
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: childAspectRatio,
+          );
+        },
+      ),
+    );
+  }
+
+  Color _getTrendColor(String trend, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (trend.startsWith('+')) {
+      return isDark ? AppColors.success : AppColors.trendUp;
+    } else if (trend.startsWith('-')) {
+      return isDark ? AppColors.error : AppColors.trendDown;
+    } else {
+      return isDark ? AppColors.darkTextSecondary : AppColors.trendStable;
+    }
   }
 }

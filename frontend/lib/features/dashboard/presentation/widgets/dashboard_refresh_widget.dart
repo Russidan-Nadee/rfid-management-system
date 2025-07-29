@@ -5,6 +5,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 
 class DashboardRefreshWidget extends StatelessWidget {
   final VoidCallback onRefresh;
@@ -211,6 +212,7 @@ class _DataFreshnessIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
     final now = DateTime.now();
     final difference = now.difference(lastRefresh);
     final isFresh = difference.inMinutes < 5;
@@ -223,19 +225,19 @@ class _DataFreshnessIndicator extends StatelessWidget {
     if (isFresh) {
       indicatorColor = AppColors.success;
       indicatorIcon = Icons.check_circle;
-      status = 'Fresh';
+      status = l10n.fresh;
     } else if (isStale) {
       indicatorColor = AppColors.warning;
       indicatorIcon = Icons.warning;
-      status = 'Stale';
+      status = l10n.stale;
     } else {
       indicatorColor = AppColors.info;
       indicatorIcon = Icons.info;
-      status = 'OK';
+      status = l10n.ok;
     }
 
     return Tooltip(
-      message: 'Last updated: ${Helpers.formatDateTime(lastRefresh)}',
+      message: l10n.lastUpdatedTooltip(Helpers.formatDateTime(lastRefresh)),
       child: Container(
         padding: AppSpacing.paddingHorizontalSM.add(
           AppSpacing.paddingVerticalXS,
@@ -278,6 +280,8 @@ class _RefreshMenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return PopupMenuButton<String>(
       enabled: !isLoading,
       icon: AnimatedBuilder(
@@ -305,7 +309,7 @@ class _RefreshMenuButton extends StatelessWidget {
             children: [
               const Icon(Icons.refresh, size: 16),
               AppSpacing.horizontalSpaceSmall,
-              const Text('Refresh Data'),
+              Text(l10n.refreshData),
             ],
           ),
         ),
@@ -316,17 +320,17 @@ class _RefreshMenuButton extends StatelessWidget {
               children: [
                 const Icon(Icons.clear_all, size: 16),
                 AppSpacing.horizontalSpaceSmall,
-                const Text('Clear Cache'),
+                Text(l10n.clearCache),
               ],
             ),
           ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 'auto_refresh',
           child: Row(
             children: [
-              Icon(Icons.timer, size: 16),
+              const Icon(Icons.timer, size: 16),
               SizedBox(width: 8),
-              Text('Auto Refresh'),
+              Text(l10n.autoRefresh),
             ],
           ),
         ),
@@ -412,16 +416,18 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return AlertDialog(
-      title: const Text('Auto Refresh Settings'),
+      title: Text(l10n.autoRefreshSettings),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Enable/Disable toggle
           SwitchListTile(
-            title: const Text('Enable Auto Refresh'),
-            subtitle: const Text('Automatically refresh dashboard data'),
+            title: Text(l10n.enableAutoRefresh),
+            subtitle: Text(l10n.autoRefreshDescription),
             value: _isEnabled,
             onChanged: (value) => setState(() => _isEnabled = value),
             activeColor: AppColors.primary,
@@ -432,7 +438,7 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
           // Interval selection
           if (_isEnabled) ...[
             Text(
-              'Refresh Interval:',
+              l10n.refreshInterval,
               style: AppTextStyles.body2.copyWith(fontWeight: FontWeight.w500),
             ),
             AppSpacing.verticalSpaceSmall,
@@ -469,7 +475,7 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
                   AppSpacing.horizontalSpaceSmall,
                   Expanded(
                     child: Text(
-                      'Auto refresh will consume more battery and data.',
+                      l10n.autoRefreshWarning,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.warning,
                       ),
@@ -484,14 +490,14 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
             _showAutoRefreshToast(context);
           },
-          child: const Text('Apply'),
+          child: Text(l10n.apply),
         ),
       ],
     );
@@ -507,12 +513,16 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
   }
 
   void _showAutoRefreshToast(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           _isEnabled
-              ? 'Auto refresh enabled (${_formatInterval(_selectedInterval)})'
-              : 'Auto refresh disabled',
+              ? l10n.autoRefreshEnabledWithInterval(
+                  _formatInterval(_selectedInterval),
+                )
+              : l10n.autoRefreshDisabled,
         ),
         duration: const Duration(seconds: 2),
         backgroundColor: _isEnabled

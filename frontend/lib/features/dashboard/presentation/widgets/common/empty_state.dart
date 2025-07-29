@@ -1,9 +1,10 @@
-// Path: frontend/lib/core/widgets/common/empty_state.dart
+// Path: frontend/lib/features/dashboard/presentation/widgets/common/empty_state.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/app/theme/app_colors.dart';
 import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/app/theme/app_spacing.dart';
 import 'package:frontend/app/theme/app_typography.dart';
+import '../../../../../l10n/features/dashboard/dashboard_localizations.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData? icon;
@@ -75,15 +76,17 @@ class NoDataFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.inbox_outlined,
-      title: 'No Data Found',
-      description: message ?? 'There is no data to display at the moment.',
+      title: l10n.noDataFound,
+      description: message ?? l10n.noDataToDisplay,
       action: onRetry != null
           ? ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Reload'),
+              label: Text(l10n.reload),
             )
           : null,
     );
@@ -98,17 +101,19 @@ class NoSearchResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.search_off,
-      title: 'No Results Found',
+      title: l10n.noResultsFound,
       description: searchTerm != null
-          ? 'No results found for "$searchTerm".\nTry different keywords.'
-          : 'No results found.\nTry different search terms.',
+          ? l10n.noResultsFor(searchTerm!)
+          : l10n.noResultsFound,
       action: onClear != null
           ? OutlinedButton.icon(
               onPressed: onClear,
               icon: const Icon(Icons.clear),
-              label: const Text('Clear Search'),
+              label: Text(l10n.clearSearch),
             )
           : null,
     );
@@ -122,16 +127,18 @@ class NoConnection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.wifi_off,
       iconColor: AppColors.error,
-      title: 'No Connection',
-      description: 'Please check your internet connection and try again.',
+      title: l10n.noConnection,
+      description: l10n.checkInternetConnection,
       action: onRetry != null
           ? ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(l10n.tryAgain),
             )
           : null,
     );
@@ -146,16 +153,17 @@ class NoDashboardData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.dashboard_outlined,
-      title: 'No Dashboard Data',
-      description:
-          'Dashboard data is not available.\nPlease refresh to load data.',
+      title: l10n.noDashboardData,
+      description: l10n.noDashboardDataDescription,
       action: onRefresh != null
           ? ElevatedButton.icon(
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh),
-              label: const Text('Refresh Dashboard'),
+              label: Text(l10n.refreshDashboard),
             )
           : null,
     );
@@ -170,17 +178,19 @@ class NoChartData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.show_chart,
-      title: 'No Chart Data',
+      title: l10n.noChartData,
       description: chartType != null
-          ? 'No data available for $chartType chart.'
-          : 'No chart data available.',
+          ? l10n.noChartDataAvailable
+          : l10n.noChartDataAvailable,
       action: onRefresh != null
           ? TextButton.icon(
               onPressed: onRefresh,
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Reload'),
+              label: Text(l10n.reload),
             )
           : null,
     );
@@ -194,16 +204,17 @@ class NoAssets extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return EmptyState(
       icon: Icons.inventory_2_outlined,
-      title: 'No Assets Found',
-      description:
-          'No assets available in the system.\nStart by adding your first asset.',
+      title: l10n.noDataFound,
+      description: l10n.noAssetsInSystem,
       action: onAdd != null
           ? ElevatedButton.icon(
               onPressed: onAdd,
               icon: const Icon(Icons.add),
-              label: const Text('Add Asset'),
+              label: Text(l10n.addAsset),
             )
           : null,
     );

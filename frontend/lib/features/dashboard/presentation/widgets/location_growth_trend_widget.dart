@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 import '../../domain/entities/growth_trend.dart';
 import 'common/dashboard_card.dart';
 import 'common/empty_state.dart';
@@ -56,12 +57,14 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (widget.isLoading) {
-      return _buildLoadingWidget();
+      return _buildLoadingWidget(l10n);
     }
 
     return ChartCard(
-      title: 'Asset Growth Location',
+      title: l10n.assetGrowthLocation,
       filters: _buildLocationFilter(context),
       chart: Column(
         children: [
@@ -71,7 +74,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             height: 200,
             child: widget.growthTrend.hasData
                 ? _buildLineChart()
-                : _buildEmptyState(),
+                : _buildEmptyState(context),
           ),
         ],
       ),
@@ -82,6 +85,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   Widget _buildLocationFilter(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
     final Map<String, String> uniqueLocations = {};
 
     for (final location in widget.availableLocations) {
@@ -107,7 +111,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
         child: DropdownButton<String?>(
           value: dropdownDisplayValue,
           hint: Text(
-            'All Locations',
+            l10n.allLocations,
             style: AppTextStyles.body2.copyWith(
               color: isDark
                   ? AppColors.darkTextSecondary
@@ -120,7 +124,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             DropdownMenuItem<String?>(
               value: null,
               child: Text(
-                'All Locations',
+                l10n.allLocations,
                 style: AppTextStyles.body2.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 ),
@@ -156,12 +160,13 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   Widget _buildPeriodInfo(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Period: ${widget.growthTrend.periodInfo.period}',
+          '${l10n.period}: ${widget.growthTrend.periodInfo.period}',
           style: AppTextStyles.body1.copyWith(
             fontWeight: FontWeight.w500,
             color: isDark ? AppColors.darkText : AppColors.textPrimary,
@@ -178,7 +183,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
             ),
             child: Text(
-              'Current Year',
+              l10n.currentYear,
               style: AppTextStyles.overline.copyWith(
                 color: Colors.orange,
                 fontWeight: FontWeight.w500,
@@ -192,6 +197,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   Widget _buildLineChart() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     final spots = widget.growthTrend.trends.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.assetCount.toDouble());
@@ -207,7 +213,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: isDark
-                  ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                  ? AppColors.darkBorder.withValues(alpha: 0.4)
                   : AppColors.divider,
               strokeWidth: 1,
             );
@@ -215,7 +221,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           getDrawingVerticalLine: (value) {
             return FlLine(
               color: isDark
-                  ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                  ? AppColors.darkBorder.withValues(alpha: 0.4)
                   : AppColors.divider,
               strokeWidth: 1,
             );
@@ -231,9 +237,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                   '${value.toInt()}',
                   style: AppTextStyles.overline.copyWith(
                     color: isDark
-                        ? AppColors.darkTextSecondary.withValues(
-                            alpha: 0.8,
-                          ) // เข้มกว่า grid แต่อ่อนกว่าหัวข้อ
+                        ? AppColors.darkTextSecondary.withValues(alpha: 0.8)
                         : AppColors.textSecondary,
                   ),
                 );
@@ -254,9 +258,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                       style: AppTextStyles.chartLabel.copyWith(
                         fontWeight: FontWeight.w500,
                         color: isDark
-                            ? AppColors.darkTextSecondary.withValues(
-                                alpha: 0.8,
-                              ) // เข้มกว่า grid แต่อ่อนกว่าหัวข้อ
+                            ? AppColors.darkTextSecondary.withValues(alpha: 0.8)
                             : AppColors.textSecondary,
                       ),
                     ),
@@ -273,7 +275,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           show: true,
           border: Border.all(
             color: isDark
-                ? AppColors.darkBorder.withValues(alpha: 0.4) // อ่อนลง
+                ? AppColors.darkBorder.withValues(alpha: 0.4)
                 : AppColors.divider,
           ),
         ),
@@ -282,7 +284,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             spots: spots,
             isCurved: true,
             color: isDark
-                ? Color.lerp(Colors.orange, Colors.black, 0.2)! // ส้มมืดลง 20%
+                ? Color.lerp(Colors.orange, Colors.black, 0.2)!
                 : Colors.orange,
             barWidth: 3,
             dotData: FlDotData(
@@ -294,11 +296,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
                   if (trend.isPositiveGrowth) {
                     dotColor = isDark
-                        ? Color.lerp(
-                            AppColors.trendUp,
-                            Colors.black,
-                            0.2,
-                          )! // ฟ้ามืดลง 20%
+                        ? Color.lerp(AppColors.trendUp, Colors.black, 0.2)!
                         : AppColors.trendUp;
                   } else if (trend.isNegativeGrowth) {
                     dotColor = AppColors.trendDown;
@@ -316,11 +314,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                 return FlDotCirclePainter(
                   radius: 4,
                   color: isDark
-                      ? Color.lerp(
-                          Colors.orange,
-                          Colors.black,
-                          0.2,
-                        )! // ส้มมืดลง 20%
+                      ? Color.lerp(Colors.orange, Colors.black, 0.2)!
                       : Colors.orange,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
@@ -347,7 +341,11 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
                 if (index < widget.growthTrend.trends.length) {
                   final trend = widget.growthTrend.trends[index];
                   return LineTooltipItem(
-                    'Year ${trend.period}\n${trend.assetCount} assets\n${trend.formattedGrowthPercentage}',
+                    l10n.chartTooltip(
+                      trend.period,
+                      trend.assetCount,
+                      trend.formattedGrowthPercentage,
+                    ),
                     AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -366,6 +364,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   Widget _buildTrendSummary(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
     int latestYearGrowth = _calculateLatestYearGrowth();
     int correctedAverageGrowth = _calculateAverageGrowth();
 
@@ -385,7 +384,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
         children: [
           _buildSummaryItem(
             context,
-            'Latest Year',
+            l10n.latestYear,
             '${latestYearGrowth.toString()}%',
             Icons.trending_up,
             latestYearGrowth > 0
@@ -397,7 +396,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           _buildDivider(context),
           _buildSummaryItem(
             context,
-            'Average Growth',
+            l10n.averageGrowth,
             '${correctedAverageGrowth.toString()}%',
             Icons.analytics,
             Colors.orange,
@@ -405,7 +404,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
           _buildDivider(context),
           _buildSummaryItem(
             context,
-            'Periods',
+            l10n.periods,
             widget.growthTrend.summary.totalPeriods.toString(),
             Icons.calendar_today,
             isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
@@ -466,9 +465,8 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
     final previousYear =
         widget.growthTrend.trends[widget.growthTrend.trends.length - 2];
 
-    if (previousYear.assetCount == 0) return 100; // หลีกเลี่ยงหารด้วย 0
+    if (previousYear.assetCount == 0) return 100;
 
-    // คำนวณเปอร์เซ็นต์การเติบโต
     return (((latestYear.assetCount - previousYear.assetCount) /
                 previousYear.assetCount) *
             100)
@@ -501,16 +499,18 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
         .round();
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return CompactEmptyState(
       icon: Icons.show_chart,
-      message: 'No location trend data available',
+      message: l10n.noLocationTrendDataAvailable,
     );
   }
 
-  Widget _buildLoadingWidget() {
+  Widget _buildLoadingWidget(DashboardLocalizations l10n) {
     return DashboardCard(
-      title: 'Asset Growth Location',
+      title: l10n.assetGrowthLocation,
       isLoading: true,
       child: const SkeletonChart(height: 200, hasLegend: true),
     );

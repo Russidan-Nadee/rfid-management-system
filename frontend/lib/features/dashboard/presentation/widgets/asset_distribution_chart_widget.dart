@@ -5,6 +5,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 import '../../domain/entities/asset_distribution.dart';
 import 'common/dashboard_card.dart';
 import 'common/empty_state.dart';
@@ -22,15 +23,19 @@ class AssetDistributionChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (isLoading) {
-      return _buildLoadingWidget();
+      return _buildLoadingWidget(l10n);
     }
 
     return ChartCard(
-      title: 'Asset Distribution',
+      title: l10n.assetDistribution,
       chart: SizedBox(
         height: 200,
-        child: distribution.hasData ? _buildPieChart() : _buildEmptyState(),
+        child: distribution.hasData
+            ? _buildPieChart()
+            : _buildEmptyState(context),
       ),
       legend: distribution.hasData ? _buildLegend(context) : null,
       filters: distribution.hasData ? _buildSummary(context) : null,
@@ -127,6 +132,7 @@ class AssetDistributionChartWidget extends StatelessWidget {
   Widget _buildSummary(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Container(
       padding: AppSpacing.paddingMedium,
@@ -144,14 +150,14 @@ class AssetDistributionChartWidget extends StatelessWidget {
         children: [
           _buildSummaryItem(
             context,
-            label: 'Total Assets',
+            label: l10n.totalAssets,
             value: distribution.summary.totalAssets.toString(),
             icon: Icons.inventory,
           ),
           _buildDivider(context),
           _buildSummaryItem(
             context,
-            label: 'Departments',
+            label: l10n.departments,
             value: distribution.summary.totalDepartments.toString(),
             icon: Icons.business,
           ),
@@ -159,7 +165,7 @@ class AssetDistributionChartWidget extends StatelessWidget {
             _buildDivider(context),
             _buildSummaryItem(
               context,
-              label: 'Filter',
+              label: l10n.filter,
               value: distribution.summary.plantFilter,
               icon: Icons.filter_alt,
             ),
@@ -216,16 +222,18 @@ class AssetDistributionChartWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     return CompactEmptyState(
       icon: Icons.pie_chart_outline,
-      message: 'No distribution data available',
+      message: l10n.noDistributionDataAvailable,
     );
   }
 
-  Widget _buildLoadingWidget() {
+  Widget _buildLoadingWidget(DashboardLocalizations l10n) {
     return DashboardCard(
-      title: 'Asset Distribution',
+      title: l10n.assetDistribution,
       isLoading: true,
       child: const SkeletonChart(height: 200, hasLegend: true),
     );
@@ -268,10 +276,11 @@ class CustomAssetDistributionChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = DashboardLocalizations.of(context);
 
     if (isLoading) {
       return DashboardCard(
-        title: 'Asset Distribution',
+        title: l10n.assetDistribution,
         trailing: onRefresh != null
             ? IconButton(
                 icon: Icon(
@@ -288,7 +297,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
     }
 
     return DashboardCard(
-      title: 'Asset Distribution',
+      title: l10n.assetDistribution,
       trailing: onRefresh != null
           ? IconButton(
               icon: Icon(
@@ -434,6 +443,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
   Widget _buildCustomSummary(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Container(
       padding: AppSpacing.paddingMedium,
@@ -448,7 +458,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Summary',
+            l10n.summary,
             style: AppTextStyles.body2.copyWith(
               fontWeight: FontWeight.w600,
               color: isDark ? AppColors.darkText : AppColors.info,
@@ -461,20 +471,20 @@ class CustomAssetDistributionChart extends StatelessWidget {
               _buildSummaryChip(
                 context,
                 icon: Icons.inventory,
-                label: 'Assets',
+                label: l10n.assets,
                 value: distribution.summary.totalAssets.toString(),
               ),
               _buildSummaryChip(
                 context,
                 icon: Icons.business,
-                label: 'Departments',
+                label: l10n.departments,
                 value: distribution.summary.totalDepartments.toString(),
               ),
               if (distribution.summary.isFiltered)
                 _buildSummaryChip(
                   context,
                   icon: Icons.filter_alt,
-                  label: 'Filter',
+                  label: l10n.filter,
                   value: distribution.summary.plantFilter,
                 ),
             ],

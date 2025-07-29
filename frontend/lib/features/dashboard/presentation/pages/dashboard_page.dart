@@ -8,6 +8,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -76,6 +77,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark
@@ -83,7 +85,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           : theme.colorScheme.background,
       appBar: AppBar(
         title: Text(
-          'Dashboard',
+          l10n.pageTitle,
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -149,14 +151,16 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   }
 
   Widget _buildBody(BuildContext context, DashboardState state) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (state is DashboardInitial) {
-      return _buildLoadingState(context, 'Initializing dashboard...');
+      return _buildLoadingState(context, l10n.initializing);
     }
 
     if (state is DashboardLoading) {
       return _buildLoadingState(
         context,
-        state.loadingMessage ?? 'Loading dashboard...',
+        state.loadingMessage ?? l10n.loadingDashboard,
       );
     }
 
@@ -300,6 +304,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
   Widget _buildSummaryColumn(DashboardLoaded loadedState) {
     final theme = Theme.of(context);
+    final l10n = DashboardLocalizations.of(context);
 
     return Column(
       children: [
@@ -307,7 +312,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
         if (loadedState.stats != null)
           Expanded(
             child: StatCard(
-              title: 'All Assets',
+              title: l10n.allAssets,
               value: Helpers.formatNumber(
                 loadedState.stats!.overview.totalAssets.value,
               ),
@@ -323,7 +328,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
         if (loadedState.stats != null)
           Expanded(
             child: StatCard(
-              title: 'New Assets',
+              title: l10n.newAssets,
               value: Helpers.formatNumber(
                 loadedState.stats!.overview.createdAssets.value,
               ),
@@ -341,6 +346,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
     DashboardLoaded loadedState,
     DashboardState currentState,
   ) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (loadedState.auditProgress != null) {
       return AuditProgressWidget(
         key: ValueKey(
@@ -364,13 +371,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       );
     }
 
-    return _buildEmptyCard('No Audit Data');
+    return _buildEmptyCard(l10n.noAuditData);
   }
 
   Widget _buildDistributionSection(
     DashboardLoaded loadedState,
     DashboardState currentState,
   ) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (loadedState.distribution != null) {
       return AssetDistributionChartWidget(
         key: ValueKey('distribution_${DateTime.now().millisecondsSinceEpoch}'),
@@ -381,13 +390,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       );
     }
 
-    return _buildEmptyCard('No Distribution Data');
+    return _buildEmptyCard(l10n.noDistributionData);
   }
 
   Widget _buildDepartmentGrowthSection(
     DashboardLoaded loadedState,
     DashboardState currentState,
   ) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (loadedState.departmentGrowthTrend != null) {
       return GrowthTrendChartWidget(
         key: ValueKey('dept_growth_${DateTime.now().millisecondsSinceEpoch}'),
@@ -405,13 +416,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       );
     }
 
-    return _buildEmptyCard('No Department Data');
+    return _buildEmptyCard(l10n.noDepartmentData);
   }
 
   Widget _buildLocationGrowthSection(
     DashboardLoaded loadedState,
     DashboardState currentState,
   ) {
+    final l10n = DashboardLocalizations.of(context);
+
     if (loadedState.locationGrowthTrend != null) {
       return LocationGrowthTrendWidget(
         key: ValueKey('location_${DateTime.now().millisecondsSinceEpoch}'),
@@ -429,7 +442,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
       );
     }
 
-    return _buildEmptyCard('No Location Data');
+    return _buildEmptyCard(l10n.noLocationData);
   }
 
   Widget _buildEmptyCard(String message) {
@@ -505,6 +518,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   Widget _buildErrorState(BuildContext context, String message) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -528,7 +542,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             ),
             AppSpacing.verticalSpaceXL,
             Text(
-              'Dashboard Error',
+              l10n.dashboardError,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
@@ -565,7 +579,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 },
                 icon: Icon(Icons.refresh, color: theme.colorScheme.onPrimary),
                 label: Text(
-                  'Retry',
+                  l10n.retry,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onPrimary,
                   ),
@@ -587,6 +601,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -610,7 +625,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             ),
             AppSpacing.verticalSpaceXL,
             Text(
-              'No Dashboard Data',
+              l10n.noDashboardData,
               style: theme.textTheme.headlineSmall?.copyWith(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
@@ -618,7 +633,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             ),
             AppSpacing.verticalSpaceSM,
             Text(
-              'Dashboard data is not available at the moment',
+              l10n.noDashboardDataDescription,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: _getSecondaryTextColor(theme),
               ),
@@ -635,7 +650,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                 },
                 icon: Icon(Icons.dashboard, color: theme.colorScheme.onPrimary),
                 label: Text(
-                  'Load Dashboard',
+                  l10n.loadDashboard,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.onPrimary,
                   ),
@@ -713,6 +728,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   Widget _buildLastUpdatedInfo(DashboardLoaded state) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     return Container(
       padding: AppSpacing.paddingLG,
@@ -739,7 +755,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
           ),
           AppSpacing.horizontalSpaceSM,
           Text(
-            'Last updated: ${Helpers.formatDateTime(state.lastUpdated)}',
+            '${l10n.lastUpdated}: ${Helpers.formatDateTime(state.lastUpdated)}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: _getSecondaryTextColor(theme),
             ),
@@ -749,7 +765,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Icon(Icons.filter_alt, size: 16, color: theme.colorScheme.primary),
             AppSpacing.horizontalSpaceXS,
             Text(
-              'Filtered',
+              l10n.filtered,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -768,7 +784,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             ),
             AppSpacing.horizontalSpaceXS,
             Text(
-              'Fresh',
+              l10n.fresh,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: _getSuccessColor(theme),
                 fontWeight: FontWeight.w500,

@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../l10n/features/dashboard/dashboard_localizations.dart';
 import 'common/dashboard_card.dart';
 import '../../domain/entities/audit_progress.dart';
 import 'common/loading_skeleton.dart';
@@ -35,17 +36,19 @@ class AuditProgressWidget extends StatefulWidget {
 class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   @override
   Widget build(BuildContext context) {
+    final l10n = DashboardLocalizations.of(context);
+
     print('🔥 Widget rebuild with props: ${widget.selectedDeptCode}');
 
     if (widget.isLoading) {
-      return _buildLoadingWidget();
+      return _buildLoadingWidget(l10n);
     }
 
     return ProgressCard(
-      title: _getCardTitle(),
+      title: _getCardTitle(l10n),
       progress: _getProgressValue(),
       progressText: _getProgressText(),
-      subtitle: _getSubtitle(),
+      subtitle: _getSubtitle(l10n),
       progressColor: _getProgressColor(),
       details: Column(
         children: [
@@ -61,12 +64,12 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     );
   }
 
-  String _getCardTitle() {
+  String _getCardTitle(DashboardLocalizations l10n) {
     print(
       '🎯 Building title with selectedDeptCode: ${widget.selectedDeptCode}',
     );
     if (widget.selectedDeptCode == null) {
-      return 'Audit Progress - All Departments';
+      return l10n.auditProgressAllDepartments;
     }
 
     final selectedDept = widget.availableDepartments.firstWhere(
@@ -74,7 +77,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       orElse: () => {'name': 'Unknown Department'},
     );
 
-    return 'Audit Progress - ${selectedDept['name']}';
+    return '${l10n.auditProgressPrefix}${selectedDept['name']}';
   }
 
   double _getProgressValue() {
@@ -93,8 +96,8 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     return '${completionPercentage.toStringAsFixed(0)}%';
   }
 
-  String? _getSubtitle() {
-    return widget.selectedDeptCode == null ? 'Overall Progress' : null;
+  String? _getSubtitle(DashboardLocalizations l10n) {
+    return widget.selectedDeptCode == null ? l10n.overallProgress : null;
   }
 
   Color _getProgressColor() {
@@ -107,6 +110,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Widget _buildDepartmentFilter(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
     final Map<String, String> uniqueDepts = {};
 
     for (final dept in widget.availableDepartments) {
@@ -126,7 +130,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
         child: DropdownButton<String?>(
           value: widget.selectedDeptCode,
           hint: Text(
-            'All Departments',
+            l10n.allDepartments,
             style: AppTextStyles.body2.copyWith(
               color: isDark
                   ? AppColors.darkTextSecondary
@@ -139,7 +143,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
             DropdownMenuItem<String?>(
               value: null,
               child: Text(
-                'All Departments',
+                l10n.allDepartments,
                 style: AppTextStyles.body2.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 ),
@@ -175,6 +179,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Widget _buildProgressDetails(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
 
     print(
       '🎯 Building progress with selectedDeptCode: ${widget.selectedDeptCode}',
@@ -198,21 +203,21 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           children: [
             _buildProgressStat(
               context,
-              'Checked',
+              l10n.checked,
               selectedDeptProgress.auditedAssets.toString(),
               AppColors.success,
             ),
             _buildDivider(context),
             _buildProgressStat(
               context,
-              'Await',
+              l10n.awaiting,
               selectedDeptProgress.pendingAudit.toString(),
               AppColors.vibrantOrange,
             ),
             _buildDivider(context),
             _buildProgressStat(
               context,
-              'Total',
+              l10n.total,
               selectedDeptProgress.totalAssets.toString(),
               theme.colorScheme.primary,
             ),
@@ -221,7 +226,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       } else {
         content = Center(
           child: Text(
-            'No data available for this department.',
+            l10n.noDepartmentDataForThisDepartment,
             style: AppTextStyles.body2.copyWith(
               color: isDark
                   ? AppColors.darkTextSecondary
@@ -240,21 +245,21 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           children: [
             _buildProgressStat(
               context,
-              'Checked',
+              l10n.checked,
               overallProgress.auditedAssets.toString(),
               AppColors.success,
             ),
             _buildDivider(context),
             _buildProgressStat(
               context,
-              'Awaiting',
+              l10n.awaiting,
               overallProgress.pendingAudit.toString(),
               AppColors.vibrantOrange,
             ),
             _buildDivider(context),
             _buildProgressStat(
               context,
-              'Total',
+              l10n.total,
               overallProgress.totalAssets.toString(),
               theme.colorScheme.primary,
             ),
@@ -268,7 +273,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
         content = Column(
           children: [
             Text(
-              'Department Summary',
+              l10n.departmentSummary,
               style: AppTextStyles.body1.copyWith(
                 fontWeight: FontWeight.w500,
                 color: isDark
@@ -282,21 +287,21 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
               children: [
                 _buildProgressStat(
                   context,
-                  'Completed',
+                  l10n.completed,
                   widget.auditProgress.completedDepartments.length.toString(),
                   AppColors.success,
                 ),
                 _buildDivider(context),
                 _buildProgressStat(
                   context,
-                  'Critical',
+                  l10n.critical,
                   widget.auditProgress.criticalDepartments.length.toString(),
                   AppColors.error,
                 ),
                 _buildDivider(context),
                 _buildProgressStat(
                   context,
-                  'Total Depts',
+                  l10n.totalDepts,
                   widget.auditProgress.auditProgress.length.toString(),
                   theme.colorScheme.primary,
                 ),
@@ -363,6 +368,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Widget _buildRecommendations(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
     final criticalRecs = widget.auditProgress.criticalRecommendations;
     final warningRecs = widget.auditProgress.warningRecommendations;
 
@@ -389,7 +395,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
               ),
               AppSpacing.horizontalSpaceXS,
               Text(
-                'Recommendations',
+                l10n.recommendations,
                 style: AppTextStyles.body2.copyWith(
                   fontWeight: FontWeight.w500,
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
@@ -410,7 +416,9 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
           ],
           if (widget.auditProgress.recommendations.length > 3)
             Text(
-              '+ ${widget.auditProgress.recommendations.length - 3} more recommendations',
+              l10n.moreRecommendations(
+                widget.auditProgress.recommendations.length - 3,
+              ),
               style: AppTextStyles.caption.copyWith(
                 color: isDark
                     ? AppColors.darkTextSecondary
@@ -456,9 +464,9 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     );
   }
 
-  Widget _buildLoadingWidget() {
+  Widget _buildLoadingWidget(DashboardLocalizations l10n) {
     return DashboardCard(
-      title: 'Audit Progress',
+      title: l10n.auditProgress,
       isLoading: true,
       child: const SkeletonChart(height: 200),
     );
