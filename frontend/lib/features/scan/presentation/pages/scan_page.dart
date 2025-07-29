@@ -7,6 +7,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../di/injection.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
@@ -43,6 +44,7 @@ class _ScanPageViewState extends State<ScanPageView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ScanLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark
@@ -52,7 +54,7 @@ class _ScanPageViewState extends State<ScanPageView> {
           : theme.colorScheme.background, // Light Mode: เดิม
       appBar: AppBar(
         title: Text(
-          'RFID Scan',
+          l10n.scanPageTitle,
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -85,7 +87,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                               .darkText // Dark Mode: สีขาว
                         : AppColors.primary,
                   ), // Light Mode: สีน้ำเงิน
-                  tooltip: 'Scan Again',
+                  tooltip: l10n.scanAgain,
                 );
               }
               return const SizedBox.shrink();
@@ -103,7 +105,7 @@ class _ScanPageViewState extends State<ScanPageView> {
             );
             Helpers.showSuccess(
               context,
-              'Scanned ${state.scannedItems.length} items',
+              l10n.scannedItemsCount(state.scannedItems.length),
             );
           } else if (state is AssetStatusUpdateError) {
             Helpers.showError(context, state.message);
@@ -115,13 +117,13 @@ class _ScanPageViewState extends State<ScanPageView> {
 
             if (state is ScanInitial) {
               print('ScanPage: Showing ready state');
-              return _buildReadyState(context);
+              return _buildReadyState(context, l10n);
             } else if (state is ScanLoading) {
               print('ScanPage: Showing loading view');
-              return _buildLoadingView(context);
+              return _buildLoadingView(context, l10n);
             } else if (state is ScanLocationSelection) {
               print('ScanPage: Showing location selection view');
-              return _buildLocationSelectionView(context, state);
+              return _buildLocationSelectionView(context, state, l10n);
             } else if (state is ScanSuccess) {
               print(
                 'ScanPage: Showing scan results, items count = ${state.scannedItems.length}',
@@ -136,14 +138,14 @@ class _ScanPageViewState extends State<ScanPageView> {
               );
             } else if (state is ScanError) {
               print('ScanPage: Showing error view: ${state.message}');
-              return _buildErrorView(context, state.message);
+              return _buildErrorView(context, state.message, l10n);
             } else if (state is AssetStatusUpdating) {
               print('ScanPage: Asset updating - showing loading');
-              return _buildLoadingView(context);
+              return _buildLoadingView(context, l10n);
             }
 
             print('ScanPage: Unknown state - fallback to ready: $state');
-            return _buildReadyState(context);
+            return _buildReadyState(context, l10n);
           },
         ),
       ),
@@ -154,6 +156,7 @@ class _ScanPageViewState extends State<ScanPageView> {
   Widget _buildLocationSelectionView(
     BuildContext context,
     ScanLocationSelection state,
+    ScanLocalizations l10n,
   ) {
     return LocationSelectionWidget(
       locations: state.availableLocations,
@@ -166,7 +169,7 @@ class _ScanPageViewState extends State<ScanPageView> {
     );
   }
 
-  Widget _buildReadyState(BuildContext context) {
+  Widget _buildReadyState(BuildContext context, ScanLocalizations l10n) {
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -210,7 +213,7 @@ class _ScanPageViewState extends State<ScanPageView> {
             AppSpacing.verticalSpaceXXL,
 
             Text(
-              'RFID Scanner Ready',
+              l10n.scannerReady,
               style: AppTextStyles.headline4.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors
@@ -242,7 +245,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 ),
               ),
               child: Text(
-                'Press the button below to start scanning RFID tags',
+                l10n.scanInstructions,
                 style: AppTextStyles.body2.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors
@@ -264,7 +267,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 },
                 icon: Icon(Icons.play_arrow, color: AppColors.onPrimary),
                 label: Text(
-                  'Start Scanning',
+                  l10n.startScanning,
                   style: AppTextStyles.button.copyWith(
                     color: AppColors.onPrimary,
                     fontSize: 18,
@@ -319,7 +322,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                   ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
-                    'Make sure RFID scanner is connected',
+                    l10n.ensureScannerConnected,
                     style: AppTextStyles.caption.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? AppColors
@@ -336,7 +339,7 @@ class _ScanPageViewState extends State<ScanPageView> {
     );
   }
 
-  Widget _buildLoadingView(BuildContext context) {
+  Widget _buildLoadingView(BuildContext context, ScanLocalizations l10n) {
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -398,7 +401,7 @@ class _ScanPageViewState extends State<ScanPageView> {
             AppSpacing.verticalSpaceXXL,
 
             Text(
-              'Scanning RFID Tags...',
+              l10n.scanningTags,
               style: AppTextStyles.headline4.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors
@@ -442,7 +445,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                   ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
-                    'Please wait while we scan for assets',
+                    l10n.pleaseWaitScanning,
                     style: AppTextStyles.body2.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? AppColors
@@ -459,7 +462,11 @@ class _ScanPageViewState extends State<ScanPageView> {
     );
   }
 
-  Widget _buildErrorView(BuildContext context, String message) {
+  Widget _buildErrorView(
+    BuildContext context,
+    String message,
+    ScanLocalizations l10n,
+  ) {
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -492,7 +499,7 @@ class _ScanPageViewState extends State<ScanPageView> {
             AppSpacing.verticalSpaceXXL,
 
             Text(
-              'Scan Failed',
+              l10n.scanFailed,
               style: AppTextStyles.headline4.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors
@@ -540,7 +547,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 },
                 icon: Icon(Icons.refresh, color: AppColors.onPrimary),
                 label: Text(
-                  'Try Again',
+                  l10n.tryAgain,
                   style: AppTextStyles.button.copyWith(
                     color: AppColors.onPrimary,
                   ),
@@ -589,7 +596,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                   ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
-                    'Make sure RFID scanner is connected',
+                    l10n.ensureScannerConnected,
                     style: AppTextStyles.caption.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? AppColors

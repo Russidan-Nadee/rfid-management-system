@@ -10,6 +10,7 @@ import '../../../../core/utils/helpers.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../di/injection.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/master_data_entity.dart';
 import '../bloc/asset_creation_bloc.dart';
 
@@ -86,11 +87,12 @@ class _CreateAssetViewState extends State<CreateAssetView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ScanLocalizations.of(context);
 
     return BlocListener<AssetCreationBloc, AssetCreationState>(
       listener: (context, state) {
         if (state is AssetCreated) {
-          Helpers.showSuccess(context, 'Asset created successfully');
+          Helpers.showSuccess(context, l10n.assetCreatedSuccess);
           Navigator.of(context).pop(state.asset);
         } else if (state is AssetCreationError) {
           Helpers.showError(context, state.message);
@@ -98,23 +100,23 @@ class _CreateAssetViewState extends State<CreateAssetView> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: _buildAppBar(theme),
+        appBar: _buildAppBar(theme, l10n),
         body: BlocBuilder<AssetCreationBloc, AssetCreationState>(
           builder: (context, state) {
             if (state is MasterDataLoading) {
-              return _buildLoadingView(theme);
+              return _buildLoadingView(theme, l10n);
             }
 
             if (state is MasterDataLoaded) {
-              return _buildForm(context, theme, state);
+              return _buildForm(context, theme, state, l10n);
             }
 
             if (state is AssetCreating) {
-              return _buildCreatingView(theme);
+              return _buildCreatingView(theme, l10n);
             }
 
             if (state is AssetCreationError) {
-              return _buildErrorView(context, theme, state.message);
+              return _buildErrorView(context, theme, state.message, l10n);
             }
 
             return const SizedBox();
@@ -124,7 +126,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(ThemeData theme) {
+  PreferredSizeWidget _buildAppBar(ThemeData theme, ScanLocalizations l10n) {
     return AppBar(
       backgroundColor: AppColors.surface,
       foregroundColor: AppColors.primary,
@@ -132,7 +134,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
       title: Row(
         children: [
           Text(
-            'Create New Asset',
+            l10n.createAssetPageTitle,
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
@@ -144,7 +146,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
     );
   }
 
-  Widget _buildLoadingView(ThemeData theme) {
+  Widget _buildLoadingView(ThemeData theme, ScanLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +165,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Loading form data...',
+            l10n.loadingFormData,
             style: TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
@@ -175,7 +177,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
     );
   }
 
-  Widget _buildCreatingView(ThemeData theme) {
+  Widget _buildCreatingView(ThemeData theme, ScanLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -194,7 +196,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Creating asset...',
+            l10n.creatingAsset,
             style: TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
@@ -203,7 +205,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Please wait while we create your asset',
+            l10n.pleaseWaitCreating,
             style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ],
@@ -215,6 +217,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
     BuildContext context,
     ThemeData theme,
     String message,
+    ScanLocalizations l10n,
   ) {
     return Center(
       child: Padding(
@@ -237,7 +240,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Loading Failed',
+              l10n.loadingFailed,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -255,7 +258,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
               onPressed: () =>
                   context.read<AssetCreationBloc>().add(LoadMasterData()),
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(l10n.tryAgain),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.onPrimary,
@@ -278,6 +281,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
     BuildContext context,
     ThemeData theme,
     MasterDataLoaded state,
+    ScanLocalizations l10n,
   ) {
     return Form(
       key: _formKey,
@@ -336,9 +340,9 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                       }
                     },
                     plantValidator: (value) =>
-                        value == null ? 'Please select a plant' : null,
+                        value == null ? l10n.pleaseSelectPlant : null,
                     locationValidator: (value) =>
-                        value == null ? 'Please select a location' : null,
+                        value == null ? l10n.pleaseSelectLocation : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -352,7 +356,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                     onUnitChanged: (value) =>
                         setState(() => _selectedUnit = value),
                     unitValidator: (value) =>
-                        value == null ? 'Please select a unit' : null,
+                        value == null ? l10n.pleaseSelectUnit : null,
                     quantityValidator: Validators.positiveNumber,
                   ),
 
@@ -394,7 +398,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
 
         context.read<AssetCreationBloc>().add(CreateAssetSubmitted(request));
       } catch (e) {
-        Helpers.showError(context, 'Failed to get current user');
+        final l10n = ScanLocalizations.of(context);
+        Helpers.showError(context, l10n.failedToGetCurrentUser);
       }
     }
   }

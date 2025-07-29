@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/scan/domain/entities/master_data_entity.dart';
 import '../../../../../../app/theme/app_colors.dart';
+import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
 class LocationInfoSection extends StatelessWidget {
   final String? selectedPlant;
@@ -33,15 +34,19 @@ class LocationInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ScanLocalizations.of(context);
+    
     return _buildSectionCard(
-      title: 'Location Information',
+      context: context,
+      title: l10n.locationInformation,
       icon: Icons.location_on,
       color: AppColors.info,
       children: [
         // Plant Dropdown
         _buildDropdownField<String>(
+          context: context,
           value: selectedPlant,
-          label: 'Plant',
+          label: l10n.plant,
           icon: Icons.business,
           isRequired: true,
           items: plants
@@ -60,8 +65,9 @@ class LocationInfoSection extends StatelessWidget {
 
         // Location Dropdown (เปลี่ยนจาก read-only เป็น dropdown)
         _buildDropdownField<String>(
+          context: context,
           value: selectedLocation,
-          label: 'Location',
+          label: l10n.location,
           icon: Icons.place,
           isRequired: true,
           items: locations
@@ -80,8 +86,9 @@ class LocationInfoSection extends StatelessWidget {
 
         // Department Dropdown
         _buildDropdownField<String>(
+          context: context,
           value: selectedDepartment,
-          label: 'Department',
+          label: l10n.department,
           icon: Icons.corporate_fare,
           isRequired: false,
           items: departments
@@ -100,6 +107,7 @@ class LocationInfoSection extends StatelessWidget {
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
@@ -144,6 +152,7 @@ class LocationInfoSection extends StatelessWidget {
   }
 
   Widget _buildDropdownField<T>({
+    required BuildContext context,
     required T? value,
     required String label,
     required IconData icon,

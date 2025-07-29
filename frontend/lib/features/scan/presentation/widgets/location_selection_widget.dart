@@ -4,6 +4,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_typography.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 
 class LocationSelectionWidget extends StatelessWidget {
   final List<String> locations;
@@ -18,6 +19,7 @@ class LocationSelectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ScanLocalizations.of(context);
 
     return Center(
       child: Padding(
@@ -53,7 +55,7 @@ class LocationSelectionWidget extends StatelessWidget {
             AppSpacing.verticalSpaceXXL,
 
             Text(
-              'Select Current Location',
+              l10n.selectCurrentLocation,
               style: AppTextStyles.headline4.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkText
@@ -78,7 +80,7 @@ class LocationSelectionWidget extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Choose your current location to verify scanned assets',
+                l10n.chooseLocationToVerify,
                 style: AppTextStyles.body2.copyWith(
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors.darkText
@@ -102,6 +104,7 @@ class LocationSelectionWidget extends StatelessWidget {
                       theme,
                       location,
                       onLocationSelected,
+                      l10n,
                     ),
                   );
                 }).toList(),
@@ -118,6 +121,7 @@ class LocationSelectionWidget extends StatelessWidget {
     ThemeData theme,
     String location,
     Function(String) onLocationSelected,
+    ScanLocalizations l10n,
   ) {
     return Card(
       elevation: 2,

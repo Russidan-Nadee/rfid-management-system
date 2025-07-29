@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/scan/presentation/widgets/create/basic_info_section.dart
 import 'package:flutter/material.dart';
 import '../../../../../../app/theme/app_colors.dart';
+import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
 class BasicInfoSection extends StatelessWidget {
   final String epcCode; // ← เปลี่ยนเป็น EPC Code (read-only)
@@ -22,14 +23,18 @@ class BasicInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ScanLocalizations.of(context);
+
     return _buildSectionCard(
-      title: 'Basic Information',
+      context: context,
+      title: l10n.basicInformation,
       icon: Icons.inventory_2_outlined,
       color: AppColors.primary,
       children: [
         // EPC Code (Read-only)
         _buildReadOnlyField(
-          label: 'EPC Code',
+          context: context,
+          label: l10n.epcCode,
           value: epcCode,
           icon: Icons.qr_code,
         ),
@@ -37,29 +42,32 @@ class BasicInfoSection extends StatelessWidget {
 
         // Asset Number (Input field)
         _buildTextFormField(
+          context: context,
           controller: assetNoController,
-          label: 'Asset Number',
+          label: l10n.assetNumber,
           icon: Icons.tag,
           isRequired: true,
           validator: assetNoValidator,
-          hint: 'Enter asset number (e.g., A001234)',
+          hint: l10n.assetNumberHint,
         ),
         const SizedBox(height: 16),
 
         // Description
         _buildTextFormField(
+          context: context,
           controller: descriptionController,
-          label: 'Description',
+          label: l10n.description,
           icon: Icons.description,
           isRequired: true,
           validator: descriptionValidator,
-          hint: 'Enter asset description',
+          hint: l10n.descriptionHint,
         ),
       ],
     );
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
@@ -104,6 +112,7 @@ class BasicInfoSection extends StatelessWidget {
   }
 
   Widget _buildReadOnlyField({
+    required BuildContext context,
     required String label,
     required String value,
     required IconData icon,
@@ -147,6 +156,7 @@ class BasicInfoSection extends StatelessWidget {
   }
 
   Widget _buildTextFormField({
+    required BuildContext context,
     required TextEditingController controller,
     required String label,
     required IconData icon,

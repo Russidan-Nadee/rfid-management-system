@@ -6,6 +6,7 @@ import 'package:frontend/app/theme/app_spacing.dart';
 import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../pages/asset_detail_page.dart';
 import '../pages/create_asset_page.dart';
@@ -53,16 +54,16 @@ extension AssetStatusTheme on ThemeData {
     }
   }
 
-  String getAssetStatusLabel(String status) {
+  String getAssetStatusLabel(String status, ScanLocalizations l10n) {
     switch (status.toUpperCase()) {
       case 'A':
-        return 'Awaiting';
+        return l10n.statusAwaiting;
       case 'C':
-        return 'Checked';
+        return l10n.statusChecked;
       case 'I':
-        return 'Inactive';
+        return l10n.statusInactive;
       case 'UNKNOWN':
-        return 'Unknown';
+        return l10n.statusUnknown;
       default:
         return status;
     }
@@ -77,6 +78,7 @@ class AssetCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ScanLocalizations.of(context);
 
     return Card(
       margin: AppSpacing.only(
@@ -96,15 +98,15 @@ class AssetCard extends StatelessWidget {
           child: Row(
             children: [
               // Icon Container
-              _buildStatusIcon(context, theme),
+              _buildStatusIcon(context, theme, l10n),
 
               AppSpacing.horizontalSpaceLG,
 
               // Content
-              Expanded(child: _buildContent(context, theme)),
+              Expanded(child: _buildContent(context, theme, l10n)),
 
               // Arrow or Create Icon
-              _buildActionIcon(context, theme),
+              _buildActionIcon(context, theme, l10n),
             ],
           ),
         ),
@@ -112,7 +114,11 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusIcon(BuildContext context, ThemeData theme) {
+  Widget _buildStatusIcon(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     final statusColor = theme.getAssetStatusColorByItem(item);
     final statusIcon = theme.getAssetStatusIcon(item.status);
 
@@ -137,7 +143,11 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, ThemeData theme) {
+  Widget _buildContent(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -163,7 +173,7 @@ class AssetCard extends StatelessWidget {
 
         // Asset Number - แก้ให้อ่านง่ายใน dark mode
         Text(
-          'EPC Code: ${item.assetNo}',
+          l10n.epcCodeField(item.assetNo),
           style: theme.textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors
@@ -177,14 +187,18 @@ class AssetCard extends StatelessWidget {
         AppSpacing.verticalSpaceXS,
 
         // Status และ Location Row
-        _buildStatusAndLocation(context, theme),
+        _buildStatusAndLocation(context, theme, l10n),
       ],
     );
   }
 
-  Widget _buildStatusAndLocation(BuildContext context, ThemeData theme) {
+  Widget _buildStatusAndLocation(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     final statusColor = theme.getAssetStatusColorByItem(item);
-    final statusLabel = theme.getAssetStatusLabel(item.status);
+    final statusLabel = theme.getAssetStatusLabel(item.status, l10n);
 
     // แก้สี status dot ให้เหมาะกับ dark mode แต่เก็บ Unknown เป็นสีแดง
     final displayStatusColor = item.isUnknown
@@ -251,7 +265,11 @@ class AssetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionIcon(BuildContext context, ThemeData theme) {
+  Widget _buildActionIcon(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     return Icon(
       item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
       color: item.isUnknown

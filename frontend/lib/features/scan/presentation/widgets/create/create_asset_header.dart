@@ -1,13 +1,17 @@
 // Path: frontend/lib/features/scan/presentation/widgets/create/create_asset_header.dart
 import 'package:flutter/material.dart';
 import '../../../../../../app/theme/app_colors.dart';
+import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
 class CreateAssetHeader extends StatelessWidget {
   final String epcCode;
+  
   const CreateAssetHeader({super.key, required this.epcCode});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ScanLocalizations.of(context);
+    
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
@@ -30,7 +34,7 @@ class CreateAssetHeader extends StatelessWidget {
           Icon(Icons.add_circle, color: AppColors.onPrimary, size: 48),
           const SizedBox(height: 12),
           Text(
-            'Creating Unknown Asset',
+            l10n.creatingUnknownAsset,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

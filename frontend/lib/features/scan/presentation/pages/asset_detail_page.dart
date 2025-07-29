@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -35,6 +36,7 @@ class AssetDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = ScanLocalizations.of(context);
 
     return BlocListener<ScanBloc, ScanState>(
       listener: (context, state) {
@@ -51,10 +53,7 @@ class AssetDetailView extends StatelessWidget {
           if (item.status.toUpperCase() == 'A' &&
               updatedItem.status.toUpperCase() == 'C') {
             // แสดง success message
-            Helpers.showSuccess(
-              context,
-              'Asset marked as checked successfully',
-            );
+            Helpers.showSuccess(context, l10n.assetMarkedSuccess);
             // Pop กลับไปหน้า scan list
             Navigator.of(context).pop(updatedItem);
           }
@@ -66,7 +65,7 @@ class AssetDetailView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Asset Detail',
+            l10n.assetDetailPageTitle,
             style: TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
@@ -95,8 +94,8 @@ class AssetDetailView extends StatelessWidget {
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: isDesktop
-                  ? _buildDesktopLayout(context, theme)
-                  : _buildMobileLayout(context, theme),
+                  ? _buildDesktopLayout(context, theme, l10n)
+                  : _buildMobileLayout(context, theme, l10n),
             );
           },
         ),
@@ -105,7 +104,11 @@ class AssetDetailView extends StatelessWidget {
   }
 
   // Desktop Layout (2x3 Grid)
-  Widget _buildDesktopLayout(BuildContext context, ThemeData theme) {
+  Widget _buildDesktopLayout(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     return Column(
       children: [
         // Row 1: Status Card + Basic Info
@@ -113,9 +116,9 @@ class AssetDetailView extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildStatusCard(theme)),
+              Expanded(child: _buildStatusCard(theme, l10n)),
               const SizedBox(width: 16),
-              Expanded(child: _buildBasicInfoSection(theme)),
+              Expanded(child: _buildBasicInfoSection(theme, l10n)),
             ],
           ),
         ),
@@ -127,9 +130,9 @@ class AssetDetailView extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildLocationInfoSection(theme)),
+              Expanded(child: _buildLocationInfoSection(theme, l10n)),
               const SizedBox(width: 16),
-              Expanded(child: _buildQuantityInfoSection(theme)),
+              Expanded(child: _buildQuantityInfoSection(theme, l10n)),
             ],
           ),
         ),
@@ -141,9 +144,9 @@ class AssetDetailView extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildScanActivitySection(theme)),
+              Expanded(child: _buildScanActivitySection(theme, l10n)),
               const SizedBox(width: 16),
-              Expanded(child: _buildCreationInfoSection(theme)),
+              Expanded(child: _buildCreationInfoSection(theme, l10n)),
             ],
           ),
         ),
@@ -155,7 +158,7 @@ class AssetDetailView extends StatelessWidget {
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
-              child: _buildActionButton(context, theme),
+              child: _buildActionButton(context, theme, l10n),
             ),
           ),
       ],
@@ -163,148 +166,168 @@ class AssetDetailView extends StatelessWidget {
   }
 
   // Mobile Layout (Original)
-  Widget _buildMobileLayout(BuildContext context, ThemeData theme) {
+  Widget _buildMobileLayout(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Status Card
-        _buildStatusCard(theme),
+        _buildStatusCard(theme, l10n),
 
         const SizedBox(height: 16),
 
         // Basic Information
-        _buildBasicInfoSection(theme),
+        _buildBasicInfoSection(theme, l10n),
 
         const SizedBox(height: 16),
 
         // Location Information
-        _buildLocationInfoSection(theme),
+        _buildLocationInfoSection(theme, l10n),
 
         const SizedBox(height: 16),
 
         // Quantity Information
-        _buildQuantityInfoSection(theme),
+        _buildQuantityInfoSection(theme, l10n),
 
         const SizedBox(height: 16),
 
         // Scan Activity Information
-        _buildScanActivitySection(theme),
+        _buildScanActivitySection(theme, l10n),
 
         const SizedBox(height: 16),
 
         // Creation Information
-        _buildCreationInfoSection(theme),
+        _buildCreationInfoSection(theme, l10n),
 
         const SizedBox(height: 24),
 
         // Action Button (แสดงเฉพาะเมื่อ status = 'A')
         if (item.status.toUpperCase() == 'A')
-          _buildActionButton(context, theme),
+          _buildActionButton(context, theme, l10n),
       ],
     );
   }
 
   // Section Components (เดิมทั้งหมด)
-  Widget _buildBasicInfoSection(ThemeData theme) {
+  Widget _buildBasicInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
-      title: 'Basic Information',
+      title: l10n.basicInformation,
       icon: Icons.inventory_2_outlined,
       children: [
-        _buildDetailRow(theme, 'Asset Number', item.assetNo),
-        _buildDetailRow(theme, 'Description', item.description ?? '-'),
-        _buildDetailRow(theme, 'Serial Number', item.serialNo ?? '-'),
-        _buildDetailRow(theme, 'Inventory Number', item.inventoryNo ?? '-'),
+        _buildDetailRow(theme, l10n.assetNumber, item.assetNo, l10n),
+        _buildDetailRow(theme, l10n.description, item.description ?? '-', l10n),
+        _buildDetailRow(theme, l10n.serialNumber, item.serialNo ?? '-', l10n),
+        _buildDetailRow(
+          theme,
+          l10n.inventoryNumber,
+          item.inventoryNo ?? '-',
+          l10n,
+        ),
       ],
     );
   }
 
-  Widget _buildLocationInfoSection(ThemeData theme) {
+  Widget _buildLocationInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
-      title: 'Location Information',
+      title: l10n.locationInformation,
       icon: Icons.location_on,
       children: [
         _buildDetailRow(
           theme,
-          'Plant',
+          l10n.plant,
           item.plantDescription != null
               ? item.plantDescription ?? '-'
               : item.plantCode ?? '-',
+          l10n,
         ),
         _buildDetailRow(
           theme,
-          'Location',
+          l10n.location,
           item.locationName != null
               ? item.locationName ?? '-'
               : item.locationCode ?? '-',
+          l10n,
         ),
         _buildDetailRow(
           theme,
-          'Department',
+          l10n.department,
           item.deptDescription != null
               ? item.deptDescription ?? '-'
               : item.deptCode ?? '-',
+          l10n,
         ),
       ],
     );
   }
 
-  Widget _buildQuantityInfoSection(ThemeData theme) {
+  Widget _buildQuantityInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
-      title: 'Quantity Information',
+      title: l10n.quantityInformation,
       icon: Icons.straighten,
       children: [
         _buildDetailRow(
           theme,
-          'Quantity',
+          l10n.quantity,
           item.quantity != null ? '${item.quantity}' : '-',
+          l10n,
         ),
-        _buildDetailRow(theme, 'Unit', item.unitName ?? '-'),
+        _buildDetailRow(theme, l10n.unit, item.unitName ?? '-', l10n),
       ],
     );
   }
 
-  Widget _buildScanActivitySection(ThemeData theme) {
+  Widget _buildScanActivitySection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
-      title: 'Scan Activity',
+      title: l10n.scanActivity,
       icon: Icons.qr_code_scanner,
       children: [
         _buildDetailRow(
           theme,
-          'Last Scan',
+          l10n.lastScan,
           item.lastScanAt != null
               ? Helpers.formatDateTime(item.lastScanAt)
-              : 'Never scanned',
+              : l10n.neverScanned,
+          l10n,
         ),
-        _buildDetailRow(theme, 'Scanned By', item.lastScannedBy ?? '-'),
+        _buildDetailRow(theme, l10n.scannedBy, item.lastScannedBy ?? '-', l10n),
       ],
     );
   }
 
-  Widget _buildCreationInfoSection(ThemeData theme) {
+  Widget _buildCreationInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
-      title: 'Creation Information',
+      title: l10n.creationInformation,
       icon: Icons.person_outline,
       children: [
         _buildDetailRow(
           theme,
-          'Created By',
-          item.createdByName ?? 'Unknown User',
+          l10n.createdBy,
+          item.createdByName ?? l10n.unknownUser,
+          l10n,
         ),
         _buildDetailRow(
           theme,
-          'Created Date',
+          l10n.createdDate,
           item.createdAt != null ? Helpers.formatDateTime(item.createdAt) : '-',
+          l10n,
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(BuildContext context, ThemeData theme) {
+  Widget _buildActionButton(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
         final isLoading =
@@ -326,9 +349,7 @@ class AssetDetailView extends StatelessWidget {
                     ),
                   )
                 : const Icon(Icons.check_circle_outline),
-            label: Text(
-              isLoading ? 'Marking as Checked...' : 'Mark as Checked',
-            ),
+            label: Text(isLoading ? l10n.markingAsChecked : l10n.markAsChecked),
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.primary,
               foregroundColor: Colors.white,
@@ -347,7 +368,7 @@ class AssetDetailView extends StatelessWidget {
     context.read<ScanBloc>().add(MarkAssetChecked(assetNo: item.assetNo));
   }
 
-  Widget _buildStatusCard(ThemeData theme) {
+  Widget _buildStatusCard(ThemeData theme, ScanLocalizations l10n) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -392,7 +413,7 @@ class AssetDetailView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                _getStatusLabel(item.status),
+                _getStatusLabel(item.status, l10n),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
@@ -457,7 +478,12 @@ class AssetDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(ThemeData theme, String label, String value) {
+  Widget _buildDetailRow(
+    ThemeData theme,
+    String label,
+    String value,
+    ScanLocalizations l10n,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -538,20 +564,20 @@ class AssetDetailView extends StatelessWidget {
     }
   }
 
-  String _getStatusLabel(String status) {
+  String _getStatusLabel(String status, ScanLocalizations l10n) {
     if (item.isUnknown == true) {
-      return 'Unknown';
+      return l10n.statusUnknown;
     }
 
     switch (status.toUpperCase()) {
       case 'A':
-        return 'Active';
+        return l10n.statusActive;
       case 'C':
-        return 'Checked';
+        return l10n.statusChecked;
       case 'I':
-        return 'Inactive';
+        return l10n.statusInactive;
       case 'UNKNOWN':
-        return 'Unknown';
+        return l10n.statusUnknown;
       default:
         return status;
     }

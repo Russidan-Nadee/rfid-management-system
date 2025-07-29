@@ -1,7 +1,8 @@
-// Path: frontend/lib/features/scan/presentation/pages/create_asset/widgets/quantity_info_section.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/quantity_info_section.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/scan/domain/entities/master_data_entity.dart';
 import '../../../../../../app/theme/app_colors.dart';
+import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
 class QuantityInfoSection extends StatelessWidget {
   final String? selectedUnit;
@@ -27,11 +28,14 @@ class QuantityInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ScanLocalizations.of(context);
+
     return Column(
       children: [
         // Quantity Information Section
         _buildSectionCard(
-          title: 'Quantity Information',
+          context: context,
+          title: l10n.quantityInformation,
           icon: Icons.straighten,
           color: AppColors.warning,
           children: [
@@ -41,8 +45,9 @@ class QuantityInfoSection extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: _buildDropdownField<String>(
+                    context: context,
                     value: selectedUnit,
-                    label: 'Unit',
+                    label: l10n.unit,
                     icon: Icons.category,
                     isRequired: true,
                     items: units
@@ -62,8 +67,9 @@ class QuantityInfoSection extends StatelessWidget {
                 // Quantity
                 Expanded(
                   child: _buildTextFormField(
+                    context: context,
                     controller: quantityController,
-                    label: 'Quantity',
+                    label: l10n.quantity,
                     icon: Icons.numbers,
                     keyboardType: TextInputType.number,
                     validator: quantityValidator,
@@ -78,7 +84,8 @@ class QuantityInfoSection extends StatelessWidget {
 
         // Optional Information Section
         _buildSectionCard(
-          title: 'Optional Information',
+          context: context,
+          title: l10n.optionalInformation,
           icon: Icons.info_outline,
           color: AppColors.textSecondary,
           children: [
@@ -86,19 +93,21 @@ class QuantityInfoSection extends StatelessWidget {
               children: [
                 Expanded(
                   child: _buildTextFormField(
+                    context: context,
                     controller: serialController,
-                    label: 'Serial Number',
+                    label: l10n.serialNumber,
                     icon: Icons.tag,
-                    hint: 'Optional',
+                    hint: l10n.optional,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: _buildTextFormField(
+                    context: context,
                     controller: inventoryController,
-                    label: 'Inventory Number',
+                    label: l10n.inventoryNumber,
                     icon: Icons.inventory,
-                    hint: 'Optional',
+                    hint: l10n.optional,
                   ),
                 ),
               ],
@@ -110,6 +119,7 @@ class QuantityInfoSection extends StatelessWidget {
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Color color,
@@ -154,6 +164,7 @@ class QuantityInfoSection extends StatelessWidget {
   }
 
   Widget _buildTextFormField({
+    required BuildContext context,
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -196,6 +207,7 @@ class QuantityInfoSection extends StatelessWidget {
   }
 
   Widget _buildDropdownField<T>({
+    required BuildContext context,
     required T? value,
     required String label,
     required IconData icon,
@@ -239,7 +251,7 @@ class QuantityInfoSection extends StatelessWidget {
   }
 }
 
-// Path: frontend/lib/features/scan/presentation/pages/create_asset/widgets/submit_button_section.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/submit_button_section.dart
 class SubmitButtonSection extends StatelessWidget {
   final VoidCallback onSubmit;
 
@@ -247,6 +259,8 @@ class SubmitButtonSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = ScanLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -264,9 +278,9 @@ class SubmitButtonSection extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: onSubmit,
           icon: const Icon(Icons.save),
-          label: const Text(
-            'Create Asset',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          label: Text(
+            l10n.createAsset,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
