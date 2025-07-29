@@ -5,6 +5,7 @@ import 'package:frontend/app/theme/app_colors.dart';
 import 'package:frontend/app/theme/app_spacing.dart';
 import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/app/theme/app_typography.dart';
+import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
@@ -24,7 +25,7 @@ extension FilterTheme on ThemeData {
       case 'inactive':
         return colorScheme.error;
       case 'unknown':
-        return AppColors.error.withValues(alpha: 0.7); // เปลี่ยนเป็นสีแดง
+        return AppColors.error.withValues(alpha: 0.7);
       default:
         return colorScheme.primary;
     }
@@ -81,10 +82,8 @@ class _ScanListViewState extends State<ScanListView> {
     super.dispose();
   }
 
-  // ⭐ เพิ่ม method สำหรับ trigger expected counts loading
   void _triggerLoadExpectedCounts(ScanSuccess state) {
     if (state.expectedCounts.isEmpty) {
-      // ดึง unique location codes (ไม่ใช่ names)
       final locationCodes = state.scannedItems
           .where(
             (item) =>
@@ -108,33 +107,24 @@ class _ScanListViewState extends State<ScanListView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    print('ScanListView: Building with ${widget.scannedItems.length} items');
-    print('ScanListView: isLoading = ${widget.isLoading}');
+    final l10n = ScanLocalizations.of(context);
 
     if (widget.isLoading) {
-      print('ScanListView: Showing loading indicator');
       return Center(
         child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
 
     if (widget.scannedItems.isEmpty) {
-      print('ScanListView: Showing empty state');
-      return _buildEmptyState(theme);
+      return _buildEmptyState(theme, l10n);
     }
-
-    print(
-      'ScanListView: Showing list with ${widget.scannedItems.length} items',
-    );
 
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
         if (state is! ScanSuccess) {
-          return _buildEmptyState(theme);
+          return _buildEmptyState(theme, l10n);
         }
 
-        // ⭐ Trigger load expected counts เมื่อ state เป็น ScanSuccess
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _triggerLoadExpectedCounts(state);
         });
@@ -147,26 +137,32 @@ class _ScanListViewState extends State<ScanListView> {
 
         return RefreshIndicator(
           onRefresh: () async {
-            print('ScanListView: Pull to refresh triggered');
             widget.onRefresh?.call();
           },
           color: theme.colorScheme.primary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Location Filter ⭐ Enhanced
+              // Location Filter
               _buildLocationFilter(
                 theme,
                 availableLocations,
                 selectedLocation,
-                state, // ส่ง state เพื่อดู expectedCounts
+                state,
                 context,
+                l10n,
               ),
 
-              // Header with status filters
-              _buildStatusFilter(theme, statusCounts, selectedFilter, context),
+              // Status Filter
+              _buildStatusFilter(
+                theme,
+                statusCounts,
+                selectedFilter,
+                context,
+                l10n,
+              ),
 
-              // Filtered List with responsive 3-column on large screen
+              // Filtered List
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
@@ -175,73 +171,24 @@ class _ScanListViewState extends State<ScanListView> {
                         theme,
                         selectedFilter,
                         selectedLocation,
+                        l10n,
                       );
                     }
 
-                    // Responsive columns based on screen width
+                    // Responsive columns
                     if (constraints.maxWidth >= 1200) {
-                      // Very large screen: 3 columns
-                      List<Widget> rows = [];
-                      for (var i = 0; i < filteredItems.length; i += 3) {
-                        final firstCard = AssetCard(item: filteredItems[i]);
-                        final secondCard = (i + 1 < filteredItems.length)
-                            ? AssetCard(item: filteredItems[i + 1])
-                            : Expanded(child: Container());
-                        final thirdCard = (i + 2 < filteredItems.length)
-                            ? AssetCard(item: filteredItems[i + 2])
-                            : Expanded(child: Container());
-
-                        rows.add(
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: firstCard),
-                              Expanded(child: secondCard),
-                              Expanded(child: thirdCard),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: Column(children: rows),
-                      );
+                      // 3 columns
+                      return _buildGridView(filteredItems, 3);
                     } else if (constraints.maxWidth >= 800) {
-                      // Large screen: 2 columns
-                      List<Widget> rows = [];
-                      for (var i = 0; i < filteredItems.length; i += 2) {
-                        final firstCard = AssetCard(item: filteredItems[i]);
-                        final secondCard = (i + 1 < filteredItems.length)
-                            ? AssetCard(item: filteredItems[i + 1])
-                            : Expanded(child: Container());
-
-                        rows.add(
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: firstCard),
-                              Expanded(child: secondCard),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: Column(children: rows),
-                      );
+                      // 2 columns
+                      return _buildGridView(filteredItems, 2);
                     } else {
-                      // Mobile: 1 column
+                      // 1 column
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: filteredItems.length,
-                        itemBuilder: (context, index) {
-                          print(
-                            'ScanListView: Building card $index for asset ${filteredItems[index].assetNo}',
-                          );
-                          return AssetCard(item: filteredItems[index]);
-                        },
+                        itemBuilder: (context, index) =>
+                            AssetCard(item: filteredItems[index]),
                       );
                     }
                   },
@@ -254,15 +201,39 @@ class _ScanListViewState extends State<ScanListView> {
     );
   }
 
-  // ⭐ Enhanced Location Filter with Comparison Data
+  Widget _buildGridView(List<ScannedItemEntity> items, int columns) {
+    List<Widget> rows = [];
+    for (var i = 0; i < items.length; i += columns) {
+      List<Widget> rowChildren = [];
+      for (var j = 0; j < columns; j++) {
+        if (i + j < items.length) {
+          rowChildren.add(Expanded(child: AssetCard(item: items[i + j])));
+        } else {
+          rowChildren.add(Expanded(child: Container()));
+        }
+      }
+      rows.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: rowChildren,
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(children: rows),
+    );
+  }
+
   Widget _buildLocationFilter(
     ThemeData theme,
     List<String> availableLocations,
     String selectedLocation,
-    ScanSuccess state, // เพิ่ม parameter เพื่อดู expectedCounts
+    ScanSuccess state,
     BuildContext context,
+    ScanLocalizations l10n,
   ) {
-    // กรอง locations ตาม search query
     final filteredLocations = availableLocations.where((location) {
       return location.toLowerCase().contains(
         _locationSearchQuery.toLowerCase(),
@@ -301,23 +272,17 @@ class _ScanListViewState extends State<ScanListView> {
                       Icon(
                         Icons.location_on,
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors
-                                  .darkText // Dark Mode: สีขาว
-                            : theme
-                                  .colorScheme
-                                  .primary, // Light Mode: สีน้ำเงิน
+                            ? AppColors.darkText
+                            : theme.colorScheme.primary,
                         size: 18,
                       ),
                       AppSpacing.horizontalSpaceSM,
                       Text(
-                        'Filter by Location',
+                        l10n.filterByLocation,
                         style: AppTextStyles.filterLabel.copyWith(
                           color: Theme.of(context).brightness == Brightness.dark
-                              ? AppColors
-                                    .darkText // Dark Mode: สีขาว
-                              : theme
-                                    .colorScheme
-                                    .primary, // Light Mode: สีน้ำเงิน
+                              ? AppColors.darkText
+                              : theme.colorScheme.primary,
                         ),
                       ),
                     ],
@@ -327,37 +292,29 @@ class _ScanListViewState extends State<ScanListView> {
                 Expanded(
                   child: TextField(
                     controller: _locationSearchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _locationSearchQuery = value;
-                      });
-                    },
+                    onChanged: (value) =>
+                        setState(() => _locationSearchQuery = value),
                     style: TextStyle(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.onSurface, // Light Mode: สีเข้ม
+                          ? AppColors.darkText
+                          : theme.colorScheme.onSurface,
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search locations...',
+                      hintText: l10n.searchLocations,
                       hintStyle: TextStyle(
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors
-                                  .darkTextSecondary // Dark Mode: สีเทาอ่อนกว่า
+                            ? AppColors.darkTextSecondary
                             : theme.colorScheme.onSurface.withValues(
                                 alpha: 0.6,
-                              ), // Light Mode: สีเทา
+                              ),
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
                         Icons.search,
                         color: Theme.of(context).brightness == Brightness.dark
-                            ? AppColors
-                                  .darkText // Dark Mode: สีขาว
-                            : theme
-                                  .colorScheme
-                                  .primary, // Light Mode: สีน้ำเงิน
+                            ? AppColors.darkText
+                            : theme.colorScheme.primary,
                         size: 18,
                       ),
                       suffixIcon: _locationSearchQuery.isNotEmpty
@@ -367,18 +324,15 @@ class _ScanListViewState extends State<ScanListView> {
                                 color:
                                     Theme.of(context).brightness ==
                                         Brightness.dark
-                                    ? AppColors
-                                          .darkText // Dark Mode: สีขาว
+                                    ? AppColors.darkText
                                     : theme.colorScheme.onSurface.withValues(
                                         alpha: 0.6,
-                                      ), // Light Mode: สีเทา
+                                      ),
                                 size: 18,
                               ),
                               onPressed: () {
                                 _locationSearchController.clear();
-                                setState(() {
-                                  _locationSearchQuery = '';
-                                });
+                                setState(() => _locationSearchQuery = '');
                               },
                             )
                           : null,
@@ -393,10 +347,10 @@ class _ScanListViewState extends State<ScanListView> {
                           color: Theme.of(context).brightness == Brightness.dark
                               ? AppColors.darkTextSecondary.withValues(
                                   alpha: 0.2,
-                                ) // Dark Mode: เทาอ่อน ลด 30%
+                                )
                               : theme.colorScheme.outline.withValues(
                                   alpha: 0.3,
-                                ), // Light Mode: เดิม
+                                ),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
@@ -405,10 +359,10 @@ class _ScanListViewState extends State<ScanListView> {
                           color: Theme.of(context).brightness == Brightness.dark
                               ? AppColors.darkTextSecondary.withValues(
                                   alpha: 0.2,
-                                ) // Dark Mode: เทาอ่อน ลด 30%
+                                )
                               : theme.colorScheme.outline.withValues(
                                   alpha: 0.3,
-                                ), // Light Mode: เดิม
+                                ),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -435,9 +389,8 @@ class _ScanListViewState extends State<ScanListView> {
                     child: Icon(
                       Icons.keyboard_arrow_down,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? AppColors
-                                .darkText // Dark Mode: สีขาว
-                          : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
+                          ? AppColors.darkText
+                          : theme.colorScheme.primary,
                     ),
                   ),
                 ),
@@ -461,16 +414,15 @@ class _ScanListViewState extends State<ScanListView> {
                         ? Padding(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             child: Text(
-                              'No locations found matching "${_locationSearchQuery}"',
+                              l10n.noLocationsFound(_locationSearchQuery),
                               style: TextStyle(
                                 color:
                                     Theme.of(context).brightness ==
                                         Brightness.dark
-                                    ? AppColors
-                                          .darkText // Dark Mode: สีขาว
+                                    ? AppColors.darkText
                                     : theme.colorScheme.onSurface.withValues(
                                         alpha: 0.6,
-                                      ), // Light Mode: สีเทา
+                                      ),
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -489,7 +441,8 @@ class _ScanListViewState extends State<ScanListView> {
                                     theme,
                                     location,
                                     selectedLocation,
-                                    state, // ⭐ ส่ง state เพื่อดู comparison data
+                                    state,
+                                    l10n,
                                   ),
                                 );
                               }).toList(),
@@ -503,16 +456,16 @@ class _ScanListViewState extends State<ScanListView> {
     );
   }
 
-  // ⭐ Enhanced Location Chip with Comparison Data
   Widget _buildLocationChip(
     BuildContext context,
     ThemeData theme,
     String location,
     String selectedLocation,
-    ScanSuccess state, // เพิ่ม parameter
+    ScanSuccess state,
+    ScanLocalizations l10n,
   ) {
     final isSelected = selectedLocation == location;
-    final isAllLocations = location == 'All Locations';
+    final isAllLocations = location == l10n.allLocations;
     final isCurrentLocation = state.currentLocation == location;
 
     // Get comparison data
@@ -520,13 +473,10 @@ class _ScanListViewState extends State<ScanListView> {
     int expectedCount = 0;
 
     if (!isAllLocations) {
-      // นับ scanned items ใน location นี้
       scannedCount = state.scannedItems
           .where((item) => item.locationName == location)
           .length;
 
-      // หา expected count จาก state.expectedCounts
-      // ต้องหา locationCode ที่ตรงกับ locationName
       final locationCode = state.scannedItems
           .where((item) => item.locationName == location)
           .map((item) => item.locationCode)
@@ -544,7 +494,6 @@ class _ScanListViewState extends State<ScanListView> {
     Color borderColor;
 
     if (isAllLocations) {
-      // All Locations - standard color
       chipColor = isSelected
           ? theme.colorScheme.primary
           : theme.colorScheme.primary.withValues(
@@ -557,7 +506,6 @@ class _ScanListViewState extends State<ScanListView> {
                 : theme.colorScheme.primary);
       borderColor = theme.colorScheme.primary;
     } else if (isCurrentLocation) {
-      // Current location - blue
       chipColor = isSelected
           ? theme.colorScheme.primary
           : theme.colorScheme.primary.withValues(
@@ -568,14 +516,12 @@ class _ScanListViewState extends State<ScanListView> {
           : theme.colorScheme.primary;
       borderColor = theme.colorScheme.primary;
     } else if (scannedCount > 0) {
-      // Wrong location (has scanned items) - orange
       chipColor = isSelected
           ? AppColors.warning
           : AppColors.warning.withValues(alpha: FilterTheme.surfaceOpacity);
       textColor = isSelected ? Colors.white : AppColors.warning;
       borderColor = AppColors.warning;
     } else {
-      // Empty location - muted
       chipColor = isSelected
           ? theme.colorScheme.primary
           : theme.colorScheme.primary.withValues(
@@ -624,7 +570,6 @@ class _ScanListViewState extends State<ScanListView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Location name
                 Text(
                   _getDisplayText(location),
                   style: AppTextStyles.filterLabel.copyWith(
@@ -632,12 +577,11 @@ class _ScanListViewState extends State<ScanListView> {
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   ),
                 ),
-                // ⭐ Count display
                 if (!isAllLocations && (scannedCount > 0 || expectedCount > 0))
                   Text(
                     isCurrentLocation && expectedCount > 0
-                        ? '($scannedCount/$expectedCount)' // Current location: show scanned/expected
-                        : '($scannedCount)', // Other locations: show scanned only
+                        ? '($scannedCount/$expectedCount)'
+                        : '($scannedCount)',
                     style: AppTextStyles.caption.copyWith(
                       color: textColor.withValues(alpha: 0.8),
                       fontSize: 11,
@@ -645,7 +589,6 @@ class _ScanListViewState extends State<ScanListView> {
                   ),
               ],
             ),
-            // Status indicator
             if (!isAllLocations &&
                 isCurrentLocation &&
                 expectedCount > 0 &&
@@ -671,6 +614,7 @@ class _ScanListViewState extends State<ScanListView> {
     Map<String, int> statusCounts,
     String selectedFilter,
     BuildContext context,
+    ScanLocalizations l10n,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -685,7 +629,6 @@ class _ScanListViewState extends State<ScanListView> {
       ),
       child: Column(
         children: [
-          // Header
           InkWell(
             onTap: () => setState(
               () => _isStatusFilterExpanded = !_isStatusFilterExpanded,
@@ -705,7 +648,7 @@ class _ScanListViewState extends State<ScanListView> {
                   ),
                   AppSpacing.horizontalSpaceSM,
                   Text(
-                    'Filter by Status',
+                    l10n.filterByStatus,
                     style: AppTextStyles.filterLabel.copyWith(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? AppColors.darkText
@@ -727,8 +670,6 @@ class _ScanListViewState extends State<ScanListView> {
               ),
             ),
           ),
-
-          // Content
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             height: _isStatusFilterExpanded ? null : 0,
@@ -746,42 +687,47 @@ class _ScanListViewState extends State<ScanListView> {
                       children: [
                         _buildFilterChip(
                           theme,
-                          'All',
+                          l10n.all,
                           statusCounts['All'] ?? 0,
                           selectedFilter,
                           context,
+                          l10n,
                         ),
                         if ((statusCounts['Active'] ?? 0) > 0)
                           _buildFilterChip(
                             theme,
-                            'Awaiting',
+                            l10n.statusAwaiting,
                             statusCounts['Active'] ?? 0,
                             selectedFilter,
                             context,
+                            l10n,
                           ),
                         if ((statusCounts['Checked'] ?? 0) > 0)
                           _buildFilterChip(
                             theme,
-                            'Checked',
+                            l10n.statusChecked,
                             statusCounts['Checked'] ?? 0,
                             selectedFilter,
                             context,
+                            l10n,
                           ),
                         if ((statusCounts['Inactive'] ?? 0) > 0)
                           _buildFilterChip(
                             theme,
-                            'Inactive',
+                            l10n.statusInactive,
                             statusCounts['Inactive'] ?? 0,
                             selectedFilter,
                             context,
+                            l10n,
                           ),
                         if ((statusCounts['Unknown'] ?? 0) > 0)
                           _buildFilterChip(
                             theme,
-                            'Unknown',
+                            l10n.statusUnknown,
                             statusCounts['Unknown'] ?? 0,
                             selectedFilter,
                             context,
+                            l10n,
                           ),
                       ],
                     ),
@@ -799,14 +745,28 @@ class _ScanListViewState extends State<ScanListView> {
     int count,
     String selectedFilter,
     BuildContext context,
+    ScanLocalizations l10n,
   ) {
-    final isSelected = selectedFilter == label;
-    final color = theme.getFilterColor(label);
+    // Map localized labels to internal filter values
+    String filterValue = label;
+    if (label == l10n.statusAwaiting) {
+      filterValue = 'Awaiting';
+    } else if (label == l10n.statusChecked) {
+      filterValue = 'Checked';
+    } else if (label == l10n.statusInactive) {
+      filterValue = 'Inactive';
+    } else if (label == l10n.statusUnknown) {
+      filterValue = 'Unknown';
+    } else if (label == l10n.all) {
+      filterValue = 'All';
+    }
+
+    final isSelected = selectedFilter == filterValue;
+    final color = theme.getFilterColor(filterValue);
 
     return GestureDetector(
-      onTap: () {
-        context.read<ScanBloc>().add(FilterChanged(filter: label));
-      },
+      onTap: () =>
+          context.read<ScanBloc>().add(FilterChanged(filter: filterValue)),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: AppSpacing.symmetric(
@@ -821,15 +781,11 @@ class _ScanListViewState extends State<ScanListView> {
           border: Border.all(
             color: isSelected
                 ? color
-                : (label.toLowerCase() == 'unknown'
-                      ? AppColors.error.withValues(
-                          alpha: 0.7,
-                        ) // Unknown: เก็บขอบสีแดง
+                : (filterValue.toLowerCase() == 'unknown'
+                      ? AppColors.error.withValues(alpha: 0.7)
                       : (Theme.of(context).brightness == Brightness.dark
-                            ? AppColors.darkTextSecondary.withValues(
-                                alpha: 0.2,
-                              ) // Dark Mode: เทาอ่อน ลด 30%
-                            : color)), // Light Mode: สีตาม status เดิม
+                            ? AppColors.darkTextSecondary.withValues(alpha: 0.2)
+                            : color)),
             width: isSelected
                 ? ScanListConstants.borderWidthSelected.toDouble()
                 : ScanListConstants.borderWidthNormal.toDouble(),
@@ -840,13 +796,11 @@ class _ScanListViewState extends State<ScanListView> {
           style: AppTextStyles.filterLabel.copyWith(
             color: isSelected
                 ? theme.colorScheme.onPrimary
-                : (label.toLowerCase() == 'unknown'
-                      ? AppColors
-                            .error // Unknown: text สีแดง
+                : (filterValue.toLowerCase() == 'unknown'
+                      ? AppColors.error
                       : (Theme.of(context).brightness == Brightness.dark
-                            ? AppColors
-                                  .darkText // Dark Mode: สีขาว
-                            : color)), // Light Mode: สีตาม status
+                            ? AppColors.darkText
+                            : color)),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
@@ -855,7 +809,6 @@ class _ScanListViewState extends State<ScanListView> {
   }
 
   String _getDisplayText(String location) {
-    // ถ้าชื่อยาวเกินไป ให้ตัดให้สั้น
     if (location.length > ScanListConstants.maxLocationDisplayLength) {
       return '${location.substring(0, ScanListConstants.trimLocationLength.toInt())}...';
     }
@@ -866,8 +819,9 @@ class _ScanListViewState extends State<ScanListView> {
     ThemeData theme,
     String filter,
     String location,
+    ScanLocalizations l10n,
   ) {
-    final isLocationFilter = location != 'All Locations';
+    final isLocationFilter = location != l10n.allLocations;
 
     return Center(
       child: Column(
@@ -890,34 +844,30 @@ class _ScanListViewState extends State<ScanListView> {
               ),
             ),
           ),
-
           AppSpacing.verticalSpaceLG,
-
-          Text(
-            isLocationFilter ? 'No items in $location' : 'No $filter items',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors
-                        .darkText // Dark Mode: สีขาว
-                  : theme.colorScheme.onBackground.withValues(
-                      alpha: FilterTheme.textSecondaryOpacity,
-                    ), // Light Mode: สีเทา
-            ),
-          ),
-
-          AppSpacing.verticalSpaceSM,
-
           Text(
             isLocationFilter
-                ? 'Try selecting a different location or scan again'
-                : 'Try selecting a different filter or scan again',
+                ? l10n.noItemsInLocation(location)
+                : l10n.noFilteredItems(filter),
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkText
+                  : theme.colorScheme.onBackground.withValues(
+                      alpha: FilterTheme.textSecondaryOpacity,
+                    ),
+            ),
+          ),
+          AppSpacing.verticalSpaceSM,
+          Text(
+            isLocationFilter
+                ? l10n.tryDifferentLocationOrScan
+                : l10n.tryDifferentFilterOrScan,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors
-                        .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                  ? AppColors.darkTextSecondary
                   : theme.colorScheme.onBackground.withValues(
                       alpha: FilterTheme.textTertiaryOpacity,
-                    ), // Light Mode: สีเทาอ่อน
+                    ),
             ),
             textAlign: TextAlign.center,
           ),
@@ -926,7 +876,7 @@ class _ScanListViewState extends State<ScanListView> {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildEmptyState(ThemeData theme, ScanLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -948,32 +898,26 @@ class _ScanListViewState extends State<ScanListView> {
               ),
             ),
           ),
-
           AppSpacing.verticalSpaceLG,
-
           Text(
-            'No scanned items',
+            l10n.noScannedItems,
             style: theme.textTheme.titleMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors
-                        .darkText // Dark Mode: สีขาว
+                  ? AppColors.darkText
                   : theme.colorScheme.onBackground.withValues(
                       alpha: FilterTheme.textSecondaryOpacity,
-                    ), // Light Mode: สีเทา
+                    ),
             ),
           ),
-
           AppSpacing.verticalSpaceSM,
-
           Text(
-            'Tap the scan button to start scanning RFID tags',
+            l10n.tapScanButtonToStart,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors
-                        .darkTextSecondary // Dark Mode: สีเทาอ่อน
+                  ? AppColors.darkTextSecondary
                   : theme.colorScheme.onBackground.withValues(
                       alpha: FilterTheme.textTertiaryOpacity,
-                    ), // Light Mode: สีเทาอ่อน
+                    ),
             ),
             textAlign: TextAlign.center,
           ),
