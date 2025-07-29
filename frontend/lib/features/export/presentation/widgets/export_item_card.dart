@@ -44,6 +44,8 @@ class ExportItemCard extends StatelessWidget {
     ThemeData theme,
     bool isDark,
   ) {
+    final l10n = ExportLocalizations.of(context);
+
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: _buildCardDecoration(theme, isDark, true),
@@ -69,7 +71,7 @@ class ExportItemCard extends StatelessWidget {
 
             // Export ID
             Text(
-              'Export #${export.exportId}',
+              '${l10n.exportIdNumber}${export.exportId}',
               style: AppTextStyles.responsive(
                 context: context,
                 style: AppTextStyles.headline6.copyWith(
@@ -98,7 +100,7 @@ class ExportItemCard extends StatelessWidget {
               ),
               AppSpacing.horizontalSpaceXS,
               Text(
-                '${export.totalRecords} records',
+                '${export.totalRecords} ${l10n.records}',
                 style: AppTextStyles.body2.copyWith(
                   color: isDark ? AppColors.darkTextSecondary : AppColors.info,
                   fontWeight: FontWeight.w500,
@@ -157,6 +159,8 @@ class ExportItemCard extends StatelessWidget {
   }
 
   Widget _buildCompactCard(BuildContext context, ThemeData theme, bool isDark) {
+    final l10n = ExportLocalizations.of(context);
+
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: _buildCardDecoration(theme, isDark, false),
@@ -164,7 +168,7 @@ class ExportItemCard extends StatelessWidget {
         contentPadding: AppSpacing.paddingLG,
         leading: _buildStatusIcon(isDark),
         title: Text(
-          'Export ID: ${export.exportId}',
+          '${l10n.exportId}: ${export.exportId}',
           style: AppTextStyles.cardTitle.copyWith(
             color: isDark ? AppColors.darkText : theme.colorScheme.onSurface,
           ),
@@ -179,11 +183,13 @@ class ExportItemCard extends StatelessWidget {
   }
 
   Widget _buildCompactDetails(BuildContext context, bool isDark) {
+    final l10n = ExportLocalizations.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Status: ${export.statusLabel}',
+          '${l10n.status}: ${export.statusLabel}',
           style: AppTextStyles.cardSubtitle.copyWith(
             color: isDark
                 ? AppColors.darkTextSecondary
@@ -193,7 +199,7 @@ class ExportItemCard extends StatelessWidget {
         if (export.totalRecords != null) ...[
           AppSpacing.verticalSpaceXS,
           Text(
-            'Records: ${export.totalRecords}',
+            '${l10n.totalRecords}: ${export.totalRecords}',
             style: AppTextStyles.caption.copyWith(
               color: isDark ? AppColors.darkTextMuted : AppColors.textTertiary,
             ),
@@ -201,7 +207,7 @@ class ExportItemCard extends StatelessWidget {
         ],
         AppSpacing.verticalSpaceXS,
         Text(
-          'Created: ${_formatDate(export.createdAt)}',
+          '${l10n.createdAt}: ${_formatDate(export.createdAt)}',
           style: AppTextStyles.caption.copyWith(
             color: isDark ? AppColors.darkTextMuted : AppColors.textTertiary,
           ),

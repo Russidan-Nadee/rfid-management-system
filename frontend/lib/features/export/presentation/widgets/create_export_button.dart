@@ -74,7 +74,7 @@ class CreateExportButton extends StatelessWidget {
       return _buildLoadingContent(theme);
     }
 
-    return _buildNormalContent(theme);
+    return _buildNormalContent(context, theme);
   }
 
   Widget _buildLoadingContent(ThemeData theme) {
@@ -107,9 +107,10 @@ class CreateExportButton extends StatelessWidget {
     );
   }
 
-  Widget _buildNormalContent(ThemeData theme) {
+  Widget _buildNormalContent(BuildContext context, ThemeData theme) {
     final isEnabled = onPressed != null;
-    final buttonLabel = label ?? 'Export File';
+    final l10n = ExportLocalizations.of(context);
+    final buttonLabel = label ?? l10n.exportFile;
     final buttonIcon = icon ?? Icons.upload;
 
     return Row(
@@ -195,17 +196,27 @@ class ExportActionButton extends StatelessWidget {
         return l10n.exportCSV;
       }
     } else {
-      // fallback if format unknown
-      final upperFormat = format.toUpperCase();
-      if (hasDateRange && hasFilters) {
-        return 'Export $upperFormat (Filtered)';
-      } else if (hasDateRange) {
-        return 'Export $upperFormat (Date Range)';
-      } else if (hasFilters) {
-        return 'Export $upperFormat (Filtered)';
-      } else {
-        return 'Export $upperFormat';
-      }
+      // fallback for unknown format - use dynamic localization
+      return _buildDynamicFormatLabel(context, formatLower);
+    }
+  }
+
+  /// Build dynamic format label for unknown formats
+  String _buildDynamicFormatLabel(BuildContext context, String formatLower) {
+    final upperFormat = format.toUpperCase();
+
+    // Hard code for unknown formats (dead code - only xlsx/csv used)
+    String baseLabel = 'Export $upperFormat';
+
+    // Add filter/date range modifiers
+    if (hasDateRange && hasFilters) {
+      return '$baseLabel (Filtered)';
+    } else if (hasDateRange) {
+      return '$baseLabel (Date Range)';
+    } else if (hasFilters) {
+      return '$baseLabel (Filtered)';
+    } else {
+      return baseLabel;
     }
   }
 
