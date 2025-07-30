@@ -1,4 +1,4 @@
-// Path: backend/src/routes/route.js
+// Path: backend/src/index.js
 const express = require('express');
 const router = express.Router();
 
@@ -19,6 +19,7 @@ const { authenticateToken } = require('./features/auth/authMiddleware');
 const authRoutes = require('./features/auth/authRoutes');
 const exportRoutes = require('./features/export/exportRoutes');
 const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
+// const imageRoutes = require('./features/image/image.routes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -36,6 +37,7 @@ router.use('/auth', authRoutes);
 router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
+router.use('/images', require('./features/image/image.routes'));
 router.use(require('./features/scan/scanRoutes'));
 
 /**
@@ -84,7 +86,8 @@ router.get('/docs', (req, res) => {
          '/dashboard': 'Dashboard statistics and analytics endpoints',
          '/search': 'Search functionality across all entities',
          '/export': 'Data export functionality',
-         '/scan': 'Asset scanning and logging endpoints'
+         '/scan': 'Asset scanning and logging endpoints',
+         '/images': 'Image management for assets'
       },
 
       endpoints: {
@@ -127,6 +130,18 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/export/stats': 'Get export statistics'
          },
 
+         images: {
+            'POST /api/v1/assets/:asset_no/images': 'Upload images for asset (max 10)',
+            'GET /api/v1/assets/:asset_no/images': 'Get all images for asset',
+            'GET /api/v1/images/:imageId': 'Serve image file with optimization',
+            'PUT /api/v1/assets/:asset_no/images/:imageId': 'Replace existing image',
+            'PATCH /api/v1/assets/:asset_no/images/:imageId': 'Update image metadata',
+            'POST /api/v1/assets/:asset_no/images/:imageId/primary': 'Set image as primary',
+            'DELETE /api/v1/assets/:asset_no/images/:imageId': 'Delete image',
+            'GET /api/v1/images/search': 'Search images across all assets',
+            'GET /api/v1/images/system/stats': 'Get system image statistics (admin)'
+         },
+
          scan: {
             'GET /api/v1/scan/asset/:asset_no': 'Get asset by number for scanning',
             'POST /api/v1/scan/asset/create': 'Create unknown asset found during scan',
@@ -167,6 +182,12 @@ router.get('/docs', (req, res) => {
             q: 'Search query for search endpoints',
             entities: 'Target entities for search (assets,plants,locations)',
             fuzzy: 'Enable fuzzy matching for suggestions'
+         },
+         images: {
+            size: 'Image size (original, thumb, small, medium, large)',
+            quality: 'Image quality (low, medium, high)',
+            format: 'Output format (jpeg, png, webp)',
+            include_thumbnails: 'Include thumbnail URLs (default: true)'
          }
       },
 
@@ -185,6 +206,7 @@ router.get('/docs', (req, res) => {
          404: 'Not Found - Resource not found',
          409: 'Conflict - Resource conflict (e.g., pending export exists)',
          410: 'Gone - Resource expired',
+         413: 'Payload Too Large - File too large',
          429: 'Too Many Requests - Rate limit exceeded',
          500: 'Internal Server Error - Server error',
          503: 'Service Unavailable - Database connection failed'
@@ -194,14 +216,25 @@ router.get('/docs', (req, res) => {
          general: '1000 requests per 15 minutes',
          strict: '100 requests per 15 minutes (for sensitive operations)',
          search_instant: '120 requests per minute',
-         search_general: '60 requests per minute'
+         search_general: '60 requests per minute',
+         image_upload: '20 uploads per 5 minutes',
+         admin_operations: '10 operations per hour'
       },
 
       authentication: {
-         required_endpoints: 'All endpoints except /docs and /status require authentication',
+         required_endpoints: 'Most endpoints except /docs, /status, and image serving require authentication',
          token_type: 'Bearer JWT Token',
          header: 'Authorization: Bearer <token>',
          refresh: 'Use /auth/refresh to get new tokens'
+      },
+
+      file_specifications: {
+         supported_formats: ['JPEG', 'PNG', 'WebP'],
+         max_file_size: '10MB per file',
+         max_files_per_asset: 10,
+         thumbnail_size: '300x300 pixels (aspect ratio maintained)',
+         naming_convention: '{asset_no}_{YYYYMMDD}_{HHMMSS}_{sequence}.{ext}',
+         storage_location: '/uploads/assets/ for originals, /uploads/assets/thumbs/ for thumbnails'
       }
    };
 
@@ -221,7 +254,8 @@ router.get('/status', (req, res) => {
          dashboard: 'Active',
          search: 'Active',
          export: 'Active',
-         scan: 'Active'
+         scan: 'Active',
+         images: 'Active'
       }
    });
 });

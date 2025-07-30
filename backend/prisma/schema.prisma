@@ -53,17 +53,31 @@ model asset_master {
 }
 
 model asset_image {
-  id         Int      @id @default(autoincrement())
-  asset_no   String   @db.VarChar(20)
-  file_path  String   @db.VarChar(500)
-  file_name  String   @db.VarChar(255)
-  file_type  String   @db.VarChar(20)
-  file_size  BigInt?
-  created_at DateTime @default(now()) @db.DateTime(0)
+  id             Int       @id @default(autoincrement())
+  asset_no       String    @db.VarChar(20)
+  file_path      String    @db.VarChar(500)
+  file_name      String    @db.VarChar(255)
+  file_type      String    @db.VarChar(20)
+  file_size      BigInt?
+  original_name  String?   @db.VarChar(255)
+  thumbnail_path String?   @db.VarChar(500)
+  thumbnail_size BigInt?
+  width          Int?
+  height         Int?
+  is_primary     Boolean   @default(false)
+  alt_text       String?   @db.VarChar(255)
+  description    String?   @db.VarChar(500)
+  category       String?   @db.VarChar(50)
+  created_by     String?   @db.VarChar(20)
+  created_at     DateTime  @default(now()) @db.DateTime(0)
+  updated_at     DateTime? @db.DateTime(0)
+  updated_by     String?   @db.VarChar(20)
 
   asset_master asset_master @relation(fields: [asset_no], references: [asset_no])
 
   @@index([asset_no], map: "idx_asset_image_asset_no")
+  @@index([is_primary], map: "idx_asset_image_primary")
+  @@index([created_at], map: "idx_asset_image_created_at")
 }
 
 model asset_scan_log {
