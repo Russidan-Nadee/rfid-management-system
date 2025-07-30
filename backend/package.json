@@ -10,7 +10,9 @@
     "test:watch": "jest --watch",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "cleanup": "node scripts/cleanup.js"
+    "cleanup": "node scripts/cleanup.js",
+    "create-user": "node src/scripts/createUser.js",
+    "seed-default-users": "node src/scripts/seedDefaultUsers.js"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",
