@@ -252,4 +252,20 @@ class ScanLocalizationsTh extends ScanLocalizations {
   // Error Messages
   @override
   String get errorGeneric => 'เกิดข้อผิดพลาดที่ไม่คาดคิด';
+
+  // Image Gallery Section
+  @override
+  String get images => 'รูปภาพ';
+
+  @override
+  String get primary => 'หลัก';
+
+  @override
+  String get noImagesAvailable => 'ไม่มีรูปภาพ';
+
+  @override
+  String get imagesWillAppearHere => 'รูปภาพจะปรากฏที่นี่เมื่ออัพโหลด';
+
+  @override
+  String get imageLoadError => 'ไม่สามารถโหลดรูปภาพได้';
 }

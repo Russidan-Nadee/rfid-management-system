@@ -57,6 +57,7 @@ dependencies:
   lucide_icons: ^0.257.0
   device_info_plus: ^11.5.0
   url_launcher: ^6.3.2
+  cached_network_image: ^3.4.1
   
   # Chart dependencies for data visualization
   fl_chart: ^1.0.0

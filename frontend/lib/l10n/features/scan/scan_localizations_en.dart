@@ -254,4 +254,20 @@ class ScanLocalizationsEn extends ScanLocalizations {
   // Error Messages
   @override
   String get errorGeneric => 'An unexpected error occurred';
+
+  // Image Gallery Section
+  @override
+  String get images => 'Images';
+
+  @override
+  String get primary => 'Primary';
+
+  @override
+  String get noImagesAvailable => 'No images available';
+
+  @override
+  String get imagesWillAppearHere => 'Images will appear here when uploaded';
+
+  @override
+  String get imageLoadError => 'Failed to load image';
 }

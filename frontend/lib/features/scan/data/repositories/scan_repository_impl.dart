@@ -3,9 +3,11 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../../domain/entities/master_data_entity.dart';
+import '../../domain/entities/asset_image_entity.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../models/scanned_item_model.dart';
 import '../models/asset_status_update_model.dart';
+import '../models/asset_image_model.dart';
 import '../models/create_asset_models.dart';
 import '../datasources/mock_rfid_datasource.dart';
 
@@ -224,6 +226,43 @@ class ScanRepositoryImpl implements ScanRepository {
     } catch (e) {
       print('Repository: Error getting assets by location: $e');
       throw Exception('Failed to get assets by location: $e');
+    }
+  }
+
+  // ⭐ NEW: Get Asset Images implementation
+  @override
+  Future<List<AssetImageEntity>> getAssetImages(String assetNo) async {
+    try {
+      print('Repository: Getting images for asset: $assetNo');
+
+      final response = await apiService.get<Map<String, dynamic>>(
+        '/images/assets/$assetNo/images',
+        fromJson: (json) => json,
+      );
+
+      print('Repository: Images API Response - Success: ${response.success}');
+
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        final imagesJson = data['images'] as List<dynamic>? ?? [];
+
+        print(
+          'Repository: Found ${imagesJson.length} images for asset $assetNo',
+        );
+
+        final images = imagesJson
+            .map(
+              (json) => AssetImageModel.fromJson(json as Map<String, dynamic>),
+            )
+            .toList();
+
+        return images;
+      } else {
+        throw Exception('Failed to fetch asset images: ${response.message}');
+      }
+    } catch (e) {
+      print('Repository: Error getting asset images: $e');
+      throw Exception('Failed to get asset images: $e');
     }
   }
 }

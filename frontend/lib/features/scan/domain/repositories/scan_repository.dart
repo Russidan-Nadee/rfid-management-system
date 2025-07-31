@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/scan/domain/repositories/scan_repository.dart
 import '../entities/scanned_item_entity.dart';
 import '../entities/master_data_entity.dart';
+import '../entities/asset_image_entity.dart';
 import '../../data/models/asset_status_update_model.dart';
 
 abstract class ScanRepository {
@@ -20,6 +21,9 @@ abstract class ScanRepository {
   Future<List<UnitEntity>> getUnits();
   Future<List<DepartmentEntity>> getDepartments();
 
-  // New method for getting assets by location
+  // Assets by location method
   Future<List<ScannedItemEntity>> getAssetsByLocation(String locationCode);
+
+  // ⭐ NEW: Asset Images method
+  Future<List<AssetImageEntity>> getAssetImages(String assetNo);
 }

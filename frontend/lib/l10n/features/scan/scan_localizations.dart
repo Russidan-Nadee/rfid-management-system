@@ -143,4 +143,11 @@ abstract class ScanLocalizations {
 
   // Error Messages
   String get errorGeneric;
+
+  // Image Gallery Section
+  String get images;
+  String get primary;
+  String get noImagesAvailable;
+  String get imagesWillAppearHere;
+  String get imageLoadError;
 }

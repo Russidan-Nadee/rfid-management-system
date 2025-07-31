@@ -248,4 +248,20 @@ class ScanLocalizationsJa extends ScanLocalizations {
   // Error Messages
   @override
   String get errorGeneric => '予期しないエラーが発生しました';
+
+  // Image Gallery Section
+  @override
+  String get images => '画像';
+
+  @override
+  String get primary => 'プライマリ';
+
+  @override
+  String get noImagesAvailable => '利用可能な画像がありません';
+
+  @override
+  String get imagesWillAppearHere => 'アップロード時に画像がここに表示されます';
+
+  @override
+  String get imageLoadError => '画像の読み込みに失敗しました';
 }

@@ -75,7 +75,8 @@ class ImageModel {
             }
          });
 
-         return image;
+         // ⭐ แก้ปัญหา BigInt serialization
+         return this._convertBigIntToNumber(image);
       } catch (error) {
          console.error('Create image database error:', error);
          throw new Error(`Database error creating image: ${error.message}`);
@@ -97,7 +98,8 @@ class ImageModel {
             ]
          });
 
-         return images;
+         // ⭐ แก้ปัญหา BigInt serialization สำหรับ array
+         return images.map(image => this._convertBigIntToNumber(image));
       } catch (error) {
          console.error('Get asset images database error:', error);
          throw new Error(`Database error getting asset images: ${error.message}`);
@@ -115,7 +117,8 @@ class ImageModel {
             where: { id: parseInt(imageId) }
          });
 
-         return image;
+         // ⭐ แก้ปัญหา BigInt serialization
+         return image ? this._convertBigIntToNumber(image) : null;
       } catch (error) {
          console.error('Get image by ID database error:', error);
          throw new Error(`Database error getting image: ${error.message}`);
@@ -136,7 +139,8 @@ class ImageModel {
             }
          });
 
-         return primaryImage;
+         // ⭐ แก้ปัญหา BigInt serialization
+         return primaryImage ? this._convertBigIntToNumber(primaryImage) : null;
       } catch (error) {
          console.error('Get primary image database error:', error);
          throw new Error(`Database error getting primary image: ${error.message}`);
@@ -159,7 +163,8 @@ class ImageModel {
             }
          });
 
-         return updatedImage;
+         // ⭐ แก้ปัญหา BigInt serialization
+         return this._convertBigIntToNumber(updatedImage);
       } catch (error) {
          console.error('Update image database error:', error);
 
@@ -286,10 +291,11 @@ class ImageModel {
             })
          ]);
 
+         // ⭐ แก้ปัญหา BigInt ในสถิติ
          return {
             total: stats._count.id || 0,
-            totalSize: Number(stats._sum.file_size) || 0,
-            averageSize: Math.round(Number(stats._avg.file_size) || 0),
+            totalSize: this._safeBigIntToNumber(stats._sum.file_size) || 0,
+            averageSize: Math.round(this._safeBigIntToNumber(stats._avg.file_size) || 0),
             hasPrimary: !!hasPrimary,
             fileTypes: fileTypes.map(ft => ({
                type: ft.file_type,
@@ -298,12 +304,12 @@ class ImageModel {
             largestImage: largestImage ? {
                id: largestImage.id,
                name: largestImage.file_name,
-               size: Number(largestImage.file_size)
+               size: this._safeBigIntToNumber(largestImage.file_size)
             } : null,
             smallestImage: smallestImage ? {
                id: smallestImage.id,
                name: smallestImage.file_name,
-               size: Number(smallestImage.file_size)
+               size: this._safeBigIntToNumber(smallestImage.file_size)
             } : null,
             newestImage: stats._max.created_at,
             oldestImage: stats._min.created_at
@@ -360,13 +366,14 @@ class ImageModel {
             ]
          });
 
-         // Group by asset_no
+         // Group by asset_no และแก้ BigInt
          const grouped = {};
          images.forEach(image => {
-            if (!grouped[image.asset_no]) {
-               grouped[image.asset_no] = [];
+            const convertedImage = this._convertBigIntToNumber(image);
+            if (!grouped[convertedImage.asset_no]) {
+               grouped[convertedImage.asset_no] = [];
             }
-            grouped[image.asset_no].push(image);
+            grouped[convertedImage.asset_no].push(convertedImage);
          });
 
          return grouped;
@@ -440,7 +447,8 @@ class ImageModel {
             skip: offset
          });
 
-         return images;
+         // ⭐ แก้ปัญหา BigInt serialization สำหรับ search results
+         return images.map(image => this._convertBigIntToNumber(image));
       } catch (error) {
          console.error('Search images database error:', error);
          throw new Error(`Database error searching images: ${error.message}`);
@@ -483,16 +491,17 @@ class ImageModel {
             _sum: { file_size: true }
          });
 
+         // ⭐ แก้ปัญหา BigInt ในสถิติระบบ
          return {
             total_images: totalStats._count.id || 0,
-            total_size: Number(totalStats._sum.file_size) || 0,
-            average_size: Math.round(Number(totalStats._avg.file_size) || 0),
+            total_size: this._safeBigIntToNumber(totalStats._sum.file_size) || 0,
+            average_size: Math.round(this._safeBigIntToNumber(totalStats._avg.file_size) || 0),
             assets_with_images: assetStats.length,
             recent_uploads_7d: recentStats,
             file_types: fileTypeStats.map(ft => ({
                type: ft.file_type,
                count: ft._count.file_type,
-               total_size: Number(ft._sum.file_size) || 0
+               total_size: this._safeBigIntToNumber(ft._sum.file_size) || 0
             })),
             timestamp: new Date().toISOString()
          };
@@ -559,14 +568,61 @@ class ImageModel {
       try {
          const result = await this.prisma.$queryRawUnsafe(query, ...params);
 
-         // Convert BigInt to Number for JSON serialization
-         return JSON.parse(JSON.stringify(result, (key, value) =>
-            typeof value === 'bigint' ? Number(value) : value
-         ));
+         // ⭐ แก้ปัญหา BigInt ใน raw query results
+         return this._convertArrayBigIntToNumber(result);
       } catch (error) {
          console.error('Execute query database error:', error);
          throw new Error(`Database query error: ${error.message}`);
       }
+   }
+
+   /**
+    * 🔧 HELPER METHODS สำหรับแก้ปัญหา BigInt
+    */
+
+   /**
+    * แปลง BigInt เป็น Number ใน object
+    * @param {Object} obj - object ที่มี BigInt fields
+    * @returns {Object} object ที่แปลงแล้ว
+    */
+   _convertBigIntToNumber(obj) {
+      if (!obj) return obj;
+
+      const converted = { ...obj };
+
+      // แปลง BigInt fields เป็น Number
+      if (converted.file_size && typeof converted.file_size === 'bigint') {
+         converted.file_size = Number(converted.file_size);
+      }
+
+      if (converted.thumbnail_size && typeof converted.thumbnail_size === 'bigint') {
+         converted.thumbnail_size = Number(converted.thumbnail_size);
+      }
+
+      return converted;
+   }
+
+   /**
+    * แปลง BigInt เป็น Number สำหรับ array
+    * @param {Array} arr - array ของ objects
+    * @returns {Array} array ที่แปลงแล้ว
+    */
+   _convertArrayBigIntToNumber(arr) {
+      if (!Array.isArray(arr)) return arr;
+
+      return arr.map(item => this._convertBigIntToNumber(item));
+   }
+
+   /**
+    * แปลง BigInt เป็น Number อย่างปลอดภัย (handle null/undefined)
+    * @param {BigInt|null|undefined} value - BigInt value
+    * @returns {Number|null} converted number
+    */
+   _safeBigIntToNumber(value) {
+      if (value === null || value === undefined) return null;
+      if (typeof value === 'bigint') return Number(value);
+      if (typeof value === 'number') return value;
+      return null;
    }
 }
 
