@@ -19,7 +19,7 @@ const { authenticateToken } = require('./features/auth/authMiddleware');
 const authRoutes = require('./features/auth/authRoutes');
 const exportRoutes = require('./features/export/exportRoutes');
 const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
-// const imageRoutes = require('./features/image/image.routes');
+const imageRoutes = require('./features/image/image.routes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -37,7 +37,7 @@ router.use('/auth', authRoutes);
 router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
-router.use('/images', require('./features/image/image.routes'));
+router.use('/images', imageRoutes);
 router.use(require('./features/scan/scanRoutes'));
 
 /**

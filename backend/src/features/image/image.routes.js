@@ -47,6 +47,25 @@ const uploadRateLimitStrict = createRateLimit(5 * 60 * 1000, 20); // 20 uploads 
 const adminRateLimit = createRateLimit(60 * 60 * 1000, 10);    // 10 admin operations per hour
 
 /**
+ * 🏥 HEALTH CHECK ROUTE
+ */
+router.get('/health', (req, res) => {
+   res.status(200).json({
+      success: true,
+      message: 'Image service is healthy',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+      features: {
+         upload: 'operational',
+         serving: 'operational',
+         thumbnails: 'operational',
+         search: 'operational',
+         admin: 'operational'
+      }
+   });
+});
+
+/**
  * 📤 UPLOAD ROUTES
  * จัดการการอัพโหลดรูปภาพ
  */
@@ -146,7 +165,7 @@ router.delete('/assets/:asset_no/images/:imageId',
  */
 
 // GET /images/search - Search images across all assets
-router.get('/images/search',
+router.get('/search',
    imageRateLimit,
    authenticateToken,
    searchImagesValidator,
@@ -159,7 +178,7 @@ router.get('/images/search',
  */
 
 // GET /images/system/stats - Get system-wide image statistics (admin only)
-router.get('/images/system/stats',
+router.get('/system/stats',
    adminRateLimit,
    authenticateToken,
    requireRole(['admin']),
@@ -173,7 +192,7 @@ router.get('/images/system/stats',
  */
 
 // POST /images/cleanup - Cleanup orphaned files (admin only)
-router.post('/images/cleanup',
+router.post('/cleanup',
    adminRateLimit,
    authenticateToken,
    requireRole(['admin']),
@@ -182,7 +201,7 @@ router.post('/images/cleanup',
 );
 
 // POST /images/batch/update - Batch update images (admin only)
-router.post('/images/batch/update',
+router.post('/batch/update',
    adminRateLimit,
    authenticateToken,
    requireRole(['admin', 'manager']),
@@ -191,7 +210,7 @@ router.post('/images/batch/update',
 );
 
 // GET /images/system/health - Image system health check (admin only)
-router.get('/images/system/health',
+router.get('/system/health',
    adminRateLimit,
    authenticateToken,
    requireRole(['admin']),
@@ -203,8 +222,8 @@ router.get('/images/system/health',
  * API Documentation
  */
 
-// GET /images/docs - Image API documentation
-router.get('/images/docs', (req, res) => {
+// GET /docs - Image API documentation
+router.get('/docs', (req, res) => {
    const imageDocs = {
       success: true,
       message: 'Image Management API Documentation',
@@ -267,7 +286,7 @@ router.get('/images/docs', (req, res) => {
          },
 
          search: {
-            'GET /images/search': {
+            'GET /search': {
                description: 'Search images across all assets',
                parameters: {
                   asset_no: 'Filter by asset number (partial match)',
@@ -283,13 +302,13 @@ router.get('/images/docs', (req, res) => {
 
          statistics: {
             'GET /assets/:asset_no/images/stats': 'Get statistics for specific asset',
-            'GET /images/system/stats': 'Get system-wide statistics (admin only)'
+            'GET /system/stats': 'Get system-wide statistics (admin only)'
          },
 
          admin: {
-            'POST /images/cleanup': 'Cleanup orphaned files (admin only)',
-            'POST /images/batch/update': 'Batch update operations (admin only)',
-            'GET /images/system/health': 'System health check (admin only)'
+            'POST /cleanup': 'Cleanup orphaned files (admin only)',
+            'POST /batch/update': 'Batch update operations (admin only)',
+            'GET /system/health': 'System health check (admin only)'
          }
       },
 
@@ -395,25 +414,6 @@ fetch('/api/v1/assets/ABC001/images')
    };
 
    res.status(200).json(imageDocs);
-});
-
-/**
- * 🏥 HEALTH CHECK ROUTE
- */
-router.get('/images/health', (req, res) => {
-   res.status(200).json({
-      success: true,
-      message: 'Image service is healthy',
-      version: '1.0.0',
-      timestamp: new Date().toISOString(),
-      features: {
-         upload: 'operational',
-         serving: 'operational',
-         thumbnails: 'operational',
-         search: 'operational',
-         admin: 'operational'
-      }
-   });
 });
 
 /**
