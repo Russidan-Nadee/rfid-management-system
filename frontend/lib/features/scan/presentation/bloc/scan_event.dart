@@ -21,7 +21,7 @@ class RefreshScanResults extends ScanEvent {
   const RefreshScanResults();
 }
 
-// เพิ่ม event ใหม่สำหรับเลือก location
+//  event ใหม่สำหรับเลือก location
 class LocationSelected extends ScanEvent {
   final String selectedLocation;
 
@@ -78,7 +78,7 @@ class FilterChanged extends ScanEvent {
   List<Object?> get props => [filter];
 }
 
-// เพิ่ม LocationFilterChanged event
+// LocationFilterChanged event
 class LocationFilterChanged extends ScanEvent {
   final String location;
 
@@ -95,4 +95,13 @@ class LoadExpectedCounts extends ScanEvent {
 
   @override
   List<Object?> get props => [locationCodes];
+}
+
+class LoadAssetImages extends ScanEvent {
+  final String assetNo;
+
+  const LoadAssetImages({required this.assetNo});
+
+  @override
+  List<Object?> get props => [assetNo];
 }

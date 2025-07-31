@@ -5,9 +5,11 @@ import '../../../../core/utils/helpers.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/scanned_item_entity.dart';
+import '../../domain/entities/asset_image_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
+import '../widgets/image_gallery_widget.dart';
 
 class AssetDetailPage extends StatelessWidget {
   final ScannedItemEntity item;
@@ -28,40 +30,85 @@ class AssetDetailPage extends StatelessWidget {
   }
 }
 
-class AssetDetailView extends StatelessWidget {
+class AssetDetailView extends StatefulWidget {
   final ScannedItemEntity item;
 
   const AssetDetailView({super.key, required this.item});
+
+  @override
+  State<AssetDetailView> createState() => _AssetDetailViewState();
+}
+
+class _AssetDetailViewState extends State<AssetDetailView> {
+  List<AssetImageEntity> _images = [];
+  bool _isLoadingImages = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAssetImages();
+  }
+
+  void _loadAssetImages() {
+    context.read<ScanBloc>().add(LoadAssetImages(assetNo: widget.item.assetNo));
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = ScanLocalizations.of(context);
 
-    return BlocListener<ScanBloc, ScanState>(
-      listener: (context, state) {
-        // ตรวจสอบว่า asset ถูก update แล้วหรือยัง
-        if (state is ScanSuccess) {
-          final updatedItem = state.scannedItems.firstWhere(
-            (scanItem) =>
-                scanItem.assetNo ==
-                item.assetNo, // ✅ แก้ไข bug: เปลี่ยนจาก item เป็น scanItem
-            orElse: () => item,
-          );
+    return MultiBlocListener(
+      listeners: [
+        // Listener สำหรับ Asset Status Updates
+        BlocListener<ScanBloc, ScanState>(
+          listener: (context, state) {
+            // ตรวจสอบว่า asset ถูก update แล้วหรือยัง
+            if (state is ScanSuccess) {
+              final updatedItem = state.scannedItems.firstWhere(
+                (scanItem) => scanItem.assetNo == widget.item.assetNo,
+                orElse: () => widget.item,
+              );
 
-          // ถ้า status เปลี่ยนจาก A เป็น C แสดงว่า update สำเร็จ
-          if (item.status.toUpperCase() == 'A' &&
-              updatedItem.status.toUpperCase() == 'C') {
-            // แสดง success message
-            Helpers.showSuccess(context, l10n.assetMarkedSuccess);
-            // Pop กลับไปหน้า scan list
-            Navigator.of(context).pop(updatedItem);
-          }
-        } else if (state is AssetStatusUpdateError) {
-          // แสดง error message
-          Helpers.showError(context, state.message);
-        }
-      },
+              // ถ้า status เปลี่ยนจาก A เป็น C แสดงว่า update สำเร็จ
+              if (widget.item.status.toUpperCase() == 'A' &&
+                  updatedItem.status.toUpperCase() == 'C') {
+                // แสดง success message
+                Helpers.showSuccess(context, l10n.assetMarkedSuccess);
+                // Pop กลับไปหน้า scan list
+                Navigator.of(context).pop(updatedItem);
+              }
+            } else if (state is AssetStatusUpdateError) {
+              // แสดง error message
+              Helpers.showError(context, state.message);
+            }
+          },
+        ),
+        // Listener สำหรับ Asset Images
+        BlocListener<ScanBloc, ScanState>(
+          listener: (context, state) {
+            if (state is AssetImagesLoaded &&
+                state.assetNo == widget.item.assetNo) {
+              setState(() {
+                _images = state.images;
+                _isLoadingImages = false;
+              });
+            } else if (state is AssetImagesLoading &&
+                state.assetNo == widget.item.assetNo) {
+              setState(() {
+                _isLoadingImages = true;
+              });
+            } else if (state is AssetImagesError &&
+                state.assetNo == widget.item.assetNo) {
+              setState(() {
+                _isLoadingImages = false;
+              });
+              // แสดง error แบบ silent (ไม่รบกวน user)
+              print('Failed to load images: ${state.message}');
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -70,23 +117,19 @@ class AssetDetailView extends StatelessWidget {
               fontSize: 25,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors
-                        .darkText // Dark Mode: สีขาว
-                  : AppColors.primary, // Light Mode: สีน้ำเงิน
+                  ? AppColors.darkText
+                  : AppColors.primary,
             ),
           ),
           backgroundColor: theme.colorScheme.surface,
           foregroundColor: Theme.of(context).brightness == Brightness.dark
-              ? AppColors
-                    .darkText // Dark Mode: สีขาว
-              : AppColors.primary, // Light Mode: สีน้ำเงิน
+              ? AppColors.darkText
+              : AppColors.primary,
           elevation: 1,
         ),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface.withValues(
-                alpha: 0.1,
-              ) // Dark Mode: เหมือน Scan Page
-            : theme.colorScheme.background, // Light Mode: เดิม
+            ? AppColors.darkSurface.withValues(alpha: 0.1)
+            : theme.colorScheme.background,
         body: LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth > 800;
@@ -103,7 +146,7 @@ class AssetDetailView extends StatelessWidget {
     );
   }
 
-  // Desktop Layout (2x3 Grid)
+  // Desktop Layout (2x5 Grid)
   Widget _buildDesktopLayout(
     BuildContext context,
     ThemeData theme,
@@ -111,50 +154,55 @@ class AssetDetailView extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // Row 1: Status Card + Basic Info
+        // Row 1: Image Gallery + Status Card
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Expanded(child: _buildImageGallerySection(theme, l10n)),
+              const SizedBox(width: 16),
               Expanded(child: _buildStatusCard(theme, l10n)),
-              const SizedBox(width: 16),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Row 2: Basic Info + Location Info
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Expanded(child: _buildBasicInfoSection(theme, l10n)),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Row 2: Location Info + Quantity Info
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              const SizedBox(width: 16),
               Expanded(child: _buildLocationInfoSection(theme, l10n)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuantityInfoSection(theme, l10n)),
             ],
           ),
         ),
 
         const SizedBox(height: 16),
 
-        // Row 3: Scan Activity + Creation Info
+        // Row 3: Quantity Info + Scan Activity
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildScanActivitySection(theme, l10n)),
+              Expanded(child: _buildQuantityInfoSection(theme, l10n)),
               const SizedBox(width: 16),
-              Expanded(child: _buildCreationInfoSection(theme, l10n)),
+              Expanded(child: _buildScanActivitySection(theme, l10n)),
             ],
           ),
         ),
+
+        const SizedBox(height: 16),
+
+        // Row 4: Creation Info (Full Width)
+        _buildCreationInfoSection(theme, l10n),
 
         const SizedBox(height: 24),
 
-        // Action Button (Full Width Center)
-        if (item.status.toUpperCase() == 'A')
+        // Row 5: Action Button (Center)
+        if (widget.item.status.toUpperCase() == 'A')
           Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -165,7 +213,7 @@ class AssetDetailView extends StatelessWidget {
     );
   }
 
-  // Mobile Layout (Original)
+  // Mobile Layout (Original + Image Gallery at top)
   Widget _buildMobileLayout(
     BuildContext context,
     ThemeData theme,
@@ -174,6 +222,11 @@ class AssetDetailView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Image Gallery (First)
+        _buildImageGallerySection(theme, l10n),
+
+        const SizedBox(height: 16),
+
         // Status Card
         _buildStatusCard(theme, l10n),
 
@@ -205,9 +258,75 @@ class AssetDetailView extends StatelessWidget {
         const SizedBox(height: 24),
 
         // Action Button (แสดงเฉพาะเมื่อ status = 'A')
-        if (item.status.toUpperCase() == 'A')
+        if (widget.item.status.toUpperCase() == 'A')
           _buildActionButton(context, theme, l10n),
       ],
+    );
+  }
+
+  // ⭐ NEW: Image Gallery Section
+  Widget _buildImageGallerySection(ThemeData theme, ScanLocalizations l10n) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: theme.brightness == Brightness.dark
+          ? AppColors.darkSurface
+          : theme.colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.photo_library,
+                  color: theme.brightness == Brightness.dark
+                      ? AppColors.darkText
+                      : theme.colorScheme.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  l10n.images,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: theme.brightness == Brightness.dark
+                        ? AppColors.darkText
+                        : theme.colorScheme.onSurface,
+                  ),
+                ),
+                if (_isLoadingImages) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            _isLoadingImages
+                ? Container(
+                    height: 120,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  )
+                : ImageGalleryWidget(
+                    images: _images,
+                    assetNo: widget.item.assetNo,
+                  ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -218,13 +337,23 @@ class AssetDetailView extends StatelessWidget {
       title: l10n.basicInformation,
       icon: Icons.inventory_2_outlined,
       children: [
-        _buildDetailRow(theme, l10n.assetNumber, item.assetNo, l10n),
-        _buildDetailRow(theme, l10n.description, item.description ?? '-', l10n),
-        _buildDetailRow(theme, l10n.serialNumber, item.serialNo ?? '-', l10n),
+        _buildDetailRow(theme, l10n.assetNumber, widget.item.assetNo, l10n),
+        _buildDetailRow(
+          theme,
+          l10n.description,
+          widget.item.description ?? '-',
+          l10n,
+        ),
+        _buildDetailRow(
+          theme,
+          l10n.serialNumber,
+          widget.item.serialNo ?? '-',
+          l10n,
+        ),
         _buildDetailRow(
           theme,
           l10n.inventoryNumber,
-          item.inventoryNo ?? '-',
+          widget.item.inventoryNo ?? '-',
           l10n,
         ),
       ],
@@ -240,25 +369,25 @@ class AssetDetailView extends StatelessWidget {
         _buildDetailRow(
           theme,
           l10n.plant,
-          item.plantDescription != null
-              ? item.plantDescription ?? '-'
-              : item.plantCode ?? '-',
+          widget.item.plantDescription != null
+              ? widget.item.plantDescription ?? '-'
+              : widget.item.plantCode ?? '-',
           l10n,
         ),
         _buildDetailRow(
           theme,
           l10n.location,
-          item.locationName != null
-              ? item.locationName ?? '-'
-              : item.locationCode ?? '-',
+          widget.item.locationName != null
+              ? widget.item.locationName ?? '-'
+              : widget.item.locationCode ?? '-',
           l10n,
         ),
         _buildDetailRow(
           theme,
           l10n.department,
-          item.deptDescription != null
-              ? item.deptDescription ?? '-'
-              : item.deptCode ?? '-',
+          widget.item.deptDescription != null
+              ? widget.item.deptDescription ?? '-'
+              : widget.item.deptCode ?? '-',
           l10n,
         ),
       ],
@@ -274,10 +403,10 @@ class AssetDetailView extends StatelessWidget {
         _buildDetailRow(
           theme,
           l10n.quantity,
-          item.quantity != null ? '${item.quantity}' : '-',
+          widget.item.quantity != null ? '${widget.item.quantity}' : '-',
           l10n,
         ),
-        _buildDetailRow(theme, l10n.unit, item.unitName ?? '-', l10n),
+        _buildDetailRow(theme, l10n.unit, widget.item.unitName ?? '-', l10n),
       ],
     );
   }
@@ -291,12 +420,17 @@ class AssetDetailView extends StatelessWidget {
         _buildDetailRow(
           theme,
           l10n.lastScan,
-          item.lastScanAt != null
-              ? Helpers.formatDateTime(item.lastScanAt)
+          widget.item.lastScanAt != null
+              ? Helpers.formatDateTime(widget.item.lastScanAt)
               : l10n.neverScanned,
           l10n,
         ),
-        _buildDetailRow(theme, l10n.scannedBy, item.lastScannedBy ?? '-', l10n),
+        _buildDetailRow(
+          theme,
+          l10n.scannedBy,
+          widget.item.lastScannedBy ?? '-',
+          l10n,
+        ),
       ],
     );
   }
@@ -310,13 +444,15 @@ class AssetDetailView extends StatelessWidget {
         _buildDetailRow(
           theme,
           l10n.createdBy,
-          item.createdByName ?? l10n.unknownUser,
+          widget.item.createdByName ?? l10n.unknownUser,
           l10n,
         ),
         _buildDetailRow(
           theme,
           l10n.createdDate,
-          item.createdAt != null ? Helpers.formatDateTime(item.createdAt) : '-',
+          widget.item.createdAt != null
+              ? Helpers.formatDateTime(widget.item.createdAt)
+              : '-',
           l10n,
         ),
       ],
@@ -331,7 +467,8 @@ class AssetDetailView extends StatelessWidget {
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
         final isLoading =
-            state is AssetStatusUpdating && state.assetNo == item.assetNo;
+            state is AssetStatusUpdating &&
+            state.assetNo == widget.item.assetNo;
 
         return SizedBox(
           width: double.infinity,
@@ -365,7 +502,9 @@ class AssetDetailView extends StatelessWidget {
   }
 
   void _markAsChecked(BuildContext context) {
-    context.read<ScanBloc>().add(MarkAssetChecked(assetNo: item.assetNo));
+    context.read<ScanBloc>().add(
+      MarkAssetChecked(assetNo: widget.item.assetNo),
+    );
   }
 
   Widget _buildStatusCard(ThemeData theme, ScanLocalizations l10n) {
@@ -373,29 +512,32 @@ class AssetDetailView extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: theme.brightness == Brightness.dark
-          ? AppColors
-                .darkSurface // Dark Mode: Blue-Gray surface
-          : theme.colorScheme.surface, // Light Mode: เดิม
+          ? AppColors.darkSurface
+          : theme.colorScheme.surface,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              _getStatusColor(item.status, theme),
-              _getStatusColor(item.status, theme).withValues(alpha: 0.8),
+              _getStatusColor(widget.item.status, theme),
+              _getStatusColor(widget.item.status, theme).withValues(alpha: 0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Icon(_getStatusIcon(item.status), color: Colors.white, size: 48),
+            Icon(
+              _getStatusIcon(widget.item.status),
+              color: Colors.white,
+              size: 48,
+            ),
 
             const SizedBox(height: 12),
 
             Text(
-              item.displayName,
+              widget.item.displayName,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -413,7 +555,7 @@ class AssetDetailView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                _getStatusLabel(item.status, l10n),
+                _getStatusLabel(widget.item.status, l10n),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
@@ -436,9 +578,8 @@ class AssetDetailView extends StatelessWidget {
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: theme.brightness == Brightness.dark
-          ? AppColors
-                .darkSurface // Dark Mode: Blue-Gray surface
-          : theme.colorScheme.surface, // Light Mode: เดิม
+          ? AppColors.darkSurface
+          : theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -449,9 +590,8 @@ class AssetDetailView extends StatelessWidget {
                 Icon(
                   icon,
                   color: theme.brightness == Brightness.dark
-                      ? AppColors
-                            .darkText // Dark Mode: สีขาว
-                      : theme.colorScheme.primary, // Light Mode: สีน้ำเงิน
+                      ? AppColors.darkText
+                      : theme.colorScheme.primary,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -461,9 +601,8 @@ class AssetDetailView extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: theme.brightness == Brightness.dark
-                        ? AppColors
-                              .darkText // Dark Mode: สีขาว
-                        : theme.colorScheme.onSurface, // Light Mode: เดิม
+                        ? AppColors.darkText
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -496,11 +635,8 @@ class AssetDetailView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 color: theme.brightness == Brightness.dark
-                    ? AppColors
-                          .darkTextSecondary // Dark Mode: สีเทาอ่อน
-                    : theme.colorScheme.onSurface.withValues(
-                        alpha: 0.7,
-                      ), // Light Mode: เดิม
+                    ? AppColors.darkTextSecondary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -514,9 +650,8 @@ class AssetDetailView extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 color: theme.brightness == Brightness.dark
-                    ? AppColors
-                          .darkText // Dark Mode: สีขาว
-                    : theme.colorScheme.onSurface, // Light Mode: เดิม
+                    ? AppColors.darkText
+                    : theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -527,7 +662,7 @@ class AssetDetailView extends StatelessWidget {
 
   Color _getStatusColor(String status, ThemeData theme) {
     // เก็บสี Unknown เป็นสีแดงทั้ง Light และ Dark Mode
-    if (item.isUnknown == true) {
+    if (widget.item.isUnknown == true) {
       return AppColors.error.withValues(alpha: 0.7); // สีแดงสำหรับ Unknown
     }
 
@@ -546,7 +681,7 @@ class AssetDetailView extends StatelessWidget {
   }
 
   IconData _getStatusIcon(String status) {
-    if (item.isUnknown == true) {
+    if (widget.item.isUnknown == true) {
       return Icons.help;
     }
 
@@ -565,7 +700,7 @@ class AssetDetailView extends StatelessWidget {
   }
 
   String _getStatusLabel(String status, ScanLocalizations l10n) {
-    if (item.isUnknown == true) {
+    if (widget.item.isUnknown == true) {
       return l10n.statusUnknown;
     }
 

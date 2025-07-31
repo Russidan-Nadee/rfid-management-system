@@ -7,6 +7,7 @@ import '../features/scan/domain/usecases/update_asset_status_usecase.dart';
 import '../features/scan/domain/usecases/create_asset_usecase.dart';
 import '../features/scan/domain/usecases/get_master_data_usecase.dart';
 import '../features/scan/domain/usecases/get_assets_by_location_usecase.dart';
+import '../features/scan/domain/usecases/get_asset_images_usecase.dart';
 import '../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../features/scan/presentation/bloc/scan_bloc.dart';
 import '../features/scan/presentation/bloc/asset_creation_bloc.dart';
@@ -48,9 +49,14 @@ void configureScanDependencies() {
     () => GetMasterDataUseCase(getIt<ScanRepository>()),
   );
 
-  // ⭐ เพิ่ม GetAssetsByLocationUseCase ใหม่
+  // Assets by location use case
   getIt.registerLazySingleton<GetAssetsByLocationUseCase>(
     () => GetAssetsByLocationUseCase(getIt<ScanRepository>()),
+  );
+
+  // ⭐ NEW: Asset Images Use Case
+  getIt.registerLazySingleton<GetAssetImagesUseCase>(
+    () => GetAssetImagesUseCase(getIt<ScanRepository>()),
   );
 
   // BLoCs (Factory - new instance each time)
@@ -60,12 +66,12 @@ void configureScanDependencies() {
       getAssetDetailsUseCase: getIt<GetAssetDetailsUseCase>(),
       updateAssetStatusUseCase: getIt<UpdateAssetStatusUseCase>(),
       getCurrentUserUseCase: getIt<GetCurrentUserUseCase>(),
-      getAssetsByLocationUseCase:
-          getIt<GetAssetsByLocationUseCase>(), // ⭐ เพิ่มใหม่
+      getAssetsByLocationUseCase: getIt<GetAssetsByLocationUseCase>(),
+      getAssetImagesUseCase: getIt<GetAssetImagesUseCase>(), // ⭐ เพิ่มใหม่
     );
   });
 
-  // New BLoC for Asset Creation
+  // Asset Creation BLoC
   getIt.registerFactory<AssetCreationBloc>(() {
     return AssetCreationBloc(
       createAssetUseCase: getIt<CreateAssetUseCase>(),

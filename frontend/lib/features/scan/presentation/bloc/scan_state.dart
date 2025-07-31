@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/bloc/scan_state.dart
 import 'package:equatable/equatable.dart';
+import 'package:frontend/features/scan/domain/entities/asset_image_entity.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 
 abstract class ScanState extends Equatable {
@@ -235,4 +236,43 @@ class AssetStatusUpdateError extends ScanState {
 
   @override
   List<Object?> get props => [message];
+}
+
+class AssetImagesLoading extends ScanState {
+  final String assetNo;
+
+  const AssetImagesLoading({required this.assetNo});
+
+  @override
+  List<Object?> get props => [assetNo];
+}
+
+class AssetImagesLoaded extends ScanState {
+  final String assetNo;
+  final List<AssetImageEntity> images;
+
+  const AssetImagesLoaded({required this.assetNo, required this.images});
+
+  @override
+  List<Object?> get props => [assetNo, images];
+
+  @override
+  String toString() {
+    return 'AssetImagesLoaded(assetNo: $assetNo, images: ${images.length})';
+  }
+}
+
+class AssetImagesError extends ScanState {
+  final String assetNo;
+  final String message;
+
+  const AssetImagesError({required this.assetNo, required this.message});
+
+  @override
+  List<Object?> get props => [assetNo, message];
+
+  @override
+  String toString() {
+    return 'AssetImagesError(assetNo: $assetNo, message: $message)';
+  }
 }
