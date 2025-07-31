@@ -25,14 +25,8 @@ class ImageGalleryWidget extends StatelessWidget {
       return _buildEmptyState(context, theme, l10n);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader(context, theme, l10n),
-        const SizedBox(height: 12),
-        _buildImageGrid(context, theme),
-      ],
-    );
+    // แสดงแค่รูปภาพโดยไม่มี section header
+    return _buildSingleImage(context, theme);
   }
 
   Widget _buildSectionHeader(
@@ -82,34 +76,14 @@ class ImageGalleryWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildImageGrid(BuildContext context, ThemeData theme) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Responsive height based on screen size
-        double imageHeight;
-        if (constraints.maxWidth > 800) {
-          imageHeight = 200; // Desktop
-        } else if (constraints.maxWidth > 600) {
-          imageHeight = 160; // Tablet
-        } else {
-          imageHeight = 120; // Mobile
-        }
-
-        return SizedBox(
-          height: imageHeight,
-          child: PageView.builder(
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              final image = images[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: _buildImageCard(context, theme, image, imageHeight),
-              );
-            },
-          ),
-        );
-      },
+  Widget _buildSingleImage(BuildContext context, ThemeData theme) {
+    // Get primary image first, otherwise get first image
+    final displayImage = images.firstWhere(
+      (img) => img.isPrimary,
+      orElse: () => images.first,
     );
+
+    return Center(child: _buildImageCard(context, theme, displayImage));
   }
 
   Widget _buildImageCard(
@@ -118,14 +92,37 @@ class ImageGalleryWidget extends StatelessWidget {
     AssetImageEntity image, [
     double? height, // Make height optional parameter
   ]) {
-    final imageUrl = '${ApiConstants.baseUrl}${image.thumbnailUrl}';
-    final cardHeight = height ?? 120; // Use provided height or default
-    final cardWidth = cardHeight; // Keep it square
+    final imageUrl = '${ApiConstants.baseUrl}/images${image.imageUrl}';
+
+    // Calculate dimensions based on image aspect ratio and screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = screenWidth - 32; // Full width minus padding
+
+    // Use image dimensions if available, otherwise use default aspect ratio
+    double aspectRatio = 16 / 9; // Default wide aspect ratio
+    if (image.width != null &&
+        image.height != null &&
+        image.width! > 0 &&
+        image.height! > 0) {
+      aspectRatio = image.width! / image.height!;
+    }
+
+    // Calculate card dimensions
+    double cardWidth = maxWidth;
+    double cardHeight = cardWidth / aspectRatio;
+
+    // Limit maximum height for very tall images
+    final maxHeight = MediaQuery.of(context).size.height * 0.3;
+    if (cardHeight > maxHeight) {
+      cardHeight = maxHeight;
+      cardWidth = cardHeight * aspectRatio;
+    }
 
     return GestureDetector(
       onTap: () => _showFullImageDialog(context, image),
       child: Container(
         width: cardWidth,
+        height: cardHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -183,24 +180,56 @@ class ImageGalleryWidget extends StatelessWidget {
             // Primary badge
             if (image.isPrimary)
               Positioned(
-                top: 4,
-                right: 4,
+                top: 8,
+                right: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'P',
+                    'PRIMARY',
                     style: TextStyle(
                       color: theme.colorScheme.onPrimary,
-                      fontSize: cardHeight > 150 ? 12 : 10, // Responsive text
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                ),
+              ),
+
+            // Multiple images indicator (if more than 1 image)
+            if (images.length > 1)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.photo_library, color: Colors.white, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${images.length}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -211,7 +240,10 @@ class ImageGalleryWidget extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(11),
@@ -226,14 +258,50 @@ class ImageGalleryWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Text(
-                  image.formattedFileSize,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: cardHeight > 150 ? 12 : 10, // Responsive text
-                    fontWeight: FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      image.displayName,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: cardHeight > 150 ? 12 : 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      image.formattedFileSize,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontSize: cardHeight > 150 ? 11 : 9,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Tap to view indicator
+            Positioned(
+              left:
+                  (cardWidth - 36) /
+                  2, // Center horizontally (36 = icon container width)
+              top:
+                  (cardHeight - 36) /
+                  2, // Center vertically (36 = icon container height)
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.zoom_in,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  size: 20,
                 ),
               ),
             ),
@@ -250,78 +318,51 @@ class ImageGalleryWidget extends StatelessWidget {
   ) {
     return Container(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.photo_library_outlined,
-                color: theme.brightness == Brightness.dark
-                    ? AppColors.darkText
-                    : theme.colorScheme.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.images,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.darkText
-                      : theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: theme.brightness == Brightness.dark
+              ? AppColors.darkSurface.withValues(alpha: 0.3)
+              : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkBorder.withValues(alpha: 0.3)
+                : theme.colorScheme.outline.withValues(alpha: 0.2),
           ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.image_not_supported_outlined,
+              size: 48,
               color: theme.brightness == Brightness.dark
-                  ? AppColors.darkSurface.withValues(alpha: 0.3)
-                  : theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+                  ? AppColors.darkTextSecondary
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              l10n.noImagesAvailable,
+              style: TextStyle(
+                fontSize: 14,
                 color: theme.brightness == Brightness.dark
-                    ? AppColors.darkBorder.withValues(alpha: 0.3)
-                    : theme.colorScheme.outline.withValues(alpha: 0.2),
+                    ? AppColors.darkTextSecondary
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.image_not_supported_outlined,
-                  size: 48,
-                  color: theme.brightness == Brightness.dark
-                      ? AppColors.darkTextSecondary
-                      : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.noImagesAvailable,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.brightness == Brightness.dark
-                        ? AppColors.darkTextSecondary
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.imagesWillAppearHere,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.brightness == Brightness.dark
-                        ? AppColors.darkTextMuted
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              l10n.imagesWillAppearHere,
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.darkTextMuted
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -343,7 +384,7 @@ class _FullImageDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = ScanLocalizations.of(context);
-    final fullImageUrl = '${ApiConstants.baseUrl}${image.imageUrl}';
+    final fullImageUrl = '${ApiConstants.baseUrl}/images${image.imageUrl}';
 
     return Dialog(
       backgroundColor: Colors.transparent,
