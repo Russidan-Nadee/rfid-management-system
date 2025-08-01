@@ -264,4 +264,14 @@ class ScanLocalizationsJa extends ScanLocalizations {
 
   @override
   String get imageLoadError => '画像の読み込みに失敗しました';
+
+  // Category and Brand Selection
+  @override
+  String get categoryBrandInformation => 'カテゴリとブランド情報';
+
+  @override
+  String get category => 'カテゴリ';
+
+  @override
+  String get brand => 'ブランド';
 }

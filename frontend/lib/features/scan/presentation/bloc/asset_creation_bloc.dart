@@ -51,16 +51,27 @@ class MasterDataLoaded extends AssetCreationState {
   final List<LocationEntity> locations;
   final List<UnitEntity> units;
   final List<DepartmentEntity> departments;
+  final List<CategoryEntity> categories;
+  final List<BrandEntity> brands;
 
   MasterDataLoaded({
     required this.plants,
     required this.locations,
     required this.units,
     required this.departments,
+    required this.categories,
+    required this.brands,
   });
 
   @override
-  List<Object> get props => [plants, locations, units, departments];
+  List<Object> get props => [
+    plants,
+    locations,
+    units,
+    departments,
+    categories,
+    brands,
+  ];
 }
 
 class AssetCreating extends AssetCreationState {}
@@ -105,6 +116,8 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
       final plants = await getMasterDataUseCase.getPlants();
       final units = await getMasterDataUseCase.getUnits();
       final departments = await getMasterDataUseCase.getDepartments();
+      final categories = await getMasterDataUseCase.getCategories();
+      final brands = await getMasterDataUseCase.getBrands();
 
       emit(
         MasterDataLoaded(
@@ -112,6 +125,8 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
           locations: [],
           units: units,
           departments: departments,
+          categories: categories,
+          brands: brands,
         ),
       );
     } catch (e) {
@@ -135,6 +150,8 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
             locations: locations,
             units: currentState.units,
             departments: currentState.departments,
+            categories: currentState.categories,
+            brands: currentState.brands,
           ),
         );
       } catch (e) {
@@ -157,6 +174,8 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
           locations: currentState.locations,
           units: currentState.units,
           departments: currentState.departments,
+          categories: currentState.categories,
+          brands: currentState.brands,
         ),
       );
     }

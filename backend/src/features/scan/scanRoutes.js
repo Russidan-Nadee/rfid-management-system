@@ -9,7 +9,9 @@ const {
    unitController,
    assetController,
    scanController,
-   departmentController
+   departmentController,
+   categoryController,
+   brandController
 } = require('./scanController');
 
 // Import middleware
@@ -63,5 +65,11 @@ router.get('/locations', generalRateLimit, locationValidators.getLocations, loca
 
 // Unit Routes
 router.get('/units', generalRateLimit, unitValidators.getUnits, unitController.getUnits);
+
+// Category Routes
+router.get('/categories', generalRateLimit, categoryController.getCategories);
+
+// Brand Routes  
+router.get('/brands', generalRateLimit, brandController.getBrands);
 
 module.exports = router;

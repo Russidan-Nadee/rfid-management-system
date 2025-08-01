@@ -173,6 +173,8 @@ class ApiConstants {
   static const String plants = '/plants';
   static const String locations = '/locations';
   static const String units = '/units';
+  static const String categories = '/categories';
+  static const String brands = '/brands';
   static const String users = '/users';
 
   // Scan Endpoints

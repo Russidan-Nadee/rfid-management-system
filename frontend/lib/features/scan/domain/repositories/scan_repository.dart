@@ -20,6 +20,8 @@ abstract class ScanRepository {
   Future<List<LocationEntity>> getLocationsByPlant(String plantCode);
   Future<List<UnitEntity>> getUnits();
   Future<List<DepartmentEntity>> getDepartments();
+  Future<List<CategoryEntity>> getCategories();
+  Future<List<BrandEntity>> getBrands();
 
   // Assets by location method
   Future<List<ScannedItemEntity>> getAssetsByLocation(String locationCode);

@@ -45,6 +45,42 @@ class UnitEntity extends Equatable {
   String toString() => '$unitCode - $name';
 }
 
+class CategoryEntity extends Equatable {
+  final String categoryCode;
+  final String categoryName;
+  final String? description;
+
+  const CategoryEntity({
+    required this.categoryCode,
+    required this.categoryName,
+    this.description,
+  });
+
+  @override
+  List<Object?> get props => [categoryCode, categoryName, description];
+
+  @override
+  String toString() => '$categoryCode - $categoryName';
+}
+
+class BrandEntity extends Equatable {
+  final String brandCode;
+  final String brandName;
+  final String? description;
+
+  const BrandEntity({
+    required this.brandCode,
+    required this.brandName,
+    this.description,
+  });
+
+  @override
+  List<Object?> get props => [brandCode, brandName, description];
+
+  @override
+  String toString() => '$brandCode - $brandName';
+}
+
 class DepartmentEntity extends Equatable {
   final String deptCode;
   final String description;
@@ -75,6 +111,8 @@ class CreateAssetRequest extends Equatable {
   final String? inventoryNo;
   final double? quantity;
   final String createdBy;
+  final String categoryCode;
+  final String brandCode;
 
   const CreateAssetRequest({
     required this.assetNo,
@@ -88,6 +126,8 @@ class CreateAssetRequest extends Equatable {
     this.inventoryNo,
     this.quantity,
     required this.createdBy,
+    required this.categoryCode,
+    required this.brandCode,
   });
 
   @override
@@ -103,5 +143,7 @@ class CreateAssetRequest extends Equatable {
     inventoryNo,
     quantity,
     createdBy,
+    categoryCode,
+    brandCode,
   ];
 }

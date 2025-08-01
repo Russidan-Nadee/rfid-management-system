@@ -37,7 +37,7 @@ class QuantityInfoSection extends StatelessWidget {
           context: context,
           title: l10n.quantityInformation,
           icon: Icons.straighten,
-          color: AppColors.warning,
+          color: AppColors.primary,
           children: [
             Row(
               children: [

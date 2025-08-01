@@ -22,4 +22,11 @@ class GetMasterDataUseCase {
   Future<List<DepartmentEntity>> getDepartments() async {
     return await repository.getDepartments();
   }
+  Future<List<CategoryEntity>> getCategories() async {
+    return await repository.getCategories();
+  }
+
+  Future<List<BrandEntity>> getBrands() async {
+    return await repository.getBrands();
+  }
 }

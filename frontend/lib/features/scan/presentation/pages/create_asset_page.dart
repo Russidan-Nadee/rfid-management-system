@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:frontend/features/scan/presentation/widgets/create/basic_info_section.dart';
+import 'package:frontend/features/scan/presentation/widgets/create/category_brand_info_section.dart';
 import 'package:frontend/features/scan/presentation/widgets/create/create_asset_header.dart';
 import 'package:frontend/features/scan/presentation/widgets/create/location_info_section.dart';
 import 'package:frontend/features/scan/presentation/widgets/create/quantity_info_section.dart';
@@ -73,6 +74,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
   String? _selectedLocation;
   String? _selectedUnit;
   String? _selectedDepartment;
+  String? _selectedCategory;
+  String? _selectedBrand;
 
   bool get _hasLocationData => widget.locationCode != null;
 
@@ -299,12 +302,10 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                 children: [
                   // Basic Information Section
                   BasicInfoSection(
-                    epcCode: widget.epcCode, // ← ส่ง EPC Code
-                    assetNoController:
-                        _assetNoController, // ← ส่ง Asset Number controller
+                    epcCode: widget.epcCode,
+                    assetNoController: _assetNoController,
                     descriptionController: _descriptionController,
-                    assetNoValidator:
-                        Validators.assetNumber, // ← เพิ่ม validator
+                    assetNoValidator: Validators.assetNumber,
                     descriptionValidator: Validators.description,
                   ),
 
@@ -344,6 +345,21 @@ class _CreateAssetViewState extends State<CreateAssetView> {
                     locationValidator: (value) =>
                         value == null ? l10n.pleaseSelectLocation : null,
                   ),
+
+                  const SizedBox(height: 16),
+
+                  // Category & Brand Information Section
+                  CategoryBrandInfoSection(
+                    selectedCategory: _selectedCategory,
+                    selectedBrand: _selectedBrand,
+                    categories: state.categories,
+                    brands: state.brands,
+                    onCategoryChanged: (value) =>
+                        setState(() => _selectedCategory = value),
+                    onBrandChanged: (value) =>
+                        setState(() => _selectedBrand = value),
+                  ),
+
                   const SizedBox(height: 16),
 
                   // Quantity Information Section
@@ -386,6 +402,8 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           locationCode: widget.locationCode ?? _selectedLocation!,
           unitCode: _selectedUnit!,
           deptCode: _selectedDepartment,
+          categoryCode: _selectedCategory ?? '',
+          brandCode: _selectedBrand ?? '',
           serialNo: _serialController.text.isNotEmpty
               ? _serialController.text
               : null,

@@ -1,5 +1,6 @@
 // Path: backend/src/features/scan/scanController.js
 const { PlantService, LocationService, UnitService, UserService, AssetService, DepartmentService } = require('./scanService');
+const { CategoryService, BrandService } = require('./scanService');
 
 const departmentService = new DepartmentService();
 
@@ -9,6 +10,8 @@ const locationService = new LocationService();
 const unitService = new UnitService();
 const userService = new UserService();
 const assetService = new AssetService();
+const categoryService = new CategoryService();
+const brandService = new BrandService();
 
 // Response helper function
 const sendResponse = (res, statusCode, success, message, data = null, meta = null) => {
@@ -581,6 +584,46 @@ const scanController = {
          return sendResponse(res, 500, false, error.message);
       }
    }
+
+};
+// Category Controller
+const categoryController = {
+   async getCategories(req, res) {
+      try {
+         const { page = 1, limit = 50 } = req.query;
+
+         const categories = await categoryService.getAllCategories();
+         const totalCount = categories.length;
+
+         const paginatedCategories = applyPagination(categories, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
+
+         return sendResponse(res, 200, true, 'Categories retrieved successfully', paginatedCategories, meta);
+      } catch (error) {
+         console.error('Get categories error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   }
+};
+
+// Brand Controller  
+const brandController = {
+   async getBrands(req, res) {
+      try {
+         const { page = 1, limit = 50 } = req.query;
+
+         const brands = await brandService.getAllBrands();
+         const totalCount = brands.length;
+
+         const paginatedBrands = applyPagination(brands, parseInt(page), parseInt(limit));
+         const meta = getPaginationMeta(parseInt(page), parseInt(limit), totalCount);
+
+         return sendResponse(res, 200, true, 'Brands retrieved successfully', paginatedBrands, meta);
+      } catch (error) {
+         console.error('Get brands error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   }
 };
 
 module.exports = {
@@ -589,5 +632,7 @@ module.exports = {
    unitController,
    assetController,
    scanController,
-   departmentController
+   departmentController,
+   categoryController,
+   brandController
 };

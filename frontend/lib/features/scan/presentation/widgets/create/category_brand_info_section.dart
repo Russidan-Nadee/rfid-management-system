@@ -1,35 +1,25 @@
-// Path: frontend/lib/features/scan/presentation/widgets/create/location_info_section.dart
+// Path: frontend/lib/features/scan/presentation/widgets/create/category_brand_info_section.dart
 import 'package:flutter/material.dart';
 import 'package:frontend/features/scan/domain/entities/master_data_entity.dart';
 import '../../../../../../app/theme/app_colors.dart';
 import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
-class LocationInfoSection extends StatelessWidget {
-  final String? selectedPlant;
-  final String? selectedLocation;
-  final String? selectedDepartment;
-  final List<PlantEntity> plants;
-  final List<LocationEntity> locations;
-  final List<DepartmentEntity> departments;
-  final ValueChanged<String?> onPlantChanged;
-  final ValueChanged<String?> onLocationChanged;
-  final ValueChanged<String?> onDepartmentChanged;
-  final String? Function(String?)? plantValidator;
-  final String? Function(String?)? locationValidator;
+class CategoryBrandInfoSection extends StatelessWidget {
+  final String? selectedCategory;
+  final String? selectedBrand;
+  final List<CategoryEntity> categories;
+  final List<BrandEntity> brands;
+  final ValueChanged<String?> onCategoryChanged;
+  final ValueChanged<String?> onBrandChanged;
 
-  const LocationInfoSection({
+  const CategoryBrandInfoSection({
     super.key,
-    this.selectedPlant,
-    this.selectedLocation,
-    this.selectedDepartment,
-    required this.plants,
-    required this.locations,
-    required this.departments,
-    required this.onPlantChanged,
-    required this.onLocationChanged,
-    required this.onDepartmentChanged,
-    this.plantValidator,
-    this.locationValidator,
+    this.selectedCategory,
+    this.selectedBrand,
+    required this.categories,
+    required this.brands,
+    required this.onCategoryChanged,
+    required this.onBrandChanged,
   });
 
   @override
@@ -38,68 +28,47 @@ class LocationInfoSection extends StatelessWidget {
 
     return _buildSectionCard(
       context: context,
-      title: l10n.locationInformation,
-      icon: Icons.location_on,
+      title: l10n.categoryBrandInformation,
+      icon: Icons.category,
       color: AppColors.primary,
       children: [
-        // Plant Dropdown
+        // Category Dropdown (Top Row)
         _buildDropdownField<String>(
           context: context,
-          value: selectedPlant,
-          label: l10n.plant,
-          icon: Icons.business,
-          isRequired: true,
-          items: plants
-              .map(
-                (plant) => DropdownMenuItem(
-                  value: plant.plantCode,
-                  child: Text(plant.toString()),
-                ),
-              )
-              .toList(),
-          onChanged: onPlantChanged,
-          validator: plantValidator,
-        ),
-
-        const SizedBox(height: 16),
-
-        // Location Dropdown (เปลี่ยนจาก read-only เป็น dropdown)
-        _buildDropdownField<String>(
-          context: context,
-          value: selectedLocation,
-          label: l10n.location,
-          icon: Icons.place,
-          isRequired: true,
-          items: locations
-              .map(
-                (location) => DropdownMenuItem(
-                  value: location.locationCode,
-                  child: Text(location.toString()),
-                ),
-              )
-              .toList(),
-          onChanged: onLocationChanged,
-          validator: locationValidator,
-        ),
-
-        const SizedBox(height: 16),
-
-        // Department Dropdown
-        _buildDropdownField<String>(
-          context: context,
-          value: selectedDepartment,
-          label: l10n.department,
-          icon: Icons.corporate_fare,
+          value: selectedCategory,
+          label: l10n.category,
+          icon: Icons.category,
           isRequired: false,
-          items: departments
+          items: categories
               .map(
-                (department) => DropdownMenuItem(
-                  value: department.deptCode,
-                  child: Text(department.toString()),
+                (category) => DropdownMenuItem(
+                  value: category.categoryCode,
+                  child: Text(category.toString()),
                 ),
               )
               .toList(),
-          onChanged: onDepartmentChanged,
+          onChanged: onCategoryChanged,
+          validator: null, // Optional field
+        ),
+
+        const SizedBox(height: 16),
+
+        // Brand Dropdown (Bottom Row)
+        _buildDropdownField<String>(
+          context: context,
+          value: selectedBrand,
+          label: l10n.brand,
+          icon: Icons.branding_watermark,
+          isRequired: false,
+          items: brands
+              .map(
+                (brand) => DropdownMenuItem(
+                  value: brand.brandCode,
+                  child: Text(brand.toString()),
+                ),
+              )
+              .toList(),
+          onChanged: onBrandChanged,
           validator: null, // Optional field
         ),
       ],

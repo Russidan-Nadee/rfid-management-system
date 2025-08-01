@@ -381,6 +381,45 @@ class AssetModel extends BaseModel {
       });
    }
 }
+// Category Model
+class CategoryModel extends BaseModel {
+   constructor() {
+      super('mst_category');
+   }
+
+   async getAllCategories() {
+      return await this.prisma.mst_category.findMany({
+         where: { is_active: true },
+         orderBy: { category_code: 'asc' }
+      });
+   }
+
+   async getCategoryByCode(categoryCode) {
+      return await this.prisma.mst_category.findUnique({
+         where: { category_code: categoryCode }
+      });
+   }
+}
+
+// Brand Model
+class BrandModel extends BaseModel {
+   constructor() {
+      super('mst_brand');
+   }
+
+   async getAllBrands() {
+      return await this.prisma.mst_brand.findMany({
+         where: { is_active: true },
+         orderBy: { brand_code: 'asc' }
+      });
+   }
+
+   async getBrandByCode(brandCode) {
+      return await this.prisma.mst_brand.findUnique({
+         where: { brand_code: brandCode }
+      });
+   }
+}
 
 module.exports = {
    PlantModel,
@@ -388,5 +427,7 @@ module.exports = {
    UnitModel,
    UserModel,
    AssetModel,
-   BaseModel
+   BaseModel,
+   CategoryModel,
+   BrandModel
 };

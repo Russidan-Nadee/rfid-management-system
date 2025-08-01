@@ -39,6 +39,38 @@ class UnitModel extends UnitEntity {
   }
 }
 
+class CategoryModel extends CategoryEntity {
+  const CategoryModel({
+    required super.categoryCode,
+    required super.categoryName,
+    super.description,
+  });
+
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      categoryCode: json['category_code'] ?? '',
+      categoryName: json['category_name'] ?? '',
+      description: json['description'],
+    );
+  }
+}
+
+class BrandModel extends BrandEntity {
+  const BrandModel({
+    required super.brandCode,
+    required super.brandName,
+    super.description,
+  });
+
+  factory BrandModel.fromJson(Map<String, dynamic> json) {
+    return BrandModel(
+      brandCode: json['brand_code'] ?? '',
+      brandName: json['brand_name'] ?? '',
+      description: json['description'],
+    );
+  }
+}
+
 class DepartmentModel extends DepartmentEntity {
   const DepartmentModel({
     required super.deptCode,
@@ -69,6 +101,8 @@ class CreateAssetRequestModel {
       'location_code': request.locationCode,
       'unit_code': request.unitCode,
       'created_by': request.createdBy,
+      'category_code': request.categoryCode,
+      'brand_code': request.brandCode,
     };
 
     if (request.deptCode != null) json['dept_code'] = request.deptCode;

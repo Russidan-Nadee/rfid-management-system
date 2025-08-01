@@ -150,4 +150,9 @@ abstract class ScanLocalizations {
   String get noImagesAvailable;
   String get imagesWillAppearHere;
   String get imageLoadError;
+
+  // Category and Brand Selection
+  String get categoryBrandInformation;
+  String get category;
+  String get brand;
 }

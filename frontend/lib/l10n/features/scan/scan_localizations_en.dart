@@ -245,7 +245,7 @@ class ScanLocalizationsEn extends ScanLocalizations {
 
   // Field Labels with Context
   @override
-  String epcCodeField(String code) => 'EPC Code: $code';
+  String epcCodeField(String code) => 'Assets Code: $code';
 
   // Loading Messages
   @override
@@ -270,4 +270,14 @@ class ScanLocalizationsEn extends ScanLocalizations {
 
   @override
   String get imageLoadError => 'Failed to load image';
+
+  // Category and Brand Selection
+  @override
+  String get categoryBrandInformation => 'Category and Brand Information';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get brand => 'Brand';
 }

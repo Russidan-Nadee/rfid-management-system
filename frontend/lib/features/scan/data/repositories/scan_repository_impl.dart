@@ -194,6 +194,46 @@ class ScanRepositoryImpl implements ScanRepository {
   }
 
   @override
+  Future<List<CategoryEntity>> getCategories() async {
+    try {
+      final response = await apiService.get<List<dynamic>>(
+        ApiConstants.categories,
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!
+            .map((json) => CategoryModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Failed to fetch categories');
+      }
+    } catch (e) {
+      throw Exception('Failed to get categories: $e');
+    }
+  }
+
+  @override
+  Future<List<BrandEntity>> getBrands() async {
+    try {
+      final response = await apiService.get<List<dynamic>>(
+        ApiConstants.brands,
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      if (response.success && response.data != null) {
+        return response.data!
+            .map((json) => BrandModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Failed to fetch brands');
+      }
+    } catch (e) {
+      throw Exception('Failed to get brands: $e');
+    }
+  }
+
+  @override
   Future<List<ScannedItemEntity>> getAssetsByLocation(
     String locationCode,
   ) async {

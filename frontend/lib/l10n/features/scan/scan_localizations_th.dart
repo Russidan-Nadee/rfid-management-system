@@ -268,4 +268,14 @@ class ScanLocalizationsTh extends ScanLocalizations {
 
   @override
   String get imageLoadError => 'ไม่สามารถโหลดรูปภาพได้';
+
+  // Category and Brand Selection
+  @override
+  get categoryBrandInformation => 'ข้อมูลหมวดหมู่และแบรนด์';
+
+  @override
+  String get category => 'หมวดหมู่';
+
+  @override
+  String get brand => 'แบรนด์';
 }

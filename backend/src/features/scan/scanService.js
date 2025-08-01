@@ -1,5 +1,6 @@
 // Path: src/services/scanService.js
 const { PlantModel, LocationModel, UnitModel, UserModel, AssetModel } = require('./scanModel');
+const { CategoryModel, BrandModel } = require('./scanModel');
 const DepartmentService = require('../dashboard/dashboardService');
 const prisma = require('../../core/database/prisma');
 
@@ -576,6 +577,57 @@ class AssetService extends BaseService {
       }
    }
 }
+class CategoryService extends BaseService {
+   constructor() {
+      super(CategoryModel);
+   }
+
+   async getAllCategories() {
+      try {
+         return await this.model.getAllCategories();
+      } catch (error) {
+         throw new Error(`Error fetching categories: ${error.message}`);
+      }
+   }
+
+   async getCategoryByCode(categoryCode) {
+      try {
+         const category = await this.model.getCategoryByCode(categoryCode);
+         if (!category) {
+            throw new Error('Category not found');
+         }
+         return category;
+      } catch (error) {
+         throw new Error(`Error fetching category: ${error.message}`);
+      }
+   }
+}
+
+class BrandService extends BaseService {
+   constructor() {
+      super(BrandModel);
+   }
+
+   async getAllBrands() {
+      try {
+         return await this.model.getAllBrands();
+      } catch (error) {
+         throw new Error(`Error fetching brands: ${error.message}`);
+      }
+   }
+
+   async getBrandByCode(brandCode) {
+      try {
+         const brand = await this.model.getBrandByCode(brandCode);
+         if (!brand) {
+            throw new Error('Brand not found');
+         }
+         return brand;
+      } catch (error) {
+         throw new Error(`Error fetching brand: ${error.message}`);
+      }
+   }
+}
 
 module.exports = {
    PlantService,
@@ -583,5 +635,7 @@ module.exports = {
    UnitService,
    UserService,
    AssetService,
-   DepartmentService
+   DepartmentService,
+   CategoryService,
+   BrandService
 };

@@ -419,6 +419,32 @@ const statsValidators = {
    ]
 };
 
+// Category validators - No status field
+const categoryValidators = {
+   getCategoryByCode: [
+      commonValidations.code('category_code'),
+      handleValidationErrors
+   ],
+
+   getCategories: [
+      ...commonValidations.pagination(),
+      handleValidationErrors
+   ]
+};
+
+// Brand validators - No status field
+const brandValidators = {
+   getBrandByCode: [
+      commonValidations.code('brand_code'),
+      handleValidationErrors
+   ],
+
+   getBrands: [
+      ...commonValidations.pagination(),
+      handleValidationErrors
+   ]
+};
+
 module.exports = {
    plantValidators,
    locationValidators,
@@ -427,5 +453,7 @@ module.exports = {
    assetValidators,
    statsValidators,
    handleValidationErrors,
-   commonValidations
+   commonValidations,
+   categoryValidators,
+   brandValidators
 };
