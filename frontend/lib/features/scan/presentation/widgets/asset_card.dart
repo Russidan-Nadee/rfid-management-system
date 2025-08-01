@@ -1,13 +1,19 @@
 // Path: frontend/lib/features/scan/presentation/widgets/asset_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:frontend/app/theme/app_colors.dart';
 import 'package:frontend/app/theme/app_spacing.dart';
 import 'package:frontend/app/theme/app_decorations.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
 import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
+import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/api_service.dart';
+import '../../../../di/injection.dart';
 import '../../domain/entities/scanned_item_entity.dart';
+import '../../domain/entities/asset_image_entity.dart';
+import '../../data/models/asset_image_model.dart';
 import '../pages/asset_detail_page.dart';
 import '../pages/create_asset_page.dart';
 
@@ -22,19 +28,15 @@ extension AssetStatusTheme on ThemeData {
       case 'I':
         return colorScheme.error;
       case 'UNKNOWN':
-        return AppColors.warning.withValues(alpha: 0.7); // สีส้มสำหรับ Unknown
+        return AppColors.warning.withValues(alpha: 0.7);
       default:
         return colorScheme.primary;
     }
   }
 
-  // เพิ่ม method สำหรับเช็ค Unknown โดยใช้ isUnknown flag
   Color getAssetStatusColorByItem(ScannedItemEntity item) {
-    // ใช้ isUnknown flag เป็นหลักแทน status string
     if (item.isUnknown == true) {
-      return AppColors.warning.withValues(
-        alpha: 0.7,
-      ); // สีส้มสำหรับ Unknown items
+      return AppColors.warning.withValues(alpha: 0.7);
     }
     return getAssetStatusColor(item.status);
   }
@@ -97,7 +99,7 @@ class AssetCard extends StatelessWidget {
           padding: AppSpacing.cardPaddingAll,
           child: Row(
             children: [
-              // Icon Container
+              // Icon Container with Lazy Image Loading
               _buildStatusIcon(context, theme, l10n),
 
               AppSpacing.horizontalSpaceLG,
@@ -114,23 +116,153 @@ class AssetCard extends StatelessWidget {
     );
   }
 
+  // ⭐ NEW: Lazy Image Loading Status Icon
   Widget _buildStatusIcon(
     BuildContext context,
     ThemeData theme,
     ScanLocalizations l10n,
   ) {
+    return Container(
+      width: 48.0,
+      height: 48.0,
+      decoration: BoxDecoration(borderRadius: AppBorders.medium),
+      child: item.isUnknown
+          ? _buildDefaultStatusIcon(theme, l10n) // Unknown items ไม่มีรูป
+          : FutureBuilder<AssetImageEntity?>(
+              // ⚡ Lazy loading - เรียก API เฉพาะเมื่อ widget นี้แสดง
+              future: _loadPrimaryImage(item.assetNo),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // กำลังโหลด - แสดง skeleton
+                  return _buildSkeletonIcon(theme);
+                }
+
+                if (snapshot.hasData && snapshot.data != null) {
+                  // มีรูป - แสดง thumbnail with status badge
+                  return _buildImageIcon(snapshot.data!, theme, l10n);
+                }
+
+                // ไม่มีรูป - แสดง status icon เดิม
+                return _buildDefaultStatusIcon(theme, l10n);
+              },
+            ),
+    );
+  }
+
+  // ⚡ Lazy loading method
+  Future<AssetImageEntity?> _loadPrimaryImage(String assetNo) async {
+    try {
+      final apiService = getIt<ApiService>();
+      final response = await apiService.get<Map<String, dynamic>>(
+        '/images/assets/$assetNo/images',
+        fromJson: (json) => json,
+      );
+
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        final imagesJson = data['images'] as List<dynamic>? ?? [];
+        if (imagesJson.isNotEmpty) {
+          // หา primary image หรือเอารูปแรก
+          final primaryImageJson = imagesJson.firstWhere(
+            (img) => img['is_primary'] == true,
+            orElse: () => imagesJson.first,
+          );
+          return AssetImageModel.fromJson(
+            primaryImageJson as Map<String, dynamic>,
+          );
+        }
+      }
+    } catch (e) {
+      // Silent fail - แสดง default icon
+      print('Failed to load image for $assetNo: $e');
+    }
+    return null;
+  }
+
+  // 📷 แสดงรูปภาพ with status badge
+  Widget _buildImageIcon(
+    AssetImageEntity image,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
+    final imageUrl = '${ApiConstants.baseUrl}/images${image.thumbnailUrl}';
+    final statusColor = theme.getAssetStatusColorByItem(item);
+
+    // Calculate responsive dimensions based on image aspect ratio
+    double imageWidth = image.width?.toDouble() ?? 1.0;
+    double imageHeight = image.height?.toDouble() ?? 1.0;
+    double aspectRatio = imageWidth / imageHeight;
+
+    const double cardSize = 48.0;
+    double displayWidth, displayHeight;
+
+    if (aspectRatio > 1.0) {
+      // Landscape: จำกัดความกว้าง, ปรับความสูง (พื้นที่ว่างบน-ล่าง)
+      displayWidth = cardSize;
+      displayHeight = cardSize / aspectRatio;
+    } else {
+      // Portrait: จำกัดความสูง, ปรับความกว้าง (พื้นที่ว่างซ้าย-ขวา)
+      displayHeight = cardSize;
+      displayWidth = cardSize * aspectRatio;
+    }
+
+    return Container(
+      width: cardSize,
+      height: cardSize,
+      decoration: BoxDecoration(borderRadius: AppBorders.medium),
+      child: Center(
+        child: ClipRRect(
+          borderRadius: AppBorders.medium,
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            width: displayWidth,
+            height: displayHeight,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => _buildSkeletonIcon(theme),
+            errorWidget: (context, url, error) =>
+                _buildDefaultStatusIcon(theme, l10n),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 💀 Skeleton loading state
+  Widget _buildSkeletonIcon(ThemeData theme) {
+    return Container(
+      width: 48.0,
+      height: 48.0,
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? AppColors.darkSurface.withValues(alpha: 0.5)
+            : theme.colorScheme.surface,
+        borderRadius: AppBorders.medium,
+      ),
+      child: Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : theme.colorScheme.primary.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 🎯 Default status icon (เดิม)
+  Widget _buildDefaultStatusIcon(ThemeData theme, ScanLocalizations l10n) {
     final statusColor = theme.getAssetStatusColorByItem(item);
     final statusIcon = theme.getAssetStatusIcon(item.status);
 
-    // แก้สี status icon ให้เหมาะกับ dark mode แต่เก็บ Unknown เป็นสีแดง
     final displayStatusColor = item.isUnknown
-        ? AppColors
-              .error // Unknown: ใช้สีแดง
-        : (Theme.of(context).brightness == Brightness.dark
-              ? theme
-                    .colorScheme
-                    .onSurface // Dark Mode: สีขาว/อ่อน
-              : statusColor); // Light Mode: สีตาม status เดิม
+        ? AppColors.error
+        : (theme.brightness == Brightness.dark
+              ? theme.colorScheme.onSurface
+              : statusColor);
 
     return Container(
       width: 48.0,
@@ -151,36 +283,28 @@ class AssetCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title - แก้ตาม pattern settings feature
+        // Title
         Text(
           item.displayName,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: item.isUnknown
-                ? AppColors
-                      .error // Unknown: ใช้สีแดง
-                : (Theme.of(context).brightness == Brightness.dark
-                      ? theme
-                            .colorScheme
-                            .onSurface // Dark Mode: สีขาว
-                      : theme.getAssetStatusColorByItem(
-                          item,
-                        )), // Light Mode: สีตาม status
+                ? AppColors.error
+                : (theme.brightness == Brightness.dark
+                      ? theme.colorScheme.onSurface
+                      : theme.getAssetStatusColorByItem(item)),
           ),
         ),
 
         AppSpacing.verticalSpaceXS,
 
-        // Asset Number - แก้ให้อ่านง่ายใน dark mode
+        // Asset Number
         Text(
           l10n.epcCodeField(item.assetNo),
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors
-                      .darkTextSecondary // Dark Mode: สีเทาอ่อน
-                : theme.colorScheme.onSurface.withValues(
-                    alpha: 0.7,
-                  ), // Light Mode: สีเทาเข้ม
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
 
@@ -200,15 +324,11 @@ class AssetCard extends StatelessWidget {
     final statusColor = theme.getAssetStatusColorByItem(item);
     final statusLabel = theme.getAssetStatusLabel(item.status, l10n);
 
-    // แก้สี status dot ให้เหมาะกับ dark mode แต่เก็บ Unknown เป็นสีแดง
     final displayStatusColor = item.isUnknown
-        ? AppColors
-              .error // Unknown: ใช้สีแดง
-        : (Theme.of(context).brightness == Brightness.dark
-              ? theme
-                    .colorScheme
-                    .onSurface // Dark Mode: สีขาว/อ่อน
-              : statusColor); // Light Mode: สีตาม status เดิม
+        ? AppColors.error
+        : (theme.brightness == Brightness.dark
+              ? theme.colorScheme.onSurface
+              : statusColor);
 
     return Row(
       children: [
@@ -232,30 +352,24 @@ class AssetCard extends StatelessWidget {
           ),
         ),
 
-        // Location (ถ้ามี) - แก้ให้อ่านง่ายใน dark mode
+        // Location (ถ้ามี)
         if (item.locationName != null) ...[
           AppSpacing.horizontalSpaceMD,
           Icon(
             Icons.location_on,
             size: 12.0,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? AppColors
-                      .darkTextMuted // Dark Mode: สีเทามาก
-                : theme.colorScheme.onSurface.withValues(
-                    alpha: 0.5,
-                  ), // Light Mode: สีเทาอ่อน
+            color: theme.brightness == Brightness.dark
+                ? AppColors.darkTextMuted
+                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
           AppSpacing.horizontalSpaceXS,
           Expanded(
             child: Text(
               item.locationName!,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors
-                          .darkTextMuted // Dark Mode: สีเทามาก
-                    : theme.colorScheme.onSurface.withValues(
-                        alpha: 0.5,
-                      ), // Light Mode: สีเทาอ่อน
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.darkTextMuted
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -274,12 +388,9 @@ class AssetCard extends StatelessWidget {
       item.isUnknown ? Icons.add_circle_outline : Icons.chevron_right,
       color: item.isUnknown
           ? AppColors.warning.withValues(alpha: 0.7)
-          : (Theme.of(context).brightness == Brightness.dark
-                ? AppColors
-                      .darkTextSecondary // Dark Mode: สีเทาอ่อน
-                : theme.colorScheme.onSurface.withValues(
-                    alpha: 0.4,
-                  )), // Light Mode: สีเทาเข้ม
+          : (theme.brightness == Brightness.dark
+                ? AppColors.darkTextSecondary
+                : theme.colorScheme.onSurface.withValues(alpha: 0.4)),
     );
   }
 
@@ -288,14 +399,10 @@ class AssetCard extends StatelessWidget {
       // Navigate to Create Asset Page for unknown items
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
-          builder: (context) => CreateAssetPage(
-            epcCode: item.assetNo, // ← ส่ง EPC Code (ที่เก็บใน assetNo field)
-            // ลบ plantCode, locationCode, locationName ออกตามเดิม
-          ),
+          builder: (context) => CreateAssetPage(epcCode: item.assetNo),
         ),
       );
 
-      // ถ้าสร้าง asset สำเร็จ แล้ว result กลับมา
       if (result != null && context.mounted) {
         context.read<ScanBloc>().add(
           AssetCreatedFromUnknown(createdAsset: result),
