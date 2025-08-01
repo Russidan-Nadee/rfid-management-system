@@ -2,36 +2,33 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 /**
  * 📁 IMAGE MIDDLEWARE
- * Handle file uploads และ validation สำหรับ image management
+ * Handle file uploads สำหรับ external storage
  */
 
-// สร้าง upload directory ถ้ายังไม่มี
-const ensureUploadDirs = () => {
-   const uploadDir = path.join(process.cwd(), 'uploads');
-   const assetsDir = path.join(uploadDir, 'assets');
-   const thumbsDir = path.join(assetsDir, 'thumbs');
+// สร้าง temp directory สำหรับ upload ชั่วคราว
+const ensureTempDir = () => {
+   const tempDir = path.join(os.tmpdir(), 'asset-uploads');
 
-   [uploadDir, assetsDir, thumbsDir].forEach(dir => {
-      if (!fs.existsSync(dir)) {
-         fs.mkdirSync(dir, { recursive: true });
-         console.log(`📁 Created directory: ${dir}`);
-      }
-   });
+   if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+      console.log(`📁 Created temp directory: ${tempDir}`);
+   }
+
+   return tempDir;
 };
-
-// เรียกใช้เมื่อ import module
-ensureUploadDirs();
 
 /**
  * 🎯 MULTER STORAGE CONFIGURATION
+ * เก็บไฟล์ชั่วคราวก่อนส่งไป external storage
  */
 const storage = multer.diskStorage({
    destination: (req, file, cb) => {
-      const uploadPath = path.join(process.cwd(), 'uploads', 'assets');
-      cb(null, uploadPath);
+      const tempDir = ensureTempDir();
+      cb(null, tempDir);
    },
 
    filename: (req, file, cb) => {
@@ -48,15 +45,14 @@ const storage = multer.diskStorage({
          const time = now.toTimeString().slice(0, 8).replace(/:/g, '');
          const timestamp = `${date}_${time}`;
 
-         // Generate sequence number
-         const sequence = req.fileSequence || 1;
-         req.fileSequence = sequence + 1;
+         // Generate random suffix เพื่อป้องกัน collision
+         const randomSuffix = Math.random().toString(36).substring(2, 8);
 
          // Get file extension
          const ext = path.extname(file.originalname).toLowerCase();
 
-         // Format: ABC001_20250130_143022_001.jpg
-         const filename = `${asset_no}_${timestamp}_${String(sequence).padStart(3, '0')}${ext}`;
+         // Format: temp_ABC001_20250130_143022_abc123.jpg
+         const filename = `temp_${asset_no}_${timestamp}_${randomSuffix}${ext}`;
 
          cb(null, filename);
 
@@ -103,6 +99,13 @@ const fileFilter = (req, file, cb) => {
          return cb(error, false);
       }
 
+      // Check filename length
+      if (filename.length > 255) {
+         const error = new Error('Filename too long. Maximum 255 characters.');
+         error.code = 'FILENAME_TOO_LONG';
+         return cb(error, false);
+      }
+
       cb(null, true);
 
    } catch (error) {
@@ -143,9 +146,6 @@ const uploadSingle = multer(multerConfig).single('image');
  * Handle multiple file uploads with enhanced error handling
  */
 const handleMultipleUpload = (req, res, next) => {
-   // Reset sequence counter for each request
-   req.fileSequence = 1;
-
    uploadMultiple(req, res, (error) => {
       if (error) {
          return handleUploadError(error, req, res, next);
@@ -163,14 +163,17 @@ const handleMultipleUpload = (req, res, next) => {
       // Additional validations
       const validationError = validateUploadedFiles(req.files);
       if (validationError) {
-         // Clean up uploaded files on validation error
-         cleanupFiles(req.files);
+         // Clean up uploaded temp files on validation error
+         cleanupTempFiles(req.files);
          return res.status(400).json({
             success: false,
             message: validationError,
             timestamp: new Date().toISOString()
          });
       }
+
+      // เพิ่ม cleanup function ใน request สำหรับใช้ใน service
+      req.cleanupTempFiles = () => cleanupTempFiles(req.files);
 
       next();
    });
@@ -180,8 +183,6 @@ const handleMultipleUpload = (req, res, next) => {
  * Handle single file upload
  */
 const handleSingleUpload = (req, res, next) => {
-   req.fileSequence = 1;
-
    uploadSingle(req, res, (error) => {
       if (error) {
          return handleUploadError(error, req, res, next);
@@ -198,13 +199,16 @@ const handleSingleUpload = (req, res, next) => {
       // Additional validation for single file
       const validationError = validateUploadedFiles([req.file]);
       if (validationError) {
-         cleanupFiles([req.file]);
+         cleanupTempFiles([req.file]);
          return res.status(400).json({
             success: false,
             message: validationError,
             timestamp: new Date().toISOString()
          });
       }
+
+      // เพิ่ม cleanup function ใน request
+      req.cleanupTempFiles = () => cleanupTempFiles([req.file]);
 
       next();
    });
@@ -243,12 +247,13 @@ const handleUploadError = (error, req, res, next) => {
       case 'INVALID_FILE_TYPE':
       case 'INVALID_FILE_EXTENSION':
       case 'INVALID_FILENAME':
+      case 'FILENAME_TOO_LONG':
          message = error.message;
          details = { allowed_types: ['jpg', 'jpeg', 'png', 'webp'] };
          break;
 
       case 'ENOENT':
-         message = 'Upload directory not accessible';
+         message = 'Temporary directory not accessible';
          statusCode = 500;
          break;
 
@@ -281,11 +286,11 @@ const handleUploadError = (error, req, res, next) => {
  */
 
 /**
- * Validate uploaded files
+ * Validate uploaded temp files
  */
 const validateUploadedFiles = (files) => {
    for (const file of files) {
-      // Check file size
+      // Check file size (redundant check)
       if (file.size > 10 * 1024 * 1024) {
          return `File ${file.originalname} is too large. Maximum size is 10MB.`;
       }
@@ -343,19 +348,50 @@ const validateFileHeader = (filePath, expectedMimeType) => {
  */
 
 /**
- * Clean up uploaded files
+ * Clean up temporary uploaded files
  */
-const cleanupFiles = (files) => {
-   files.forEach(file => {
+const cleanupTempFiles = (files) => {
+   if (!files) return;
+
+   const fileArray = Array.isArray(files) ? files : [files];
+
+   fileArray.forEach(file => {
       try {
-         if (fs.existsSync(file.path)) {
+         if (file && file.path && fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
-            console.log(`🗑️ Cleaned up file: ${file.path}`);
+            console.log(`🗑️ Cleaned up temp file: ${file.path}`);
          }
       } catch (error) {
-         console.error(`Failed to cleanup file ${file.path}:`, error);
+         console.error(`Failed to cleanup temp file ${file.path}:`, error);
       }
    });
+};
+
+/**
+ * Cleanup middleware - ทำความสะอาดไฟล์ temp หากเกิด error
+ */
+const cleanupOnError = (req, res, next) => {
+   const originalSend = res.send;
+   const originalJson = res.json;
+
+   // Override response methods เพื่อ cleanup เมื่อ error
+   res.send = function (body) {
+      if (res.statusCode >= 400) {
+         if (req.files) cleanupTempFiles(req.files);
+         if (req.file) cleanupTempFiles([req.file]);
+      }
+      return originalSend.call(this, body);
+   };
+
+   res.json = function (body) {
+      if (res.statusCode >= 400) {
+         if (req.files) cleanupTempFiles(req.files);
+         if (req.file) cleanupTempFiles([req.file]);
+      }
+      return originalJson.call(this, body);
+   };
+
+   next();
 };
 
 /**
@@ -406,7 +442,7 @@ const uploadRateLimit = (req, res, next) => {
 };
 
 /**
- * Validate asset ownership (if needed)
+ * Validate asset ownership (if needed for access control)
  */
 const validateAssetAccess = async (req, res, next) => {
    try {
@@ -432,12 +468,60 @@ const validateAssetAccess = async (req, res, next) => {
    }
 };
 
+/**
+ * 🧹 TEMP FILE CLEANUP SCHEDULER
+ */
+
+/**
+ * Cleanup old temp files (run periodically)
+ */
+const cleanupOldTempFiles = () => {
+   try {
+      const tempDir = path.join(os.tmpdir(), 'asset-uploads');
+
+      if (!fs.existsSync(tempDir)) return;
+
+      const files = fs.readdirSync(tempDir);
+      const now = Date.now();
+      const oneHourAgo = now - (60 * 60 * 1000); // 1 hour
+
+      let cleanedCount = 0;
+
+      files.forEach(filename => {
+         try {
+            const filePath = path.join(tempDir, filename);
+            const stats = fs.statSync(filePath);
+
+            // Delete files older than 1 hour
+            if (stats.mtime.getTime() < oneHourAgo) {
+               fs.unlinkSync(filePath);
+               cleanedCount++;
+            }
+         } catch (error) {
+            console.error(`Error cleaning up temp file ${filename}:`, error);
+         }
+      });
+
+      if (cleanedCount > 0) {
+         console.log(`🧹 Cleaned up ${cleanedCount} old temp files`);
+      }
+
+   } catch (error) {
+      console.error('Temp file cleanup error:', error);
+   }
+};
+
+// Run cleanup every 30 minutes
+setInterval(cleanupOldTempFiles, 30 * 60 * 1000);
+
 module.exports = {
    handleMultipleUpload,
    handleSingleUpload,
    handleUploadError,
    uploadRateLimit,
    validateAssetAccess,
-   cleanupFiles,
-   ensureUploadDirs
+   cleanupTempFiles,
+   cleanupOnError,
+   ensureTempDir,
+   cleanupOldTempFiles
 };

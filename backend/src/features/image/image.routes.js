@@ -11,21 +11,20 @@ const {
    handleMultipleUpload,
    handleSingleUpload,
    uploadRateLimit,
-   validateAssetAccess
+   validateAssetAccess,
+   cleanupOnError
 } = require('./image.middleware');
 
 // Import validators
 const {
    uploadImagesValidator,
    getAssetImagesValidator,
-   serveImageValidator,
    deleteImageValidator,
    replaceImageValidator,
    updateImageMetadataValidator,
    setPrimaryImageValidator,
    getImageStatsValidator,
    searchImagesValidator,
-   cleanupOrphanedFilesValidator,
    getSystemStatsValidator,
    batchUpdateImagesValidator,
    validateAssetOwnership,
@@ -53,29 +52,43 @@ router.get('/health', (req, res) => {
    res.status(200).json({
       success: true,
       message: 'Image service is healthy',
-      version: '1.0.0',
+      version: '2.0.0',
       timestamp: new Date().toISOString(),
       features: {
          upload: 'operational',
-         serving: 'operational',
-         thumbnails: 'operational',
+         external_storage: 'operational',
          search: 'operational',
          admin: 'operational'
-      }
+      },
+      storage_type: 'external'
    });
 });
 
 /**
- * 📤 UPLOAD ROUTES
- * จัดการการอัพโหลดรูปภาพ
+ * 💾 SAVE RESPONSE ROUTES
+ * บันทึก response จาก dev server
  */
 
-// POST /assets/:asset_no/images - Upload multiple images (max 10)
+// POST /assets/:asset_no/images/save - Save dev server response to database
+router.post('/assets/:asset_no/images/save',
+   imageRateLimit,
+   authenticateToken,
+   validateAssetOwnership,
+   (req, res) => imageController.saveImageResponse(req, res)
+);
+
+/**
+ * 📤 UPLOAD ROUTES
+ * จัดการการอัพโหลดรูปภาพไปยัง external storage
+ */
+
+// POST /assets/:asset_no/images - Upload multiple images (max 10) to external storage
 router.post('/assets/:asset_no/images',
    imageRateLimit,
    authenticateToken,
    validateAssetOwnership,
    uploadRateLimitStrict,
+   cleanupOnError,
    handleMultipleUpload,
    uploadImagesValidator,
    (req, res) => imageController.uploadImages(req, res)
@@ -83,23 +96,16 @@ router.post('/assets/:asset_no/images',
 
 /**
  * 📥 RETRIEVAL ROUTES
- * ดึงข้อมูลและแสดงรูปภาพ
+ * ดึงข้อมูลรูปภาพ (จะได้ external URLs)
  */
 
-// GET /assets/:asset_no/images - Get all images for asset
+// GET /assets/:asset_no/images - Get all images for asset (returns external URLs)
 router.get('/assets/:asset_no/images',
    imageRateLimit,
    authenticateToken,
    validateAssetOwnership,
    getAssetImagesValidator,
    (req, res) => imageController.getAssetImages(req, res)
-);
-
-// GET /images/:imageId - Serve specific image file
-router.get('/images/:imageId',
-   imageRateLimit,
-   serveImageValidator,
-   (req, res) => imageController.serveImage(req, res)
 );
 
 // GET /assets/:asset_no/images/stats - Get image statistics for asset
@@ -116,12 +122,13 @@ router.get('/assets/:asset_no/images/stats',
  * แก้ไขและอัพเดทรูปภาพ
  */
 
-// PUT /assets/:asset_no/images/:imageId - Replace existing image
+// PUT /assets/:asset_no/images/:imageId - Replace existing image in external storage
 router.put('/assets/:asset_no/images/:imageId',
    imageRateLimit,
    authenticateToken,
    validateAssetOwnership,
    uploadRateLimitStrict,
+   cleanupOnError,
    handleSingleUpload,
    replaceImageValidator,
    (req, res) => imageController.replaceImage(req, res)
@@ -147,10 +154,10 @@ router.post('/assets/:asset_no/images/:imageId/primary',
 
 /**
  * 🗑️ DELETE ROUTES
- * ลบรูปภาพ
+ * ลบรูปภาพจาก external storage
  */
 
-// DELETE /assets/:asset_no/images/:imageId - Delete specific image
+// DELETE /assets/:asset_no/images/:imageId - Delete specific image from external storage
 router.delete('/assets/:asset_no/images/:imageId',
    imageRateLimit,
    authenticateToken,
@@ -164,7 +171,7 @@ router.delete('/assets/:asset_no/images/:imageId',
  * ค้นหารูปภาพ
  */
 
-// GET /images/search - Search images across all assets
+// GET /search - Search images across all assets
 router.get('/search',
    imageRateLimit,
    authenticateToken,
@@ -177,7 +184,7 @@ router.get('/search',
  * สถิติและการวิเคราะห์
  */
 
-// GET /images/system/stats - Get system-wide image statistics (admin only)
+// GET /system/stats - Get system-wide image statistics (admin only)
 router.get('/system/stats',
    adminRateLimit,
    authenticateToken,
@@ -191,16 +198,7 @@ router.get('/system/stats',
  * จัดการระบบสำหรับ admin
  */
 
-// POST /images/cleanup - Cleanup orphaned files (admin only)
-router.post('/cleanup',
-   adminRateLimit,
-   authenticateToken,
-   requireRole(['admin']),
-   cleanupOrphanedFilesValidator,
-   (req, res) => imageController.cleanupOrphanedFiles(req, res)
-);
-
-// POST /images/batch/update - Batch update images (admin only)
+// POST /batch/update - Batch update images (admin/manager only)
 router.post('/batch/update',
    adminRateLimit,
    authenticateToken,
@@ -209,7 +207,7 @@ router.post('/batch/update',
    (req, res) => imageController.batchUpdateImages(req, res)
 );
 
-// GET /images/system/health - Image system health check (admin only)
+// GET /system/health - Image system health check (admin only)
 router.get('/system/health',
    adminRateLimit,
    authenticateToken,
@@ -226,63 +224,60 @@ router.get('/system/health',
 router.get('/docs', (req, res) => {
    const imageDocs = {
       success: true,
-      message: 'Image Management API Documentation',
-      version: '1.0.0',
+      message: 'Image Management API Documentation (External Storage)',
+      version: '2.0.0',
+      storage_type: 'external',
       timestamp: new Date().toISOString(),
 
       features: {
-         upload: 'Upload multiple images per asset (max 10)',
-         management: 'Full CRUD operations for image metadata',
-         serving: 'Optimized image serving with caching',
-         thumbnails: 'Automatic thumbnail generation',
-         primary_image: 'Primary image designation per asset',
+         upload: 'Upload images to external dev server',
+         management: 'Full CRUD operations with external storage',
+         serving: 'Direct access via external URLs (no backend proxy)',
          search: 'Advanced search across all images',
          statistics: 'Detailed analytics and statistics',
-         admin: 'System maintenance and cleanup tools'
+         admin: 'System maintenance and health monitoring'
       },
 
       endpoints: {
          upload: {
             'POST /assets/:asset_no/images': {
-               description: 'Upload multiple images for asset (max 10 files)',
+               description: 'Upload multiple images to external storage (max 10 files)',
                authentication: 'Required',
                rate_limit: '20 uploads per 5 minutes',
                file_types: ['jpg', 'jpeg', 'png', 'webp'],
                max_file_size: '10MB per file',
                max_total_images: 10,
+               storage: 'External dev server',
                example: 'curl -X POST -F "images=@photo1.jpg" -F "images=@photo2.png" /assets/ABC001/images'
             }
          },
 
          retrieval: {
             'GET /assets/:asset_no/images': {
-               description: 'Get all images for specific asset',
+               description: 'Get all images for specific asset (returns external URLs)',
                authentication: 'Required',
+               response_urls: 'Direct links to external dev server',
                parameters: {
                   include_thumbnails: 'Include thumbnail URLs (default: true)',
-                  include_metadata: 'Include detailed metadata (default: false)',
                   category: 'Filter by category',
                   page: 'Page number for pagination',
                   limit: 'Items per page (max: 100)'
-               }
-            },
-            'GET /images/:imageId': {
-               description: 'Serve image file with optimization',
-               authentication: 'Not required for public images',
-               parameters: {
-                  size: 'Image size (original, thumb, small, medium, large)',
-                  quality: 'Image quality (low, medium, high)',
-                  format: 'Output format (jpeg, png, webp)'
                },
-               caching: 'Images cached for 1 year with ETag support'
+               example_response: {
+                  images: [{
+                     id: 1,
+                     image_url: 'https://devsever.thaiparker.co.th/TP_Service/File/.../image.jpg',
+                     thumbnail_url: 'https://devsever.thaiparker.co.th/TP_Service/File/.../thumbnails/image.jpg'
+                  }]
+               }
             }
          },
 
          management: {
-            'PUT /assets/:asset_no/images/:imageId': 'Replace existing image',
+            'PUT /assets/:asset_no/images/:imageId': 'Replace existing image in external storage',
             'PATCH /assets/:asset_no/images/:imageId': 'Update image metadata',
             'POST /assets/:asset_no/images/:imageId/primary': 'Set as primary image',
-            'DELETE /assets/:asset_no/images/:imageId': 'Delete image'
+            'DELETE /assets/:asset_no/images/:imageId': 'Delete image from external storage'
          },
 
          search: {
@@ -306,110 +301,80 @@ router.get('/docs', (req, res) => {
          },
 
          admin: {
-            'POST /cleanup': 'Cleanup orphaned files (admin only)',
-            'POST /batch/update': 'Batch update operations (admin only)',
-            'GET /system/health': 'System health check (admin only)'
+            'POST /batch/update': 'Batch update operations (admin/manager only)',
+            'GET /system/health': 'System health check including external storage (admin only)'
          }
+      },
+
+      external_storage: {
+         dev_server: 'https://devsever.thaiparker.co.th/tp_service/api/Service_File',
+         folder_path: 'intern_test/IMG',
+         automatic_thumbnails: 'Generated by dev server',
+         direct_access: 'Frontend accesses images directly from dev server',
+         no_backend_proxy: 'No image serving through backend'
       },
 
       file_specifications: {
          supported_formats: ['JPEG', 'PNG', 'WebP'],
          max_file_size: '10MB per file',
          max_files_per_asset: 10,
-         thumbnail_size: '300x300 pixels (aspect ratio maintained)',
-         quality_levels: {
-            low: 'Optimized for file size',
-            medium: 'Balanced quality and size',
-            high: 'Maximum quality'
-         }
-      },
-
-      naming_convention: {
-         pattern: '{asset_no}_{YYYYMMDD}_{HHMMSS}_{sequence}.{ext}',
-         example: 'ABC001_20250130_143022_001.jpg',
-         description: 'Automatic naming ensures uniqueness and organization'
+         thumbnail_generation: 'Automatic by external dev server',
+         quality_levels: 'Managed by external dev server',
+         temporary_storage: 'Files temporarily stored during upload process only'
       },
 
       response_formats: {
          success: {
             success: true,
             message: 'Operation completed successfully',
-            data: '/* Response data */',
-            meta: '/* Additional metadata */',
+            data: {
+               images: [{
+                  image_url: 'Direct external URL',
+                  thumbnail_url: 'Direct external thumbnail URL'
+               }]
+            },
+            meta: {
+               storage_type: 'external'
+            },
             timestamp: '2025-01-30T14:30:22.000Z'
          },
          error: {
             success: false,
             message: 'Error description',
-            errors: '/* Detailed error information */',
+            details: 'Detailed error information',
             timestamp: '2025-01-30T14:30:22.000Z'
          }
       },
 
       security: {
-         authentication: 'JWT token required for most operations',
+         authentication: 'JWT token required for all operations',
          authorization: 'Role-based access control',
          file_validation: 'Strict file type and size validation',
-         path_traversal_protection: 'Prevents directory traversal attacks',
-         rate_limiting: 'Prevents abuse and ensures fair usage'
+         temporary_files: 'Automatic cleanup of temporary files',
+         rate_limiting: 'Prevents abuse and ensures fair usage',
+         external_dependency: 'Requires external dev server availability'
       },
 
-      performance: {
-         caching: {
-            images: 'Static files cached for 1 year',
-            api_responses: 'Short-term caching for statistics',
-            etag_support: 'Conditional requests supported'
-         },
-         optimization: {
-            thumbnails: 'Automatically generated and cached',
-            compression: 'Smart compression based on content',
-            progressive_jpeg: 'Progressive loading for better UX'
-         }
-      },
-
-      integration_examples: {
-         javascript: {
-            upload: `
-// Upload multiple images
-const formData = new FormData();
-formData.append('images', file1);
-formData.append('images', file2);
-
-fetch('/api/v1/assets/ABC001/images', {
-  method: 'POST',
-  headers: { 'Authorization': 'Bearer ' + token },
-  body: formData
-});`,
-
-            display: `
-// Display asset images
-fetch('/api/v1/assets/ABC001/images')
-  .then(response => response.json())
-  .then(data => {
-    data.data.images.forEach(image => {
-      const img = document.createElement('img');
-      img.src = image.thumbnail_url;
-      img.onclick = () => window.open(image.image_url);
-      container.appendChild(img);
-    });
-  });`
-         }
+      migration_notes: {
+         breaking_changes: [
+            'Removed GET /images/:imageId endpoint (use external URLs directly)',
+            'All image URLs now point to external dev server',
+            'No local file serving through backend',
+            'Temporary file storage only during upload process'
+         ],
+         compatibility: 'Frontend must use external URLs directly',
+         performance: 'Improved backend performance, direct CDN-like access'
       },
 
       troubleshooting: {
          common_errors: {
-            'File too large': 'Reduce file size below 10MB',
-            'Invalid file type': 'Use only JPG, PNG, or WebP formats',
-            'Too many files': 'Maximum 10 images per asset',
-            'Asset not found': 'Verify asset exists before uploading',
+            'External storage unavailable': 'Check dev server connectivity',
+            'File upload timeout': 'Large files may take longer to upload to external storage',
+            'Image not loading': 'Check external dev server availability',
             'Rate limit exceeded': 'Wait before making more requests'
          },
-         performance_tips: {
-            'Use appropriate image sizes': 'Dont upload unnecessarily large images',
-            'Leverage caching': 'Use ETag headers for efficient caching',
-            'Batch operations': 'Use batch APIs for multiple updates',
-            'Monitor usage': 'Check system stats regularly'
-         }
+         health_check: 'Use GET /system/health to check external storage connectivity',
+         monitoring: 'Monitor external dev server uptime for image availability'
       }
    };
 

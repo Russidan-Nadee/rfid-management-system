@@ -41,72 +41,89 @@ class ImageService {
    }
 
    /**
-    * Upload และ process รูปใหม่ผ่าน external storage
+    * บันทึก response จาก dev server ลง database
     * @param {string} assetNo - asset number
-    * @param {Array} files - uploaded files from multer
-    * @param {string} userId - user who uploaded
-    * @returns {Promise<Object>} processed images data
+    * @param {Object} devServerResponse - response from dev server
+    * @param {string} userId - user ID
+    * @returns {Promise<Object>} saved image data
     */
-   async uploadImages(assetNo, files, userId) {
-      const processedImages = [];
-      const errors = [];
-
+   async saveImageFromResponse(assetNo, devServerResponse, userId) {
       try {
-         // ตรวจสอบ asset exists
-         const assetExists = await this.checkAssetExists(assetNo);
-         if (!assetExists) {
-            throw new Error('Asset not found');
-         }
+         console.log('💾 DEBUG: Saving dev server response to database');
+         console.log('📄 DEBUG: Response data:', devServerResponse);
 
-         // ตรวจสอบ current image count
-         const currentCount = await this.getImageCount(assetNo);
-         if (currentCount + files.length > 10) {
-            throw new Error(`Cannot upload ${files.length} files. Asset already has ${currentCount} images. Maximum 10 allowed.`);
-         }
-
-         // Process แต่ละไฟล์
-         for (const file of files) {
-            try {
-               const imageData = await this.processUploadedImage(assetNo, file, userId);
-               processedImages.push(imageData);
-            } catch (error) {
-               console.error(`Error processing file ${file.originalname}:`, error);
-               errors.push({
-                  filename: file.originalname,
-                  error: error.message
-               });
-
-               // Cleanup failed file
-               await this.externalStorage.cleanupTempFile(file.path);
-            }
-         }
-
-         // ถ้าไม่มีรูปใดสำเร็จเลย
-         if (processedImages.length === 0) {
-            throw new Error('Failed to process any images');
-         }
-
-         // Set primary image ถ้าเป็นรูปแรกของ asset
-         if (currentCount === 0 && processedImages.length > 0) {
-            await this.imageModel.setPrimaryImage(assetNo, processedImages[0].id);
-            processedImages[0].is_primary = true;
-         }
-
-         return {
-            success: processedImages,
-            errors: errors.length > 0 ? errors : undefined,
-            total_processed: processedImages.length,
-            total_failed: errors.length
+         // เตรียมข้อมูลสำหรับบันทึก
+         const imageData = {
+            asset_no: assetNo,
+            file_url: devServerResponse.FileUrl,
+            file_thumbnail_url: devServerResponse.FileThumbnailUrl,
+            external_file_path: devServerResponse.FilePath,
+            external_thumbnail_path: devServerResponse.FileThumbnailPath,
+            file_type_external: devServerResponse.FileType,
+            file_name: this.extractFilenameFromUrl(devServerResponse.FileUrl),
+            original_name: devServerResponse.originalName || this.extractFilenameFromUrl(devServerResponse.FileUrl),
+            file_size: null, // Dev server ไม่ส่งมา
+            width: null,
+            height: null,
+            created_by: userId
          };
 
+         console.log('💾 DEBUG: Image data to save:', imageData);
+
+         const savedImage = await this.imageModel.createImage(imageData);
+
+         console.log('✅ DEBUG: Saved to database successfully:', savedImage);
+
+         return savedImage;
+
       } catch (error) {
-         // Cleanup ไฟล์ทั้งหมดถ้า error
-         for (const file of files) {
-            await this.externalStorage.cleanupTempFile(file.path);
+         console.error('❌ DEBUG: Error saving image from response:', error);
+         throw new Error(`Failed to save image: ${error.message}`);
+      }
+   }
+
+   /**
+    * ลบ record จาก database เท่านั้น (ไม่ลบไฟล์จริง)
+    * @param {string} assetNo - asset number
+    * @param {number} imageId - image ID
+    * @param {string} userId - user ID
+    * @returns {Promise<boolean>} success
+    */
+   async deleteImageRecord(assetNo, imageId, userId) {
+      try {
+         const image = await this.imageModel.getImageById(imageId);
+         if (!image || image.asset_no !== assetNo) {
+            throw new Error('Image not found');
          }
 
-         console.error('Upload images error:', error);
+         // ลบจาก database เท่านั้น
+         const deleted = await this.imageModel.deleteImage(imageId);
+
+         // ถ้าลบรูป primary ให้ set รูปอื่นเป็น primary
+         if (deleted && image.is_primary) {
+            await this.autoSetPrimaryImage(assetNo);
+         }
+
+         return deleted;
+
+      } catch (error) {
+         console.error('Delete image record error:', error);
          throw error;
+      }
+   }
+
+   /**
+    * Extract filename จาก URL
+    * @param {string} url - file URL
+    * @returns {string} filename
+    */
+   extractFilenameFromUrl(url) {
+      try {
+         if (!url) return 'unknown.jpg';
+         const urlParts = url.split('/');
+         return urlParts[urlParts.length - 1] || 'unknown.jpg';
+      } catch (error) {
+         return 'unknown.jpg';
       }
    }
 
@@ -119,14 +136,26 @@ class ImageService {
     */
    async processUploadedImage(assetNo, file, userId) {
       try {
+         console.log('🔍 DEBUG: Processing image for asset:', assetNo);
+         console.log('🔍 DEBUG: User ID:', userId);
+         console.log('🔍 DEBUG: File details:', {
+            filename: file.filename,
+            originalname: file.originalname,
+            size: file.size,
+            path: file.path
+         });
+
          // Upload ไปยัง external storage
+         console.log('🔍 DEBUG: Starting external storage upload...');
          const uploadResult = await this.externalStorage.uploadFile(file);
+         console.log('🔍 DEBUG: Upload result:', uploadResult);
 
          if (!uploadResult.success) {
             throw new Error('External storage upload failed');
          }
 
          // บันทึกลง database
+         console.log('🔍 DEBUG: Preparing database save...');
          const imageData = {
             asset_no: assetNo,
             file_url: uploadResult.file_url,
@@ -142,10 +171,15 @@ class ImageService {
             created_by: userId
          };
 
+         console.log('🔍 DEBUG: Image data to save:', imageData);
+         console.log('🔍 DEBUG: Saving to database...');
+
          const savedImage = await this.imageModel.createImage(imageData);
+         console.log('🔍 DEBUG: Saved to database successfully:', savedImage);
 
          // Cleanup temporary file
          await this.externalStorage.cleanupTempFile(file.path);
+         console.log('🔍 DEBUG: Cleaned up temp file');
 
          return {
             id: savedImage.id,
@@ -165,7 +199,8 @@ class ImageService {
       } catch (error) {
          // Cleanup temporary file on error
          await this.externalStorage.cleanupTempFile(file.path);
-         console.error('Process uploaded image error:', error);
+         console.error('❌ DEBUG: Error in processUploadedImage:', error);
+         console.error('❌ DEBUG: Error stack:', error.stack);
          throw new Error(`Failed to process image: ${error.message}`);
       }
    }

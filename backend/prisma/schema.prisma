@@ -1,3 +1,4 @@
+// Path: backend/prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -53,31 +54,43 @@ model asset_master {
 }
 
 model asset_image {
-  id             Int       @id @default(autoincrement())
-  asset_no       String    @db.VarChar(20)
-  file_path      String    @db.VarChar(500)
-  file_name      String    @db.VarChar(255)
-  file_type      String    @db.VarChar(20)
-  file_size      BigInt?
-  original_name  String?   @db.VarChar(255)
-  thumbnail_path String?   @db.VarChar(500)
-  thumbnail_size BigInt?
-  width          Int?
-  height         Int?
-  is_primary     Boolean   @default(false)
-  alt_text       String?   @db.VarChar(255)
-  description    String?   @db.VarChar(500)
-  category       String?   @db.VarChar(50)
-  created_by     String?   @db.VarChar(20)
-  created_at     DateTime  @default(now()) @db.DateTime(0)
-  updated_at     DateTime? @db.DateTime(0)
-  updated_by     String?   @db.VarChar(20)
+  id       Int    @id @default(autoincrement())
+  asset_no String @db.VarChar(20)
 
-  asset_master asset_master @relation(fields: [asset_no], references: [asset_no])
+  // External storage URLs จาก dev server response
+  file_url                String  @db.VarChar(500) // FileUrl from dev server
+  file_thumbnail_url      String  @db.VarChar(500) // FileThumbnailUrl from dev server
+  external_file_path      String? @db.VarChar(500) // FilePath (physical path on dev server)
+  external_thumbnail_path String? @db.VarChar(500) // FileThumbnailPath (physical thumbnail path)
+  file_type_external      String? @db.VarChar(100) // FileType from dev server response
 
+  // ข้อมูลไฟล์ที่ยังต้องใช้
+  file_name     String  @db.VarChar(255)
+  original_name String  @db.VarChar(255)
+  file_size     BigInt?
+  width         Int?
+  height        Int?
+
+  // Metadata
+  is_primary  Boolean @default(false)
+  alt_text    String? @db.VarChar(255)
+  description String? @db.VarChar(500)
+  category    String? @db.VarChar(50)
+
+  // Audit fields
+  created_by String?   @db.VarChar(20)
+  created_at DateTime  @default(now()) @db.DateTime(0)
+  updated_at DateTime? @updatedAt @db.DateTime(0)
+  updated_by String?   @db.VarChar(20)
+
+  // Relations
+  asset_master asset_master @relation(fields: [asset_no], references: [asset_no], onDelete: Cascade)
+
+  // Indexes
   @@index([asset_no], map: "idx_asset_image_asset_no")
   @@index([is_primary], map: "idx_asset_image_primary")
   @@index([created_at], map: "idx_asset_image_created_at")
+  @@index([asset_no, is_primary], map: "idx_asset_image_asset_primary")
 }
 
 model asset_scan_log {
