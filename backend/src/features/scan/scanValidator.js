@@ -322,6 +322,18 @@ const assetValidators = {
          .matches(/^[A-Za-z0-9_-]*$/)
          .withMessage('EPC code must contain only alphanumeric characters, hyphens, and underscores'),
 
+      body('category_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('Category code must not exceed 50 characters'),
+
+      body('brand_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('Brand code must not exceed 50 characters'),
+
       handleValidationErrors
    ],
 
@@ -377,6 +389,18 @@ const assetValidators = {
          .withMessage('EPC code must not exceed 50 characters')
          .matches(/^[A-Za-z0-9_-]*$/)
          .withMessage('EPC code must contain only alphanumeric characters, hyphens, and underscores'),
+
+      body('category_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('Category code must not exceed 50 characters'),
+
+      body('brand_code')
+         .optional()
+         .trim()
+         .isLength({ max: 50 })
+         .withMessage('Brand code must not exceed 50 characters'),
 
       handleValidationErrors
    ],

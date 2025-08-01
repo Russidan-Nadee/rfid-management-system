@@ -29,53 +29,6 @@ class ImageGalleryWidget extends StatelessWidget {
     return _buildSingleImage(context, theme);
   }
 
-  Widget _buildSectionHeader(
-    BuildContext context,
-    ThemeData theme,
-    ScanLocalizations l10n,
-  ) {
-    return Row(
-      children: [
-        Icon(
-          Icons.photo_library,
-          color: theme.brightness == Brightness.dark
-              ? AppColors.darkText
-              : theme.colorScheme.primary,
-          size: 20,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '${l10n.images} (${images.length})',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: theme.brightness == Brightness.dark
-                ? AppColors.darkText
-                : theme.colorScheme.onSurface,
-          ),
-        ),
-        if (images.any((img) => img.isPrimary)) ...[
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              l10n.primary,
-              style: TextStyle(
-                fontSize: 10,
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
   Widget _buildSingleImage(BuildContext context, ThemeData theme) {
     // Get primary image first, otherwise get first image
     final displayImage = images.firstWhere(

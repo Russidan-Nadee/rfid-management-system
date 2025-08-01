@@ -412,7 +412,9 @@ const assetController = {
             quantity = 1,
             unit_code,
             created_by,
-            epc_code // เพิ่ม EPC field
+            epc_code,
+            category_code,
+            brand_code
          } = req.body;
 
          // Check if asset_no already exists
@@ -465,6 +467,8 @@ const assetController = {
             quantity,
             unit_code,
             epc_code,
+            category_code,
+            brand_code,
             status: 'C',
             created_by,
             created_at: new Date()

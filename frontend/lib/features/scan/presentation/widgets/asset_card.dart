@@ -44,7 +44,7 @@ extension AssetStatusTheme on ThemeData {
   IconData getAssetStatusIcon(String status) {
     switch (status.toUpperCase()) {
       case 'A':
-        return Icons.check_circle_outline;
+        return Icons.pending_outlined;
       case 'C':
         return Icons.task_alt;
       case 'I':
@@ -186,7 +186,6 @@ class AssetCard extends StatelessWidget {
     ScanLocalizations l10n,
   ) {
     final imageUrl = '${ApiConstants.baseUrl}/images${image.thumbnailUrl}';
-    final statusColor = theme.getAssetStatusColorByItem(item);
 
     // Calculate responsive dimensions based on image aspect ratio
     double imageWidth = image.width?.toDouble() ?? 1.0;
