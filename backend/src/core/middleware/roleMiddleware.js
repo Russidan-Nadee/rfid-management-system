@@ -1,6 +1,5 @@
-// =======================
-// 9. backend/src/middlewares/roleMiddleware.js
-// =======================
+// backend/src/core/middlewares/roleMiddleware.js
+
 const requireRole = (allowedRoles) => {
    return (req, res, next) => {
       try {

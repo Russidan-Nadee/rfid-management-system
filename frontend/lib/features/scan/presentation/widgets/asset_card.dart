@@ -154,7 +154,7 @@ class AssetCard extends StatelessWidget {
     try {
       final apiService = getIt<ApiService>();
       final response = await apiService.get<Map<String, dynamic>>(
-        '/images/assets/$assetNo/images',
+        ApiConstants.assetImages(assetNo),
         fromJson: (json) => json,
       );
 
@@ -185,7 +185,9 @@ class AssetCard extends StatelessWidget {
     ThemeData theme,
     ScanLocalizations l10n,
   ) {
-    final imageUrl = '${ApiConstants.baseUrl}/images${image.thumbnailUrl}';
+    // ✅ FIXED: เรียก thumbnail แทน full image
+    final imageUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}?size=thumb';
 
     // Calculate responsive dimensions based on image aspect ratio
     double imageWidth = image.width?.toDouble() ?? 1.0;
@@ -210,17 +212,15 @@ class AssetCard extends StatelessWidget {
       height: cardSize,
       decoration: BoxDecoration(borderRadius: AppBorders.medium),
       child: Center(
-        child: ClipRRect(
-          borderRadius: AppBorders.medium,
-          child: CachedNetworkImage(
-            imageUrl: imageUrl,
-            width: displayWidth,
-            height: displayHeight,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => _buildSkeletonIcon(theme),
-            errorWidget: (context, url, error) =>
-                _buildDefaultStatusIcon(theme, l10n),
-          ),
+        child: CachedNetworkImage(
+          // ✅ ลบ ClipRRect ออก - ไม่มีขอบโค้งสำหรับรูป
+          imageUrl: imageUrl, // ✅ ใช้ URL ที่มี ?size=thumb แล้ว
+          width: displayWidth,
+          height: displayHeight,
+          fit: BoxFit.contain, // ✅ เปลี่ยนจาก cover เป็น contain
+          placeholder: (context, url) => _buildSkeletonIcon(theme),
+          errorWidget: (context, url, error) =>
+              _buildDefaultStatusIcon(theme, l10n),
         ),
       ),
     );

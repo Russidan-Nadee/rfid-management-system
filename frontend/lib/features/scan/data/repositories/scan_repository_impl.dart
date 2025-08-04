@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/scan/data/repositories/scan_repository_impl.dart
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; // ✅ เพิ่มสำหรับ MediaType
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../../domain/entities/scanned_item_entity.dart';
@@ -255,7 +256,7 @@ class ScanRepositoryImpl implements ScanRepository {
   Future<List<AssetImageEntity>> getAssetImages(String assetNo) async {
     try {
       final response = await apiService.get<Map<String, dynamic>>(
-        '/images/assets/$assetNo/images',
+        ApiConstants.assetImages(assetNo), // ✅ ใช้ ApiConstants ที่แก้แล้ว
         fromJson: (json) => json,
       );
 
@@ -278,44 +279,93 @@ class ScanRepositoryImpl implements ScanRepository {
     }
   }
 
-  // ⭐ NEW: Upload Image Implementation
+  // ⭐ FIXED: Upload Image Implementation พร้อม Content-Type ที่ถูกต้อง
   @override
   Future<bool> uploadImage(String assetNo, File imageFile) async {
     try {
-      print('Repository: Uploading image for asset: $assetNo');
+      // 🔍 Debug: ข้อมูลเริ่มต้น
+      print('🔍 Repository: Starting upload for asset: $assetNo');
+      print('🔍 Repository: File path: ${imageFile.path}');
+      print('🔍 Repository: File exists: ${await imageFile.exists()}');
+      print('🔍 Repository: File size: ${await imageFile.length()} bytes');
 
+      // สร้าง URL
       final uri = Uri.parse(
-        '${ApiConstants.baseUrl}/api/v1/assets/$assetNo/images',
+        '${ApiConstants.baseUrl}${ApiConstants.uploadAssetImages(assetNo)}',
       );
+      print('🔍 Repository: Upload URL: $uri');
+
+      // สร้าง multipart request
       final request = http.MultipartRequest('POST', uri);
 
-      // Add auth header
+      // เพิ่ม auth header
       final token = await apiService.getAuthToken();
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
+        print('🔑 TOKEN LENGTH: ${token.length}'); // ✅ Debug token
+        print('🔍 Repository: Auth token added');
+      } else {
+        print('❌ Repository: No auth token found');
       }
 
-      // Add image file
+      // ✅ Auto-detect Content-Type จาก file extension
+      MediaType? contentType;
+      final extension = imageFile.path.toLowerCase().split('.').last;
+
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = MediaType('image', 'jpeg');
+          break;
+        case 'png':
+          contentType = MediaType('image', 'png');
+          break;
+        case 'webp':
+          contentType = MediaType('image', 'webp');
+          break;
+        default:
+          contentType = MediaType('image', 'jpeg'); // default fallback
+      }
+
+      print('🔍 Repository: Detected file extension: $extension');
+      print('🔍 Repository: Using Content-Type: $contentType');
+
+      // เพิ่มไฟล์พร้อม Content-Type ที่ถูกต้อง
       final multipartFile = await http.MultipartFile.fromPath(
-        'image',
+        'image', // field name ตามที่ backend expect
         imageFile.path,
+        contentType: contentType, // ✅ ใช้ Content-Type ที่ตรวจจับได้
       );
       request.files.add(multipartFile);
 
-      // Send request
+      print(
+        '🔍 Repository: Multipart file added - field: image, filename: ${multipartFile.filename}',
+      );
+      print('🔍 Repository: Content-Type: ${multipartFile.contentType}');
+
+      // ส่ง request
+      print('🔍 Repository: Sending request...');
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      print('Repository: Upload response status: ${response.statusCode}');
-      print('Repository: Upload response body: ${response.body}');
+      print('🔍 Repository: Response status: ${response.statusCode}');
+      print('🔍 Repository: Response body: ${response.body}');
+      print('🔍 Repository: Response headers: ${response.headers}');
 
       if (response.statusCode == 201) {
+        print('✅ Repository: Upload successful');
         return true;
       } else {
-        throw Exception('Upload failed with status: ${response.statusCode}');
+        print(
+          '❌ Repository: Upload failed with status: ${response.statusCode}',
+        );
+        throw Exception(
+          'Upload failed with status: ${response.statusCode}, body: ${response.body}',
+        );
       }
     } catch (e) {
-      print('Repository: Upload error: $e');
+      print('💥 Repository: Upload error: $e');
+      print('💥 Repository: Error type: ${e.runtimeType}');
       throw Exception('Failed to upload image: $e');
     }
   }

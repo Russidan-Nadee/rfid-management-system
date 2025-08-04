@@ -194,30 +194,29 @@ class ApiConstants {
   static const String scanLog = '$scanBase/log';
   static const String scanMock = '$scanBase/mock';
 
-  // Image Management APIs
-  static String assetImages(String assetNo) => '/images/assets/$assetNo/images';
-  static String serveImage(int imageId) => '/images/images/$imageId';
-  static String uploadAssetImages(String assetNo) =>
-      '/images/assets/$assetNo/images';
+  // ✅ FIXED: Image Management APIs - แก้ไข paths ให้ตรงกับ backend
+  static String assetImages(String assetNo) => '/assets/$assetNo/images';
+  static String serveImage(int imageId) => '/images/$imageId';
+  static String uploadAssetImages(String assetNo) => '/assets/$assetNo/images';
   static String deleteAssetImage(String assetNo, int imageId) =>
-      '/images/assets/$assetNo/images/$imageId';
+      '/assets/$assetNo/images/$imageId';
   static String replaceAssetImage(String assetNo, int imageId) =>
-      '/images/assets/$assetNo/images/$imageId';
+      '/assets/$assetNo/images/$imageId';
   static String updateImageMetadata(String assetNo, int imageId) =>
-      '/images/assets/$assetNo/images/$imageId';
+      '/assets/$assetNo/images/$imageId';
   static String setPrimaryImage(String assetNo, int imageId) =>
-      '/images/assets/$assetNo/images/$imageId/primary';
+      '/assets/$assetNo/images/$imageId/primary';
   static String getImageStats(String assetNo) =>
-      '/images/assets/$assetNo/images/stats';
+      '/assets/$assetNo/images/stats';
 
-  // Image Search & System APIs
-  static String get searchImages => '/images/search';
-  static String get imageSystemStats => '/images/system/stats';
-  static String get cleanupImages => '/images/cleanup';
-  static String get batchUpdateImages => '/images/batch/update';
-  static String get imageSystemHealth => '/images/system/health';
-  static String get imageDocs => '/images/docs';
-  static String get imageHealth => '/images/health';
+  // ❌ REMOVED: Image Search & System APIs - ลบออกเพราะ backend ไม่มี
+  // static String get searchImages => '/images/search';
+  // static String get imageSystemStats => '/images/system/stats';
+  // static String get cleanupImages => '/images/cleanup';
+  // static String get batchUpdateImages => '/images/batch/update';
+  // static String get imageSystemHealth => '/images/system/health';
+  // static String get imageDocs => '/images/docs';
+  // static String get imageHealth => '/images/health';
 
   // Export Endpoints
   static const String exportBase = '/export';

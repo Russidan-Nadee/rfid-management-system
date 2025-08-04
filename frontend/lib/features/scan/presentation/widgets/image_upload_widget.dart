@@ -99,6 +99,9 @@ class ImageUploadWidget extends StatelessWidget {
   void _showImageSourceDialog(BuildContext context) {
     final l10n = ScanLocalizations.of(context);
 
+    // ✅ เก็บ BLoC reference ก่อนเปิด BottomSheet
+    final imageUploadBloc = context.read<ImageUploadBloc>();
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -111,7 +114,7 @@ class ImageUploadWidget extends StatelessWidget {
               title: Text('Take Photo'),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(context, ImageSource.camera);
+                _pickImageWithBloc(imageUploadBloc, ImageSource.camera);
               },
             ),
             ListTile(
@@ -119,7 +122,7 @@ class ImageUploadWidget extends StatelessWidget {
               title: Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
-                _pickImage(context, ImageSource.gallery);
+                _pickImageWithBloc(imageUploadBloc, ImageSource.gallery);
               },
             ),
           ],
@@ -128,8 +131,13 @@ class ImageUploadWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+  Future<void> _pickImageWithBloc(
+    ImageUploadBloc imageUploadBloc,
+    ImageSource source,
+  ) async {
     try {
+      print('🔍 ImageUploadWidget: Starting image picker for asset: $assetNo');
+
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: source,
@@ -138,16 +146,37 @@ class ImageUploadWidget extends StatelessWidget {
         imageQuality: 85,
       );
 
-      if (image != null && context.mounted) {
+      print('🔍 ImageUploadWidget: Picker completed');
+
+      if (image != null) {
+        print('✅ ImageUploadWidget: Image selected: ${image.path}');
+
         final File imageFile = File(image.path);
-        context.read<ImageUploadBloc>().add(
-          UploadImageEvent(assetNo: assetNo, imageFile: imageFile),
-        );
+
+        // ตรวจสอบไฟล์
+        final fileExists = await imageFile.exists();
+        final fileSize = fileExists ? await imageFile.length() : 0;
+
+        print('🔍 ImageUploadWidget: File exists: $fileExists');
+        print('🔍 ImageUploadWidget: File size: $fileSize bytes');
+
+        if (fileExists && fileSize > 0) {
+          print('🔍 ImageUploadWidget: Sending upload event to BLoC');
+
+          // ✅ ใช้ BLoC reference ที่ส่งมา
+          imageUploadBloc.add(
+            UploadImageEvent(assetNo: assetNo, imageFile: imageFile),
+          );
+
+          print('✅ ImageUploadWidget: Upload event sent successfully');
+        } else {
+          print('❌ ImageUploadWidget: Invalid file');
+        }
+      } else {
+        print('ℹ️ ImageUploadWidget: No image selected by user');
       }
     } catch (error) {
-      if (context.mounted) {
-        Helpers.showError(context, 'Failed to pick image: $error');
-      }
+      print('💥 ImageUploadWidget: Error in _pickImage: $error');
     }
   }
 }

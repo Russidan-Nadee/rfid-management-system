@@ -25,7 +25,6 @@ class ImageGalleryWidget extends StatelessWidget {
       return _buildEmptyState(context, theme, l10n);
     }
 
-    // แสดงแค่รูปภาพโดยไม่มี section header
     return _buildSingleImage(context, theme);
   }
 
@@ -36,40 +35,32 @@ class ImageGalleryWidget extends StatelessWidget {
       orElse: () => images.first,
     );
 
-    return Center(child: _buildImageCard(context, theme, displayImage));
+    return _buildImageCard(context, theme, displayImage);
   }
 
   Widget _buildImageCard(
     BuildContext context,
     ThemeData theme,
-    AssetImageEntity image, [
-    double? height, // Make height optional parameter
-  ]) {
-    final imageUrl = '${ApiConstants.baseUrl}/images${image.imageUrl}';
+    AssetImageEntity image,
+  ) {
+    final imageUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
+    final thumbnailUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}?size=thumb';
 
-    // Calculate dimensions based on image aspect ratio and screen size
+    // ใช้ความกว้างเต็มหน้าจอ (100% X-axis)
     final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = screenWidth - 32; // Full width minus padding
+    final cardWidth = screenWidth;
 
-    // Use image dimensions if available, otherwise use default aspect ratio
-    double aspectRatio = 16 / 9; // Default wide aspect ratio
+    // คำนวณความสูงตามสัดส่วนของรูป
+    double aspectRatio = 16 / 9; // Default aspect ratio
     if (image.width != null &&
         image.height != null &&
         image.width! > 0 &&
         image.height! > 0) {
       aspectRatio = image.width! / image.height!;
     }
-
-    // Calculate card dimensions
-    double cardWidth = maxWidth;
-    double cardHeight = cardWidth / aspectRatio;
-
-    // Limit maximum height for very tall images
-    final maxHeight = MediaQuery.of(context).size.height * 0.3;
-    if (cardHeight > maxHeight) {
-      cardHeight = maxHeight;
-      cardWidth = cardHeight * aspectRatio;
-    }
+    final cardHeight = cardWidth / aspectRatio;
 
     return GestureDetector(
       onTap: () => _showFullImageDialog(context, image),
@@ -77,7 +68,7 @@ class ImageGalleryWidget extends StatelessWidget {
         width: cardWidth,
         height: cardHeight,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: image.isPrimary
                 ? theme.colorScheme.primary
@@ -89,13 +80,14 @@ class ImageGalleryWidget extends StatelessWidget {
         ),
         child: Stack(
           children: [
+            // รูปภาพ
             ClipRRect(
-              borderRadius: BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(7),
               child: CachedNetworkImage(
-                imageUrl: imageUrl,
+                imageUrl: thumbnailUrl,
                 width: cardWidth,
                 height: cardHeight,
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
                 placeholder: (context, url) => Container(
                   width: cardWidth,
                   height: cardHeight,
@@ -124,7 +116,7 @@ class ImageGalleryWidget extends StatelessWidget {
                     color: theme.brightness == Brightness.dark
                         ? AppColors.darkTextSecondary
                         : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    size: cardHeight * 0.25, // Responsive icon size
+                    size: cardHeight * 0.25,
                   ),
                 ),
               ),
@@ -155,7 +147,7 @@ class ImageGalleryWidget extends StatelessWidget {
                 ),
               ),
 
-            // Multiple images indicator (if more than 1 image)
+            // Multiple images indicator
             if (images.length > 1)
               Positioned(
                 top: 8,
@@ -199,8 +191,8 @@ class ImageGalleryWidget extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(11),
-                    bottomRight: Radius.circular(11),
+                    bottomLeft: Radius.circular(7),
+                    bottomRight: Radius.circular(7),
                   ),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -239,12 +231,8 @@ class ImageGalleryWidget extends StatelessWidget {
 
             // Tap to view indicator
             Positioned(
-              left:
-                  (cardWidth - 36) /
-                  2, // Center horizontally (36 = icon container width)
-              top:
-                  (cardHeight - 36) /
-                  2, // Center vertically (36 = icon container height)
+              left: (cardWidth - 36) / 2,
+              top: (cardHeight - 36) / 2,
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -337,7 +325,8 @@ class _FullImageDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = ScanLocalizations.of(context);
-    final fullImageUrl = '${ApiConstants.baseUrl}/images${image.imageUrl}';
+    final fullImageUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
 
     return Dialog(
       backgroundColor: Colors.transparent,
