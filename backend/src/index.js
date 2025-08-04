@@ -37,7 +37,7 @@ router.use('/auth', authRoutes);
 router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
-router.use('/images', imageRoutes);
+router.use('/', imageRoutes);
 router.use(require('./features/scan/scanRoutes'));
 
 /**
