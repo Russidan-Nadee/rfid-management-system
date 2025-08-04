@@ -4,12 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
+import '../../../../di/injection.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../../domain/entities/asset_image_entity.dart';
 import '../bloc/scan_bloc.dart';
 import '../bloc/scan_event.dart';
 import '../bloc/scan_state.dart';
+import '../bloc/image_upload_bloc.dart';
 import '../widgets/image_gallery_widget.dart';
+import '../widgets/image_upload_widget.dart';
 
 class AssetDetailPage extends StatelessWidget {
   final ScannedItemEntity item;
@@ -23,8 +26,11 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: scanBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: scanBloc),
+        BlocProvider(create: (context) => getIt<ImageUploadBloc>()),
+      ],
       child: AssetDetailView(item: item),
     );
   }
@@ -51,6 +57,12 @@ class _AssetDetailViewState extends State<AssetDetailView> {
 
   void _loadAssetImages() {
     context.read<ScanBloc>().add(LoadAssetImages(assetNo: widget.item.assetNo));
+  }
+
+  void _onUploadSuccess() {
+    // Reload images หลัง upload สำเร็จ
+    print('AssetDetailPage: Upload success, reloading images');
+    _loadAssetImages();
   }
 
   @override
@@ -264,7 +276,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
     );
   }
 
-  // ⭐ NEW: Image Gallery Section
+  // ⭐ UPDATED: Image Gallery Section with Upload Button
   Widget _buildImageGallerySection(ThemeData theme, ScanLocalizations l10n) {
     return Card(
       elevation: 1,
@@ -277,6 +289,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with Upload Button
             Row(
               children: [
                 Icon(
@@ -308,6 +321,13 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                     ),
                   ),
                 ],
+                const Spacer(),
+                // ⭐ Upload Button
+                if (!widget.item.isUnknown) // ไม่แสดงสำหรับ unknown items
+                  ImageUploadWidget(
+                    assetNo: widget.item.assetNo,
+                    onUploadSuccess: _onUploadSuccess,
+                  ),
               ],
             ),
             const SizedBox(height: 16),
@@ -330,7 +350,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
     );
   }
 
-  // Section Components (เดิมทั้งหมด)
+  // Section Components (เดิมทั้งหมดไม่แก้)
   Widget _buildBasicInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,

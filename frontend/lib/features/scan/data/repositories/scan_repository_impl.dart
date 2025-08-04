@@ -1,4 +1,6 @@
 // Path: frontend/lib/features/scan/data/repositories/scan_repository_impl.dart
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../../domain/entities/scanned_item_entity.dart';
@@ -17,9 +19,9 @@ class ScanRepositoryImpl implements ScanRepository {
 
   ScanRepositoryImpl({required this.apiService, required this.rfidDataSource});
 
+  // All existing methods remain unchanged...
   @override
   Future<List<String>> generateMockAssetNumbers() async {
-    // ใช้ real RFID แทน mock
     return await rfidDataSource.generateAssetNumbers();
   }
 
@@ -47,17 +49,10 @@ class ScanRepositoryImpl implements ScanRepository {
     AssetStatusUpdateRequest request,
   ) async {
     try {
-      print('Repository: Updating asset status for Asset No: $assetNo');
-      print('Repository: Request data: ${request.toJson()}');
-
       final response = await apiService.patch<Map<String, dynamic>>(
-        ApiConstants.scanAssetCheck(assetNo), // ใช้ method ที่มีอยู่แล้ว
+        ApiConstants.scanAssetCheck(assetNo),
         body: request.toJson(),
         fromJson: (json) => json,
-      );
-
-      print(
-        'Repository: Update response - Success: ${response.success}, Message: ${response.message}',
       );
 
       final updateResponse = AssetStatusUpdateResponse.fromJson({
@@ -67,12 +62,8 @@ class ScanRepositoryImpl implements ScanRepository {
         'timestamp': response.timestamp.toIso8601String(),
       });
 
-      print(
-        'Repository: Parsed update response - Success: ${updateResponse.success}',
-      );
       return updateResponse;
     } catch (e) {
-      print('Repository: Exception updating asset status: $e');
       throw Exception('Failed to update asset status: $e');
     }
   }
@@ -238,17 +229,10 @@ class ScanRepositoryImpl implements ScanRepository {
     String locationCode,
   ) async {
     try {
-      print('Repository: Getting assets for location: $locationCode');
-
       final response = await apiService.get<List<dynamic>>(
         '/assets',
         queryParams: {'location_code': locationCode},
         fromJson: (json) => json as List<dynamic>,
-      );
-
-      print('Repository: API Response - Success: ${response.success}');
-      print(
-        'Repository: API Response - Data length: ${response.data?.length ?? 0}',
       );
 
       if (response.success && response.data != null) {
@@ -258,37 +242,26 @@ class ScanRepositoryImpl implements ScanRepository {
             )
             .toList();
 
-        print('Repository: Converted ${assets.length} assets');
         return assets;
       } else {
         throw Exception('Failed to fetch assets for location');
       }
     } catch (e) {
-      print('Repository: Error getting assets by location: $e');
       throw Exception('Failed to get assets by location: $e');
     }
   }
 
-  // ⭐ NEW: Get Asset Images implementation
   @override
   Future<List<AssetImageEntity>> getAssetImages(String assetNo) async {
     try {
-      print('Repository: Getting images for asset: $assetNo');
-
       final response = await apiService.get<Map<String, dynamic>>(
         '/images/assets/$assetNo/images',
         fromJson: (json) => json,
       );
 
-      print('Repository: Images API Response - Success: ${response.success}');
-
       if (response.success && response.data != null) {
         final data = response.data!;
         final imagesJson = data['images'] as List<dynamic>? ?? [];
-
-        print(
-          'Repository: Found ${imagesJson.length} images for asset $assetNo',
-        );
 
         final images = imagesJson
             .map(
@@ -301,8 +274,49 @@ class ScanRepositoryImpl implements ScanRepository {
         throw Exception('Failed to fetch asset images: ${response.message}');
       }
     } catch (e) {
-      print('Repository: Error getting asset images: $e');
       throw Exception('Failed to get asset images: $e');
+    }
+  }
+
+  // ⭐ NEW: Upload Image Implementation
+  @override
+  Future<bool> uploadImage(String assetNo, File imageFile) async {
+    try {
+      print('Repository: Uploading image for asset: $assetNo');
+
+      final uri = Uri.parse(
+        '${ApiConstants.baseUrl}/api/v1/assets/$assetNo/images',
+      );
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add auth header
+      final token = await apiService.getAuthToken();
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+
+      // Add image file
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image',
+        imageFile.path,
+      );
+      request.files.add(multipartFile);
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('Repository: Upload response status: ${response.statusCode}');
+      print('Repository: Upload response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        throw Exception('Upload failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Repository: Upload error: $e');
+      throw Exception('Failed to upload image: $e');
     }
   }
 }
