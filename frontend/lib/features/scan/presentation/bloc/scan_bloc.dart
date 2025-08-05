@@ -171,10 +171,16 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     MarkAssetChecked event,
     Emitter<ScanState> emit,
   ) async {
+    print('🔍 ScanBloc: _onMarkAssetChecked called for ${event.assetNo}');
+
     try {
       final userId = await getCurrentUserUseCase.execute();
+      print('🔍 ScanBloc: Got current user: $userId');
+
       add(UpdateAssetStatus(assetNo: event.assetNo, updatedBy: userId));
+      print('🔍 ScanBloc: Added UpdateAssetStatus event');
     } catch (e) {
+      print('🔍 ScanBloc: ❌ Error getting current user: $e');
       emit(
         AssetStatusUpdateError(
           message: 'Failed to get current user: ${e.toString()}',
@@ -187,6 +193,9 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     UpdateAssetStatus event,
     Emitter<ScanState> emit,
   ) async {
+    print('🔍 ScanBloc: _onUpdateAssetStatus called for ${event.assetNo}');
+    print('🔍 ScanBloc: Current state before update: ${state.runtimeType}');
+
     // เก็บ previous scan results ไว้ก่อน
     List<ScannedItemEntity>? previousScannedItems;
     String currentFilter = 'All';
@@ -201,25 +210,40 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       currentLocation = currentState.selectedLocation;
       selectedCurrentLocation = currentState.currentLocation;
       currentExpectedCounts = currentState.expectedCounts;
+
+      print(
+        '🔍 ScanBloc: Previous state captured - ${previousScannedItems.length} items',
+      );
     }
 
+    print('🔍 ScanBloc: Emitting AssetStatusUpdating');
     emit(AssetStatusUpdating(assetNo: event.assetNo));
 
     try {
+      print('🔍 ScanBloc: Calling updateAssetStatusUseCase.markAsChecked');
       final updatedAsset = await updateAssetStatusUseCase.markAsChecked(
         event.assetNo,
         event.updatedBy,
       );
 
+      print('🔍 ScanBloc: ✅ Asset updated successfully');
+      print('🔍 ScanBloc: Updated asset status: ${updatedAsset.status}');
+
       // อัพเดต scan results ถ้ามี previous items
       if (previousScannedItems != null) {
+        print('🔍 ScanBloc: Updating scanned items list');
+
         final updatedItems = previousScannedItems.map((item) {
           if (item.assetNo == event.assetNo) {
+            print(
+              '🔍 ScanBloc: Found and updated item ${item.assetNo} from ${item.status} to ${updatedAsset.status}',
+            );
             return updatedAsset;
           }
           return item;
         }).toList();
 
+        print('🔍 ScanBloc: Emitting new ScanSuccess with updated items');
         // Emit เฉพาะ ScanSuccess สำหรับ ScanPage พร้อม filter
         emit(
           ScanSuccess(
@@ -230,10 +254,16 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             expectedCounts: currentExpectedCounts,
           ),
         );
+        print('🔍 ScanBloc: ✅ New ScanSuccess state emitted');
+      } else {
+        print('🔍 ScanBloc: ⚠️ No previous scanned items to update');
       }
     } catch (e) {
+      print('🔍 ScanBloc: ❌ Error updating asset: $e');
+
       // ถ้า error ให้กลับไป previous state
       if (previousScannedItems != null) {
+        print('🔍 ScanBloc: Restoring previous state due to error');
         emit(
           ScanSuccess(
             scannedItems: previousScannedItems,
@@ -264,28 +294,66 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     AssetCreatedFromUnknown event,
     Emitter<ScanState> emit,
   ) async {
+    print('🔍 ScanBloc: _onAssetCreatedFromUnknown called');
+    print('🔍 ScanBloc: Created asset details:');
+    print('🔍 ScanBloc: - Asset No: ${event.createdAsset.assetNo}');
+    print('🔍 ScanBloc: - Description: ${event.createdAsset.description}');
+    print('🔍 ScanBloc: - Status: ${event.createdAsset.status}');
+    print('🔍 ScanBloc: - Is Unknown: ${event.createdAsset.isUnknown}');
+    print('🔍 ScanBloc: Current state: ${state.runtimeType}');
+
     // เช็คว่า current state เป็น ScanSuccess หรือไม่
     if (state is ScanSuccess) {
       final currentState = state as ScanSuccess;
+      print(
+        '🔍 ScanBloc: Current ScanSuccess has ${currentState.scannedItems.length} items',
+      );
 
       // หา unknown item แล้วแทนที่ด้วย created asset
+      bool itemFound = false;
       final updatedItems = currentState.scannedItems.map((item) {
         if (item.assetNo == event.createdAsset.assetNo && item.isUnknown) {
+          print(
+            '🔍 ScanBloc: Found unknown item ${item.assetNo}, replacing with created asset',
+          );
+          itemFound = true;
           return event.createdAsset; // แทนที่ด้วย asset ที่สร้างแล้ว
         }
         return item; // เก็บ item เดิม
       }).toList();
 
-      // Emit state ใหม่พร้อม updated list และ filter เดิม
-      emit(
-        ScanSuccess(
-          scannedItems: updatedItems,
-          selectedFilter: currentState.selectedFilter,
-          selectedLocation: currentState.selectedLocation,
-          currentLocation: currentState.currentLocation,
-          expectedCounts: currentState.expectedCounts,
-        ),
-      );
+      if (itemFound) {
+        print(
+          '🔍 ScanBloc: ✅ Item replaced successfully, emitting new ScanSuccess',
+        );
+
+        // Emit state ใหม่พร้อม updated list และ filter เดิม
+        emit(
+          ScanSuccess(
+            scannedItems: updatedItems,
+            selectedFilter: currentState.selectedFilter,
+            selectedLocation: currentState.selectedLocation,
+            currentLocation: currentState.currentLocation,
+            expectedCounts: currentState.expectedCounts,
+          ),
+        );
+
+        print(
+          '🔍 ScanBloc: ✅ New ScanSuccess state emitted with replaced item',
+        );
+      } else {
+        print('🔍 ScanBloc: ⚠️ Unknown item not found in scanned items list');
+
+        // Debug: แสดง asset numbers ทั้งหมดใน list
+        print('🔍 ScanBloc: Current asset numbers in list:');
+        for (var item in currentState.scannedItems) {
+          print(
+            '🔍 ScanBloc: - ${item.assetNo} (isUnknown: ${item.isUnknown})',
+          );
+        }
+      }
+    } else {
+      print('🔍 ScanBloc: ⚠️ Current state is not ScanSuccess, cannot update');
     }
   }
 

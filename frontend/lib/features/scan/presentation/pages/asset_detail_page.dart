@@ -26,6 +26,8 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('🔍 AssetDetailPage: Building page for asset ${item.assetNo}');
+
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: scanBloc),
@@ -52,16 +54,26 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   @override
   void initState() {
     super.initState();
+    print('🔍 AssetDetailView: initState for asset ${widget.item.assetNo}');
     _loadAssetImages();
   }
 
+  @override
+  void dispose() {
+    print('🔍 AssetDetailView: dispose for asset ${widget.item.assetNo}');
+    super.dispose();
+  }
+
   void _loadAssetImages() {
+    print(
+      '🔍 AssetDetailView: Loading images for asset ${widget.item.assetNo}',
+    );
     context.read<ScanBloc>().add(LoadAssetImages(assetNo: widget.item.assetNo));
   }
 
   void _onUploadSuccess() {
     // Reload images หลัง upload สำเร็จ
-    print('AssetDetailPage: Upload success, reloading images');
+    print('🔍 AssetDetailView: Upload success, reloading images');
     _loadAssetImages();
   }
 
@@ -72,51 +84,182 @@ class _AssetDetailViewState extends State<AssetDetailView> {
 
     return MultiBlocListener(
       listeners: [
-        // Listener สำหรับ Asset Status Updates
+        // ✅ แก้ไข: Listener สำหรับ Asset Status Updates
         BlocListener<ScanBloc, ScanState>(
+          // ✅ เพิ่ม listenWhen เพื่อฟังเฉพาะ state ที่เกี่ยวข้อง
+          listenWhen: (previous, current) {
+            print(
+              '🔍 AssetDetail: listenWhen - previous: ${previous.runtimeType}, current: ${current.runtimeType}',
+            );
+            // ฟังเฉพาะ state ที่เกี่ยวข้องกับ asset status update
+            return current is ScanSuccess ||
+                current is ScanSuccessFiltered ||
+                current is AssetStatusUpdateError ||
+                current is AssetStatusUpdated ||
+                current is AssetStatusUpdating;
+          },
           listener: (context, state) {
-            // ตรวจสอบว่า asset ถูก update แล้วหรือยัง
+            print(
+              '🔍 AssetDetail Listener: Received state = ${state.runtimeType}',
+            );
+
+            if (state is AssetStatusUpdating) {
+              print(
+                '🔍 AssetDetail Listener: Asset ${state.assetNo} is updating',
+              );
+              return; // ไม่ทำอะไร รอ state ถัดไป
+            }
+
+            // ✅ แก้ไข: เช็ค ScanSuccess ทุกประเภท
             if (state is ScanSuccess) {
-              final updatedItem = state.scannedItems.firstWhere(
-                (scanItem) => scanItem.assetNo == widget.item.assetNo,
-                orElse: () => widget.item,
+              print(
+                '🔍 AssetDetail Listener: ScanSuccess received, checking for asset update',
+              );
+              print(
+                '🔍 AssetDetail Listener: ScanSuccess has ${state.scannedItems.length} items',
               );
 
-              // ถ้า status เปลี่ยนจาก A เป็น C แสดงว่า update สำเร็จ
-              if (widget.item.status.toUpperCase() == 'A' &&
-                  updatedItem.status.toUpperCase() == 'C') {
+              // หา asset ที่ตรงกับ assetNo ปัจจุบัน
+              ScannedItemEntity? foundItem;
+              try {
+                foundItem = state.scannedItems.firstWhere((scanItem) {
+                  print(
+                    '🔍 AssetDetail Listener: Comparing ${scanItem.assetNo} with ${widget.item.assetNo}',
+                  );
+                  return scanItem.assetNo == widget.item.assetNo;
+                });
+                print(
+                  '🔍 AssetDetail Listener: Found matching item with status: ${foundItem.status}',
+                );
+              } catch (e) {
+                print('🔍 AssetDetail Listener: No matching item found: $e');
+                foundItem = widget.item; // fallback เป็น item เดิม
+              }
+
+              print(
+                '🔍 AssetDetail Listener: Original item status: ${widget.item.status}',
+              );
+              print(
+                '🔍 AssetDetail Listener: Found item status: ${foundItem.status}',
+              );
+
+              // ✅ แก้ไข: เช็คการเปลี่ยนแปลง status อย่างละเอียด
+              final originalStatus = widget.item.status.toUpperCase().trim();
+              final updatedStatus = foundItem.status.toUpperCase().trim();
+
+              print(
+                '🔍 AssetDetail Listener: Status comparison - Original: "$originalStatus", Updated: "$updatedStatus"',
+              );
+
+              // เช็คว่า status เปลี่ยนจาก A เป็น C (Active เป็น Checked)
+              if (originalStatus == 'A' && updatedStatus == 'C') {
+                print(
+                  '🔍 AssetDetail Listener: ✅ Status changed from A to C - showing success and popping',
+                );
+
                 // แสดง success message
                 Helpers.showSuccess(context, l10n.assetMarkedSuccess);
-                // Pop กลับไปหน้า scan list
-                Navigator.of(context).pop(updatedItem);
+
+                // ✅ แก้ไข: ใช้ WidgetsBinding เพื่อให้แน่ใจว่า UI update เสร็จแล้ว
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  print('🔍 AssetDetail Listener: Executing pop navigation');
+                  if (mounted) {
+                    Navigator.of(context).pop(foundItem);
+                  } else {
+                    print(
+                      '🔍 AssetDetail Listener: Widget not mounted, cannot pop',
+                    );
+                  }
+                });
               }
-            } else if (state is AssetStatusUpdateError) {
+              // ✅ เพิ่ม: เช็คกรณีอื่นๆ ที่อาจเกิดขึ้น
+              else if (originalStatus != updatedStatus) {
+                print(
+                  '🔍 AssetDetail Listener: Status changed from $originalStatus to $updatedStatus',
+                );
+                // อาจมีการเปลี่ยน status แบบอื่น ให้ pop กลับไปด้วย
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    Navigator.of(context).pop(foundItem);
+                  }
+                });
+              } else {
+                print('🔍 AssetDetail Listener: No status change detected');
+              }
+            }
+            // ✅ แก้ไข: Handle AssetStatusUpdateError ที่ชัดเจน
+            else if (state is AssetStatusUpdateError) {
+              print(
+                '🔍 AssetDetail Listener: Asset status update error: ${state.message}',
+              );
               // แสดง error message
               Helpers.showError(context, state.message);
+            }
+            // ✅ เพิ่ม: Handle AssetStatusUpdated (ถ้ามี)
+            else if (state is AssetStatusUpdated) {
+              print(
+                '🔍 AssetDetail Listener: Asset status updated: ${state.updatedAsset.status}',
+              );
+
+              // เช็คว่าเป็น asset ที่เรากำลังดูอยู่หรือไม่
+              if (state.updatedAsset.assetNo == widget.item.assetNo) {
+                final originalStatus = widget.item.status.toUpperCase().trim();
+                final updatedStatus = state.updatedAsset.status
+                    .toUpperCase()
+                    .trim();
+
+                print(
+                  '🔍 AssetDetail Listener: AssetStatusUpdated - Original: $originalStatus, Updated: $updatedStatus',
+                );
+
+                if (originalStatus == 'A' && updatedStatus == 'C') {
+                  Helpers.showSuccess(context, l10n.assetMarkedSuccess);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      Navigator.of(context).pop(state.updatedAsset);
+                    }
+                  });
+                }
+              }
             }
           },
         ),
         // Listener สำหรับ Asset Images
         BlocListener<ScanBloc, ScanState>(
+          listenWhen: (previous, current) {
+            // ฟังเฉพาะ state ที่เกี่ยวข้องกับ images
+            return current is AssetImagesLoaded ||
+                current is AssetImagesLoading ||
+                current is AssetImagesError;
+          },
           listener: (context, state) {
+            print(
+              '🔍 AssetDetail Image Listener: State = ${state.runtimeType}',
+            );
+
             if (state is AssetImagesLoaded &&
                 state.assetNo == widget.item.assetNo) {
+              print(
+                '🔍 AssetDetail Image Listener: Images loaded - ${state.images.length} images',
+              );
               setState(() {
                 _images = state.images;
                 _isLoadingImages = false;
               });
             } else if (state is AssetImagesLoading &&
                 state.assetNo == widget.item.assetNo) {
+              print('🔍 AssetDetail Image Listener: Images loading');
               setState(() {
                 _isLoadingImages = true;
               });
             } else if (state is AssetImagesError &&
                 state.assetNo == widget.item.assetNo) {
+              print(
+                '🔍 AssetDetail Image Listener: Images error - ${state.message}',
+              );
               setState(() {
                 _isLoadingImages = false;
               });
-              // แสดง error แบบ silent (ไม่รบกวน user)
-              print('Failed to load images: ${state.message}');
             }
           },
         ),
@@ -138,6 +281,13 @@ class _AssetDetailViewState extends State<AssetDetailView> {
               ? AppColors.darkText
               : AppColors.primary,
           elevation: 1,
+          leading: IconButton(
+            onPressed: () {
+              print('🔍 AssetDetail: Back button pressed');
+              Navigator.of(context).pop();
+            },
+            icon: Icon(Icons.arrow_back),
+          ),
         ),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.1)
@@ -350,7 +500,76 @@ class _AssetDetailViewState extends State<AssetDetailView> {
     );
   }
 
-  // Section Components (เดิมทั้งหมดไม่แก้)
+  Widget _buildActionButton(
+    BuildContext context,
+    ThemeData theme,
+    ScanLocalizations l10n,
+  ) {
+    return BlocBuilder<ScanBloc, ScanState>(
+      // ✅ เพิ่ม buildWhen เพื่อ rebuild เฉพาะเมื่อจำเป็น
+      buildWhen: (previous, current) {
+        print(
+          '🔍 AssetDetail ActionButton: buildWhen - previous: ${previous.runtimeType}, current: ${current.runtimeType}',
+        );
+        return current is AssetStatusUpdating ||
+            current is ScanSuccess ||
+            current is AssetStatusUpdateError;
+      },
+      builder: (context, state) {
+        print(
+          '🔍 AssetDetail ActionButton: Building for state = ${state.runtimeType}',
+        );
+
+        final isLoading =
+            state is AssetStatusUpdating &&
+            state.assetNo == widget.item.assetNo;
+
+        print('🔍 AssetDetail ActionButton: isLoading = $isLoading');
+
+        return SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: isLoading ? null : () => _markAsChecked(context),
+            icon: isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.colorScheme.onPrimary,
+                      ),
+                    ),
+                  )
+                : const Icon(Icons.check_circle_outline),
+            label: Text(isLoading ? l10n.markingAsChecked : l10n.markAsChecked),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ✅ แก้ไข: เพิ่ม debug logging
+  void _markAsChecked(BuildContext context) {
+    print(
+      '🔍 AssetDetail: _markAsChecked called for asset: ${widget.item.assetNo}',
+    );
+    print('🔍 AssetDetail: Current item status: ${widget.item.status}');
+    context.read<ScanBloc>().add(
+      MarkAssetChecked(assetNo: widget.item.assetNo),
+    );
+    print('🔍 AssetDetail: MarkAssetChecked event sent');
+  }
+
+  // Section Components
   Widget _buildBasicInfoSection(ThemeData theme, ScanLocalizations l10n) {
     return _buildSectionCard(
       theme: theme,
@@ -476,54 +695,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
           l10n,
         ),
       ],
-    );
-  }
-
-  Widget _buildActionButton(
-    BuildContext context,
-    ThemeData theme,
-    ScanLocalizations l10n,
-  ) {
-    return BlocBuilder<ScanBloc, ScanState>(
-      builder: (context, state) {
-        final isLoading =
-            state is AssetStatusUpdating &&
-            state.assetNo == widget.item.assetNo;
-
-        return SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: isLoading ? null : () => _markAsChecked(context),
-            icon: isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.colorScheme.onPrimary,
-                      ),
-                    ),
-                  )
-                : const Icon(Icons.check_circle_outline),
-            label: Text(isLoading ? l10n.markingAsChecked : l10n.markAsChecked),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _markAsChecked(BuildContext context) {
-    context.read<ScanBloc>().add(
-      MarkAssetChecked(assetNo: widget.item.assetNo),
     );
   }
 

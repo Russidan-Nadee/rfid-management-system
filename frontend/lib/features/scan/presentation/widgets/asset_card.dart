@@ -395,6 +395,10 @@ class AssetCard extends StatelessWidget {
 
   void _navigateToDetail(BuildContext context) async {
     if (item.isUnknown) {
+      print(
+        '🔍 AssetCard: Navigating to CreateAssetPage for unknown item ${item.assetNo}',
+      );
+
       // Navigate to Create Asset Page for unknown items
       final result = await Navigator.of(context).push<ScannedItemEntity>(
         MaterialPageRoute(
@@ -402,19 +406,65 @@ class AssetCard extends StatelessWidget {
         ),
       );
 
+      print('🔍 AssetCard: Returned from CreateAssetPage');
+      print('🔍 AssetCard: Result = $result');
+      print('🔍 AssetCard: Result type = ${result?.runtimeType}');
+
+      if (result != null) {
+        print('🔍 AssetCard: Result asset details:');
+        print('🔍 AssetCard: - Asset No: ${result.assetNo}');
+        print('🔍 AssetCard: - Description: ${result.description}');
+        print('🔍 AssetCard: - Status: ${result.status}');
+        print('🔍 AssetCard: - Is Unknown: ${result.isUnknown}');
+      }
+
       if (result != null && context.mounted) {
-        context.read<ScanBloc>().add(
-          AssetCreatedFromUnknown(createdAsset: result),
+        print(
+          '🔍 AssetCard: Context is mounted, sending AssetCreatedFromUnknown event',
         );
+
+        try {
+          context.read<ScanBloc>().add(
+            AssetCreatedFromUnknown(createdAsset: result),
+          );
+          print(
+            '🔍 AssetCard: ✅ AssetCreatedFromUnknown event sent successfully',
+          );
+        } catch (e) {
+          print(
+            '🔍 AssetCard: ❌ Error sending AssetCreatedFromUnknown event: $e',
+          );
+        }
+      } else {
+        if (result == null) {
+          print('🔍 AssetCard: Result is null - user probably cancelled');
+        }
+        if (!context.mounted) {
+          print('🔍 AssetCard: Context is not mounted');
+        }
       }
     } else {
+      print(
+        '🔍 AssetCard: Navigating to AssetDetailPage for known item ${item.assetNo}',
+      );
+
       // Navigate to Asset Detail Page for existing items
       final scanBloc = context.read<ScanBloc>();
-      Navigator.of(context).push(
+
+      final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => AssetDetailPage(item: item, scanBloc: scanBloc),
         ),
       );
+
+      print('🔍 AssetCard: Returned from AssetDetailPage');
+      print('🔍 AssetCard: Detail result = $result');
+
+      if (result != null) {
+        print(
+          '🔍 AssetCard: Asset detail returned with status: ${(result as ScannedItemEntity).status}',
+        );
+      }
     }
   }
 }
