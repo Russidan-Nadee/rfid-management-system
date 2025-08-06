@@ -97,9 +97,6 @@ class _ScanListViewState extends State<ScanListView> {
           .toList();
 
       if (locationCodes.isNotEmpty) {
-        print(
-          'ScanListView: Triggering load expected counts for: $locationCodes',
-        );
         context.read<ScanBloc>().add(
           LoadExpectedCounts(locationCodes: locationCodes),
         );
@@ -109,42 +106,28 @@ class _ScanListViewState extends State<ScanListView> {
 
   @override
   Widget build(BuildContext context) {
-    print('🔍 ScanListView: Building with ${widget.scannedItems.length} items');
-    print('🔍 ScanListView: isLoading = ${widget.isLoading}');
-    
     final theme = Theme.of(context);
     final l10n = ScanLocalizations.of(context);
 
     if (widget.isLoading) {
-      print('🔍 ScanListView: Showing loading indicator');
       return Center(
         child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
 
     if (widget.scannedItems.isEmpty) {
-      print('🔍 ScanListView: ❌ SHOWING EMPTY STATE - This is the problem!');
       return _buildEmptyState(theme, l10n);
     }
 
-    print('🔍 ScanListView: ✅ Building list with items');
-
-    // ✅ ใช้ widget.scannedItems แทน BlocBuilder เพื่อหลีกเลี่ยงปัญหา state
-    print('🔍 ScanListView: Using widget.scannedItems directly');
-    
     // Get latest ScanSuccess state for filter info
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
-        print('🔍 ScanListView BlocBuilder: state = ${state.runtimeType}');
-        
         // Use widget.scannedItems instead of state
         final itemsToShow = widget.scannedItems;
-        print('🔍 ScanListView BlocBuilder: Using ${itemsToShow.length} items from widget');
         
-        // ✅ Preserve the last valid ScanSuccess state
+        // Preserve the last valid ScanSuccess state
         if (state is ScanSuccess) {
           _lastValidScanSuccess = state;
-          print('🔍 ScanListView BlocBuilder: ✅ Stored new ScanSuccess state');
         }
         
         // Use preserved ScanSuccess state if available, otherwise use defaults
@@ -154,7 +137,6 @@ class _ScanListViewState extends State<ScanListView> {
         Map<String, int> statusCounts = {};
         
         if (_lastValidScanSuccess != null) {
-          print('🔍 ScanListView BlocBuilder: ✅ Using preserved ScanSuccess for filter info');
           selectedFilter = _lastValidScanSuccess!.selectedFilter;
           selectedLocation = _lastValidScanSuccess!.selectedLocation;
           availableLocations = _lastValidScanSuccess!.availableLocations;
@@ -167,7 +149,6 @@ class _ScanListViewState extends State<ScanListView> {
             });
           }
         } else {
-          print('🔍 ScanListView BlocBuilder: Using defaults for filter info');
           // Extract unique locations from widget.scannedItems
           availableLocations = widget.scannedItems
               .map((item) => item.locationName ?? 'Unknown')
@@ -513,10 +494,12 @@ class _ScanListViewState extends State<ScanListView> {
     int expectedCount = 0;
 
     if (!isAllLocations && state != null) {
+      // Count items that belong to this location (based on their registered locationName)
       scannedCount = state.scannedItems
           .where((item) => item.locationName == location)
           .length;
 
+      // Get the locationCode for this location to fetch expected count
       final locationCode = state.scannedItems
           .where((item) => item.locationName == location)
           .map((item) => item.locationCode)
@@ -526,6 +509,7 @@ class _ScanListViewState extends State<ScanListView> {
       if (locationCode != null) {
         expectedCount = state.expectedCounts[locationCode] ?? 0;
       }
+
     }
 
     // Determine chip color

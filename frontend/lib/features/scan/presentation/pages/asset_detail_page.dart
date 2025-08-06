@@ -87,60 +87,47 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                 current is AssetStatusUpdating;
           },
           listener: (context, state) {
-            print('DEBUG: Asset detail received state: ${state.runtimeType}');
-            
             if (state is AssetStatusUpdating) {
-              print('DEBUG: Asset ${state.assetNo} is updating...');
               return;
             }
 
             if (state is ScanSuccess) {
-              print('DEBUG: ScanSuccess received, checking status change');
               
               ScannedItemEntity? foundItem;
               try {
                 foundItem = state.scannedItems.firstWhere(
                   (scanItem) => scanItem.assetNo == widget.item.assetNo,
                 );
-                print('DEBUG: Found updated item with status: ${foundItem.status}');
               } catch (e) {
-                print('DEBUG: Item not found in scan results, using original');
                 foundItem = widget.item;
               }
 
               final originalStatus = widget.item.status.toUpperCase().trim();
               final updatedStatus = foundItem.status.toUpperCase().trim();
-              print('DEBUG: Status change from "$originalStatus" to "$updatedStatus"');
 
               if (originalStatus == 'A' && updatedStatus == 'C') {
-                print('DEBUG: Status changed A->C, showing success and navigating back');
                 Helpers.showSuccess(context, l10n.assetMarkedSuccess);
                 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
-                    print('DEBUG: Navigating back to scan list');
                     Navigator.of(context).pop(foundItem);
                   }
                 });
               }
               else if (originalStatus != updatedStatus) {
-                print('DEBUG: Different status change from $originalStatus to $updatedStatus');
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     Navigator.of(context).pop(foundItem);
                   }
                 });
               } else {
-                print('DEBUG: No status change detected');
               }
             }
             // ✅ แก้ไข: Handle AssetStatusUpdateError ที่ชัดเจน
             else if (state is AssetStatusUpdateError) {
-              print('DEBUG: Asset status update error: ${state.message}');
               Helpers.showError(context, state.message);
             }
             else if (state is AssetStatusUpdated) {
-              print('DEBUG: AssetStatusUpdated received: ${state.updatedAsset.status}');
 
               // เช็คว่าเป็น asset ที่เรากำลังดูอยู่หรือไม่
               if (state.updatedAsset.assetNo == widget.item.assetNo) {
@@ -148,10 +135,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                 final updatedStatus = state.updatedAsset.status
                     .toUpperCase()
                     .trim();
-
-                print(
-                  '🔍 AssetDetail Listener: AssetStatusUpdated - Original: $originalStatus, Updated: $updatedStatus',
-                );
 
                 if (originalStatus == 'A' && updatedStatus == 'C') {
                   Helpers.showSuccess(context, l10n.assetMarkedSuccess);
@@ -174,15 +157,8 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                 current is AssetImagesError;
           },
           listener: (context, state) {
-            print(
-              '🔍 AssetDetail Image Listener: State = ${state.runtimeType}',
-            );
-
             if (state is AssetImagesLoaded &&
                 state.assetNo == widget.item.assetNo) {
-              print(
-                '🔍 AssetDetail Image Listener: Images loaded - ${state.images.length} images',
-              );
               setState(() {
                 _images = state.images;
                 _isLoadingImages = false;
@@ -194,9 +170,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
               });
             } else if (state is AssetImagesError &&
                 state.assetNo == widget.item.assetNo) {
-              print(
-                '🔍 AssetDetail Image Listener: Images error - ${state.message}',
-              );
               setState(() {
                 _isLoadingImages = false;
               });
@@ -447,17 +420,11 @@ class _AssetDetailViewState extends State<AssetDetailView> {
     return BlocBuilder<ScanBloc, ScanState>(
       // ✅ เพิ่ม buildWhen เพื่อ rebuild เฉพาะเมื่อจำเป็น
       buildWhen: (previous, current) {
-        print(
-          '🔍 AssetDetail ActionButton: buildWhen - previous: ${previous.runtimeType}, current: ${current.runtimeType}',
-        );
         return current is AssetStatusUpdating ||
             current is ScanSuccess ||
             current is AssetStatusUpdateError;
       },
       builder: (context, state) {
-        print(
-          '🔍 AssetDetail ActionButton: Building for state = ${state.runtimeType}',
-        );
 
         final isLoading =
             state is AssetStatusUpdating &&
@@ -496,7 +463,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   }
 
   void _markAsChecked(BuildContext context) {
-    print('DEBUG: Mark as check pressed for ${widget.item.assetNo}');
     context.read<ScanBloc>().add(
       MarkAssetChecked(assetNo: widget.item.assetNo),
     );

@@ -95,6 +95,7 @@ class ScanSuccess extends ScanState {
 
     switch (selectedFilter.toLowerCase()) {
       case 'active':
+      case 'awaiting': // Add mapping for 'Awaiting' filter
         return locationFiltered
             .where((item) => item.status.toUpperCase() == 'A')
             .toList();

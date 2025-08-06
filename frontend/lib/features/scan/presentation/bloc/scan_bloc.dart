@@ -64,7 +64,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
             final userId = await getCurrentUserUseCase.execute();
             add(LogAssetScanned(assetNo: assetNo, scannedBy: userId));
           } catch (e) {
-            print('Failed to get current user for logging: $e');
           }
         } catch (e) {
           // แก้ส่วนนี้ - ส่ง cached location data ไปใน unknown item
@@ -80,7 +79,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
             scannedItems.add(unknownItem);
           } else {
-            print('Unexpected error for asset $assetNo: $e');
             final unknownItem = ScannedItemEntity(
               assetNo: assetNo,
               description: 'Unknown Item',
@@ -175,16 +173,12 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     MarkAssetChecked event,
     Emitter<ScanState> emit,
   ) async {
-    print('DEBUG: MarkAssetChecked event received for ${event.assetNo}');
 
     try {
       final userId = await getCurrentUserUseCase.execute();
-      print('DEBUG: Got current user: $userId');
 
       add(UpdateAssetStatus(assetNo: event.assetNo, updatedBy: userId));
-      print('DEBUG: UpdateAssetStatus event added');
     } catch (e) {
-      print('DEBUG: Error getting current user: $e');
       emit(
         AssetStatusUpdateError(
           message: 'Failed to get current user: ${e.toString()}',
@@ -197,8 +191,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     UpdateAssetStatus event,
     Emitter<ScanState> emit,
   ) async {
-    print('DEBUG: UpdateAssetStatus called for ${event.assetNo}');
-    print('DEBUG: Current state: ${state.runtimeType}');
 
     // เก็บ previous scan results ไว้ก่อน
     List<ScannedItemEntity>? previousScannedItems;
@@ -217,7 +209,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       currentExpectedCounts = currentState.expectedCounts;
       _lastScanSuccess = currentState; // Update reference
 
-      print('DEBUG: Previous state captured from current - ${previousScannedItems.length} items');
     } else if (_lastScanSuccess != null) {
       // Fallback to last known ScanSuccess state
       previousScannedItems = _lastScanSuccess!.scannedItems;
@@ -226,34 +217,26 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       selectedCurrentLocation = _lastScanSuccess!.currentLocation;
       currentExpectedCounts = _lastScanSuccess!.expectedCounts;
 
-      print('DEBUG: Previous state captured from cached - ${previousScannedItems.length} items');
     }
 
-    print('DEBUG: Emitting AssetStatusUpdating');
     emit(AssetStatusUpdating(assetNo: event.assetNo));
 
     try {
-      print('DEBUG: Calling API to mark asset as checked');
       final updatedAsset = await updateAssetStatusUseCase.markAsChecked(
         event.assetNo,
         event.updatedBy,
       );
 
-      print('DEBUG: Asset updated successfully');
-      print('DEBUG: Updated asset status: ${updatedAsset.status}');
 
       if (previousScannedItems != null) {
-        print('DEBUG: Updating scanned items list');
 
         final updatedItems = previousScannedItems.map((item) {
           if (item.assetNo == event.assetNo) {
-            print('DEBUG: Updated item ${item.assetNo} from ${item.status} to ${updatedAsset.status}');
             return updatedAsset;
           }
           return item;
         }).toList();
 
-        print('DEBUG: Emitting new ScanSuccess with updated items');
         final newScanSuccess = ScanSuccess(
           scannedItems: updatedItems,
           selectedFilter: currentFilter,
@@ -263,16 +246,12 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         );
         _lastScanSuccess = newScanSuccess; // Update reference
         emit(newScanSuccess);
-        print('DEBUG: New ScanSuccess state emitted');
       } else {
-        print('DEBUG: No previous scanned items to update');
       }
     } catch (e) {
-      print('DEBUG: Error updating asset: $e');
 
       // ถ้า error ให้กลับไป previous state
       if (previousScannedItems != null) {
-        print('🔍 ScanBloc: Restoring previous state due to error');
         final restoredScanSuccess = ScanSuccess(
           scannedItems: previousScannedItems,
           selectedFilter: currentFilter,
@@ -303,14 +282,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     AssetCreatedFromUnknown event,
     Emitter<ScanState> emit,
   ) async {
-    print('🔍 ScanBloc: _onAssetCreatedFromUnknown called');
-    print('🔍 ScanBloc: Created asset details:');
-    print('🔍 ScanBloc: - Asset No: ${event.createdAsset.assetNo}');
-    print('🔍 ScanBloc: - Description: ${event.createdAsset.description}');
-    print('🔍 ScanBloc: - Status: ${event.createdAsset.status}');
-    print('🔍 ScanBloc: - Is Unknown: ${event.createdAsset.isUnknown}');
-    print('🔍 ScanBloc: - Original EPC Code: ${event.originalEpcCode}');
-    print('🔍 ScanBloc: Current state: ${state.runtimeType}');
 
     // Use current state if it's ScanSuccess, otherwise use last saved state
     ScanSuccess? currentScanSuccess;
@@ -318,14 +289,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     if (state is ScanSuccess) {
       currentScanSuccess = state as ScanSuccess;
       _lastScanSuccess = currentScanSuccess; // Update reference
-      print(
-        '🔍 ScanBloc: Using current ScanSuccess with ${currentScanSuccess.scannedItems.length} items',
-      );
     } else if (_lastScanSuccess != null) {
       currentScanSuccess = _lastScanSuccess;
-      print(
-        '🔍 ScanBloc: Using cached ScanSuccess with ${currentScanSuccess!.scannedItems.length} items',
-      );
     }
 
     if (currentScanSuccess != null) {
@@ -334,9 +299,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       final updatedItems = currentScanSuccess.scannedItems.map((item) {
         // Match by original EPC code - for unknown items, assetNo is the EPC code
         if (item.isUnknown && item.assetNo == event.originalEpcCode) {
-          print(
-            '🔍 ScanBloc: Found unknown item ${item.assetNo}, replacing with created asset',
-          );
           itemFound = true;
           // Return the created asset - it already has the correct new assetNo and details
           return event.createdAsset;
@@ -345,10 +307,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       }).toList();
 
       if (itemFound) {
-        print(
-          '🔍 ScanBloc: ✅ Item replaced successfully, emitting new ScanSuccess',
-        );
-
         // Emit state ใหม่พร้อม updated list และ filter เดิม
         final updatedScanSuccess = ScanSuccess(
           scannedItems: updatedItems,
@@ -359,23 +317,8 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         );
         _lastScanSuccess = updatedScanSuccess; // Update reference
         emit(updatedScanSuccess);
-
-        print(
-          '🔍 ScanBloc: ✅ New ScanSuccess state emitted with replaced item',
-        );
-      } else {
-        print('🔍 ScanBloc: ⚠️ Unknown item not found in scanned items list');
-
-        // Debug: แสดง asset numbers ทั้งหมดใน list
-        print('🔍 ScanBloc: Current asset numbers in list:');
-        for (var item in currentScanSuccess.scannedItems) {
-          print(
-            '🔍 ScanBloc: - ${item.assetNo} (isUnknown: ${item.isUnknown})',
-          );
-        }
       }
     } else {
-      print('🔍 ScanBloc: ⚠️ No valid ScanSuccess state available, cannot update');
     }
   }
 
@@ -425,20 +368,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       final currentState = state as ScanSuccess;
 
       try {
-        print(
-          'ScanBloc: Loading expected counts for locations: ${event.locationCodes}',
-        );
-
         final expectedCounts = await getAssetsByLocationUseCase
             .getMultipleLocationCounts(event.locationCodes);
 
-        print('ScanBloc: Expected counts loaded: $expectedCounts');
 
         final updatedState = currentState.copyWith(expectedCounts: expectedCounts);
         _lastScanSuccess = updatedState; // Update reference
         emit(updatedState);
       } catch (e) {
-        print('ScanBloc: Error loading expected counts: $e');
         // ไม่ emit error state เพื่อไม่กระทบ UI หลัก
         // แค่ log error และเก็บ state เดิม
       }
@@ -456,7 +393,6 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
       final images = await getAssetImagesUseCase.execute(event.assetNo);
       emit(AssetImagesLoaded(assetNo: event.assetNo, images: images));
     } catch (error) {
-      print('ScanBloc: Error loading asset images: $error');
       emit(AssetImagesError(assetNo: event.assetNo, message: error.toString()));
     }
   }
