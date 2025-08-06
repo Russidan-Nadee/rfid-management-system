@@ -324,18 +324,25 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
   // Status Filter handler
   void _onFilterChanged(FilterChanged event, Emitter<ScanState> emit) {
+    // ✅ Use current ScanSuccess state OR last saved state
+    ScanSuccess? scanSuccess;
     if (state is ScanSuccess) {
-      final currentState = state as ScanSuccess;
+      scanSuccess = state as ScanSuccess;
+    } else if (_lastScanSuccess != null) {
+      scanSuccess = _lastScanSuccess!;
+    }
+    
+    if (scanSuccess != null) {
       // อัพเดต status filter ใน state เดิม - ไม่ใช่ scan ใหม่
-      emit(
-        ScanSuccessFiltered(
-          scannedItems: currentState.scannedItems,
-          selectedFilter: event.filter,
-          selectedLocation: currentState.selectedLocation,
-          currentLocation: currentState.currentLocation,
-          expectedCounts: currentState.expectedCounts,
-        ),
+      final updatedState = ScanSuccessFiltered(
+        scannedItems: scanSuccess.scannedItems,
+        selectedFilter: event.filter,
+        selectedLocation: scanSuccess.selectedLocation,
+        currentLocation: scanSuccess.currentLocation,
+        expectedCounts: scanSuccess.expectedCounts,
       );
+      _lastScanSuccess = updatedState; // Update reference
+      emit(updatedState);
     }
   }
 
@@ -344,18 +351,25 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     LocationFilterChanged event,
     Emitter<ScanState> emit,
   ) {
+    // ✅ Use current ScanSuccess state OR last saved state
+    ScanSuccess? scanSuccess;
     if (state is ScanSuccess) {
-      final currentState = state as ScanSuccess;
+      scanSuccess = state as ScanSuccess;
+    } else if (_lastScanSuccess != null) {
+      scanSuccess = _lastScanSuccess!;
+    }
+    
+    if (scanSuccess != null) {
       // อัพเดต location filter และ reset status filter เป็น 'All' - ไม่ใช่ scan ใหม่
-      emit(
-        ScanSuccessFiltered(
-          scannedItems: currentState.scannedItems,
-          selectedLocation: event.location,
-          selectedFilter: 'All', // Reset status filter เมื่อเปลี่ยน location
-          currentLocation: currentState.currentLocation,
-          expectedCounts: currentState.expectedCounts,
-        ),
+      final updatedState = ScanSuccessFiltered(
+        scannedItems: scanSuccess.scannedItems,
+        selectedLocation: event.location,
+        selectedFilter: 'All', // Reset status filter เมื่อเปลี่ยน location
+        currentLocation: scanSuccess.currentLocation,
+        expectedCounts: scanSuccess.expectedCounts,
       );
+      _lastScanSuccess = updatedState; // Update reference
+      emit(updatedState);
     }
   }
 

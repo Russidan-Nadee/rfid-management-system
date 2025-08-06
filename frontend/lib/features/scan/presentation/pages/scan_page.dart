@@ -35,12 +35,25 @@ class ScanPageView extends StatefulWidget {
 }
 
 class _ScanPageViewState extends State<ScanPageView> {
-  // ✅ เก็บ last ScanSuccess state
+  // ✅ เก็บ last ScanSuccess state - moved to widget level for global access
   ScanSuccess? _lastScanSuccess;
+  bool _hasScannedItems = false; // ✅ Track if we have any scanned items
 
   @override
   void initState() {
     super.initState();
+  }
+
+  // ✅ Method to update scan state - call this from all BlocBuilders
+  void _updateScanState(ScanState state) {
+    if (state is ScanSuccess) {
+      _lastScanSuccess = state;
+      _hasScannedItems = state.scannedItems.isNotEmpty;
+    }
+    // Keep track of scanned items even in other states
+    else if (_lastScanSuccess != null) {
+      _hasScannedItems = _lastScanSuccess!.scannedItems.isNotEmpty;
+    }
   }
 
   @override
@@ -72,9 +85,11 @@ class _ScanPageViewState extends State<ScanPageView> {
         actions: [
           BlocBuilder<ScanBloc, ScanState>(
             builder: (context, state) {
-              // Check ScanSuccess ทุกประเภท
-              if ((state is ScanSuccess || state is ScanSuccessFiltered) &&
-                  (state as ScanSuccess).scannedItems.isNotEmpty) {
+              // ✅ Update our widget-level state tracking
+              _updateScanState(state);
+              
+              // ✅ Show refresh button based on whether we have scanned items
+              if (_hasScannedItems) {
                 return IconButton(
                   onPressed: () {
                     context.read<ScanBloc>().add(const StartScan());
@@ -109,10 +124,8 @@ class _ScanPageViewState extends State<ScanPageView> {
         },
         child: BlocBuilder<ScanBloc, ScanState>(
           builder: (context, state) {
-            // Track scan success for UI preservation
-            if (state is ScanSuccess) {
-              _lastScanSuccess = state;
-            }
+            // ✅ Update our widget-level state tracking
+            _updateScanState(state);
 
             if (state is ScanInitial) {
               return const ScanReadyWidget();

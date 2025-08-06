@@ -118,7 +118,7 @@ class ScanLocalizationsTh extends ScanLocalizations {
   String get statusInactive => 'ไม่ใช้งาน';
 
   @override
-  String get statusUnknown => 'ไม่ทราบ';
+  String get statusUnknown => 'ไม่รู้จัก';
 
   @override
   String get statusAwaiting => 'รอการตรวจสอบ';

@@ -104,6 +104,7 @@ class _ScanListViewState extends State<ScanListView> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -122,38 +123,57 @@ class _ScanListViewState extends State<ScanListView> {
     // Get latest ScanSuccess state for filter info
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
-        // Use widget.scannedItems instead of state
-        final itemsToShow = widget.scannedItems;
-        
-        // Preserve the last valid ScanSuccess state
+        // ✅ Always preserve the latest ScanSuccess state
         if (state is ScanSuccess) {
           _lastValidScanSuccess = state;
         }
         
-        // Use preserved ScanSuccess state if available, otherwise use defaults
+        // ✅ Use current state if it's ScanSuccess, otherwise use preserved state
+        ScanSuccess? currentScanState;
+        if (state is ScanSuccess) {
+          currentScanState = state;
+        } else if (_lastValidScanSuccess != null) {
+          currentScanState = _lastValidScanSuccess;
+        }
+        
+        // ✅ Use the state's built-in filtering logic or fallback to widget items
+        List<ScannedItemEntity> itemsToShow;
         String selectedFilter = 'All';
         String selectedLocation = 'All Locations';
         List<String> availableLocations = [];
         Map<String, int> statusCounts = {};
         
-        if (_lastValidScanSuccess != null) {
-          selectedFilter = _lastValidScanSuccess!.selectedFilter;
-          selectedLocation = _lastValidScanSuccess!.selectedLocation;
-          availableLocations = _lastValidScanSuccess!.availableLocations;
-          statusCounts = _lastValidScanSuccess!.statusCounts;
+        if (currentScanState != null) {
+          // ✅ Use the state's filteredItems (this handles all filtering logic)
+          itemsToShow = currentScanState.filteredItems;
+          selectedFilter = currentScanState.selectedFilter;
+          selectedLocation = currentScanState.selectedLocation;
+          availableLocations = currentScanState.availableLocations;
+          statusCounts = currentScanState.statusCounts;
           
-          // Only trigger expected counts for current ScanSuccess state
+          // Trigger expected counts for current ScanSuccess state
           if (state is ScanSuccess) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _triggerLoadExpectedCounts(state);
             });
           }
         } else {
-          // Extract unique locations from widget.scannedItems
-          availableLocations = widget.scannedItems
+          // ✅ Fallback when no preserved state exists
+          itemsToShow = widget.scannedItems;
+          final uniqueLocations = widget.scannedItems
               .map((item) => item.locationName ?? 'Unknown')
               .toSet()
               .toList();
+          uniqueLocations.sort();
+          availableLocations = ['All Locations', ...uniqueLocations];
+          
+          statusCounts = {
+            'All': widget.scannedItems.length,
+            'Active': widget.scannedItems.where((item) => item.status.toUpperCase() == 'A').length,
+            'Checked': widget.scannedItems.where((item) => item.status.toUpperCase() == 'C').length,
+            'Inactive': widget.scannedItems.where((item) => item.status.toUpperCase() == 'I').length,
+            'Unknown': widget.scannedItems.where((item) => item.isUnknown == true).length,
+          };
         }
 
         return RefreshIndicator(
