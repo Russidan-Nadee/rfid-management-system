@@ -35,7 +35,7 @@ class SearchResultCard extends StatelessWidget {
         side: BorderSide(
           color: Theme.of(context).brightness == Brightness.dark
               ? AppColors.darkBorder.withValues(alpha: 0.3)
-              : theme.colorScheme.onBackground.withValues(alpha: 0.05),
+              : theme.colorScheme.onSurface.withValues(alpha: 0.05),
           width: 1,
         ),
       ),

@@ -150,4 +150,18 @@ class SearchLocalizationsJa extends SearchLocalizations {
   String get createdBy => '作成者';
   @override
   String get userRole => 'ユーザー役割';
+
+  // Image Related
+  @override
+  String get images => '画像';
+  @override
+  String get hasImages => '画像あり';
+  @override
+  String get noImagesAvailable => '画像がありません';
+  @override
+  String get imagesWillAppearHere => '画像がここに表示されます';
+  @override
+  String get imageLoadError => '画像の読み込みに失敗しました';
+  @override
+  String get primary => 'プライマリ';
 }

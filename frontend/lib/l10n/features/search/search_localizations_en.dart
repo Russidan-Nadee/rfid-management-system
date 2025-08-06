@@ -151,4 +151,18 @@ class SearchLocalizationsEn extends SearchLocalizations {
   String get createdBy => 'Created By';
   @override
   String get userRole => 'User Role';
+
+  // Image Related
+  @override
+  String get images => 'Images';
+  @override
+  String get hasImages => 'Has images';
+  @override
+  String get noImagesAvailable => 'No images available';
+  @override
+  String get imagesWillAppearHere => 'Images will appear here';
+  @override
+  String get imageLoadError => 'Failed to load image';
+  @override
+  String get primary => 'Primary';
 }

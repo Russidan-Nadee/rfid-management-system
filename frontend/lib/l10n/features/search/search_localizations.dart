@@ -111,4 +111,12 @@ abstract class SearchLocalizations {
   // User Fields
   String get createdBy;
   String get userRole;
+
+  // Image Related
+  String get images;
+  String get hasImages;
+  String get noImagesAvailable;
+  String get imagesWillAppearHere;
+  String get imageLoadError;
+  String get primary;
 }

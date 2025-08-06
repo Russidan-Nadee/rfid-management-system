@@ -150,4 +150,18 @@ class SearchLocalizationsTh extends SearchLocalizations {
   String get createdBy => 'สร้างโดย';
   @override
   String get userRole => 'บทบาทผู้ใช้งาน';
+
+  // Image Related
+  @override
+  String get images => 'รูปภาพ';
+  @override
+  String get hasImages => 'มีรูปภาพ';
+  @override
+  String get noImagesAvailable => 'ไม่มีรูปภาพ';
+  @override
+  String get imagesWillAppearHere => 'รูปภาพจะแสดงที่นี่';
+  @override
+  String get imageLoadError => 'โหลดรูปภาพไม่สำเร็จ';
+  @override
+  String get primary => 'หลัก';
 }

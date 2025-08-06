@@ -567,13 +567,9 @@ class SearchRepositoryImpl implements SearchRepository {
   @override
   Future<void> invalidateCache({String? query}) async {
     if (query != null) {
-      final keys = [
-        _cacheStrategy.generateCacheKey('instant', query, {}),
-        _cacheStrategy.generateCacheKey('global', query, {}),
-      ];
-      for (final key in keys) {
-        await _cacheDataSource.clearAllCache(); // Simplified
-      }
+      // Individual key clearance could be implemented here
+      // For now, clear all cache as a simplified approach
+      await _cacheDataSource.clearAllCache();
     } else {
       await _cacheDataSource.clearAllCache();
     }
