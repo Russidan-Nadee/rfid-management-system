@@ -26,8 +26,6 @@ class AssetDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('🔍 AssetDetailPage: Building page for asset ${item.assetNo}');
-
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: scanBloc),
@@ -54,26 +52,20 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   @override
   void initState() {
     super.initState();
-    print('🔍 AssetDetailView: initState for asset ${widget.item.assetNo}');
     _loadAssetImages();
   }
 
   @override
   void dispose() {
-    print('🔍 AssetDetailView: dispose for asset ${widget.item.assetNo}');
     super.dispose();
   }
 
   void _loadAssetImages() {
-    print(
-      '🔍 AssetDetailView: Loading images for asset ${widget.item.assetNo}',
-    );
     context.read<ScanBloc>().add(LoadAssetImages(assetNo: widget.item.assetNo));
   }
 
   void _onUploadSuccess() {
     // Reload images หลัง upload สำเร็จ
-    print('🔍 AssetDetailView: Upload success, reloading images');
     _loadAssetImages();
   }
 
@@ -88,10 +80,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
         BlocListener<ScanBloc, ScanState>(
           // ✅ เพิ่ม listenWhen เพื่อฟังเฉพาะ state ที่เกี่ยวข้อง
           listenWhen: (previous, current) {
-            print(
-              '🔍 AssetDetail: listenWhen - previous: ${previous.runtimeType}, current: ${current.runtimeType}',
-            );
-            // ฟังเฉพาะ state ที่เกี่ยวข้องกับ asset status update
             return current is ScanSuccess ||
                 current is ScanSuccessFiltered ||
                 current is AssetStatusUpdateError ||
@@ -99,107 +87,60 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                 current is AssetStatusUpdating;
           },
           listener: (context, state) {
-            print(
-              '🔍 AssetDetail Listener: Received state = ${state.runtimeType}',
-            );
-
+            print('DEBUG: Asset detail received state: ${state.runtimeType}');
+            
             if (state is AssetStatusUpdating) {
-              print(
-                '🔍 AssetDetail Listener: Asset ${state.assetNo} is updating',
-              );
-              return; // ไม่ทำอะไร รอ state ถัดไป
+              print('DEBUG: Asset ${state.assetNo} is updating...');
+              return;
             }
 
-            // ✅ แก้ไข: เช็ค ScanSuccess ทุกประเภท
             if (state is ScanSuccess) {
-              print(
-                '🔍 AssetDetail Listener: ScanSuccess received, checking for asset update',
-              );
-              print(
-                '🔍 AssetDetail Listener: ScanSuccess has ${state.scannedItems.length} items',
-              );
-
-              // หา asset ที่ตรงกับ assetNo ปัจจุบัน
+              print('DEBUG: ScanSuccess received, checking status change');
+              
               ScannedItemEntity? foundItem;
               try {
-                foundItem = state.scannedItems.firstWhere((scanItem) {
-                  print(
-                    '🔍 AssetDetail Listener: Comparing ${scanItem.assetNo} with ${widget.item.assetNo}',
-                  );
-                  return scanItem.assetNo == widget.item.assetNo;
-                });
-                print(
-                  '🔍 AssetDetail Listener: Found matching item with status: ${foundItem.status}',
+                foundItem = state.scannedItems.firstWhere(
+                  (scanItem) => scanItem.assetNo == widget.item.assetNo,
                 );
+                print('DEBUG: Found updated item with status: ${foundItem.status}');
               } catch (e) {
-                print('🔍 AssetDetail Listener: No matching item found: $e');
-                foundItem = widget.item; // fallback เป็น item เดิม
+                print('DEBUG: Item not found in scan results, using original');
+                foundItem = widget.item;
               }
 
-              print(
-                '🔍 AssetDetail Listener: Original item status: ${widget.item.status}',
-              );
-              print(
-                '🔍 AssetDetail Listener: Found item status: ${foundItem.status}',
-              );
-
-              // ✅ แก้ไข: เช็คการเปลี่ยนแปลง status อย่างละเอียด
               final originalStatus = widget.item.status.toUpperCase().trim();
               final updatedStatus = foundItem.status.toUpperCase().trim();
+              print('DEBUG: Status change from "$originalStatus" to "$updatedStatus"');
 
-              print(
-                '🔍 AssetDetail Listener: Status comparison - Original: "$originalStatus", Updated: "$updatedStatus"',
-              );
-
-              // เช็คว่า status เปลี่ยนจาก A เป็น C (Active เป็น Checked)
               if (originalStatus == 'A' && updatedStatus == 'C') {
-                print(
-                  '🔍 AssetDetail Listener: ✅ Status changed from A to C - showing success and popping',
-                );
-
-                // แสดง success message
+                print('DEBUG: Status changed A->C, showing success and navigating back');
                 Helpers.showSuccess(context, l10n.assetMarkedSuccess);
-
-                // ✅ แก้ไข: ใช้ WidgetsBinding เพื่อให้แน่ใจว่า UI update เสร็จแล้ว
+                
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  print('🔍 AssetDetail Listener: Executing pop navigation');
                   if (mounted) {
+                    print('DEBUG: Navigating back to scan list');
                     Navigator.of(context).pop(foundItem);
-                  } else {
-                    print(
-                      '🔍 AssetDetail Listener: Widget not mounted, cannot pop',
-                    );
                   }
                 });
               }
-              // ✅ เพิ่ม: เช็คกรณีอื่นๆ ที่อาจเกิดขึ้น
               else if (originalStatus != updatedStatus) {
-                print(
-                  '🔍 AssetDetail Listener: Status changed from $originalStatus to $updatedStatus',
-                );
-                // อาจมีการเปลี่ยน status แบบอื่น ให้ pop กลับไปด้วย
+                print('DEBUG: Different status change from $originalStatus to $updatedStatus');
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     Navigator.of(context).pop(foundItem);
                   }
                 });
               } else {
-                print('🔍 AssetDetail Listener: No status change detected');
+                print('DEBUG: No status change detected');
               }
             }
             // ✅ แก้ไข: Handle AssetStatusUpdateError ที่ชัดเจน
             else if (state is AssetStatusUpdateError) {
-              print(
-                '🔍 AssetDetail Listener: Asset status update error: ${state.message}',
-              );
-              // แสดง error message
+              print('DEBUG: Asset status update error: ${state.message}');
               Helpers.showError(context, state.message);
             }
-            // ✅ เพิ่ม: Handle AssetStatusUpdated (ถ้ามี)
             else if (state is AssetStatusUpdated) {
-              print(
-                '🔍 AssetDetail Listener: Asset status updated: ${state.updatedAsset.status}',
-              );
+              print('DEBUG: AssetStatusUpdated received: ${state.updatedAsset.status}');
 
               // เช็คว่าเป็น asset ที่เรากำลังดูอยู่หรือไม่
               if (state.updatedAsset.assetNo == widget.item.assetNo) {
@@ -248,8 +189,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
               });
             } else if (state is AssetImagesLoading &&
                 state.assetNo == widget.item.assetNo) {
-              print('🔍 AssetDetail Image Listener: Images loading');
-              setState(() {
+                setState(() {
                 _isLoadingImages = true;
               });
             } else if (state is AssetImagesError &&
@@ -283,7 +223,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
           elevation: 1,
           leading: IconButton(
             onPressed: () {
-              print('🔍 AssetDetail: Back button pressed');
               Navigator.of(context).pop();
             },
             icon: Icon(Icons.arrow_back),
@@ -524,7 +463,6 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             state is AssetStatusUpdating &&
             state.assetNo == widget.item.assetNo;
 
-        print('🔍 AssetDetail ActionButton: isLoading = $isLoading');
 
         return SizedBox(
           width: double.infinity,
@@ -557,16 +495,11 @@ class _AssetDetailViewState extends State<AssetDetailView> {
     );
   }
 
-  // ✅ แก้ไข: เพิ่ม debug logging
   void _markAsChecked(BuildContext context) {
-    print(
-      '🔍 AssetDetail: _markAsChecked called for asset: ${widget.item.assetNo}',
-    );
-    print('🔍 AssetDetail: Current item status: ${widget.item.status}');
+    print('DEBUG: Mark as check pressed for ${widget.item.assetNo}');
     context.read<ScanBloc>().add(
       MarkAssetChecked(assetNo: widget.item.assetNo),
     );
-    print('🔍 AssetDetail: MarkAssetChecked event sent');
   }
 
   // Section Components
