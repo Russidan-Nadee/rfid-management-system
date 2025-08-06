@@ -309,24 +309,37 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     print('🔍 ScanBloc: - Description: ${event.createdAsset.description}');
     print('🔍 ScanBloc: - Status: ${event.createdAsset.status}');
     print('🔍 ScanBloc: - Is Unknown: ${event.createdAsset.isUnknown}');
+    print('🔍 ScanBloc: - Original EPC Code: ${event.originalEpcCode}');
     print('🔍 ScanBloc: Current state: ${state.runtimeType}');
 
-    // เช็คว่า current state เป็น ScanSuccess หรือไม่
+    // Use current state if it's ScanSuccess, otherwise use last saved state
+    ScanSuccess? currentScanSuccess;
+    
     if (state is ScanSuccess) {
-      final currentState = state as ScanSuccess;
+      currentScanSuccess = state as ScanSuccess;
+      _lastScanSuccess = currentScanSuccess; // Update reference
       print(
-        '🔍 ScanBloc: Current ScanSuccess has ${currentState.scannedItems.length} items',
+        '🔍 ScanBloc: Using current ScanSuccess with ${currentScanSuccess.scannedItems.length} items',
       );
+    } else if (_lastScanSuccess != null) {
+      currentScanSuccess = _lastScanSuccess;
+      print(
+        '🔍 ScanBloc: Using cached ScanSuccess with ${currentScanSuccess!.scannedItems.length} items',
+      );
+    }
 
-      // หา unknown item แล้วแทนที่ด้วย created asset
+    if (currentScanSuccess != null) {
+      // หา unknown item โดยใช้ original EPC code
       bool itemFound = false;
-      final updatedItems = currentState.scannedItems.map((item) {
-        if (item.assetNo == event.createdAsset.assetNo && item.isUnknown) {
+      final updatedItems = currentScanSuccess.scannedItems.map((item) {
+        // Match by original EPC code - for unknown items, assetNo is the EPC code
+        if (item.isUnknown && item.assetNo == event.originalEpcCode) {
           print(
             '🔍 ScanBloc: Found unknown item ${item.assetNo}, replacing with created asset',
           );
           itemFound = true;
-          return event.createdAsset; // แทนที่ด้วย asset ที่สร้างแล้ว
+          // Return the created asset - it already has the correct new assetNo and details
+          return event.createdAsset;
         }
         return item; // เก็บ item เดิม
       }).toList();
@@ -339,10 +352,10 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
         // Emit state ใหม่พร้อม updated list และ filter เดิม
         final updatedScanSuccess = ScanSuccess(
           scannedItems: updatedItems,
-          selectedFilter: currentState.selectedFilter,
-          selectedLocation: currentState.selectedLocation,
-          currentLocation: currentState.currentLocation,
-          expectedCounts: currentState.expectedCounts,
+          selectedFilter: currentScanSuccess.selectedFilter,
+          selectedLocation: currentScanSuccess.selectedLocation,
+          currentLocation: currentScanSuccess.currentLocation,
+          expectedCounts: currentScanSuccess.expectedCounts,
         );
         _lastScanSuccess = updatedScanSuccess; // Update reference
         emit(updatedScanSuccess);
@@ -355,14 +368,14 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
 
         // Debug: แสดง asset numbers ทั้งหมดใน list
         print('🔍 ScanBloc: Current asset numbers in list:');
-        for (var item in currentState.scannedItems) {
+        for (var item in currentScanSuccess.scannedItems) {
           print(
             '🔍 ScanBloc: - ${item.assetNo} (isUnknown: ${item.isUnknown})',
           );
         }
       }
     } else {
-      print('🔍 ScanBloc: ⚠️ Current state is not ScanSuccess, cannot update');
+      print('🔍 ScanBloc: ⚠️ No valid ScanSuccess state available, cannot update');
     }
   }
 

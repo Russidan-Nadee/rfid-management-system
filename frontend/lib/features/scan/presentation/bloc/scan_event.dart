@@ -62,11 +62,15 @@ class LogAssetScanned extends ScanEvent {
 
 class AssetCreatedFromUnknown extends ScanEvent {
   final ScannedItemEntity createdAsset;
+  final String originalEpcCode; // Add the original EPC code
 
-  const AssetCreatedFromUnknown({required this.createdAsset});
+  const AssetCreatedFromUnknown({
+    required this.createdAsset,
+    required this.originalEpcCode,
+  });
 
   @override
-  List<Object?> get props => [createdAsset];
+  List<Object?> get props => [createdAsset, originalEpcCode];
 }
 
 class FilterChanged extends ScanEvent {

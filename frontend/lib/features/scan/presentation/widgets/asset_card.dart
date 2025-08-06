@@ -421,7 +421,10 @@ class AssetCard extends StatelessWidget {
 
         try {
           context.read<ScanBloc>().add(
-            AssetCreatedFromUnknown(createdAsset: result),
+            AssetCreatedFromUnknown(
+              createdAsset: result,
+              originalEpcCode: item.assetNo, // Pass the original EPC code
+            ),
           );
           print(
             '🔍 AssetCard: ✅ AssetCreatedFromUnknown event sent successfully',
