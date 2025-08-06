@@ -69,6 +69,9 @@ class _ScanListViewState extends State<ScanListView> {
   bool _isStatusFilterExpanded = true;
   late TextEditingController _locationSearchController;
   String _locationSearchQuery = '';
+  
+  // ✅ Store the last ScanSuccess to preserve UI state
+  ScanSuccess? _lastValidScanSuccess;
 
   @override
   void initState() {
@@ -138,22 +141,31 @@ class _ScanListViewState extends State<ScanListView> {
         final itemsToShow = widget.scannedItems;
         print('🔍 ScanListView BlocBuilder: Using ${itemsToShow.length} items from widget');
         
-        // For filter info, try to use ScanSuccess state if available, otherwise use defaults
+        // ✅ Preserve the last valid ScanSuccess state
+        if (state is ScanSuccess) {
+          _lastValidScanSuccess = state;
+          print('🔍 ScanListView BlocBuilder: ✅ Stored new ScanSuccess state');
+        }
+        
+        // Use preserved ScanSuccess state if available, otherwise use defaults
         String selectedFilter = 'All';
         String selectedLocation = 'All Locations';
         List<String> availableLocations = [];
         Map<String, int> statusCounts = {};
         
-        if (state is ScanSuccess) {
-          print('🔍 ScanListView BlocBuilder: ✅ Using ScanSuccess for filter info');
-          selectedFilter = state.selectedFilter;
-          selectedLocation = state.selectedLocation;
-          availableLocations = state.availableLocations;
-          statusCounts = state.statusCounts;
+        if (_lastValidScanSuccess != null) {
+          print('🔍 ScanListView BlocBuilder: ✅ Using preserved ScanSuccess for filter info');
+          selectedFilter = _lastValidScanSuccess!.selectedFilter;
+          selectedLocation = _lastValidScanSuccess!.selectedLocation;
+          availableLocations = _lastValidScanSuccess!.availableLocations;
+          statusCounts = _lastValidScanSuccess!.statusCounts;
           
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _triggerLoadExpectedCounts(state);
-          });
+          // Only trigger expected counts for current ScanSuccess state
+          if (state is ScanSuccess) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _triggerLoadExpectedCounts(state);
+            });
+          }
         } else {
           print('🔍 ScanListView BlocBuilder: Using defaults for filter info');
           // Extract unique locations from widget.scannedItems
@@ -176,7 +188,7 @@ class _ScanListViewState extends State<ScanListView> {
                 theme,
                 availableLocations,
                 selectedLocation,
-                state is ScanSuccess ? state : null,
+                _lastValidScanSuccess,
                 context,
                 l10n,
               ),

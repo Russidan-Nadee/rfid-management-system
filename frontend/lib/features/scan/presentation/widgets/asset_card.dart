@@ -132,17 +132,22 @@ class AssetCard extends StatelessWidget {
               // ⚡ Lazy loading - เรียก API เฉพาะเมื่อ widget นี้แสดง
               future: _loadPrimaryImage(item.assetNo),
               builder: (context, snapshot) {
+                print('🖼️ AssetCard ${item.assetNo}: Image FutureBuilder state = ${snapshot.connectionState}');
+                
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   // กำลังโหลด - แสดง skeleton
+                  print('🖼️ AssetCard ${item.assetNo}: Showing skeleton icon');
                   return _buildSkeletonIcon(theme);
                 }
 
                 if (snapshot.hasData && snapshot.data != null) {
                   // มีรูป - แสดง thumbnail with status badge
+                  print('🖼️ AssetCard ${item.assetNo}: Showing image icon');
                   return _buildImageIcon(snapshot.data!, theme, l10n);
                 }
 
                 // ไม่มีรูป - แสดง status icon เดิม
+                print('🖼️ AssetCard ${item.assetNo}: Showing default status icon');
                 return _buildDefaultStatusIcon(theme, l10n);
               },
             ),
@@ -151,12 +156,16 @@ class AssetCard extends StatelessWidget {
 
   // ⚡ Lazy loading method
   Future<AssetImageEntity?> _loadPrimaryImage(String assetNo) async {
+    print('🔍 Loading image for $assetNo');
+    print('🔍 API endpoint: ${ApiConstants.assetImages(assetNo)}');
     try {
       final apiService = getIt<ApiService>();
       final response = await apiService.get<Map<String, dynamic>>(
         ApiConstants.assetImages(assetNo),
         fromJson: (json) => json,
       );
+      
+      print('🔍 Image API response success: ${response.success}');
 
       if (response.success && response.data != null) {
         final data = response.data!;
@@ -175,6 +184,10 @@ class AssetCard extends StatelessWidget {
     } catch (e) {
       // Silent fail - แสดง default icon
       print('Failed to load image for $assetNo: $e');
+      print('🔍 Full error details: ${e.toString()}');
+      if (e.toString().contains('Access forbidden')) {
+        print('🔍 This is an authentication/authorization issue');
+      }
     }
     return null;
   }
