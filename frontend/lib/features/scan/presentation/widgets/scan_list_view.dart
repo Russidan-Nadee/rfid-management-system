@@ -106,34 +106,62 @@ class _ScanListViewState extends State<ScanListView> {
 
   @override
   Widget build(BuildContext context) {
+    print('🔍 ScanListView: Building with ${widget.scannedItems.length} items');
+    print('🔍 ScanListView: isLoading = ${widget.isLoading}');
+    
     final theme = Theme.of(context);
     final l10n = ScanLocalizations.of(context);
 
     if (widget.isLoading) {
+      print('🔍 ScanListView: Showing loading indicator');
       return Center(
         child: CircularProgressIndicator(color: theme.colorScheme.primary),
       );
     }
 
     if (widget.scannedItems.isEmpty) {
+      print('🔍 ScanListView: ❌ SHOWING EMPTY STATE - This is the problem!');
       return _buildEmptyState(theme, l10n);
     }
 
+    print('🔍 ScanListView: ✅ Building list with items');
+
+    // ✅ ใช้ widget.scannedItems แทน BlocBuilder เพื่อหลีกเลี่ยงปัญหา state
+    print('🔍 ScanListView: Using widget.scannedItems directly');
+    
+    // Get latest ScanSuccess state for filter info
     return BlocBuilder<ScanBloc, ScanState>(
       builder: (context, state) {
-        if (state is! ScanSuccess) {
-          return _buildEmptyState(theme, l10n);
+        print('🔍 ScanListView BlocBuilder: state = ${state.runtimeType}');
+        
+        // Use widget.scannedItems instead of state
+        final itemsToShow = widget.scannedItems;
+        print('🔍 ScanListView BlocBuilder: Using ${itemsToShow.length} items from widget');
+        
+        // For filter info, try to use ScanSuccess state if available, otherwise use defaults
+        String selectedFilter = 'All';
+        String selectedLocation = 'All Locations';
+        List<String> availableLocations = [];
+        Map<String, int> statusCounts = {};
+        
+        if (state is ScanSuccess) {
+          print('🔍 ScanListView BlocBuilder: ✅ Using ScanSuccess for filter info');
+          selectedFilter = state.selectedFilter;
+          selectedLocation = state.selectedLocation;
+          availableLocations = state.availableLocations;
+          statusCounts = state.statusCounts;
+          
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _triggerLoadExpectedCounts(state);
+          });
+        } else {
+          print('🔍 ScanListView BlocBuilder: Using defaults for filter info');
+          // Extract unique locations from widget.scannedItems
+          availableLocations = widget.scannedItems
+              .map((item) => item.locationName ?? 'Unknown')
+              .toSet()
+              .toList();
         }
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _triggerLoadExpectedCounts(state);
-        });
-
-        final filteredItems = state.filteredItems;
-        final selectedFilter = state.selectedFilter;
-        final selectedLocation = state.selectedLocation;
-        final availableLocations = state.availableLocations;
-        final statusCounts = state.statusCounts;
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -148,7 +176,7 @@ class _ScanListViewState extends State<ScanListView> {
                 theme,
                 availableLocations,
                 selectedLocation,
-                state,
+                state is ScanSuccess ? state : null,
                 context,
                 l10n,
               ),
@@ -166,7 +194,7 @@ class _ScanListViewState extends State<ScanListView> {
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    if (filteredItems.isEmpty) {
+                    if (itemsToShow.isEmpty) {
                       return _buildEmptyFilterState(
                         theme,
                         selectedFilter,
@@ -178,17 +206,17 @@ class _ScanListViewState extends State<ScanListView> {
                     // Responsive columns
                     if (constraints.maxWidth >= 1200) {
                       // 3 columns
-                      return _buildGridView(filteredItems, 3);
+                      return _buildGridView(itemsToShow, 3);
                     } else if (constraints.maxWidth >= 800) {
                       // 2 columns
-                      return _buildGridView(filteredItems, 2);
+                      return _buildGridView(itemsToShow, 2);
                     } else {
                       // 1 column
                       return ListView.builder(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: filteredItems.length,
+                        itemCount: itemsToShow.length,
                         itemBuilder: (context, index) =>
-                            AssetCard(item: filteredItems[index]),
+                            AssetCard(item: itemsToShow[index]),
                       );
                     }
                   },
@@ -230,7 +258,7 @@ class _ScanListViewState extends State<ScanListView> {
     ThemeData theme,
     List<String> availableLocations,
     String selectedLocation,
-    ScanSuccess state,
+    ScanSuccess? state,
     BuildContext context,
     ScanLocalizations l10n,
   ) {
@@ -461,18 +489,18 @@ class _ScanListViewState extends State<ScanListView> {
     ThemeData theme,
     String location,
     String selectedLocation,
-    ScanSuccess state,
+    ScanSuccess? state,
     ScanLocalizations l10n,
   ) {
     final isSelected = selectedLocation == location;
     final isAllLocations = location == l10n.allLocations;
-    final isCurrentLocation = state.currentLocation == location;
+    final isCurrentLocation = state?.currentLocation == location;
 
     // Get comparison data
     int scannedCount = 0;
     int expectedCount = 0;
 
-    if (!isAllLocations) {
+    if (!isAllLocations && state != null) {
       scannedCount = state.scannedItems
           .where((item) => item.locationName == location)
           .length;

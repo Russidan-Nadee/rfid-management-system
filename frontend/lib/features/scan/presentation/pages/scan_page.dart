@@ -79,8 +79,7 @@ class _ScanPageViewState extends State<ScanPageView> {
 
               // ✅ แก้ไข: เช็ค ScanSuccess ทุกประเภท
               if ((state is ScanSuccess || state is ScanSuccessFiltered) &&
-                  state is ScanSuccess &&
-                  state.scannedItems.isNotEmpty) {
+                  (state as ScanSuccess).scannedItems.isNotEmpty) {
                 print('🔍 ScanPage AppBar: Showing refresh button');
                 return IconButton(
                   onPressed: () {
@@ -140,18 +139,32 @@ class _ScanPageViewState extends State<ScanPageView> {
             print('  - is AssetImagesLoaded: ${state is AssetImagesLoaded}');
             print('  - is AssetImagesError: ${state is AssetImagesError}');
 
-            // ✅ เก็บ ScanSuccess state ล่าสุด
+            // ✅ Debug: Check what's in the ScanSuccess state
             if (state is ScanSuccess) {
+              print('🔍 ScanPage Builder: NEW ScanSuccess received!');
+              print('  - scannedItems.length: ${state.scannedItems.length}');
+              print('  - selectedFilter: ${state.selectedFilter}');
+              print('  - selectedLocation: ${state.selectedLocation}');
+              
+              // Check filtered results
+              final filteredItems = state.filteredItems;
+              print('  - filteredItems.length: ${filteredItems.length}');
+              
+              if (state.scannedItems.isNotEmpty) {
+                print('  - First item: ${state.scannedItems.first.assetNo}');
+              }
+              
               _lastScanSuccess = state;
             }
 
-            if (state is ScanInitial && _lastScanSuccess == null) {
+            if (state is ScanInitial) {
               print(
-                '🔍 ScanPage Builder: Showing ready state (first time only)',
+                '🔍 ScanPage Builder: Showing ready state',
               );
               return const ScanReadyWidget();
             } else if (state is ScanLoading) {
               print('🔍 ScanPage Builder: Showing loading view');
+              // Don't clear _lastScanSuccess here - wait for new ScanSuccess
               return _buildLoadingView(context, l10n);
             } else if (state is ScanLocationSelection) {
               print('🔍 ScanPage Builder: Showing location selection view');
@@ -177,8 +190,21 @@ class _ScanPageViewState extends State<ScanPageView> {
                 '🔍 ScanPage Builder: Selected location = ${scanState.selectedLocation}',
               );
 
+              // ✅ Debug: Check what we're passing to ScanListView
+              final itemsToShow = scanState.scannedItems;
+              print('🔍 ScanPage Builder: Passing ${itemsToShow.length} items to ScanListView');
+              
+              if (itemsToShow.isNotEmpty) {
+                print('🔍 ScanPage Builder: Sample items:');
+                for (int i = 0; i < itemsToShow.length && i < 3; i++) {
+                  print('  [$i] ${itemsToShow[i].assetNo} - ${itemsToShow[i].displayName}');
+                }
+              } else {
+                print('🔍 ScanPage Builder: ❌ EMPTY ITEMS LIST - This is the problem!');
+              }
+
               return ScanListView(
-                scannedItems: scanState.scannedItems,
+                scannedItems: itemsToShow,
                 onRefresh: () {
                   print('🔍 ScanPage: Pull to refresh triggered');
                   context.read<ScanBloc>().add(const RefreshScanResults());
@@ -195,9 +221,9 @@ class _ScanPageViewState extends State<ScanPageView> {
                 '🔍 ScanPage Builder: Asset updating (${state.assetNo}) - showing current state with loading',
               );
 
-              // ใช้ _lastScanSuccess ที่เก็บไว้
+              // ใช้ _lastScanSuccess ที่เก็บไว้ (เฉพาะเมื่อไม่ได้อยู่ในระหว่าง scan ใหม่)
               if (_lastScanSuccess != null) {
-                print('🔍 ScanPage Builder: Using last ScanSuccess state');
+                print('🔍 ScanPage Builder: Using last ScanSuccess state with loading overlay');
                 return ScanListView(
                   scannedItems: _lastScanSuccess!.scannedItems,
                   isLoading: true, // แสดง loading indicator
@@ -208,7 +234,7 @@ class _ScanPageViewState extends State<ScanPageView> {
               }
               return _buildLoadingView(context, l10n);
             }
-            // ✅ เพิ่ม: Handle AssetImages states (ไม่เปลี่ยนหน้า) - ต้องมาก่อน else
+            // ✅ Handle AssetImages states (ไม่เปลี่ยนหน้า) - ต้องมาก่อน else
             else if (state is AssetImagesLoading ||
                 state is AssetImagesLoaded ||
                 state is AssetImagesError) {
@@ -236,16 +262,7 @@ class _ScanPageViewState extends State<ScanPageView> {
               print(
                 '🔍 ScanPage Builder: No last ScanSuccess found for images state',
               );
-              return _lastScanSuccess != null
-                  ? ScanListView(
-                      scannedItems: _lastScanSuccess!.scannedItems,
-                      onRefresh: () {
-                        context.read<ScanBloc>().add(
-                          const RefreshScanResults(),
-                        );
-                      },
-                    )
-                  : const ScanReadyWidget();
+              return const ScanReadyWidget();
             }
             // ✅ แก้ไข: เพิ่ม state handlers ที่ขาดหาย
             else if (state is AssetStatusUpdated) {
@@ -269,9 +286,9 @@ class _ScanPageViewState extends State<ScanPageView> {
               '🔍 ScanPage Builder: Unknown state - trying to use last ScanSuccess: ${state.runtimeType}',
             );
             // ✅ แก้ไข: ถ้าเคยสแกนแล้วให้แสดง ScanListView เสมอ
-            if (_lastScanSuccess != null) {
+            if (_lastScanSuccess != null && _lastScanSuccess!.scannedItems.isNotEmpty) {
               print(
-                '🔍 ScanPage Builder: Using last ScanSuccess for unknown state',
+                '🔍 ScanPage Builder: Using last ScanSuccess (${_lastScanSuccess!.scannedItems.length} items) for unknown state',
               );
               return ScanListView(
                 scannedItems: _lastScanSuccess!.scannedItems,
@@ -280,7 +297,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 },
               );
             }
-            print('🔍 ScanPage Builder: No scan history - showing ready state');
+            print('🔍 ScanPage Builder: No valid scan history - showing ready state');
             return const ScanReadyWidget();
           },
         ),
