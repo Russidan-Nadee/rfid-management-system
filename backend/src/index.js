@@ -20,6 +20,7 @@ const authRoutes = require('./features/auth/authRoutes');
 const exportRoutes = require('./features/export/exportRoutes');
 const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
 const imageRoutes = require('./features/image/image.routes');
+const adminRoutes = require('./features/admin/adminRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -37,6 +38,7 @@ router.use('/auth', authRoutes);
 router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
+router.use('/admin', adminRoutes);
 router.use('/', imageRoutes);
 router.use(require('./features/scan/scanRoutes'));
 
@@ -86,6 +88,7 @@ router.get('/docs', (req, res) => {
          '/dashboard': 'Dashboard statistics and analytics endpoints',
          '/search': 'Search functionality across all entities',
          '/export': 'Data export functionality',
+         '/admin': 'Admin asset management endpoints (requires admin role)',
          '/scan': 'Asset scanning and logging endpoints',
          '/images': 'Image management for assets'
       },
@@ -128,6 +131,19 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/export/history': 'Get export history',
             'DELETE /api/v1/export/jobs/:jobId': 'Cancel export job',
             'GET /api/v1/export/stats': 'Get export statistics'
+         },
+
+         admin: {
+            'GET /api/v1/admin/assets': 'Get all assets with full details (admin only)',
+            'GET /api/v1/admin/assets/search': 'Search assets with advanced filters (admin only)',
+            'GET /api/v1/admin/assets/:assetNo': 'Get specific asset details (admin only)',
+            'PUT /api/v1/admin/assets/:assetNo': 'Update asset details (admin only)',
+            'DELETE /api/v1/admin/assets/:assetNo': 'Delete asset (admin only)',
+            'PUT /api/v1/admin/assets/bulk-update': 'Bulk update multiple assets (admin only)',
+            'DELETE /api/v1/admin/assets/bulk-delete': 'Bulk delete multiple assets (admin only)',
+            'GET /api/v1/admin/statistics': 'Get comprehensive asset statistics (admin only)',
+            'GET /api/v1/admin/master-data': 'Get master data for dropdowns (admin only)',
+            'GET /api/v1/admin/health': 'Admin service health check (admin only)'
          },
 
          images: {
@@ -254,6 +270,7 @@ router.get('/status', (req, res) => {
          dashboard: 'Active',
          search: 'Active',
          export: 'Active',
+         admin: 'Active',
          scan: 'Active',
          images: 'Active'
       }

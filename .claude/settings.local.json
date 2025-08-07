@@ -8,7 +8,8 @@
       "Bash(pgrep:*)",
       "Bash(tasklist:*)",
       "Bash(npx kill-port:*)",
-      "Bash(timeout 10s npm start)"
+      "Bash(timeout 10s npm start)",
+      "Bash(dart:*)"
     ],
     "deny": []
   }

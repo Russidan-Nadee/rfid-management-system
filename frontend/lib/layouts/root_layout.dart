@@ -8,6 +8,7 @@ import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
+import '../features/admin/presentation/pages/admin_page.dart';
 import '../features/setting/presentation/bloc/settings_bloc.dart';
 import '../features/setting/presentation/bloc/settings_state.dart';
 import '../app/app_constants.dart';
@@ -48,7 +49,7 @@ class _RootLayoutState extends State<RootLayout> {
   int _getDestinationsCount() {
     int count = 3; // Dashboard, Search, Settings (always present)
     if (_isMobile) count++; // Scan
-    if (!_isMobile) count++; // Export
+    if (!_isMobile) count += 2; // Export, Admin
     return count;
   }
 
@@ -99,6 +100,17 @@ class _RootLayoutState extends State<RootLayout> {
           icon: const Icon(Icons.upload_outlined),
           selectedIcon: const Icon(Icons.upload_rounded),
           label: appLoc.export,
+        ),
+      );
+    }
+
+    // Admin - Desktop/Web only
+    if (!_isMobile) {
+      destinations.add(
+        NavigationDestination(
+          icon: const Icon(Icons.admin_panel_settings_outlined),
+          selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
+          label: 'Admin',
         ),
       );
     }
@@ -161,6 +173,17 @@ class _RootLayoutState extends State<RootLayout> {
       );
     }
 
+    // Admin - Desktop/Web only
+    if (!_isMobile) {
+      destinations.add(
+        NavigationRailDestination(
+          icon: const Icon(Icons.admin_panel_settings_outlined),
+          selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
+          label: const Text('Admin'),
+        ),
+      );
+    }
+
     // Settings - All platforms
     destinations.add(
       NavigationRailDestination(
@@ -191,6 +214,11 @@ class _RootLayoutState extends State<RootLayout> {
     // Export - Desktop/Web only
     if (!_isMobile) {
       pages.add(const ExportPage());
+    }
+
+    // Admin - Desktop/Web only
+    if (!_isMobile) {
+      pages.add(const AdminPage());
     }
 
     // Settings - All platforms
