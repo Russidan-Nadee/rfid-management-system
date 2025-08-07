@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(where mysql)",
+      "Bash(npx prisma db execute:*)",
+      "Bash(npm start)",
+      "Bash(pgrep:*)",
+      "Bash(tasklist:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(timeout 10s npm start)"
     ],
     "deny": []
   }

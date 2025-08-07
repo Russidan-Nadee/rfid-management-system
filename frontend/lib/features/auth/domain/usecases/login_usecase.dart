@@ -7,18 +7,18 @@ class LoginUseCase {
 
   LoginUseCase(this.repository);
 
-  Future<LoginResult> execute(String username, String password) async {
+  Future<LoginResult> execute(String ldapUsername, String password) async {
     // Validation
-    if (username.isEmpty) {
-      return LoginResult.failure('Username is required');
+    if (ldapUsername.isEmpty) {
+      return LoginResult.failure('LDAP username is required');
     }
 
     if (password.isEmpty) {
       return LoginResult.failure('Password is required');
     }
 
-    if (username.length < 3) {
-      return LoginResult.failure('Username must be at least 3 characters');
+    if (ldapUsername.length < 3) {
+      return LoginResult.failure('LDAP username must be at least 3 characters');
     }
 
     if (password.length < 4) {
@@ -27,7 +27,7 @@ class LoginUseCase {
 
     // Execute login
     try {
-      final result = await repository.login(username.trim(), password);
+      final result = await repository.login(ldapUsername.trim(), password);
 
       if (result.success && result.user != null) {
         return LoginResult.success(result.user!);

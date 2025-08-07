@@ -218,22 +218,35 @@ model mst_unit {
 
 model mst_user {
   user_id              String                 @id @db.VarChar(20)
-  username             String?                @unique(map: "uk_mst_user_username") @db.VarChar(100)
   full_name            String?                @db.VarChar(255)
-  password             String                 @default("1234") @db.VarChar(255)
-  role                 mst_user_role          @default(user)
-  created_at           DateTime?              @default(now()) @db.DateTime(0)
-  updated_at           DateTime?              @default(now()) @db.DateTime(0)
-  last_login           DateTime?              @db.DateTime(0)
+  
+  // Employee Information from Employee Information System
+  employee_id          String?                @unique @db.VarChar(20)
+  department           String?                @db.VarChar(100)
+  position             String?                @db.VarChar(100)
+  company_role         String?                @db.VarChar(50)
+  email               String?                @db.VarChar(255)
+  
+  // System role (THIS system only - for permissions)
+  role                 mst_user_role          @default(viewer)
+  
+  // Status and audit
+  is_active           Boolean                @default(true)
+  created_at          DateTime?              @default(now()) @db.DateTime(0)
+  updated_at          DateTime?              @default(now()) @db.DateTime(0)
+  last_login          DateTime?              @db.DateTime(0)
+  
+  // Relations
   asset_master         asset_master[]
   asset_scan_log       asset_scan_log[]
   asset_status_history asset_status_history[]
   export_history       export_history[]
   user_login_log       user_login_log[]
 
+  @@index([employee_id], map: "idx_mst_user_employee_id")
   @@index([full_name], map: "idx_mst_user_full_name")
   @@index([role], map: "idx_mst_user_role")
-  @@index([username], map: "idx_mst_user_username")
+  @@index([is_active], map: "idx_mst_user_active")
 }
 
 model sequelizemeta {
@@ -273,7 +286,7 @@ enum user_login_log_event_type {
 enum mst_user_role {
   admin
   manager
-  user
+  staff
   viewer
 }
 

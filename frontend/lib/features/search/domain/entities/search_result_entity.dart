@@ -84,15 +84,16 @@ class SearchResultEntity extends Equatable {
   factory SearchResultEntity.user({
     required String userId,
     required String fullName,
-    required String username,
+    required String? employeeId,
     required Map<String, dynamic> userData,
     double? score,
     Map<String, dynamic>? highlights,
   }) {
+    final displayId = employeeId ?? userId;
     return SearchResultEntity(
       id: userId,
-      title: fullName.isNotEmpty ? fullName : username,
-      subtitle: username,
+      title: fullName.isNotEmpty ? fullName : displayId,
+      subtitle: displayId,
       entityType: 'users',
       data: userData,
       relevanceScore: score,
@@ -110,7 +111,7 @@ class SearchResultEntity extends Equatable {
   String? get plantCode => data['plant_code'];
   String? get locationCode => data['location_code'];
   String? get unitCode => data['unit_code'];
-  String? get username => entityType == 'users' ? data['username'] : null;
+  String? get employeeId => entityType == 'users' ? data['employee_id'] : null;
   String? get fullName => entityType == 'users' ? data['full_name'] : null;
   String? get role => entityType == 'users' ? data['role'] : null;
 

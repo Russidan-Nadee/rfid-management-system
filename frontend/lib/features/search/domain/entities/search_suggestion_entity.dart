@@ -82,15 +82,15 @@ class SearchSuggestionEntity extends Equatable {
   }
 
   factory SearchSuggestionEntity.user({
-    required String username,
+    required String employeeId,
     String? fullName,
     String? role,
     double? score,
   }) {
     return SearchSuggestionEntity(
-      value: username,
-      type: 'username',
-      label: fullName != null ? '$fullName ($username)' : username,
+      value: employeeId,
+      type: 'employee_id',
+      label: fullName != null ? '$fullName ($employeeId)' : employeeId,
       entity: 'users',
       score: score,
       category: 'users',
@@ -168,7 +168,7 @@ class SearchSuggestionEntity extends Equatable {
       case 'dept_code':
       case 'department':
         return '🏢';
-      case 'username':
+      case 'employee_id':
       case 'user':
         return '👤';
       case 'popular':
@@ -223,7 +223,7 @@ class SearchSuggestionEntity extends Equatable {
       case 'location_code':
       case 'location':
         return 7;
-      case 'username':
+      case 'employee_id':
       case 'user':
         return 8;
       case 'recent':
@@ -265,7 +265,7 @@ class SearchSuggestionEntity extends Equatable {
   /// Check if suggestion is user-related
   bool get isUserRelated {
     return type.toLowerCase().contains('user') ||
-        type == 'username' ||
+        type == 'employee_id' ||
         entity == 'users';
   }
 
@@ -315,7 +315,7 @@ class SearchSuggestionEntity extends Equatable {
         return 'Plant Code';
       case 'location_code':
         return 'Location Code';
-      case 'username':
+      case 'employee_id':
         return 'Username';
       case 'recent':
         return 'Recent Search';

@@ -53,7 +53,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const LoginLoading());
 
     try {
-      final result = await loginUseCase.execute(event.username, event.password);
+      final result = await loginUseCase.execute(event.ldapUsername, event.password);
 
       if (result.success && result.user != null) {
         emit(LoginSuccess(user: result.user!));

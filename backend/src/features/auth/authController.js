@@ -6,11 +6,19 @@ const authService = new AuthService();
 const authController = {
    async login(req, res) {
       try {
-         const { username, password } = req.body;
+         const { ldap_username, password } = req.body;
          const ipAddress = req.ip || req.connection.remoteAddress;
          const userAgent = req.get('User-Agent');
 
-         const result = await authService.login(username, password, ipAddress, userAgent);
+         if (!ldap_username || !password) {
+            return res.status(400).json({
+               success: false,
+               message: 'LDAP username and password are required',
+               timestamp: new Date().toISOString()
+            });
+         }
+
+         const result = await authService.login(ldap_username, password, ipAddress, userAgent);
 
          res.status(200).json({
             success: true,

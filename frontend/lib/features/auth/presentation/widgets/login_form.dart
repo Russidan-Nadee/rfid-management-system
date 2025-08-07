@@ -16,14 +16,14 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
+  final _ldapUsernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isPasswordVisible = false;
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _ldapUsernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -32,7 +32,7 @@ class _LoginFormState extends State<LoginForm> {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthBloc>().add(
         LoginRequested(
-          username: _usernameController.text.trim(),
+          ldapUsername: _ldapUsernameController.text.trim(),
           password: _passwordController.text,
           rememberMe: _rememberMe,
         ),
@@ -51,8 +51,8 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Username Field
-              _buildUsernameField(isLoading),
+              // LDAP Username Field
+              _buildLdapUsernameField(isLoading),
 
               const SizedBox(height: 16),
 
@@ -80,20 +80,28 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  Widget _buildUsernameField(bool isLoading) {
+  Widget _buildLdapUsernameField(bool isLoading) {
     return TextFormField(
-      controller: _usernameController,
+      controller: _ldapUsernameController,
       enabled: !isLoading,
       decoration: InputDecoration(
-        labelText: 'Username',
-        hintText: 'Enter your username',
-        prefixIcon: const Icon(Icons.person_outline),
+        labelText: 'LDAP Username',
+        hintText: 'Enter your LDAP username (e.g., john.doe)',
+        prefixIcon: const Icon(Icons.badge_outlined),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[50],
       ),
       textInputAction: TextInputAction.next,
-      validator: Validators.username,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'LDAP username is required';
+        }
+        if (value.trim().length < 3) {
+          return 'LDAP username must be at least 3 characters';
+        }
+        return null;
+      },
       onFieldSubmitted: (_) => _handleLogin(),
     );
   }

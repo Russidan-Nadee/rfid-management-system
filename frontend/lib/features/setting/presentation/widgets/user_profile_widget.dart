@@ -62,7 +62,7 @@ class UserProfileWidget extends StatelessWidget {
                             const SizedBox(height: 4),
 
                             Text(
-                              '@${user.username}',
+                              '@${user.employeeId ?? user.userId}',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: theme.colorScheme.onSurface.withValues(

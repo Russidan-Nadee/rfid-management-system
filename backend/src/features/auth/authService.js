@@ -1,7 +1,8 @@
 // Path: src/services/authService.js
 const AuthModel = require('./authModel');
 const LoginLogModel = require('../../core/auth/loginLogModel');
-const { hashPassword, comparePassword } = require('../../core/auth/passwordUtils');
+const MockLdapService = require('../../services/ldap/mockLdapService');
+const MockEmployeeInfoService = require('../../services/employee/mockEmployeeInfoService');
 const { generateToken, verifyToken } = require('../../core/auth/jwtUtils');
 const authConfig = require('../../core/auth/authConfig');
 const crypto = require('crypto');
@@ -10,35 +11,46 @@ class AuthService {
    constructor() {
       this.authModel = new AuthModel();
       this.loginLogModel = new LoginLogModel();
+      this.ldapService = new MockLdapService();
+      this.employeeService = new MockEmployeeInfoService();
    }
 
-   async login(username, password, ipAddress, userAgent) {
+   async login(ldapUsername, password, ipAddress, userAgent) {
       try {
-         // Check failed login attempts
-         const failedAttempts = await this.loginLogModel.getFailedLoginAttempts(username);
+         // Check failed login attempts (using ldapUsername for tracking)
+         const failedAttempts = await this.loginLogModel.getFailedLoginAttempts(ldapUsername);
          if (failedAttempts >= authConfig.password.maxFailedAttempts) {
             throw new Error('Account temporarily locked due to too many failed attempts');
          }
 
-         // Find user
-         const user = await this.authModel.findUserByUsername(username);
-         if (!user) {
-            await this.logFailedLogin(null, username, ipAddress, userAgent, 'User not found');
-            throw new Error('Invalid username or password');
+         // Step 1: LDAP Authentication
+         const ldapResult = await this.ldapService.authenticate(ldapUsername, password);
+         if (!ldapResult.success) {
+            await this.logFailedLogin(null, ldapUsername, ipAddress, userAgent, 'LDAP authentication failed');
+            throw new Error('Invalid LDAP credentials');
          }
 
-         // Compare password
-         const isValidPassword = await comparePassword(password, user.password);
-         if (!isValidPassword) {
-            await this.logFailedLogin(user.user_id, username, ipAddress, userAgent, 'Invalid password');
-            throw new Error('Invalid username or password');
+         // Step 2: Get Employee Information using employee_id from LDAP
+         const employeeResult = await this.employeeService.getEmployeeById(ldapResult.employee_id);
+         if (!employeeResult.success) {
+            await this.logFailedLogin(null, ldapUsername, ipAddress, userAgent, 'Employee not found in EIS');
+            throw new Error('Employee information not found');
+         }
+
+         // Step 3: Create or update user in database with employee data
+         const user = await this.authModel.createOrUpdateUser(employeeResult.employee);
+
+         // Check if user is active
+         if (!user.is_active) {
+            await this.logFailedLogin(user.user_id, ldapUsername, ipAddress, userAgent, 'User account inactive');
+            throw new Error('User account is inactive');
          }
 
          // Generate session
          const sessionId = crypto.randomUUID();
          const tokenPayload = {
             userId: user.user_id,
-            username: user.username,
+            employeeId: user.employee_id,
             role: user.role,
             sessionId: sessionId
          };
@@ -48,10 +60,10 @@ class AuthService {
          // Update last login
          await this.authModel.updateLastLogin(user.user_id);
 
-         // Log successful login
+         // Log successful login (store ldapUsername for tracking, not in user record)
          await this.loginLogModel.logLoginAttempt({
             user_id: user.user_id,
-            username: user.username,
+            username: ldapUsername, // LDAP username for logging only
             event_type: 'login',
             ip_address: ipAddress,
             user_agent: userAgent,
@@ -63,9 +75,14 @@ class AuthService {
             token,
             user: {
                user_id: user.user_id,
-               username: user.username,
+               employee_id: user.employee_id,
                full_name: user.full_name,
-               role: user.role
+               department: user.department,
+               position: user.position,
+               company_role: user.company_role,
+               email: user.email,
+               role: user.role, // System role for permissions
+               is_active: user.is_active
             },
             sessionId
          };
@@ -105,39 +122,8 @@ class AuthService {
    }
 
    async changePassword(userId, currentPassword, newPassword) {
-      try {
-         const user = await this.authModel.findUserByUsername(userId);
-         if (!user) {
-            throw new Error('User not found');
-         }
-
-         // Verify current password
-         const isValidPassword = await comparePassword(currentPassword, user.password);
-         if (!isValidPassword) {
-            throw new Error('Current password is incorrect');
-         }
-
-         // Hash new password
-         const hashedNewPassword = await hashPassword(newPassword);
-
-         // Update password
-         await this.authModel.updatePassword(userId, hashedNewPassword);
-
-         // Log password change
-         await this.loginLogModel.logLoginAttempt({
-            user_id: userId,
-            username: user.username,
-            event_type: 'password_change',
-            ip_address: null,
-            user_agent: null,
-            session_id: null,
-            success: true
-         });
-
-         return { success: true, message: 'Password changed successfully' };
-      } catch (error) {
-         throw error;
-      }
+      // Password changes are no longer supported since authentication is via LDAP
+      throw new Error('Password changes must be done through the company LDAP system');
    }
 
    async logFailedLogin(userId, username, ipAddress, userAgent, reason) {

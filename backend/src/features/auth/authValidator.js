@@ -22,12 +22,12 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 const loginValidator = [
-   body('username')
+   body('ldap_username')
       .trim()
       .notEmpty()
-      .withMessage('Username is required')
-      .isLength({ min: 3, max: 50 })
-      .withMessage('Username must be between 3 and 50 characters'),
+      .withMessage('LDAP username is required')
+      .isLength({ min: 3, max: 100 })
+      .withMessage('LDAP username must be between 3 and 100 characters'),
 
    body('password')
       .notEmpty()

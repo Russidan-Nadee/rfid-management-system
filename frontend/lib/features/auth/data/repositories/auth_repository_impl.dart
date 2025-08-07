@@ -16,9 +16,9 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<AuthResult> login(String username, String password) async {
+  Future<AuthResult> login(String ldapUsername, String password) async {
     try {
-      final request = LoginRequest(username: username, password: password);
+      final request = LoginRequest(ldapUsername: ldapUsername, password: password);
       final response = await remoteDataSource.login(request);
 
       // Save authentication data

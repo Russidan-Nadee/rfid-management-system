@@ -80,9 +80,9 @@ class ResultProcessor {
           break;
 
         case 'users':
-          if (result.username != null) {
-            highlights['username'] = _highlightText(
-              result.username!,
+          if (result.employeeId != null) {
+            highlights['employee_id'] = _highlightText(
+              result.employeeId!,
               queryTerms,
             );
           }
@@ -385,8 +385,8 @@ class ResultProcessor {
         case 'location_code':
           row[key] = result.locationCode ?? '';
           break;
-        case 'username':
-          row[key] = result.username ?? '';
+        case 'employee_id':
+          row[key] = result.employeeId ?? '';
           break;
         case 'role':
           row[key] = result.role ?? '';

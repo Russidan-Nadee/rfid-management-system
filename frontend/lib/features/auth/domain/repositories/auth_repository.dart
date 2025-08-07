@@ -2,7 +2,7 @@
 import '../entities/user_entity.dart';
 
 abstract class AuthRepository {
-  Future<AuthResult> login(String username, String password);
+  Future<AuthResult> login(String ldapUsername, String password);
   Future<void> logout();
   Future<UserEntity?> getCurrentUser();
   Future<String?> getCurrentUserId();
