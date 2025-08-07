@@ -45,25 +45,32 @@ class AdminPageView extends StatelessWidget {
         title: const Text('Admin - Asset Management'),
         automaticallyImplyLeading: false,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AssetSearchWidget(
-              onSearch: ({searchTerm, status, plantCode, locationCode}) {
-                context.read<AdminBloc>().add(SearchAssets(
-                  searchTerm: searchTerm,
-                  status: status,
-                  plantCode: plantCode,
-                  locationCode: locationCode,
-                ));
-              },
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: BlocConsumer<AdminBloc, AdminState>(
-                listener: (context, state) {
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth >= 1200;
+          final isTablet = constraints.maxWidth >= 768;
+          final padding = isDesktop ? 24.0 : (isTablet ? 16.0 : 12.0);
+          
+          return Padding(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AssetSearchWidget(
+                  constraints: constraints,
+                  onSearch: ({searchTerm, status, plantCode, locationCode}) {
+                    context.read<AdminBloc>().add(SearchAssets(
+                      searchTerm: searchTerm,
+                      status: status,
+                      plantCode: plantCode,
+                      locationCode: locationCode,
+                    ));
+                  },
+                ),
+                const SizedBox(height: 24),
+                Expanded(
+                  child: BlocConsumer<AdminBloc, AdminState>(
+                    listener: (context, state) {
                   if (state is AdminError) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -185,8 +192,10 @@ class AdminPageView extends StatelessWidget {
                 },
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

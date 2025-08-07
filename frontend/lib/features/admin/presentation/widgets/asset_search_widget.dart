@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AssetSearchWidget extends StatefulWidget {
+  final BoxConstraints? constraints;
   final Function({
     String? searchTerm,
     String? status,
@@ -10,6 +11,7 @@ class AssetSearchWidget extends StatefulWidget {
 
   const AssetSearchWidget({
     super.key,
+    this.constraints,
     required this.onSearch,
   });
 
@@ -45,55 +47,193 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      labelText: 'Search by Asset No, Description, Serial No...',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
-                    ),
-                    onSubmitted: (_) => _performSearch(),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedStatus,
-                    decoration: const InputDecoration(
-                      labelText: 'Status',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All')),
-                      DropdownMenuItem(value: 'A', child: Text('Active')),
-                      DropdownMenuItem(value: 'I', child: Text('Inactive')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedStatus = value;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: _performSearch,
-                  child: const Text('Search'),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: _clearSearch,
-                  child: const Text('Clear'),
-                ),
-              ],
-            ),
+            _buildResponsiveLayout(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildResponsiveLayout() {
+    final screenWidth = widget.constraints?.maxWidth ?? MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1200;
+    
+    if (isMobile) {
+      return _buildMobileLayout();
+    } else if (isTablet) {
+      return _buildTabletLayout();
+    } else {
+      return _buildDesktopLayout();
+    }
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            labelText: 'Search by Asset No, Description, Serial No...',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.search),
+          ),
+          onSubmitted: (_) => _performSearch(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                value: _selectedStatus,
+                decoration: const InputDecoration(
+                  labelText: 'Status',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('All')),
+                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
+                  DropdownMenuItem(value: 'C', child: Text('Checked')),
+                  DropdownMenuItem(value: 'I', child: Text('Inactive')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedStatus = value;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _performSearch,
+                child: const Text('Search'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _clearSearch,
+                child: const Text('Clear'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabletLayout() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  labelText: 'Search by Asset No, Description, Serial No...',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onSubmitted: (_) => _performSearch(),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: DropdownButtonFormField<String>(
+                value: _selectedStatus,
+                decoration: const InputDecoration(
+                  labelText: 'Status',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: null, child: Text('All')),
+                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
+                  DropdownMenuItem(value: 'C', child: Text('Checked')),
+                  DropdownMenuItem(value: 'I', child: Text('Inactive')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedStatus = value;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton(
+              onPressed: _performSearch,
+              child: const Text('Search'),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              onPressed: _clearSearch,
+              child: const Text('Clear'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(
+              labelText: 'Search by Asset No, Description, Serial No...',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.search),
+            ),
+            onSubmitted: (_) => _performSearch(),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: _selectedStatus,
+            decoration: const InputDecoration(
+              labelText: 'Status',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('All')),
+              DropdownMenuItem(value: 'A', child: Text('Awaiting')),
+              DropdownMenuItem(value: 'C', child: Text('Checked')),
+              DropdownMenuItem(value: 'I', child: Text('Inactive')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedStatus = value;
+              });
+            },
+          ),
+        ),
+        const SizedBox(width: 16),
+        ElevatedButton(
+          onPressed: _performSearch,
+          child: const Text('Search'),
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          onPressed: _clearSearch,
+          child: const Text('Clear'),
+        ),
+      ],
     );
   }
 

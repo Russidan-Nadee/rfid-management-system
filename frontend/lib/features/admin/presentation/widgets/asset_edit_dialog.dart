@@ -25,10 +25,18 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController(text: widget.asset.description);
-    _serialNoController = TextEditingController(text: widget.asset.serialNo ?? '');
-    _inventoryNoController = TextEditingController(text: widget.asset.inventoryNo ?? '');
-    _quantityController = TextEditingController(text: widget.asset.quantity?.toString() ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.asset.description,
+    );
+    _serialNoController = TextEditingController(
+      text: widget.asset.serialNo ?? '',
+    );
+    _inventoryNoController = TextEditingController(
+      text: widget.asset.inventoryNo ?? '',
+    );
+    _quantityController = TextEditingController(
+      text: widget.asset.quantity?.toString() ?? '',
+    );
     _status = widget.asset.status;
   }
 
@@ -43,10 +51,13 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final dialogWidth = screenWidth < 600 ? screenWidth * 0.9 : 400.0;
+
     return AlertDialog(
       title: Text('Edit Asset: ${widget.asset.assetNo}'),
       content: SizedBox(
-        width: 400,
+        width: dialogWidth,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -82,7 +93,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                   labelText: 'Quantity',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -92,7 +105,8 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                   border: OutlineInputBorder(),
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'A', child: Text('Active')),
+                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
+                  DropdownMenuItem(value: 'C', child: Text('Checked')),
                   DropdownMenuItem(value: 'I', child: Text('Inactive')),
                 ],
                 onChanged: (value) {
@@ -118,9 +132,15 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                       const SizedBox(height: 8),
                       Text('Asset No: ${widget.asset.assetNo}'),
                       Text('EPC Code: ${widget.asset.epcCode}'),
-                      Text('Plant: ${widget.asset.plantDescription ?? widget.asset.plantCode}'),
-                      Text('Location: ${widget.asset.locationDescription ?? widget.asset.locationCode}'),
-                      Text('Unit: ${widget.asset.unitName ?? widget.asset.unitCode}'),
+                      Text(
+                        'Plant: ${widget.asset.plantDescription ?? widget.asset.plantCode}',
+                      ),
+                      Text(
+                        'Location: ${widget.asset.locationDescription ?? widget.asset.locationCode}',
+                      ),
+                      Text(
+                        'Unit: ${widget.asset.unitName ?? widget.asset.unitCode}',
+                      ),
                     ],
                   ),
                 ),
@@ -134,10 +154,7 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _handleUpdate,
-          child: const Text('Update'),
-        ),
+        ElevatedButton(onPressed: _handleUpdate, child: const Text('Update')),
       ],
     );
   }
@@ -145,16 +162,16 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   void _handleUpdate() {
     final request = UpdateAssetRequest(
       assetNo: widget.asset.assetNo,
-      description: _descriptionController.text.trim().isNotEmpty 
+      description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
           : null,
-      serialNo: _serialNoController.text.trim().isNotEmpty 
+      serialNo: _serialNoController.text.trim().isNotEmpty
           ? _serialNoController.text.trim()
           : null,
-      inventoryNo: _inventoryNoController.text.trim().isNotEmpty 
+      inventoryNo: _inventoryNoController.text.trim().isNotEmpty
           ? _inventoryNoController.text.trim()
           : null,
-      quantity: _quantityController.text.trim().isNotEmpty 
+      quantity: _quantityController.text.trim().isNotEmpty
           ? double.tryParse(_quantityController.text.trim())
           : null,
       status: _status,
