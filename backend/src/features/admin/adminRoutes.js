@@ -72,7 +72,7 @@ router.put('/assets/:assetNo',
 
 /**
  * @route   DELETE /admin/assets/:assetNo
- * @desc    Delete specific asset
+ * @desc    Deactivate specific asset (soft delete - sets status to Inactive)
  * @access  Admin only
  */
 router.delete('/assets/:assetNo',

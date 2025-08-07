@@ -116,7 +116,7 @@ class AdminController {
       try {
          const { assetNo } = req.params;
          const updateData = req.body;
-         const updatedBy = req.user?.user_id || 'admin';
+         const updatedBy = req.user?.user_id || '999999'; // Default to admin user
 
          if (!assetNo) {
             return res.status(400).json({
@@ -161,7 +161,7 @@ class AdminController {
    deleteAsset = async (req, res) => {
       try {
          const { assetNo } = req.params;
-         const deletedBy = req.user?.user_id || 'admin';
+         const deletedBy = req.user?.user_id || '999999'; // Default to admin user
 
          if (!assetNo) {
             return res.status(400).json({
@@ -176,7 +176,8 @@ class AdminController {
          res.status(200).json({
             success: true,
             message: result.message,
-            deleted_asset_no: result.deletedAssetNo
+            deactivated_asset_no: result.deactivatedAssetNo,
+            deactivated_at: result.deactivatedAt
          });
       } catch (error) {
          console.error('Error in deleteAsset:', error);
@@ -243,7 +244,7 @@ class AdminController {
    bulkUpdateAssets = async (req, res) => {
       try {
          const { asset_numbers, update_data } = req.body;
-         const updatedBy = req.user?.user_id || 'admin';
+         const updatedBy = req.user?.user_id || '999999'; // Default to admin user
 
          if (!asset_numbers || !Array.isArray(asset_numbers) || asset_numbers.length === 0) {
             return res.status(400).json({
@@ -307,7 +308,7 @@ class AdminController {
    bulkDeleteAssets = async (req, res) => {
       try {
          const { asset_numbers } = req.body;
-         const deletedBy = req.user?.user_id || 'admin';
+         const deletedBy = req.user?.user_id || '999999'; // Default to admin user
 
          if (!asset_numbers || !Array.isArray(asset_numbers) || asset_numbers.length === 0) {
             return res.status(400).json({

@@ -146,13 +146,14 @@ class AdminService {
             throw new Error(canDelete.reason);
          }
 
-         // Delete asset
-         await this.adminModel.deleteAsset(assetNo);
+         // Deactivate asset (soft delete)
+         const result = await this.adminModel.deleteAsset(assetNo, deletedBy);
 
          return {
             success: true,
-            message: 'Asset deleted successfully',
-            deletedAssetNo: assetNo
+            message: 'Asset deactivated successfully',
+            deactivatedAssetNo: result.deactivatedAssetNo,
+            deactivatedAt: result.deactivatedAt
          };
       } catch (error) {
          console.error('Error deleting asset:', error);
@@ -229,36 +230,20 @@ class AdminService {
    }
 
    async canDeleteAsset(assetNo) {
-      // Business rules for asset deletion
+      // Business rules for asset deactivation (soft delete)
       try {
-         // Example: Check if asset has been scanned recently (within last 7 days)
-         const recentScans = await this.adminModel.prisma.asset_scan_log.count({
-            where: {
-               asset_no: assetNo,
-               scanned_at: {
-                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
-               }
-            }
-         });
-
-         if (recentScans > 0) {
-            return {
-               allowed: false,
-               reason: 'Asset has been scanned recently. Please wait or mark as inactive instead.'
-            };
-         }
-
-         // Add more business rules here as needed
+         // Since we're doing soft delete, we can allow deactivation even with recent scans
+         // Add any specific business rules here if needed
          
          return {
             allowed: true,
             reason: null
          };
       } catch (error) {
-         console.error('Error checking delete permission:', error);
+         console.error('Error checking deactivation permission:', error);
          return {
             allowed: false,
-            reason: 'Unable to verify delete permissions'
+            reason: 'Unable to verify deactivation permissions'
          };
       }
    }

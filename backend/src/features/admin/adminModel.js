@@ -163,34 +163,79 @@ class AdminModel {
       });
    }
 
-   async deleteAsset(assetNo) {
+   async deleteAsset(assetNo, deletedBy) {
+      console.log('AdminModel.deleteAsset called with:', { assetNo, deletedBy });
+      
       return await this.prisma.$transaction(async (tx) => {
-         // Check if asset exists
-         const asset = await tx.asset_master.findUnique({
-            where: { asset_no: assetNo }
-         });
+         try {
+            // Check if asset exists
+            console.log('Checking if asset exists:', assetNo);
+            const asset = await tx.asset_master.findUnique({
+               where: { asset_no: assetNo }
+            });
 
-         if (!asset) {
-            throw new Error('Asset not found');
+            if (!asset) {
+               throw new Error('Asset not found');
+            }
+
+            console.log('Asset found:', asset.asset_no, 'current status:', asset.status);
+
+            const currentTime = new Date();
+
+            // Set status to 'I' (Inactive) and save deactivation timestamp
+            console.log('Updating asset status to I');
+            const updatedAsset = await tx.asset_master.update({
+               where: { asset_no: assetNo },
+               data: {
+                  status: 'I',
+                  deactivated_at: currentTime
+               }
+            });
+
+            console.log('Asset updated successfully');
+
+            // Log status change to inactive
+            if (asset.status !== 'I') {
+               console.log('Creating status history entry');
+               
+               // Verify user exists before creating status history
+               const userExists = await tx.mst_user.findUnique({
+                  where: { user_id: deletedBy }
+               });
+               
+               if (userExists) {
+                  await tx.asset_status_history.create({
+                     data: {
+                        asset_no: assetNo,
+                        old_status: asset.status,
+                        new_status: 'I',
+                        changed_by: deletedBy,
+                        changed_at: currentTime,
+                        remarks: `Asset deactivated via Admin Panel (soft delete)`
+                     }
+                  });
+                  console.log('Status history created');
+               } else {
+                  console.log('User not found, creating status history without changed_by');
+                  await tx.asset_status_history.create({
+                     data: {
+                        asset_no: assetNo,
+                        old_status: asset.status,
+                        new_status: 'I',
+                        changed_by: null, // Allow null if user doesn't exist
+                        changed_at: currentTime,
+                        remarks: `Asset deactivated via Admin Panel (soft delete) - User not found`
+                     }
+                  });
+               }
+            }
+
+            console.log('Soft delete completed successfully');
+            return { success: true, deactivatedAssetNo: assetNo, deactivatedAt: currentTime };
+         } catch (error) {
+            console.error('Error in deleteAsset transaction:', error);
+            throw error;
          }
-
-         // Delete related records first (if any foreign key constraints)
-         // Delete scan logs
-         await tx.asset_scan_log.deleteMany({
-            where: { asset_no: assetNo }
-         });
-
-         // Delete status history
-         await tx.asset_status_history.deleteMany({
-            where: { asset_no: assetNo }
-         });
-
-         // Finally delete the asset
-         await tx.asset_master.delete({
-            where: { asset_no: assetNo }
-         });
-
-         return { success: true, deletedAssetNo: assetNo };
       });
    }
 
