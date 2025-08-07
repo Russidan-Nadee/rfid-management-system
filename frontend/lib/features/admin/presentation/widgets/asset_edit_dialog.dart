@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/asset_admin_entity.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class AssetEditDialog extends StatefulWidget {
   final AssetAdminEntity asset;
@@ -51,11 +52,12 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final dialogWidth = screenWidth < 600 ? screenWidth * 0.9 : 400.0;
 
     return AlertDialog(
-      title: Text('Edit Asset: ${widget.asset.assetNo}'),
+      title: Text('${l10n.editAssetTitle}: ${widget.asset.assetNo}'),
       content: SizedBox(
         width: dialogWidth,
         child: SingleChildScrollView(
@@ -64,34 +66,34 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
             children: [
               TextField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.descriptionLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _serialNoController,
-                decoration: const InputDecoration(
-                  labelText: 'Serial No',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.serialNoLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _inventoryNoController,
-                decoration: const InputDecoration(
-                  labelText: 'Inventory No',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.inventoryNoLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _quantityController,
-                decoration: const InputDecoration(
-                  labelText: 'Quantity',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.quantityLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -100,14 +102,14 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _status,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.statusLabel,
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
-                  DropdownMenuItem(value: 'C', child: Text('Checked')),
-                  DropdownMenuItem(value: 'I', child: Text('Inactive')),
+                items: [
+                  DropdownMenuItem(value: 'A', child: Text(l10n.statusAwaiting)),
+                  DropdownMenuItem(value: 'C', child: Text(l10n.statusChecked)),
+                  DropdownMenuItem(value: 'I', child: Text(l10n.statusInactive)),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -125,21 +127,21 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Read-only Information:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        l10n.readOnlyInfoTitle,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Text('Asset No: ${widget.asset.assetNo}'),
-                      Text('EPC Code: ${widget.asset.epcCode}'),
+                      Text('${l10n.assetNo}: ${widget.asset.assetNo}'),
+                      Text('${l10n.epcCodeLabel}: ${widget.asset.epcCode}'),
                       Text(
-                        'Plant: ${widget.asset.plantDescription ?? widget.asset.plantCode}',
+                        '${l10n.plantLabel}: ${widget.asset.plantDescription ?? widget.asset.plantCode}',
                       ),
                       Text(
-                        'Location: ${widget.asset.locationDescription ?? widget.asset.locationCode}',
+                        '${l10n.locationLabel}: ${widget.asset.locationDescription ?? widget.asset.locationCode}',
                       ),
                       Text(
-                        'Unit: ${widget.asset.unitName ?? widget.asset.unitCode}',
+                        '${l10n.unitLabel}: ${widget.asset.unitName ?? widget.asset.unitCode}',
                       ),
                     ],
                   ),
@@ -152,9 +154,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
-        ElevatedButton(onPressed: _handleUpdate, child: const Text('Update')),
+        ElevatedButton(onPressed: _handleUpdate, child: Text(l10n.update)),
       ],
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/asset_admin_entity.dart';
 import 'asset_edit_dialog.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class AssetListWidget extends StatelessWidget {
   final List<AssetAdminEntity> assets;
@@ -16,16 +17,18 @@ class AssetListWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
+    
     if (assets.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inventory_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            const Icon(Icons.inventory_outlined, size: 64, color: Colors.grey),
+            const SizedBox(height: 16),
             Text(
-              'No assets found',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              l10n.noAssetsFound,
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
           ],
         ),
@@ -46,6 +49,7 @@ class AssetListWidget extends StatelessWidget {
   }
 
   Widget _buildMobileLayout(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
     return ListView.builder(
       itemCount: assets.length,
       itemBuilder: (context, index) {
@@ -79,13 +83,13 @@ class AssetListWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                    _buildStatusChip(asset.status),
+                    _buildStatusChip(context, asset.status),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _buildInfoRow('Serial No', asset.serialNo ?? '-'),
-                _buildInfoRow('Plant', asset.plantDescription ?? asset.plantCode),
-                _buildInfoRow('Location', asset.locationDescription ?? asset.locationCode),
+                _buildInfoRow(l10n.serialNo, asset.serialNo ?? '-'),
+                _buildInfoRow(l10n.plant, asset.plantDescription ?? asset.plantCode),
+                _buildInfoRow(l10n.location, asset.locationDescription ?? asset.locationCode),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -93,13 +97,13 @@ class AssetListWidget extends StatelessWidget {
                     TextButton.icon(
                       onPressed: () => _showEditDialog(context, asset),
                       icon: const Icon(Icons.edit_outlined, size: 16),
-                      label: const Text('Edit'),
+                      label: Text(l10n.edit),
                     ),
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => _showDeleteDialog(context, asset),
                       icon: const Icon(Icons.delete_outlined, size: 16),
-                      label: const Text('Delete'),
+                      label: Text(l10n.deactivate),
                       style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
                   ],
@@ -113,6 +117,7 @@ class AssetListWidget extends StatelessWidget {
   }
 
   Widget _buildTabletLayout(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
     return ListView.builder(
       itemCount: assets.length,
       itemBuilder: (context, index) {
@@ -147,15 +152,15 @@ class AssetListWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Serial: ${asset.serialNo ?? '-'}', style: const TextStyle(fontSize: 12)),
-                      Text('Plant: ${asset.plantDescription ?? asset.plantCode}', style: const TextStyle(fontSize: 12)),
+                      Text('${l10n.serialNo}: ${asset.serialNo ?? '-'}', style: const TextStyle(fontSize: 12)),
+                      Text('${l10n.plant}: ${asset.plantDescription ?? asset.plantCode}', style: const TextStyle(fontSize: 12)),
                     ],
                   ),
                 ),
                 Expanded(
                   child: Column(
                     children: [
-                      _buildStatusChip(asset.status),
+                      _buildStatusChip(context, asset.status),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -163,12 +168,12 @@ class AssetListWidget extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.edit_outlined, size: 16),
                             onPressed: () => _showEditDialog(context, asset),
-                            tooltip: 'Edit',
+                            tooltip: l10n.edit,
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outlined, size: 16),
                             onPressed: () => _showDeleteDialog(context, asset),
-                            tooltip: 'Delete',
+                            tooltip: l10n.deactivate,
                             color: Colors.red,
                           ),
                         ],
@@ -185,6 +190,7 @@ class AssetListWidget extends StatelessWidget {
   }
 
   Widget _buildDesktopLayout(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final isUltraWide = constraints.maxWidth > 1400;
@@ -195,14 +201,14 @@ class AssetListWidget extends StatelessWidget {
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Asset No')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Serial No')),
-                DataColumn(label: Text('Status')),
-                DataColumn(label: Text('Plant')),
-                DataColumn(label: Text('Location')),
-                DataColumn(label: Text('Actions')),
+              columns: [
+                DataColumn(label: Text(l10n.assetNo)),
+                DataColumn(label: Text(l10n.description)),
+                DataColumn(label: Text(l10n.serialNo)),
+                DataColumn(label: Text(l10n.status)),
+                DataColumn(label: Text(l10n.plant)),
+                DataColumn(label: Text(l10n.location)),
+                DataColumn(label: Text(l10n.actions)),
               ],
               rows: assets.map((asset) => _buildDataRow(context, asset)).toList(),
             ),
@@ -213,6 +219,7 @@ class AssetListWidget extends StatelessWidget {
   }
 
   Widget _buildExpandableTable(BuildContext context, BoxConstraints constraints) {
+    final l10n = AdminLocalizations.of(context);
     // Account for container margins and borders
     final containerMargin = 16.0; // 8px on each side
     final borderWidth = 2.0; // 1px border on each side
@@ -257,13 +264,13 @@ class AssetListWidget extends StatelessWidget {
             ),
           child: Row(
             children: [
-              _buildHeaderCell('Asset No', columnFlexes['assetNo']!),
-              _buildHeaderCell('Description', columnFlexes['description']!),
-              _buildHeaderCell('Serial No', columnFlexes['serialNo']!),
-              _buildHeaderCell('Status', columnFlexes['status']!),
-              _buildHeaderCell('Plant', columnFlexes['plant']!),
-              _buildHeaderCell('Location', columnFlexes['location']!),
-              _buildHeaderCell('Actions', columnFlexes['actions']!),
+              _buildHeaderCell(l10n.assetNo, columnFlexes['assetNo']!),
+              _buildHeaderCell(l10n.description, columnFlexes['description']!),
+              _buildHeaderCell(l10n.serialNo, columnFlexes['serialNo']!),
+              _buildHeaderCell(l10n.status, columnFlexes['status']!),
+              _buildHeaderCell(l10n.plant, columnFlexes['plant']!),
+              _buildHeaderCell(l10n.location, columnFlexes['location']!),
+              _buildHeaderCell(l10n.actions, columnFlexes['actions']!),
             ],
           ),
         ),
@@ -335,6 +342,7 @@ class AssetListWidget extends StatelessWidget {
               columnFlexes['serialNo']!,
             ),
             _buildStatusCell(
+              context,
               asset.status,
               columnFlexes['status']!,
             ),
@@ -379,7 +387,7 @@ class AssetListWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCell(String status, int flex) {
+  Widget _buildStatusCell(BuildContext context, String status, int flex) {
     return Expanded(
       flex: flex,
       child: Container(
@@ -388,7 +396,7 @@ class AssetListWidget extends StatelessWidget {
           border: Border(right: BorderSide(color: Colors.grey.shade200)),
         ),
         child: Center(
-          child: _buildStatusChip(status),
+          child: _buildStatusChip(context, status),
         ),
       ),
     );
@@ -399,6 +407,7 @@ class AssetListWidget extends StatelessWidget {
     AssetAdminEntity asset,
     int flex,
   ) {
+    final l10n = AdminLocalizations.of(context);
     return Expanded(
       flex: flex,
       child: Container(
@@ -410,7 +419,7 @@ class AssetListWidget extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 18),
               onPressed: () => _showEditDialog(context, asset),
-              tooltip: 'Edit Asset',
+              tooltip: l10n.edit,
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
@@ -418,7 +427,7 @@ class AssetListWidget extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.delete_outlined, size: 18),
               onPressed: () => _showDeleteDialog(context, asset),
-              tooltip: 'Delete Asset',
+              tooltip: l10n.deactivate,
               color: Colors.red,
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -456,25 +465,26 @@ class AssetListWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChip(BuildContext context, String status) {
+    final l10n = AdminLocalizations.of(context);
     Color color;
     String text;
     switch (status) {
       case 'A':
         color = Colors.orange;
-        text = 'Awaiting';
+        text = l10n.awaiting;
         break;
       case 'I':
         color = Colors.grey;
-        text = 'Inactive';
+        text = l10n.inactive;
         break;
       case 'C':
         color = Colors.green;
-        text = 'Checked';
+        text = l10n.checked;
         break;
       default:
         color = Colors.grey;
-        text = 'Unknown';
+        text = l10n.unknown;
     }
 
     return Container(
@@ -494,6 +504,7 @@ class AssetListWidget extends StatelessWidget {
   }
 
   DataRow _buildDataRow(BuildContext context, AssetAdminEntity asset) {
+    final l10n = AdminLocalizations.of(context);
     return DataRow(
       cells: [
         DataCell(Text(asset.assetNo)),
@@ -507,7 +518,7 @@ class AssetListWidget extends StatelessWidget {
           ),
         ),
         DataCell(Text(asset.serialNo ?? '-')),
-        DataCell(_buildStatusChip(asset.status)),
+        DataCell(_buildStatusChip(context, asset.status)),
         DataCell(Text(asset.plantDescription ?? asset.plantCode)),
         DataCell(Text(asset.locationDescription ?? asset.locationCode)),
         DataCell(
@@ -517,12 +528,12 @@ class AssetListWidget extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => _showEditDialog(context, asset),
-                tooltip: 'Edit Asset',
+                tooltip: l10n.edit,
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outlined),
                 onPressed: () => _showDeleteDialog(context, asset),
-                tooltip: 'Delete Asset',
+                tooltip: l10n.deactivate,
                 color: Colors.red,
               ),
             ],
@@ -543,18 +554,18 @@ class AssetListWidget extends StatelessWidget {
   }
 
   void _showDeleteDialog(BuildContext context, AssetAdminEntity asset) {
+    final l10n = AdminLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Asset'),
+        title: Text(l10n.deactivateAssetTitle),
         content: Text(
-          'Are you sure you want to delete asset "${asset.assetNo}"?\n\n'
-          'This action cannot be undone.',
+          '${l10n.deactivateConfirmMessage}\n\n${l10n.deactivateExplanation}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -565,7 +576,7 @@ class AssetListWidget extends StatelessWidget {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.deactivate),
           ),
         ],
       ),

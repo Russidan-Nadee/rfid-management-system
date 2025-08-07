@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class AssetSearchWidget extends StatefulWidget {
   final BoxConstraints? constraints;
@@ -33,15 +34,17 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Search Assets',
-              style: TextStyle(
+            Text(
+              l10n.searchTitle,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -69,14 +72,15 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
   }
 
   Widget _buildMobileLayout() {
+    final l10n = AdminLocalizations.of(context);
     return Column(
       children: [
         TextField(
           controller: _searchController,
-          decoration: const InputDecoration(
-            labelText: 'Search by Asset No, Description, Serial No...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.search),
+          decoration: InputDecoration(
+            labelText: l10n.searchHint,
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.search),
           ),
           onSubmitted: (_) => _performSearch(),
         ),
@@ -86,15 +90,15 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
             Expanded(
               child: DropdownButtonFormField<String>(
                 value: _selectedStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.statusFilter,
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('All')),
-                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
-                  DropdownMenuItem(value: 'C', child: Text('Checked')),
-                  DropdownMenuItem(value: 'I', child: Text('Inactive')),
+                items: [
+                  DropdownMenuItem(value: null, child: Text(l10n.statusAll)),
+                  DropdownMenuItem(value: 'A', child: Text(l10n.statusAwaiting)),
+                  DropdownMenuItem(value: 'C', child: Text(l10n.statusChecked)),
+                  DropdownMenuItem(value: 'I', child: Text(l10n.statusInactive)),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -111,14 +115,14 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
             Expanded(
               child: ElevatedButton(
                 onPressed: _performSearch,
-                child: const Text('Search'),
+                child: Text(l10n.searchButton),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton(
                 onPressed: _clearSearch,
-                child: const Text('Clear'),
+                child: Text(l10n.clearButton),
               ),
             ),
           ],
@@ -128,6 +132,7 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
   }
 
   Widget _buildTabletLayout() {
+    final l10n = AdminLocalizations.of(context);
     return Column(
       children: [
         Row(
@@ -136,10 +141,10 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
               flex: 3,
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  labelText: 'Search by Asset No, Description, Serial No...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.search),
+                decoration: InputDecoration(
+                  labelText: l10n.searchHint,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.search),
                 ),
                 onSubmitted: (_) => _performSearch(),
               ),
@@ -149,15 +154,15 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
               flex: 2,
               child: DropdownButtonFormField<String>(
                 value: _selectedStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.statusFilter,
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem(value: null, child: Text('All')),
-                  DropdownMenuItem(value: 'A', child: Text('Awaiting')),
-                  DropdownMenuItem(value: 'C', child: Text('Checked')),
-                  DropdownMenuItem(value: 'I', child: Text('Inactive')),
+                items: [
+                  DropdownMenuItem(value: null, child: Text(l10n.statusAll)),
+                  DropdownMenuItem(value: 'A', child: Text(l10n.statusAwaiting)),
+                  DropdownMenuItem(value: 'C', child: Text(l10n.statusChecked)),
+                  DropdownMenuItem(value: 'I', child: Text(l10n.statusInactive)),
                 ],
                 onChanged: (value) {
                   setState(() {
@@ -174,12 +179,12 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
           children: [
             ElevatedButton(
               onPressed: _performSearch,
-              child: const Text('Search'),
+              child: Text(l10n.searchButton),
             ),
             const SizedBox(width: 8),
             OutlinedButton(
               onPressed: _clearSearch,
-              child: const Text('Clear'),
+              child: Text(l10n.clearButton),
             ),
           ],
         ),
@@ -188,16 +193,17 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
   }
 
   Widget _buildDesktopLayout() {
+    final l10n = AdminLocalizations.of(context);
     return Row(
       children: [
         Expanded(
           flex: 2,
           child: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
-              labelText: 'Search by Asset No, Description, Serial No...',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
+            decoration: InputDecoration(
+              labelText: l10n.searchHint,
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.search),
             ),
             onSubmitted: (_) => _performSearch(),
           ),
@@ -206,15 +212,15 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
         Expanded(
           child: DropdownButtonFormField<String>(
             value: _selectedStatus,
-            decoration: const InputDecoration(
-              labelText: 'Status',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.statusFilter,
+              border: const OutlineInputBorder(),
             ),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('All')),
-              DropdownMenuItem(value: 'A', child: Text('Awaiting')),
-              DropdownMenuItem(value: 'C', child: Text('Checked')),
-              DropdownMenuItem(value: 'I', child: Text('Inactive')),
+            items: [
+              DropdownMenuItem(value: null, child: Text(l10n.statusAll)),
+              DropdownMenuItem(value: 'A', child: Text(l10n.statusAwaiting)),
+              DropdownMenuItem(value: 'C', child: Text(l10n.statusChecked)),
+              DropdownMenuItem(value: 'I', child: Text(l10n.statusInactive)),
             ],
             onChanged: (value) {
               setState(() {
@@ -226,12 +232,12 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
         const SizedBox(width: 16),
         ElevatedButton(
           onPressed: _performSearch,
-          child: const Text('Search'),
+          child: Text(l10n.searchButton),
         ),
         const SizedBox(width: 8),
         OutlinedButton(
           onPressed: _clearSearch,
-          child: const Text('Clear'),
+          child: Text(l10n.clearButton),
         ),
       ],
     );

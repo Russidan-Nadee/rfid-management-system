@@ -12,6 +12,7 @@ import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
 import '../widgets/asset_search_widget.dart';
 import '../widgets/asset_list_widget.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -40,9 +41,11 @@ class AdminPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Menu'),
+        title: Text(l10n.menuTitle),
         automaticallyImplyLeading: false,
       ),
       body: LayoutBuilder(
@@ -79,7 +82,7 @@ class AdminPageView extends StatelessWidget {
                             content: Text(state.message),
                             backgroundColor: Colors.red,
                             action: SnackBarAction(
-                              label: 'Dismiss',
+                              label: l10n.dismiss,
                               textColor: Colors.white,
                               onPressed: () {
                                 context.read<AdminBloc>().add(
@@ -91,15 +94,15 @@ class AdminPageView extends StatelessWidget {
                         );
                       } else if (state is AssetUpdated) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Asset updated successfully'),
+                          SnackBar(
+                            content: Text(l10n.assetUpdatedSuccess),
                             backgroundColor: Colors.green,
                           ),
                         );
                       } else if (state is AssetDeleted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Asset deleted successfully'),
+                          SnackBar(
+                            content: Text(l10n.assetDeactivatedSuccess),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -137,7 +140,7 @@ class AdminPageView extends StatelessWidget {
                                     const Icon(Icons.inventory),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Total Assets: ${assets.length}',
+                                      '${l10n.totalAssets}: ${assets.length}',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
@@ -182,7 +185,7 @@ class AdminPageView extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Error: ${state.message}',
+                                '${l10n.errorGeneric}: ${state.message}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.red,
@@ -196,7 +199,7 @@ class AdminPageView extends StatelessWidget {
                                     const LoadAllAssets(),
                                   );
                                 },
-                                child: const Text('Retry'),
+                                child: Text(l10n.retry),
                               ),
                             ],
                           ),
