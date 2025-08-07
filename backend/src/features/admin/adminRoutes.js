@@ -33,7 +33,7 @@ router.get('/assets',
  * @desc    Search assets with filters
  * @access  Admin only
  * @query   {string} search - Search term (optional)
- * @query   {string} status - Status filter: A or I (optional)
+ * @query   {string} status - Status filter: A (Awaiting), C (Checked), or I (Inactive) (optional)
  * @query   {string} plant_code - Plant filter (optional)
  * @query   {string} location_code - Location filter (optional)
  * @query   {string} unit_code - Unit filter (optional)

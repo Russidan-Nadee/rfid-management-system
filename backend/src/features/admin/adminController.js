@@ -33,6 +33,8 @@ class AdminController {
       try {
          const { search, status, plant_code, location_code, unit_code, category_code, brand_code } = req.query;
          
+         console.log('Search request received:', { search, status, plant_code, location_code });
+         
          const filters = {
             status,
             plant_code,
@@ -48,6 +50,8 @@ class AdminController {
                delete filters[key];
             }
          });
+         
+         console.log('Processed filters:', filters);
 
          const result = await this.adminService.searchAssets(search, filters);
          

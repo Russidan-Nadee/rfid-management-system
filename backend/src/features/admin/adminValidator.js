@@ -100,8 +100,8 @@ class AdminValidator {
          // Status validation
          body('status')
             .optional()
-            .isIn(['A', 'I'])
-            .withMessage('Status must be either A (Active) or I (Inactive)')
+            .isIn(['A', 'C', 'I'])
+            .withMessage('Status must be A (Awaiting), C (Checked), or I (Inactive)')
       ];
    }
 
@@ -116,8 +116,8 @@ class AdminValidator {
 
          query('status')
             .optional()
-            .isIn(['A', 'I'])
-            .withMessage('Status filter must be either A (Active) or I (Inactive)'),
+            .isIn(['A', 'C', 'I'])
+            .withMessage('Status filter must be A (Awaiting), C (Checked), or I (Inactive)'),
 
          query('plant_code')
             .optional()

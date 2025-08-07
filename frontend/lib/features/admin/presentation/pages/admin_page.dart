@@ -22,7 +22,7 @@ class AdminPage extends StatelessWidget {
       create: (context) {
         final datasource = AdminRemoteDatasourceImpl();
         final repository = AdminRepositoryImpl(remoteDataSource: datasource);
-        
+
         return AdminBloc(
           getAllAssetsUsecase: GetAllAssetsUsecase(repository),
           searchAssetsUsecase: SearchAssetsUsecase(repository),
@@ -42,7 +42,7 @@ class AdminPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin - Asset Management'),
+        title: const Text('Admin Menu'),
         automaticallyImplyLeading: false,
       ),
       body: LayoutBuilder(
@@ -50,7 +50,7 @@ class AdminPageView extends StatelessWidget {
           final isDesktop = constraints.maxWidth >= 1200;
           final isTablet = constraints.maxWidth >= 768;
           final padding = isDesktop ? 24.0 : (isTablet ? 16.0 : 12.0);
-          
+
           return Padding(
             padding: EdgeInsets.all(padding),
             child: Column(
@@ -59,139 +59,154 @@ class AdminPageView extends StatelessWidget {
                 AssetSearchWidget(
                   constraints: constraints,
                   onSearch: ({searchTerm, status, plantCode, locationCode}) {
-                    context.read<AdminBloc>().add(SearchAssets(
-                      searchTerm: searchTerm,
-                      status: status,
-                      plantCode: plantCode,
-                      locationCode: locationCode,
-                    ));
+                    context.read<AdminBloc>().add(
+                      SearchAssets(
+                        searchTerm: searchTerm,
+                        status: status,
+                        plantCode: plantCode,
+                        locationCode: locationCode,
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(height: 24),
                 Expanded(
                   child: BlocConsumer<AdminBloc, AdminState>(
                     listener: (context, state) {
-                  if (state is AdminError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: Colors.red,
-                        action: SnackBarAction(
-                          label: 'Dismiss',
-                          textColor: Colors.white,
-                          onPressed: () {
-                            context.read<AdminBloc>().add(const ClearError());
-                          },
-                        ),
-                      ),
-                    );
-                  } else if (state is AssetUpdated) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Asset updated successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else if (state is AssetDeleted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Asset deleted successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
-                builder: (context, state) {
-                  if (state is AdminLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (state is AdminLoaded || 
-                             state is AssetUpdating || 
-                             state is AssetDeleting ||
-                             state is AssetUpdated ||
-                             state is AssetDeleted) {
-                    List<AssetAdminEntity> assets = [];
-                    
-                    if (state is AdminLoaded) assets = state.assets;
-                    else if (state is AssetUpdating) assets = state.assets;
-                    else if (state is AssetDeleting) assets = state.assets;
-                    else if (state is AssetUpdated) assets = state.assets;
-                    else if (state is AssetDeleted) assets = state.assets;
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.inventory),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Total Assets: ${assets.length}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
+                      if (state is AdminError) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(state.message),
+                            backgroundColor: Colors.red,
+                            action: SnackBarAction(
+                              label: 'Dismiss',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                context.read<AdminBloc>().add(
+                                  const ClearError(),
+                                );
+                              },
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: AssetListWidget(
-                                assets: assets,
-                                onUpdate: (request) {
-                                  context.read<AdminBloc>().add(UpdateAsset(request));
-                                },
-                                onDelete: (assetNo) {
-                                  context.read<AdminBloc>().add(DeleteAsset(assetNo));
-                                },
+                        );
+                      } else if (state is AssetUpdated) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Asset updated successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else if (state is AssetDeleted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Asset deleted successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is AdminLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is AdminLoaded ||
+                          state is AssetUpdating ||
+                          state is AssetDeleting ||
+                          state is AssetUpdated ||
+                          state is AssetDeleted) {
+                        List<AssetAdminEntity> assets = [];
+
+                        if (state is AdminLoaded)
+                          assets = state.assets;
+                        else if (state is AssetUpdating)
+                          assets = state.assets;
+                        else if (state is AssetDeleting)
+                          assets = state.assets;
+                        else if (state is AssetUpdated)
+                          assets = state.assets;
+                        else if (state is AssetDeleted)
+                          assets = state.assets;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.inventory),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Total Assets: ${assets.length}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else if (state is AdminError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error: ${state.message}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.red,
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: AssetListWidget(
+                                    assets: assets,
+                                    onUpdate: (request) {
+                                      context.read<AdminBloc>().add(
+                                        UpdateAsset(request),
+                                      );
+                                    },
+                                    onDelete: (assetNo) {
+                                      context.read<AdminBloc>().add(
+                                        DeleteAsset(assetNo),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
                             ),
-                            textAlign: TextAlign.center,
+                          ],
+                        );
+                      } else if (state is AdminError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error: ${state.message}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.red,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  context.read<AdminBloc>().add(
+                                    const LoadAllAssets(),
+                                  );
+                                },
+                                child: const Text('Retry'),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<AdminBloc>().add(const LoadAllAssets());
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  
-                  return const Center(child: CircularProgressIndicator());
-                },
-              ),
-            ),
+                        );
+                      }
+
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                ),
               ],
             ),
           );

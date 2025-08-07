@@ -67,6 +67,8 @@ class AdminModel {
    }
 
    async searchAssetsWithDetails(searchTerm, filters = {}) {
+      console.log('AdminModel.searchAssetsWithDetails called with:', { searchTerm, filters });
+      
       const whereConditions = {};
 
       // Add search conditions
@@ -82,6 +84,7 @@ class AdminModel {
 
       // Add filter conditions
       if (filters.status) {
+         console.log('Adding status filter:', filters.status);
          whereConditions.status = filters.status;
       }
       if (filters.plant_code) {
@@ -100,7 +103,9 @@ class AdminModel {
          whereConditions.brand_code = filters.brand_code;
       }
 
-      return await this.prisma.asset_master.findMany({
+      console.log('Final whereConditions:', JSON.stringify(whereConditions, null, 2));
+      
+      const result = await this.prisma.asset_master.findMany({
          where: whereConditions,
          include: {
             mst_plant: true,
@@ -117,6 +122,9 @@ class AdminModel {
          },
          orderBy: { asset_no: 'asc' }
       });
+      
+      console.log('Database query returned:', result.length, 'assets');
+      return result;
    }
 
    async updateAsset(assetNo, updateData, updatedBy) {
@@ -235,8 +243,11 @@ class AdminModel {
 
    async getAssetCounts() {
       const totalAssets = await this.prisma.asset_master.count();
-      const activeAssets = await this.prisma.asset_master.count({
+      const awaitingAssets = await this.prisma.asset_master.count({
          where: { status: 'A' }
+      });
+      const checkedAssets = await this.prisma.asset_master.count({
+         where: { status: 'C' }
       });
       const inactiveAssets = await this.prisma.asset_master.count({
          where: { status: 'I' }
@@ -244,7 +255,8 @@ class AdminModel {
 
       return {
          total: totalAssets,
-         active: activeAssets,
+         awaiting: awaitingAssets,
+         checked: checkedAssets,
          inactive: inactiveAssets
       };
    }

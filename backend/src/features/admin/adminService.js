@@ -53,9 +53,21 @@ class AdminService {
 
    async searchAssets(searchTerm, filters = {}) {
       try {
-         const assets = await this.adminModel.searchAssetsWithDetails(searchTerm, filters);
+         console.log('AdminService.searchAssets called with:', { searchTerm, filters });
          
-         const formattedAssets = assets.map(asset => this.formatAssetResponse(asset));
+         const assets = await this.adminModel.searchAssetsWithDetails(searchTerm, filters);
+         console.log('Raw assets from database:', assets.length, 'found');
+         
+         const formattedAssets = assets.map(asset => {
+            try {
+               return this.formatAssetResponse(asset);
+            } catch (formatError) {
+               console.error('Error formatting asset:', asset.asset_no, formatError);
+               throw formatError;
+            }
+         });
+
+         console.log('Successfully formatted assets:', formattedAssets.length);
 
          return {
             success: true,
@@ -183,18 +195,33 @@ class AdminService {
          
          // Status helpers
          is_active: asset.status === 'A',
-         status_text: asset.status === 'A' ? 'Active' : 'Inactive'
+         status_text: asset.status === 'A' ? 'Awaiting' : asset.status === 'C' ? 'Checked' : 'Inactive'
       };
    }
 
    sanitizeUpdateData(updateData) {
       const sanitized = {};
       
-      // Only include fields that are not null, undefined, or empty strings
+      // Handle each field appropriately
       Object.keys(updateData).forEach(key => {
          const value = updateData[key];
-         if (value !== null && value !== undefined && value !== '') {
-            sanitized[key] = value;
+         
+         // Allow null values for optional fields, but not empty strings for required fields
+         if (value !== undefined) {
+            // For status field, ensure it's one of the valid values
+            if (key === 'status') {
+               if (value === 'A' || value === 'C' || value === 'I') {
+                  sanitized[key] = value;
+               }
+            }
+            // For other fields, include if not empty string
+            else if (value !== '') {
+               sanitized[key] = value;
+            }
+            // Allow explicit null for optional fields
+            else if (value === null) {
+               sanitized[key] = null;
+            }
          }
       });
 
@@ -246,9 +273,11 @@ class AdminService {
             success: true,
             data: {
                total_assets: counts.total,
-               active_assets: counts.active,
+               awaiting_assets: counts.awaiting,
+               checked_assets: counts.checked,
                inactive_assets: counts.inactive,
-               active_percentage: counts.total > 0 ? Math.round((counts.active / counts.total) * 100) : 0
+               awaiting_percentage: counts.total > 0 ? Math.round((counts.awaiting / counts.total) * 100) : 0,
+               checked_percentage: counts.total > 0 ? Math.round((counts.checked / counts.total) * 100) : 0
             }
          };
       } catch (error) {
