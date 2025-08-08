@@ -27,4 +27,10 @@ router.get('/images/:imageId',
    (req, res) => imageController.streamImage(req, res)
 );
 
+// DELETE /images/:imageId - Delete image
+router.delete('/images/:imageId',
+   authenticateToken,
+   (req, res) => imageController.deleteImage(req, res)
+);
+
 module.exports = router;

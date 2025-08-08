@@ -75,6 +75,37 @@ class ImageService {
          throw error;
       }
    }
+
+   async deleteImage(imageId) {
+      try {
+         const image = await prisma.asset_image.findUnique({
+            where: { id: parseInt(imageId) }
+         });
+
+         if (!image) {
+            throw new Error('Image not found');
+         }
+
+         await this.externalStorage.deleteFile(image.file_url, image.file_thumbnail_url);
+
+         await prisma.asset_image.delete({
+            where: { id: parseInt(imageId) }
+         });
+
+         return {
+            success: true,
+            message: 'Image deleted successfully',
+            deletedImage: {
+               id: image.id,
+               asset_no: image.asset_no,
+               file_name: image.file_name
+            }
+         };
+      } catch (error) {
+         console.error('Delete image error:', error);
+         throw new Error(`Failed to delete image: ${error.message}`);
+      }
+   }
 }
 
 module.exports = ImageService;

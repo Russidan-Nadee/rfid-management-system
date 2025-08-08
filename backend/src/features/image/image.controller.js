@@ -104,6 +104,35 @@ class ImageController {
          });
       }
    }
+
+   // DELETE /images/:imageId
+   async deleteImage(req, res) {
+      try {
+         const { imageId } = req.params;
+
+         const result = await this.imageService.deleteImage(imageId);
+
+         res.json({
+            success: true,
+            message: result.message,
+            data: result.deletedImage
+         });
+      } catch (error) {
+         console.error('Delete image controller error:', error);
+
+         if (error.message === 'Image not found') {
+            return res.status(404).json({
+               success: false,
+               message: 'Image not found'
+            });
+         }
+
+         res.status(500).json({
+            success: false,
+            message: error.message
+         });
+      }
+   }
 }
 
 module.exports = ImageController;

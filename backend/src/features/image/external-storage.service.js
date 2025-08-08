@@ -57,6 +57,48 @@ class ExternalStorageService {
          throw new Error(`External upload failed: ${error.message}`);
       }
    }
+
+   async deleteFile(fileUrl, fileThumbnailUrl) {
+      try {
+         console.log('🗑️ DEBUG: Starting dev server file delete');
+         console.log('🗑️ File URLs:', {
+            fileUrl: fileUrl,
+            fileThumbnailUrl: fileThumbnailUrl
+         });
+
+         const deleteUrl = 'https://devsever.thaiparker.co.th/tp_service/api/Service_File/Delete_File';
+
+         const response = await axios.post(deleteUrl, {}, {
+            headers: {
+               'Token': this.token,
+               'FilePath': fileUrl,
+               'FileThumbnailUrl': fileThumbnailUrl
+            },
+            timeout: 30000
+         });
+
+         console.log('🗑️ Delete response status:', response.status);
+         console.log('🗑️ Delete response data:', response.data);
+
+         if (response.data.IsSuccess) {
+            return {
+               success: true,
+               message: 'File deleted successfully from external storage'
+            };
+         } else {
+            throw new Error(response.data.ErrorMessage || 'Delete failed');
+         }
+
+      } catch (error) {
+         console.error('❌ External storage delete error:', error.message);
+         console.error('❌ Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data
+         });
+         throw new Error(`External delete failed: ${error.message}`);
+      }
+   }
 }
 
 module.exports = ExternalStorageService;
