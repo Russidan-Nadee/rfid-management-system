@@ -7,6 +7,7 @@ import '../../domain/usecases/get_all_assets_usecase.dart';
 import '../../domain/usecases/search_assets_usecase.dart';
 import '../../domain/usecases/update_asset_usecase.dart';
 import '../../domain/usecases/delete_asset_usecase.dart';
+import '../../domain/usecases/delete_image_usecase.dart';
 import '../bloc/admin_bloc.dart';
 import '../bloc/admin_event.dart';
 import '../bloc/admin_state.dart';
@@ -29,6 +30,7 @@ class AdminPage extends StatelessWidget {
           searchAssetsUsecase: SearchAssetsUsecase(repository),
           updateAssetUsecase: UpdateAssetUsecase(repository),
           deleteAssetUsecase: DeleteAssetUsecase(repository),
+          deleteImageUsecase: DeleteImageUsecase(repository),
         )..add(const LoadAllAssets());
       },
       child: const AdminPageView(),
@@ -106,6 +108,13 @@ class AdminPageView extends StatelessWidget {
                             backgroundColor: Colors.green,
                           ),
                         );
+                      } else if (state is ImageDeleted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Image deleted successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       }
                     },
                     builder: (context, state) {
@@ -115,7 +124,9 @@ class AdminPageView extends StatelessWidget {
                           state is AssetUpdating ||
                           state is AssetDeleting ||
                           state is AssetUpdated ||
-                          state is AssetDeleted) {
+                          state is AssetDeleted ||
+                          state is ImageDeleting ||
+                          state is ImageDeleted) {
                         List<AssetAdminEntity> assets = [];
 
                         if (state is AdminLoaded)
@@ -127,6 +138,10 @@ class AdminPageView extends StatelessWidget {
                         else if (state is AssetUpdated)
                           assets = state.assets;
                         else if (state is AssetDeleted)
+                          assets = state.assets;
+                        else if (state is ImageDeleting)
+                          assets = state.assets;
+                        else if (state is ImageDeleted)
                           assets = state.assets;
 
                         return Column(

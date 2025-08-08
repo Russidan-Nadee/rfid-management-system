@@ -1,4 +1,6 @@
+import 'dart:io';
 import '../entities/asset_admin_entity.dart';
+import '../entities/admin_asset_image_entity.dart';
 
 abstract class AdminRepository {
   Future<List<AssetAdminEntity>> getAllAssets();
@@ -11,4 +13,7 @@ abstract class AdminRepository {
     String? plantCode,
     String? locationCode,
   });
+  Future<void> deleteImage(int imageId);
+  Future<List<AdminAssetImageEntity>> getAssetImages(String assetNo);
+  Future<bool> uploadImage(String assetNo, File imageFile);
 }

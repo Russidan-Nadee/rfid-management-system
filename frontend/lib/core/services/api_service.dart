@@ -382,6 +382,66 @@ class ApiService {
     return false;
   }
 
+  // Upload image using bytes to avoid MediaType namespace issues
+  Future<ApiResponse<Map<String, dynamic>>> uploadImageBytes(
+    String endpoint,
+    List<int> bytes,
+    String filename,
+    String fieldName,
+  ) async {
+    try {
+      final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
+      final request = http.MultipartRequest('POST', uri);
+      
+      // Add headers
+      final headers = await _getHeaders(requiresAuth: true);
+      request.headers.addAll(headers);
+      
+      // Convert headers to string map for multipart
+      final stringHeaders = <String, String>{};
+      headers.forEach((key, value) {
+        stringHeaders[key] = value.toString();
+      });
+      request.headers.addAll(stringHeaders);
+      
+      // Create multipart file from bytes without MediaType
+      final multipartFile = http.MultipartFile.fromBytes(
+        fieldName,
+        bytes,
+        filename: filename,
+      );
+      
+      request.files.add(multipartFile);
+      
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 201) {
+        return ApiResponse<Map<String, dynamic>>(
+          success: true,
+          message: 'Upload successful',
+          data: {'status': 'uploaded'},
+          timestamp: DateTime.now(),
+        );
+      } else {
+        return ApiResponse<Map<String, dynamic>>(
+          success: false,
+          message: 'Upload failed: ${response.statusCode}',
+          data: null,
+          timestamp: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      return ApiResponse<Map<String, dynamic>>(
+        success: false,
+        message: 'Upload error: $e',
+        data: null,
+        timestamp: DateTime.now(),
+      );
+    }
+  }
+
   // Dispose resources
   void dispose() {
     _client.close();

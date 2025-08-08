@@ -9,7 +9,9 @@
       "Bash(tasklist:*)",
       "Bash(npx kill-port:*)",
       "Bash(timeout 10s npm start)",
-      "Bash(dart:*)"
+      "Bash(dart:*)",
+      "Bash(flutter run:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": []
   }

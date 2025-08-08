@@ -71,3 +71,23 @@ class AssetDeleted extends AdminState {
   @override
   List<Object> get props => [assets];
 }
+
+class ImageDeleting extends AdminState {
+  final List<AssetAdminEntity> assets;
+  final int deletingImageId;
+
+  const ImageDeleting(this.assets, this.deletingImageId);
+
+  @override
+  List<Object> get props => [assets, deletingImageId];
+}
+
+class ImageDeleted extends AdminState {
+  final List<AssetAdminEntity> assets;
+  final int deletedImageId;
+
+  const ImageDeleted(this.assets, this.deletedImageId);
+
+  @override
+  List<Object> get props => [assets, deletedImageId];
+}

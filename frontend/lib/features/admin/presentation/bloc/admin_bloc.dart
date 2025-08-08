@@ -3,6 +3,7 @@ import '../../domain/usecases/get_all_assets_usecase.dart';
 import '../../domain/usecases/search_assets_usecase.dart';
 import '../../domain/usecases/update_asset_usecase.dart';
 import '../../domain/usecases/delete_asset_usecase.dart';
+import '../../domain/usecases/delete_image_usecase.dart';
 import 'admin_event.dart';
 import 'admin_state.dart';
 
@@ -11,17 +12,20 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
   final SearchAssetsUsecase searchAssetsUsecase;
   final UpdateAssetUsecase updateAssetUsecase;
   final DeleteAssetUsecase deleteAssetUsecase;
+  final DeleteImageUsecase deleteImageUsecase;
 
   AdminBloc({
     required this.getAllAssetsUsecase,
     required this.searchAssetsUsecase,
     required this.updateAssetUsecase,
     required this.deleteAssetUsecase,
+    required this.deleteImageUsecase,
   }) : super(const AdminInitial()) {
     on<LoadAllAssets>(_onLoadAllAssets);
     on<SearchAssets>(_onSearchAssets);
     on<UpdateAsset>(_onUpdateAsset);
     on<DeleteAsset>(_onDeleteAsset);
+    on<DeleteImage>(_onDeleteImage);
     on<ClearError>(_onClearError);
   }
 
@@ -92,6 +96,23 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
             .toList();
         
         emit(AssetDeleted(updatedAssets));
+      } catch (e) {
+        emit(AdminError(e.toString()));
+      }
+    }
+  }
+
+  Future<void> _onDeleteImage(
+    DeleteImage event,
+    Emitter<AdminState> emit,
+  ) async {
+    if (state is AdminLoaded) {
+      final currentAssets = (state as AdminLoaded).assets;
+      emit(ImageDeleting(currentAssets, event.imageId));
+      
+      try {
+        await deleteImageUsecase(event.imageId);
+        emit(ImageDeleted(currentAssets, event.imageId));
       } catch (e) {
         emit(AdminError(e.toString()));
       }

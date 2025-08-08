@@ -50,3 +50,12 @@ class DeleteAsset extends AdminEvent {
 class ClearError extends AdminEvent {
   const ClearError();
 }
+
+class DeleteImage extends AdminEvent {
+  final int imageId;
+
+  const DeleteImage(this.imageId);
+
+  @override
+  List<Object> get props => [imageId];
+}
