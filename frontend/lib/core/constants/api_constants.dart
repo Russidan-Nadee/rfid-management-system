@@ -238,4 +238,12 @@ class ApiConstants {
       '$exportBase/download/$exportId';
   static String exportJobCancel(int exportId) => '$exportJobs/$exportId';
   static String exportJobDelete(int exportId) => '$exportJobs/$exportId';
+
+  // Notification Endpoints
+  static const String notificationBase = '/notifications';
+  static const String reportProblem = '$notificationBase/report-problem';
+  static const String notificationCounts = '$notificationBase/counts';
+  static String notificationById(int id) => '$notificationBase/$id';
+  static String updateNotificationStatus(int id) => '$notificationBase/$id/status';
+  static String assetNotifications(String assetNo) => '$notificationBase/asset/$assetNo';
 }

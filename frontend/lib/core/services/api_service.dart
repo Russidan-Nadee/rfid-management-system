@@ -112,6 +112,16 @@ class ApiService {
         uri = uri.replace(queryParameters: queryParams);
       }
 
+      print('🔍 API: Making $method request');
+      print('🔍 API: URL: $uri');
+      print('🔍 API: Requires Auth: $requiresAuth');
+      if (body != null) {
+        print('🔍 API: Request Body: $body');
+      }
+      if (queryParams != null) {
+        print('🔍 API: Query Params: $queryParams');
+      }
+
       // Get headers
       final headers = await _getHeaders(requiresAuth: requiresAuth);
 
@@ -161,14 +171,22 @@ class ApiService {
       }
 
       // Handle response
+      print('🔍 API: Response Status: ${response.statusCode}');
+      print('🔍 API: Response Body: ${response.body}');
+      print('🔍 API: Response Headers: ${response.headers}');
+      
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('✅ API: Success response');
         final responseBody = response.body.isEmpty
             ? '{"success": true, "message": "Success", "timestamp": "${DateTime.now().toIso8601String()}"}'
             : response.body;
 
         final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
-        return ApiResponse.fromJson(jsonResponse, fromJson);
+        final apiResponse = ApiResponse.fromJson(jsonResponse, fromJson);
+        print('🔍 API: Parsed response success: ${apiResponse.success}');
+        return apiResponse;
       } else {
+        print('❌ API: Error response');
         try {
           throw _handleError(response);
         } catch (e) {

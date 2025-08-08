@@ -13,6 +13,7 @@ import '../bloc/scan_state.dart';
 import '../bloc/image_upload_bloc.dart';
 import '../widgets/image_gallery_widget.dart';
 import '../widgets/image_upload_widget.dart';
+import '../widgets/report_problem_dialog.dart';
 
 class AssetDetailPage extends StatelessWidget {
   final ScannedItemEntity item;
@@ -95,9 +96,10 @@ class _AssetDetailViewState extends State<AssetDetailView> {
               
               ScannedItemEntity? foundItem;
               try {
-                foundItem = state.scannedItems.firstWhere(
+                final matchingItems = state.scannedItems.where(
                   (scanItem) => scanItem.assetNo == widget.item.assetNo,
                 );
+                foundItem = matchingItems.isNotEmpty ? matchingItems.first : widget.item;
               } catch (e) {
                 foundItem = widget.item;
               }
@@ -200,6 +202,20 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             },
             icon: Icon(Icons.arrow_back),
           ),
+          actions: [
+            // Report Problem button - only show for known assets
+            if (!widget.item.isUnknown)
+              IconButton(
+                onPressed: () => _showReportProblemDialog(context),
+                icon: Icon(
+                  Icons.report_problem,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkText
+                      : AppColors.primary,
+                ),
+                tooltip: 'Report Problem',
+              ),
+          ],
         ),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.1)
@@ -465,6 +481,23 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   void _markAsChecked(BuildContext context) {
     context.read<ScanBloc>().add(
       MarkAssetChecked(assetNo: widget.item.assetNo),
+    );
+  }
+
+  void _showReportProblemDialog(BuildContext context) {
+    print('🔍 AssetDetail: Report Problem button clicked');
+    print('🔍 AssetDetail: Asset No: ${widget.item.assetNo}');
+    print('🔍 AssetDetail: Asset Description: ${widget.item.description ?? widget.item.displayName}');
+    print('🔍 AssetDetail: Asset Status: ${widget.item.status}');
+    print('🔍 AssetDetail: Is Unknown: ${widget.item.isUnknown}');
+    print('🔍 AssetDetail: Opening Report Problem Dialog...');
+    
+    showDialog(
+      context: context,
+      builder: (context) => ReportProblemDialog(
+        assetNo: widget.item.assetNo,
+        assetDescription: widget.item.description ?? widget.item.displayName,
+      ),
     );
   }
 

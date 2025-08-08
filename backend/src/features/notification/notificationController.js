@@ -6,10 +6,22 @@ const NotificationController = {
     try {
       const { asset_no, problem_type, priority, subject, description } = req.body;
       const reported_by = req.user.userId;
+      
+      console.log('🔍 Controller: Report problem request received');
+      console.log('🔍 Controller: User from token:', req.user);
+      console.log('🔍 Controller: Reported by (userId):', reported_by);
+      console.log('🔍 Controller: Request body:', req.body);
+      
+      // Temporary fix: Map user IDs to database format
+      let mappedUserId = reported_by;
+      if (reported_by === 'admin' || !reported_by || reported_by === 'undefined') {
+        mappedUserId = 'USR_999999'; // Use the known working user ID
+        console.log('🔍 Controller: Mapped user ID from', reported_by, 'to', mappedUserId);
+      }
 
       const result = await NotificationService.submitProblemReport({
         asset_no,
-        reported_by,
+        reported_by: mappedUserId,
         problem_type,
         priority,
         subject,
