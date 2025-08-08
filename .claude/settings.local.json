@@ -11,7 +11,15 @@
       "Bash(timeout 10s npm start)",
       "Bash(dart:*)",
       "Bash(flutter run:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(flutter pub:*)",
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "Bash(flutter build:*)",
+      "Bash(flutter compile kernel:*)",
+      "Bash(flutter:*)",
+      "Bash(curl:*)",
+      "Bash(npx prisma migrate:*)"
     ],
     "deny": []
   }

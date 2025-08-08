@@ -21,6 +21,7 @@ const exportRoutes = require('./features/export/exportRoutes');
 const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
 const imageRoutes = require('./features/image/image.routes');
 const adminRoutes = require('./features/admin/adminRoutes');
+const notificationRoutes = require('./features/notification/notificationRoutes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -39,6 +40,7 @@ router.use('/search', require('./features/search/searchRoutes'));
 router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
 router.use('/admin', adminRoutes);
+router.use('/notifications', notificationRoutes);
 router.use('/', imageRoutes);
 router.use(require('./features/scan/scanRoutes'));
 
@@ -89,6 +91,7 @@ router.get('/docs', (req, res) => {
          '/search': 'Search functionality across all entities',
          '/export': 'Data export functionality',
          '/admin': 'Admin asset management endpoints (requires admin role)',
+         '/notifications': 'Problem reporting and notification management endpoints',
          '/scan': 'Asset scanning and logging endpoints',
          '/images': 'Image management for assets'
       },
@@ -144,6 +147,15 @@ router.get('/docs', (req, res) => {
             'GET /api/v1/admin/statistics': 'Get comprehensive asset statistics (admin only)',
             'GET /api/v1/admin/master-data': 'Get master data for dropdowns (admin only)',
             'GET /api/v1/admin/health': 'Admin service health check (admin only)'
+         },
+
+         notifications: {
+            'POST /api/v1/notifications/report-problem': 'Submit a problem report for any asset',
+            'GET /api/v1/notifications': 'Get all notifications (admin/manager only)',
+            'GET /api/v1/notifications/counts': 'Get notification counts by status (admin/manager only)',
+            'GET /api/v1/notifications/:id': 'Get specific notification details (admin/manager only)',
+            'PATCH /api/v1/notifications/:id/status': 'Update notification status (admin/manager only)',
+            'GET /api/v1/notifications/asset/:assetNo': 'Get notifications for specific asset (admin/manager only)'
          },
 
          images: {
@@ -271,6 +283,7 @@ router.get('/status', (req, res) => {
          search: 'Active',
          export: 'Active',
          admin: 'Active',
+         notifications: 'Active',
          scan: 'Active',
          images: 'Active'
       }

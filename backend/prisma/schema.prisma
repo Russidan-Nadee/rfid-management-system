@@ -40,6 +40,7 @@ model asset_master {
   asset_scan_log       asset_scan_log[]
   asset_status_history asset_status_history[]
   asset_image          asset_image[]
+  problem_notification problem_notification[]
 
   // Database Indexes
   @@index([unit_code], map: "fk_asset_master_unit_code")
@@ -217,31 +218,34 @@ model mst_unit {
 }
 
 model mst_user {
-  user_id              String                 @id @db.VarChar(20)
-  full_name            String?                @db.VarChar(255)
-  
+  user_id   String  @id @db.VarChar(20)
+  full_name String? @db.VarChar(255)
+
   // Employee Information from Employee Information System
-  employee_id          String?                @unique @db.VarChar(20)
-  department           String?                @db.VarChar(100)
-  position             String?                @db.VarChar(100)
-  company_role         String?                @db.VarChar(50)
-  email               String?                @db.VarChar(255)
-  
+  employee_id  String? @unique @db.VarChar(20)
+  department   String? @db.VarChar(100)
+  position     String? @db.VarChar(100)
+  company_role String? @db.VarChar(50)
+  email        String? @db.VarChar(255)
+
   // System role (THIS system only - for permissions)
-  role                 mst_user_role          @default(viewer)
-  
+  role mst_user_role @default(viewer)
+
   // Status and audit
-  is_active           Boolean                @default(true)
-  created_at          DateTime?              @default(now()) @db.DateTime(0)
-  updated_at          DateTime?              @default(now()) @db.DateTime(0)
-  last_login          DateTime?              @db.DateTime(0)
-  
+  is_active  Boolean   @default(true)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+  last_login DateTime? @db.DateTime(0)
+
   // Relations
-  asset_master         asset_master[]
-  asset_scan_log       asset_scan_log[]
-  asset_status_history asset_status_history[]
-  export_history       export_history[]
-  user_login_log       user_login_log[]
+  asset_master               asset_master[]
+  asset_scan_log             asset_scan_log[]
+  asset_status_history       asset_status_history[]
+  export_history             export_history[]
+  user_login_log             user_login_log[]
+  reported_notifications     problem_notification[] @relation("NotificationReporter")
+  acknowledged_notifications problem_notification[] @relation("NotificationAcknowledger")
+  resolved_notifications     problem_notification[] @relation("NotificationResolver")
 
   @@index([employee_id], map: "idx_mst_user_employee_id")
   @@index([full_name], map: "idx_mst_user_full_name")
@@ -294,4 +298,59 @@ enum asset_master_status {
   A
   C
   I
+}
+
+model problem_notification {
+  notification_id Int                           @id @default(autoincrement())
+  asset_no        String?                       @db.VarChar(20)
+  reported_by     String                        @db.VarChar(20)
+  problem_type    problem_notification_type
+  priority        problem_notification_priority @default(normal)
+  subject         String                        @db.VarChar(255)
+  description     String                        @db.Text
+  status          problem_notification_status   @default(pending)
+  acknowledged_by String?                       @db.VarChar(20)
+  acknowledged_at DateTime?                     @db.DateTime(0)
+  resolved_by     String?                       @db.VarChar(20)
+  resolved_at     DateTime?                     @db.DateTime(0)
+  resolution_note String?                       @db.Text
+  created_at      DateTime                      @default(now()) @db.DateTime(0)
+  updated_at      DateTime                      @updatedAt @db.DateTime(0)
+
+  // Relations
+  asset_master asset_master? @relation(fields: [asset_no], references: [asset_no], onDelete: SetNull)
+  reporter     mst_user      @relation("NotificationReporter", fields: [reported_by], references: [user_id], onDelete: Restrict)
+  acknowledger mst_user?     @relation("NotificationAcknowledger", fields: [acknowledged_by], references: [user_id], onDelete: SetNull)
+  resolver     mst_user?     @relation("NotificationResolver", fields: [resolved_by], references: [user_id], onDelete: SetNull)
+
+  @@index([asset_no], map: "idx_problem_notification_asset_no")
+  @@index([reported_by], map: "idx_problem_notification_reported_by")
+  @@index([status], map: "idx_problem_notification_status")
+  @@index([priority], map: "idx_problem_notification_priority")
+  @@index([created_at], map: "idx_problem_notification_created_at")
+  @@index([problem_type], map: "idx_problem_notification_type")
+}
+
+enum problem_notification_type {
+  asset_damage
+  asset_missing
+  location_issue
+  data_error
+  urgent_issue
+  other
+}
+
+enum problem_notification_priority {
+  low
+  normal
+  high
+  critical
+}
+
+enum problem_notification_status {
+  pending
+  acknowledged
+  in_progress
+  resolved
+  cancelled
 }
