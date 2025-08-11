@@ -20,7 +20,8 @@
       "Bash(flutter:*)",
       "Bash(curl:*)",
       "Bash(npx prisma migrate:*)",
-      "Bash(npx prisma:*)"
+      "Bash(npx prisma:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

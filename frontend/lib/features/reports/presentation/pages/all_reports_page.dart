@@ -4,76 +4,118 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
+import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
-import '../bloc/reports_bloc.dart';
-import '../bloc/reports_event.dart';
-import '../bloc/reports_state.dart';
+import '../../../../core/services/notification_service.dart';
 import '../widgets/report_card_widget.dart';
 
-class MyReportsPage extends StatelessWidget {
-  const MyReportsPage({super.key});
+class AllReportsPage extends StatefulWidget {
+  const AllReportsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<ReportsBloc>()..add(const LoadMyReports()),
-      child: const MyReportsPageView(),
-    );
-  }
+  State<AllReportsPage> createState() => _AllReportsPageState();
 }
 
-class MyReportsPageView extends StatelessWidget {
-  const MyReportsPageView({super.key});
+class _AllReportsPageState extends State<AllReportsPage> {
+  List<dynamic> _reports = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllReports();
+  }
+
+  Future<void> _loadAllReports() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      print('🔍 AllReportsPage: Loading all reports for admin...');
+
+      final notificationService = getIt<NotificationService>();
+      final response = await notificationService.getNotifications(
+        limit: 100, // Get more reports for admin view
+        sortBy: 'created_at',
+        sortOrder: 'desc',
+      );
+
+      print('🔍 AllReportsPage: API Response - Success: ${response.success}');
+      print('🔍 AllReportsPage: API Response - Message: ${response.message}');
+      
+      if (response.success && response.data != null) {
+        final data = response.data!;
+        print('🔍 AllReportsPage: Response data keys: ${data.keys}');
+        
+        if (data['notifications'] != null) {
+          final notifications = data['notifications'] as List<dynamic>;
+          print('🔍 AllReportsPage: Found ${notifications.length} reports');
+          setState(() {
+            _reports = notifications;
+            _isLoading = false;
+          });
+        } else {
+          print('🔍 AllReportsPage: No notifications found in response');
+          setState(() {
+            _reports = [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        print('🔍 AllReportsPage: API call failed - ${response.message}');
+        setState(() {
+          _errorMessage = response.message ?? 'Failed to load reports';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('🔍 AllReportsPage: Exception occurred - $e');
+      setState(() {
+        _errorMessage = 'Error loading reports: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _onRefresh() async {
+    await _loadAllReports();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkSurface.withValues(alpha: 0.5)
-          : theme.colorScheme.background,
       appBar: AppBar(
-        title: Text(
-          'My Reports',
-          style: TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.darkText : AppColors.primary,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: isDark ? AppColors.darkText : AppColors.primary,
+        title: const Text('All Reports (Admin)'),
         elevation: 0,
-        scrolledUnderElevation: 1,
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.read<ReportsBloc>().add(const RefreshMyReports());
-            },
-            icon: Icon(
-              Icons.refresh,
-              color: isDark ? AppColors.darkText : AppColors.primary,
-            ),
-            tooltip: 'Refresh',
-          ),
-        ],
       ),
-      body: BlocBuilder<ReportsBloc, ReportsState>(
-        builder: (context, state) {
-          if (state is ReportsLoading) {
-            return _buildLoadingView();
-          } else if (state is ReportsLoaded) {
-            if (state.reports.isEmpty) {
-              return _buildEmptyView(context);
-            }
-            return _buildReportsView(context, state.reports);
-          } else if (state is ReportsError) {
-            return _buildErrorView(context, state.message);
-          }
-          return const SizedBox.shrink();
-        },
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return _buildLoadingView();
+    }
+
+    if (_errorMessage != null) {
+      return _buildErrorView();
+    }
+
+    if (_reports.isEmpty) {
+      return _buildEmptyView();
+    }
+
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: _UniformCardGrid(
+          reports: _reports,
+          onReportUpdated: _loadAllReports,
+        ),
       ),
     );
   }
@@ -85,13 +127,73 @@ class MyReportsPageView extends StatelessWidget {
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Loading your reports...'),
+          Text('Loading all reports...'),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyView(BuildContext context) {
+  Widget _buildErrorView() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: Padding(
+        padding: AppSpacing.screenPaddingAll,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              padding: AppSpacing.paddingXXL,
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.2),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 60,
+              ),
+            ),
+            AppSpacing.verticalSpaceXXL,
+            Text(
+              'Error Loading Reports',
+              style: AppTextStyles.headline4.copyWith(
+                color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            AppSpacing.verticalSpaceMD,
+            Text(
+              _errorMessage ?? 'An unknown error occurred',
+              style: AppTextStyles.body1.copyWith(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            AppSpacing.verticalSpaceXL,
+            ElevatedButton.icon(
+              onPressed: _loadAllReports,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: AppSpacing.buttonPaddingSymmetric,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyView() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
@@ -117,26 +219,24 @@ class MyReportsPageView extends StatelessWidget {
                 ),
               ),
               child: Icon(
-                Icons.assignment_outlined,
+                Icons.admin_panel_settings_outlined,
                 color: isDark ? AppColors.darkText : AppColors.primary,
                 size: 60,
               ),
             ),
             AppSpacing.verticalSpaceXXL,
             Text(
-              'No Reports Yet',
+              'No Reports Found',
               style: AppTextStyles.headline4.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            AppSpacing.verticalSpaceLG,
+            AppSpacing.verticalSpaceMD,
             Text(
-              'You haven\'t submitted any problem reports yet.\nWhen you report issues through the scan feature,\nthey will appear here.',
-              style: AppTextStyles.body2.copyWith(
-                color: isDark
-                    ? AppColors.darkTextSecondary
-                    : AppColors.textSecondary,
+              'There are no reports in the system yet.',
+              style: AppTextStyles.body1.copyWith(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -145,109 +245,9 @@ class MyReportsPageView extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildErrorView(BuildContext context, String message) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Center(
-      child: Padding(
-        padding: AppSpacing.screenPaddingAll,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              padding: AppSpacing.paddingXXL,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.error.withValues(alpha: 0.2)
-                    : AppColors.errorLight,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                Icons.error_outline,
-                color: AppColors.error.withValues(alpha: 0.8),
-                size: 60,
-              ),
-            ),
-            AppSpacing.verticalSpaceXXL,
-            Text(
-              'Error Loading Reports',
-              style: AppTextStyles.headline4.copyWith(
-                color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            AppSpacing.verticalSpaceLG,
-            Container(
-              padding: AppSpacing.paddingLG,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.error.withValues(alpha: 0.1)
-                    : AppColors.errorLight,
-                borderRadius: AppBorders.md,
-                border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Text(
-                message,
-                style: AppTextStyles.body2.copyWith(
-                  color: isDark
-                      ? AppColors.darkText
-                      : AppColors.error.withValues(alpha: 0.8),
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            AppSpacing.verticalSpaceXXL,
-            ElevatedButton.icon(
-              onPressed: () {
-                context.read<ReportsBloc>().add(const LoadMyReports());
-              },
-              icon: Icon(Icons.refresh, color: AppColors.onPrimary),
-              label: Text(
-                'Try Again',
-                style: AppTextStyles.button.copyWith(
-                  color: AppColors.onPrimary,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.onPrimary,
-                padding: AppSpacing.buttonPaddingSymmetric,
-                shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReportsView(BuildContext context, List<dynamic> reports) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<ReportsBloc>().add(const RefreshMyReports());
-      },
-      child: Padding(
-        padding: AppSpacing.screenPaddingAll,
-        child: _UniformCardGrid(
-          reports: reports,
-          onReportUpdated: () {
-            context.read<ReportsBloc>().add(const RefreshMyReports());
-          },
-        ),
-      ),
-    );
-  }
 }
 
+// Reuse the same uniform card grid from MyReportsPage
 class _UniformCardGrid extends StatefulWidget {
   final List<dynamic> reports;
   final VoidCallback onReportUpdated;

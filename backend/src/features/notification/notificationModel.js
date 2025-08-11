@@ -278,6 +278,12 @@ const NotificationModel = {
             plant_code: true
           }
         },
+        reporter: {
+          select: {
+            user_id: true,
+            full_name: true
+          }
+        },
         acknowledger: {
           select: {
             user_id: true,

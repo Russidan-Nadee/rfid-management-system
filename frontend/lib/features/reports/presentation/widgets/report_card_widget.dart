@@ -81,52 +81,6 @@ class ReportCardWidget extends StatelessWidget {
             
             AppSpacing.verticalSpaceSM,
             
-            // Problem Type & Asset
-            Row(
-              children: [
-                Icon(
-                  _getProblemTypeIcon(report['problem_type']),
-                  color: isDark 
-                      ? AppColors.darkTextSecondary 
-                      : AppColors.textSecondary,
-                  size: 16,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _getProblemTypeText(report['problem_type']),
-                  style: AppTextStyles.body2.copyWith(
-                    color: isDark 
-                        ? AppColors.darkTextSecondary 
-                        : AppColors.textSecondary,
-                  ),
-                ),
-                if (report['asset_no'] != null) ...[
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.qr_code,
-                    color: isDark 
-                        ? AppColors.darkTextSecondary 
-                        : AppColors.textSecondary,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      report['asset_no'],
-                      style: AppTextStyles.body2.copyWith(
-                        color: isDark 
-                            ? AppColors.darkTextSecondary 
-                            : AppColors.textSecondary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            
-            AppSpacing.verticalSpaceSM,
-            
             // Description
             Text(
               report['description'] ?? 'No Description',
@@ -142,25 +96,173 @@ class ReportCardWidget extends StatelessWidget {
             
             AppSpacing.verticalSpaceSM,
             
-            // Footer
+            // Problem Type & Asset
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Reported: ${_formatDate(report['created_at'])}',
+                    Icon(
+                      _getProblemTypeIcon(report['problem_type']),
+                      color: isDark 
+                          ? AppColors.darkTextSecondary 
+                          : AppColors.textSecondary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _getProblemTypeText(report['problem_type']),
+                      style: AppTextStyles.body2.copyWith(
+                        color: isDark 
+                            ? AppColors.darkTextSecondary 
+                            : AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // Asset Information
+                if (report['asset_no'] != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.qr_code,
+                        color: isDark 
+                            ? AppColors.darkTextSecondary 
+                            : AppColors.textSecondary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              report['asset_no'],
+                              style: AppTextStyles.body2.copyWith(
+                                color: isDark 
+                                    ? AppColors.darkTextSecondary 
+                                    : AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (report['asset_master'] != null && report['asset_master']['description'] != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                report['asset_master']['description'],
+                                style: AppTextStyles.caption.copyWith(
+                                  color: isDark 
+                                      ? AppColors.darkTextSecondary 
+                                      : AppColors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                
+                // Location Information
+                if (report['asset_master'] != null && 
+                   (report['asset_master']['location_code'] != null || report['asset_master']['plant_code'] != null)) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        color: isDark 
+                            ? AppColors.darkTextSecondary 
+                            : AppColors.textSecondary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${report['asset_master']['plant_code'] ?? ''} - ${report['asset_master']['location_code'] ?? ''}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: isDark 
+                              ? AppColors.darkTextSecondary 
+                              : AppColors.textSecondary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            
+            AppSpacing.verticalSpaceSM,
+            
+            // Footer
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Report ID
+                Text(
+                  'ID: #${report['notification_id']}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: isDark 
+                        ? AppColors.darkTextSecondary 
+                        : AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                
+                // Created timestamp
+                const SizedBox(height: 2),
+                Text(
+                  'Reported: ${_formatDate(report['created_at'])}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: isDark 
+                        ? AppColors.darkTextSecondary 
+                        : AppColors.textSecondary,
+                  ),
+                ),
+                
+                // Last updated
+                if (report['updated_at'] != null && report['updated_at'] != report['created_at']) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Updated: ${_formatDate(report['updated_at'])}',
+                    style: AppTextStyles.caption.copyWith(
+                      color: isDark 
+                          ? AppColors.darkTextSecondary 
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+                
+                // Reporter Information  
+                if (report['reporter'] != null && report['reporter']['full_name'] != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        color: isDark 
+                            ? AppColors.darkTextSecondary 
+                            : AppColors.textSecondary,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Reported by: ${report['reporter']['full_name']}',
                         style: AppTextStyles.caption.copyWith(
                           color: isDark 
                               ? AppColors.darkTextSecondary 
                               : AppColors.textSecondary,
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
                 
                 // Acknowledgment info
                 if (report['acknowledged_at'] != null) ...[
