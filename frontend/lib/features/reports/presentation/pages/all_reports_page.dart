@@ -7,6 +7,8 @@ import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../widgets/report_card_widget.dart';
 
 class AllReportsPage extends StatefulWidget {
@@ -34,36 +36,49 @@ class _AllReportsPageState extends State<AllReportsPage> {
         _errorMessage = null;
       });
 
-      print('🔍 AllReportsPage: Loading all reports for admin...');
+      // Get current user to check role
+      final authState = context.read<AuthBloc>().state;
+      final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
+
+      print('🔍 AllReportsPage: Loading reports...');
+      print('🔍 AllReportsPage: User is admin/manager: $isAdmin');
 
       final notificationService = getIt<NotificationService>();
-      final response = await notificationService.getNotifications(
-        limit: 100, // Get more reports for admin view
-        sortBy: 'created_at',
-        sortOrder: 'desc',
-      );
+      
+      // Use different endpoints based on user role
+      final response = isAdmin
+          ? await notificationService.getAllReports(
+              limit: 100, // Get more reports for admin view
+              sortBy: 'created_at',
+              sortOrder: 'desc',
+            )
+          : await notificationService.getMyReports();
 
       print('🔍 AllReportsPage: API Response - Success: ${response.success}');
       print('🔍 AllReportsPage: API Response - Message: ${response.message}');
       
       if (response.success && response.data != null) {
-        final data = response.data!;
-        print('🔍 AllReportsPage: Response data keys: ${data.keys}');
+        List<dynamic> notifications = [];
         
-        if (data['notifications'] != null) {
-          final notifications = data['notifications'] as List<dynamic>;
-          print('🔍 AllReportsPage: Found ${notifications.length} reports');
-          setState(() {
-            _reports = notifications;
-            _isLoading = false;
-          });
+        if (isAdmin) {
+          // Admin endpoint returns Map with 'notifications' key
+          final data = response.data! as Map<String, dynamic>;
+          print('🔍 AllReportsPage: Admin response data keys: ${data.keys}');
+          
+          if (data['notifications'] != null) {
+            notifications = data['notifications'] as List<dynamic>;
+            print('🔍 AllReportsPage: Found ${notifications.length} reports from all users');
+          }
         } else {
-          print('🔍 AllReportsPage: No notifications found in response');
-          setState(() {
-            _reports = [];
-            _isLoading = false;
-          });
+          // Regular user endpoint returns List directly
+          notifications = response.data! as List<dynamic>;
+          print('🔍 AllReportsPage: Found ${notifications.length} personal reports');
         }
+        
+        setState(() {
+          _reports = notifications;
+          _isLoading = false;
+        });
       } else {
         print('🔍 AllReportsPage: API call failed - ${response.message}');
         setState(() {
@@ -86,13 +101,95 @@ class _AllReportsPageState extends State<AllReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get current user to determine title
+    final authState = context.read<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Reports (Admin)'),
+        title: Text(isAdmin ? 'All Reports (Admin)' : 'My Reports'),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            onPressed: _testApiConnection,
+            tooltip: 'Test API Connection',
+          ),
+        ],
       ),
       body: _buildBody(),
     );
+  }
+
+  Future<void> _testApiConnection() async {
+    print('🧪 Testing Frontend API Connection...');
+    
+    try {
+      final notificationService = getIt<NotificationService>();
+      
+      // Get current user role
+      final authState = context.read<AuthBloc>().state;
+      final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
+      
+      print('🔍 Current user is admin/manager: $isAdmin');
+      
+      if (isAdmin) {
+        // Test 1: Check counts endpoint (admin only)
+        print('📊 Testing notification counts...');
+        final countsResponse = await notificationService.getNotificationCounts();
+        print('Counts Response - Success: ${countsResponse.success}');
+        print('Counts Response - Message: ${countsResponse.message}');
+        print('Counts Response - Data: ${countsResponse.data}');
+        
+        // Test 2: Check all reports endpoint (admin only)
+        print('📋 Testing all-reports endpoint...');
+        final notificationsResponse = await notificationService.getAllReports(
+          limit: 10,
+          sortBy: 'created_at',
+          sortOrder: 'desc',
+        );
+        print('All Reports Response - Success: ${notificationsResponse.success}');
+        print('All Reports Response - Message: ${notificationsResponse.message}');
+        if (notificationsResponse.data != null) {
+          print('All Reports Response - Data Keys: ${notificationsResponse.data!.keys}');
+          if (notificationsResponse.data!['notifications'] != null) {
+            final notifications = notificationsResponse.data!['notifications'] as List;
+            print('Found ${notifications.length} notifications from all users');
+          }
+        }
+      } else {
+        // Test: Check my reports endpoint (regular user)
+        print('📋 Testing my-reports endpoint...');
+        final myReportsResponse = await notificationService.getMyReports();
+        print('My Reports Response - Success: ${myReportsResponse.success}');
+        print('My Reports Response - Message: ${myReportsResponse.message}');
+        if (myReportsResponse.data != null) {
+          final myReports = myReportsResponse.data as List;
+          print('Found ${myReports.length} personal reports');
+        }
+      }
+      
+      // Show results in UI
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('API Test Complete (${isAdmin ? 'Admin' : 'User'} Mode) - Check console'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+      
+    } catch (e) {
+      print('❌ Frontend API test failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('API Test Failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildBody() {
@@ -195,6 +292,10 @@ class _AllReportsPageState extends State<AllReportsPage> {
 
   Widget _buildEmptyView() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Get current user role to determine message
+    final authState = context.read<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
 
     return Center(
       child: Padding(
@@ -219,7 +320,7 @@ class _AllReportsPageState extends State<AllReportsPage> {
                 ),
               ),
               child: Icon(
-                Icons.admin_panel_settings_outlined,
+                isAdmin ? Icons.admin_panel_settings_outlined : Icons.assignment_outlined,
                 color: isDark ? AppColors.darkText : AppColors.primary,
                 size: 60,
               ),
@@ -234,7 +335,9 @@ class _AllReportsPageState extends State<AllReportsPage> {
             ),
             AppSpacing.verticalSpaceMD,
             Text(
-              'There are no reports in the system yet.',
+              isAdmin 
+                ? 'There are no reports in the system yet.'
+                : 'You haven\'t submitted any reports yet.',
               style: AppTextStyles.body1.copyWith(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),

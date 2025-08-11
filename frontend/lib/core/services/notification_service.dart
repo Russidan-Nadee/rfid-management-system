@@ -214,6 +214,52 @@ class NotificationService {
     }
   }
 
+  /// Get all reports for admin users (admin/manager only)
+  Future<ApiResponse<Map<String, dynamic>>> getAllReports({
+    String? status,
+    String? priority,
+    String? problemType,
+    String? assetNo,
+    int page = 1,
+    int limit = 100,
+    String sortBy = 'created_at',
+    String sortOrder = 'desc',
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'page': page.toString(),
+        'limit': limit.toString(),
+        'sortBy': sortBy,
+        'sortOrder': sortOrder,
+      };
+
+      if (status != null && status.isNotEmpty) {
+        queryParams['status'] = status;
+      }
+      if (priority != null && priority.isNotEmpty) {
+        queryParams['priority'] = priority;
+      }
+      if (problemType != null && problemType.isNotEmpty) {
+        queryParams['problem_type'] = problemType;
+      }
+      if (assetNo != null && assetNo.isNotEmpty) {
+        queryParams['asset_no'] = assetNo;
+      }
+
+      final response = await _apiService.get<Map<String, dynamic>>(
+        ApiConstants.allReports,
+        queryParams: queryParams,
+        fromJson: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (error) {
+      return ErrorResponse<Map<String, dynamic>>(
+        message: 'Failed to get all reports: $error',
+      );
+    }
+  }
+
 }
 
 /// Problem notification data models for type safety

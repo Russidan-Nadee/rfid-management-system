@@ -21,7 +21,12 @@
       "Bash(curl:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(npx prisma:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(pkill:*)",
+      "Bash(timeout 90s flutter run -d chrome)",
+      "Bash(timeout 120s flutter run -d chrome)",
+      "Bash(del \"C:\\Users\\russidan\\Desktop\\intern-project-rfid\\test-frontend-api.js\")",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

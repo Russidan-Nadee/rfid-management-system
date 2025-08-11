@@ -42,6 +42,12 @@ const NotificationController = {
   // GET /api/notifications
   async getNotifications(req, res) {
     try {
+      console.log('🔍 Admin GetNotifications: User info:', {
+        userId: req.user.userId,
+        role: req.user.role,
+        fullName: req.user.full_name
+      });
+
       const {
         status,
         priority,
@@ -64,7 +70,12 @@ const NotificationController = {
         sortOrder
       };
 
+      console.log('🔍 Admin GetNotifications: Filters:', filters);
+      console.log('🔍 Admin GetNotifications: User role:', req.user.role);
+
       const result = await NotificationService.getNotifications(filters, req.user.role);
+
+      console.log('🔍 Admin GetNotifications: Found', result.notifications?.length || 0, 'notifications');
 
       res.json({
         success: true,
@@ -184,6 +195,62 @@ const NotificationController = {
 
     } catch (error) {
       console.error('Get My Reports Error:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  },
+
+  // GET /api/notifications/all-reports - New endpoint specifically for admin
+  async getAllReports(req, res) {
+    try {
+      console.log('🔍 Admin GetAllReports: User info:', {
+        userId: req.user.userId,
+        role: req.user.role,
+        fullName: req.user.full_name
+      });
+
+      const {
+        status,
+        priority,
+        problem_type,
+        asset_no,
+        page = 1,
+        limit = 100, // Default to higher limit for admin view
+        sortBy = 'created_at',
+        sortOrder = 'desc'
+      } = req.query;
+
+      const filters = {
+        status,
+        priority,
+        problem_type,
+        asset_no,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        sortBy,
+        sortOrder
+      };
+
+      console.log('🔍 Admin GetAllReports: Filters:', filters);
+      console.log('🔍 Admin GetAllReports: User role:', req.user.role);
+
+      const result = await NotificationService.getNotifications(filters, req.user.role);
+
+      console.log('🔍 Admin GetAllReports: Found', result.notifications?.length || 0, 'notifications');
+
+      // Return the data in the same format as the frontend expects
+      res.json({
+        success: true,
+        data: {
+          notifications: result.notifications || [],
+          pagination: result.pagination || {}
+        }
+      });
+
+    } catch (error) {
+      console.error('Get All Reports Error:', error);
       res.status(400).json({
         success: false,
         message: error.message

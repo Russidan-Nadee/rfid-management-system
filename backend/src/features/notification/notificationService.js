@@ -68,12 +68,20 @@ const NotificationService = {
   // Get all notifications for admin
   async getNotifications(filters, userRole) {
     try {
+      console.log('🔍 NotificationService: getNotifications called with role:', userRole);
+      console.log('🔍 NotificationService: Role check - admin?', userRole === 'admin');
+      console.log('🔍 NotificationService: Role check - manager?', userRole === 'manager');
+      console.log('🔍 NotificationService: Role check - includes admin/manager?', ['admin', 'manager'].includes(userRole));
+
       // Only admin and manager can view all notifications
       if (!['admin', 'manager'].includes(userRole)) {
+        console.log('🔍 NotificationService: Permission denied for role:', userRole);
         throw new Error('Insufficient permissions to view notifications');
       }
 
+      console.log('🔍 NotificationService: Permission granted, fetching notifications...');
       const result = await NotificationModel.getAllNotifications(filters);
+      console.log('🔍 NotificationService: Retrieved', result.notifications?.length || 0, 'notifications');
       return result;
 
     } catch (error) {

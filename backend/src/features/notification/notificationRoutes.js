@@ -58,7 +58,17 @@ router.get(
   NotificationController.getMyReports
 );
 
+// GET /api/notifications/all-reports - Get all reports for admin (admin/manager only)
+router.get(
+  '/all-reports',
+  authenticateToken,
+  NotificationValidator.getNotifications,
+  handleValidationErrors,
+  NotificationController.getAllReports
+);
+
 // GET /api/notifications/:id - Get specific notification (admin/manager only)
+// This must come AFTER specific routes like /my-reports and /all-reports
 router.get(
   '/:id',
   authenticateToken,

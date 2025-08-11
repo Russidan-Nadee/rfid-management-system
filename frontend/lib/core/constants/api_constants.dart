@@ -243,6 +243,7 @@ class ApiConstants {
   static const String notificationBase = '/notifications';
   static const String reportProblem = '$notificationBase/report-problem';
   static const String notificationCounts = '$notificationBase/counts';
+  static const String allReports = '$notificationBase/all-reports';
   static String notificationById(int id) => '$notificationBase/$id';
   static String updateNotificationStatus(int id) => '$notificationBase/$id/status';
   static String assetNotifications(String assetNo) => '$notificationBase/asset/$assetNo';
