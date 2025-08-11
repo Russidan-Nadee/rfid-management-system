@@ -25,6 +25,9 @@ class RootLayout extends StatefulWidget {
 class _RootLayoutState extends State<RootLayout> {
   late int _currentIndex;
   bool _isRailExtended = true;
+  
+  // ✅ TEMPORARY: Enable scanner on desktop for testing
+  bool _enableScannerOnDesktop = true; // Set to false to disable
 
   late List<GlobalKey<NavigatorState>> _navigatorKeys;
 
@@ -48,7 +51,7 @@ class _RootLayoutState extends State<RootLayout> {
   // Get total destinations count
   int _getDestinationsCount() {
     int count = 3; // Dashboard, Search, Settings (always present)
-    if (_isMobile) count++; // Scan
+    if (_isMobile || _enableScannerOnDesktop) count++; // Scan
     if (!_isMobile) count += 2; // Export, Admin
     return count;
   }
@@ -64,8 +67,8 @@ class _RootLayoutState extends State<RootLayout> {
   List<NavigationDestination> _getDestinations(AppLocalizations appLoc) {
     List<NavigationDestination> destinations = [];
 
-    // Scan - Mobile only
-    if (_isMobile) {
+    // Scan - Mobile or enabled on desktop
+    if (_isMobile || _enableScannerOnDesktop) {
       destinations.add(
         NavigationDestination(
           icon: const Icon(Icons.sensors_outlined),
@@ -133,8 +136,8 @@ class _RootLayoutState extends State<RootLayout> {
   ) {
     List<NavigationRailDestination> destinations = [];
 
-    // Scan - Mobile only (but this won't be used since rail is for desktop)
-    if (_isMobile) {
+    // Scan - Mobile or enabled on desktop
+    if (_isMobile || _enableScannerOnDesktop) {
       destinations.add(
         NavigationRailDestination(
           icon: const Icon(Icons.sensors_outlined),
@@ -200,8 +203,8 @@ class _RootLayoutState extends State<RootLayout> {
   List<Widget> _getPages() {
     List<Widget> pages = [];
 
-    // Scan - Mobile only
-    if (_isMobile) {
+    // Scan - Mobile or enabled on desktop
+    if (_isMobile || _enableScannerOnDesktop) {
       pages.add(const ScanPage());
     }
 

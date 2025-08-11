@@ -39,7 +39,7 @@ const NotificationService = {
 
       // Validate priority if provided
       if (data.priority) {
-        const validPriorities = ['low', 'normal', 'high', 'urgent'];
+        const validPriorities = ['low', 'normal', 'high', 'critical'];
         if (!validPriorities.includes(data.priority)) {
           throw new Error('Invalid priority level');
         }
