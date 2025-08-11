@@ -168,6 +168,27 @@ const NotificationController = {
         message: error.message
       });
     }
+  },
+
+  // GET /api/notifications/my-reports
+  async getMyReports(req, res) {
+    try {
+      const { userId } = req.user;
+
+      const reports = await NotificationService.getUserReports(userId);
+
+      res.json({
+        success: true,
+        data: reports
+      });
+
+    } catch (error) {
+      console.error('Get My Reports Error:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
   }
 };
 

@@ -96,6 +96,12 @@ const NotificationValidator = {
       .optional()
       .isLength({ max: 1000 })
       .withMessage('Resolution note must be max 1000 characters')
+      .trim(),
+      
+    body('rejection_note')
+      .optional()
+      .isLength({ max: 1000 })
+      .withMessage('Rejection note must be max 1000 characters')
       .trim()
   ],
 

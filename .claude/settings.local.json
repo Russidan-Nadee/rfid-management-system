@@ -19,7 +19,8 @@
       "Bash(flutter compile kernel:*)",
       "Bash(flutter:*)",
       "Bash(curl:*)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma:*)"
     ],
     "deny": []
   }

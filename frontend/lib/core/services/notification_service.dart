@@ -145,6 +145,7 @@ class NotificationService {
     int id, {
     String? status,
     String? resolutionNote,
+    String? rejectionNote,
   }) async {
     try {
       final body = <String, dynamic>{};
@@ -154,6 +155,9 @@ class NotificationService {
       }
       if (resolutionNote != null && resolutionNote.isNotEmpty) {
         body['resolution_note'] = resolutionNote;
+      }
+      if (rejectionNote != null && rejectionNote.isNotEmpty) {
+        body['rejection_note'] = rejectionNote;
       }
 
       if (body.isEmpty) {
@@ -193,6 +197,23 @@ class NotificationService {
       );
     }
   }
+
+  /// Get current user's submitted reports
+  Future<ApiResponse<List<dynamic>>> getMyReports() async {
+    try {
+      final response = await _apiService.get<List<dynamic>>(
+        '/notifications/my-reports',
+        fromJson: (json) => json as List<dynamic>,
+      );
+
+      return response;
+    } catch (error) {
+      return ErrorResponse<List<dynamic>>(
+        message: 'Failed to get my reports: $error',
+      );
+    }
+  }
+
 }
 
 /// Problem notification data models for type safety

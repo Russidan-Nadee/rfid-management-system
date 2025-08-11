@@ -4,7 +4,7 @@ class MockLdapService {
    constructor() {
       // Mock LDAP users - in real implementation, this would connect to actual LDAP
       this.mockUsers = [
-         { ldap_username: 'john.doe', password: 'password123', employee_id: '000001' },
+         { ldap_username: 'user1', password: 'password123', employee_id: '000001' },
          { ldap_username: 'jane.smith', password: 'password123', employee_id: '000002' },
          { ldap_username: 'mike.wilson', password: 'password123', employee_id: '000003' },
          { ldap_username: 'sarah.johnson', password: 'password123', employee_id: '000004' },

@@ -9,6 +9,7 @@ import 'package:frontend/features/search/presentation/pages/search_page.dart';
 import 'package:frontend/features/setting/presentation/pages/settings_page.dart';
 import '../features/scan/presentation/pages/scan_page.dart';
 import '../features/admin/presentation/pages/admin_page.dart';
+import '../features/reports/presentation/pages/my_reports_page.dart';
 import '../features/setting/presentation/bloc/settings_bloc.dart';
 import '../features/setting/presentation/bloc/settings_state.dart';
 import '../app/app_constants.dart';
@@ -50,7 +51,7 @@ class _RootLayoutState extends State<RootLayout> {
 
   // Get total destinations count
   int _getDestinationsCount() {
-    int count = 3; // Dashboard, Search, Settings (always present)
+    int count = 4; // Dashboard, Search, Reports, Settings (always present)
     if (_isMobile || _enableScannerOnDesktop) count++; // Scan
     if (!_isMobile) count += 2; // Export, Admin
     return count;
@@ -93,6 +94,15 @@ class _RootLayoutState extends State<RootLayout> {
         icon: const Icon(Icons.search_outlined),
         selectedIcon: const Icon(Icons.search_rounded),
         label: appLoc.search,
+      ),
+    );
+
+    // Reports - All platforms
+    destinations.add(
+      NavigationDestination(
+        icon: const Icon(Icons.assignment_outlined),
+        selectedIcon: const Icon(Icons.assignment_rounded),
+        label: 'Reports',
       ),
     );
 
@@ -165,6 +175,15 @@ class _RootLayoutState extends State<RootLayout> {
       ),
     );
 
+    // Reports - All platforms
+    destinations.add(
+      NavigationRailDestination(
+        icon: const Icon(Icons.assignment_outlined),
+        selectedIcon: const Icon(Icons.assignment_rounded),
+        label: const Text('Reports'),
+      ),
+    );
+
     // Export - Desktop/Web only
     if (!_isMobile) {
       destinations.add(
@@ -213,6 +232,9 @@ class _RootLayoutState extends State<RootLayout> {
 
     // Search - All platforms
     pages.add(const SearchPage());
+
+    // Reports - All platforms
+    pages.add(const MyReportsPage());
 
     // Export - Desktop/Web only
     if (!_isMobile) {

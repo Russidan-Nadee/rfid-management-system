@@ -314,6 +314,7 @@ model problem_notification {
   resolved_by     String?                       @db.VarChar(20)
   resolved_at     DateTime?                     @db.DateTime(0)
   resolution_note String?                       @db.Text
+  rejection_note  String?                       @db.Text
   created_at      DateTime                      @default(now()) @db.DateTime(0)
   updated_at      DateTime                      @updatedAt @db.DateTime(0)
 

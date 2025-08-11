@@ -161,6 +161,21 @@ const NotificationService = {
     } catch (error) {
       throw new Error(`Failed to get asset notifications: ${error.message}`);
     }
+  },
+
+  // Get reports submitted by a specific user
+  async getUserReports(userId) {
+    try {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      const reports = await NotificationModel.getNotificationsByUser(userId);
+      return reports;
+
+    } catch (error) {
+      throw new Error(`Failed to get user reports: ${error.message}`);
+    }
   }
 };
 

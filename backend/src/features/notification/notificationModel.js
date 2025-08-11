@@ -154,9 +154,25 @@ const NotificationModel = {
       updateData.acknowledged_at = new Date();
     }
 
+    // When status changes to in_progress, it means the report was acknowledged
+    if (updates.status === 'in_progress' && !updates.acknowledged_by) {
+      updateData.acknowledged_by = userId;
+      updateData.acknowledged_at = new Date();
+    }
+
     if (updates.status === 'resolved' && !updates.resolved_by) {
       updateData.resolved_by = userId;
       updateData.resolved_at = new Date();
+    }
+
+    // When status changes to cancelled, it means the report was rejected
+    if (updates.status === 'cancelled' && !updates.resolved_by) {
+      updateData.resolved_by = userId;
+      updateData.resolved_at = new Date();
+      // Handle rejection note
+      if (updates.rejection_note) {
+        updateData.rejection_note = updates.rejection_note;
+      }
     }
 
     return await prisma.problem_notification.update({
@@ -230,6 +246,36 @@ const NotificationModel = {
           select: {
             user_id: true,
             full_name: true
+          }
+        },
+        acknowledger: {
+          select: {
+            user_id: true,
+            full_name: true
+          }
+        },
+        resolver: {
+          select: {
+            user_id: true,
+            full_name: true
+          }
+        }
+      }
+    });
+  },
+
+  // Get notifications by user (for user's own reports)
+  async getNotificationsByUser(userId) {
+    return await prisma.problem_notification.findMany({
+      where: { reported_by: userId },
+      orderBy: { created_at: 'desc' },
+      include: {
+        asset_master: {
+          select: {
+            asset_no: true,
+            description: true,
+            location_code: true,
+            plant_code: true
           }
         },
         acknowledger: {

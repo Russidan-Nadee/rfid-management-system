@@ -51,6 +51,13 @@ router.get(
   NotificationController.getNotificationsCounts
 );
 
+// GET /api/notifications/my-reports - Get current user's submitted reports
+router.get(
+  '/my-reports',
+  authenticateToken,
+  NotificationController.getMyReports
+);
+
 // GET /api/notifications/:id - Get specific notification (admin/manager only)
 router.get(
   '/:id',

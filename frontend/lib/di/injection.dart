@@ -9,6 +9,7 @@ import 'auth_injection.dart';
 import 'scan_injection.dart';
 import 'settings_injection.dart';
 import 'export_injection.dart';
+import 'reports_injection.dart';
 
 // Global GetIt instance
 final getIt = GetIt.instance;
@@ -32,6 +33,7 @@ Future<void> configureDependencies() async {
   configureExportDependencies();
   configureSearchDependencies();
   configureDashboardDependencies();
+  configureReportsDependencies();
 
   if (const bool.fromEnvironment('dart.vm.product') == false) {}
 }

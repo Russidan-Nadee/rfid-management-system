@@ -6,7 +6,7 @@ class MockEmployeeInfoService {
       this.mockEmployees = [
          {
             employee_id: '000001',
-            full_name: 'John Doe',
+            full_name: 'User 1',
             department: 'Information Technology',
             position: 'Senior Developer',
             company_role: 'Senior Staff',
