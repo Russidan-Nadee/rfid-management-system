@@ -62,10 +62,10 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
       text: widget.asset.plantCode,
     );
     _locationCodeController = TextEditingController(
-      text: widget.asset.locationCode,
+      text: widget.asset.locationDescription ?? widget.asset.locationCode,
     );
     _deptCodeController = TextEditingController(
-      text: widget.asset.deptCode ?? '',
+      text: widget.asset.deptDescription ?? widget.asset.deptCode ?? '',
     );
     _status = widget.asset.status;
     
@@ -466,7 +466,7 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
             TextField(
               controller: _locationCodeController,
               decoration: InputDecoration(
-                labelText: 'Location Code',
+                labelText: 'Location Description',
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
@@ -475,7 +475,7 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
             TextField(
               controller: _deptCodeController,
               decoration: InputDecoration(
-                labelText: 'Department Code',
+                labelText: 'Department Description',
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
@@ -527,8 +527,8 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                     _buildReadOnlyField('EPC Code', widget.asset.epcCode, Icons.qr_code),
                     _buildReadOnlyField('Unit', widget.asset.unitName ?? widget.asset.unitCode, Icons.straighten),
                     _buildReadOnlyField('Quantity', widget.asset.quantity?.toString() ?? 'N/A', Icons.inventory),
-                    _buildReadOnlyField('Brand', widget.asset.brandCode ?? 'N/A', Icons.branding_watermark),
-                    _buildReadOnlyField('Category', widget.asset.categoryCode ?? 'N/A', Icons.category),
+                    _buildReadOnlyField('Brand', widget.asset.brandName ?? widget.asset.brandCode ?? 'N/A', Icons.branding_watermark),
+                    _buildReadOnlyField('Category', widget.asset.categoryName ?? widget.asset.categoryCode ?? 'N/A', Icons.category),
                     _buildReadOnlyField('Created By', widget.asset.createdByName ?? widget.asset.createdBy, Icons.person),
                     _buildReadOnlyField('Created At', _formatDateTime(widget.asset.createdAt), Icons.access_time),
                   ],
@@ -637,10 +637,10 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
           : null,
       locationCode: _locationCodeController.text.trim().isNotEmpty
           ? _locationCodeController.text.trim()
-          : null,
+          : null, // Note: This now contains description but API still expects locationCode
       deptCode: _deptCodeController.text.trim().isNotEmpty
           ? _deptCodeController.text.trim()
-          : null,
+          : null, // Note: This now contains description but API still expects deptCode
       status: _status,
     );
 

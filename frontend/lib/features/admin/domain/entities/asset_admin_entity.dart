@@ -19,7 +19,10 @@ class AssetAdminEntity extends Equatable {
   final DateTime? updatedAt;
   final String? plantDescription;
   final String? locationDescription;
+  final String? deptDescription;
   final String? unitName;
+  final String? brandName;
+  final String? categoryName;
   final String? createdByName;
   final DateTime? lastScanAt;
   final String? lastScannedBy;
@@ -44,7 +47,10 @@ class AssetAdminEntity extends Equatable {
     this.updatedAt,
     this.plantDescription,
     this.locationDescription,
+    this.deptDescription,
     this.unitName,
+    this.brandName,
+    this.categoryName,
     this.createdByName,
     this.lastScanAt,
     this.lastScannedBy,
@@ -70,7 +76,10 @@ class AssetAdminEntity extends Equatable {
     DateTime? updatedAt,
     String? plantDescription,
     String? locationDescription,
+    String? deptDescription,
     String? unitName,
+    String? brandName,
+    String? categoryName,
     String? createdByName,
     DateTime? lastScanAt,
     String? lastScannedBy,
@@ -95,7 +104,10 @@ class AssetAdminEntity extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       plantDescription: plantDescription ?? this.plantDescription,
       locationDescription: locationDescription ?? this.locationDescription,
+      deptDescription: deptDescription ?? this.deptDescription,
       unitName: unitName ?? this.unitName,
+      brandName: brandName ?? this.brandName,
+      categoryName: categoryName ?? this.categoryName,
       createdByName: createdByName ?? this.createdByName,
       lastScanAt: lastScanAt ?? this.lastScanAt,
       lastScannedBy: lastScannedBy ?? this.lastScannedBy,
@@ -123,7 +135,10 @@ class AssetAdminEntity extends Equatable {
         updatedAt,
         plantDescription,
         locationDescription,
+        deptDescription,
         unitName,
+        brandName,
+        categoryName,
         createdByName,
         lastScanAt,
         lastScannedBy,

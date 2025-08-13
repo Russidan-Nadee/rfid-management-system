@@ -186,6 +186,7 @@ class AdminService {
          // Computed fields
          plant_description: asset.plant_description || asset.mst_plant?.description,
          location_description: asset.location_description || asset.mst_location?.description,
+         dept_description: asset.dept_description || asset.mst_department?.description,
          unit_name: asset.unit_name || asset.mst_unit?.name,
          created_by_name: asset.created_by_name || asset.mst_user?.full_name,
          category_name: asset.category_name || asset.mst_category?.category_name,

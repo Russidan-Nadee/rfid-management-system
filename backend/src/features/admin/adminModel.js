@@ -16,6 +16,7 @@ class AdminModel {
             mst_user: true,
             mst_category: true,
             mst_brand: true,
+            mst_department: true,
             asset_scan_log: {
                take: 1,
                orderBy: { scanned_at: 'desc' },
@@ -56,6 +57,7 @@ class AdminModel {
          ...asset,
          plant_description: asset.mst_plant?.description,
          location_description: asset.mst_location?.description,
+         dept_description: asset.mst_department?.description,
          unit_name: asset.mst_unit?.name,
          created_by_name: asset.mst_user?.full_name,
          category_name: asset.mst_category?.category_name,
@@ -114,6 +116,7 @@ class AdminModel {
             mst_user: true,
             mst_category: true,
             mst_brand: true,
+            mst_department: true,
             asset_scan_log: {
                take: 1,
                orderBy: { scanned_at: 'desc' },
