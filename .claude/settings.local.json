@@ -28,7 +28,8 @@
       "Bash(del \"C:\\Users\\russidan\\Desktop\\intern-project-rfid\\test-frontend-api.js\")",
       "Bash(rm:*)",
       "Bash(grep:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }

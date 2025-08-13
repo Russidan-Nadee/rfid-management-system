@@ -28,6 +28,7 @@ abstract class AdminRemoteDatasource {
   Future<List<Map<String, dynamic>>> getAllUsers();
   Future<void> updateUserRole(String userId, String role);
   Future<void> updateUserStatus(String userId, bool isActive);
+  Future<List<String>> getAvailableRoles();
 }
 
 class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
@@ -369,6 +370,18 @@ class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
 
     if (!apiResponse.success) {
       throw Exception('Failed to update user status: ${apiResponse.message}');
+    }
+  }
+
+  @override
+  Future<List<String>> getAvailableRoles() async {
+    final apiResponse = await _apiService.get('/admin/roles');
+    
+    if (apiResponse.success) {
+      final List<dynamic> rolesJson = apiResponse.data ?? [];
+      return rolesJson.map((role) => role.toString()).toList();
+    } else {
+      throw Exception('Failed to fetch available roles: ${apiResponse.message}');
     }
   }
 }
