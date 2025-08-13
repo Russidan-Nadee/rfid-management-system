@@ -120,17 +120,49 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
           (selectedStatusFilter == 'inactive' && !user['is_active']);
 
       // Filter users based on current user role
-      bool canViewUser = true;
+      bool canViewUser = false;
       
+      // ADMIN LOGIC - COMPLETELY SEPARATE
       if (currentUserRole == 'admin') {
-        // Admins can see: managers, staff, viewers (NOT other admins or themselves)
-        canViewUser = (user['role'] == 'manager' || user['role'] == 'staff' || user['role'] == 'viewer') && 
-                     user['user_id'] != currentUserId;
-      } else if (currentUserRole == 'manager') {
-        // Managers can see: staff, viewers ONLY (NOT admins, other managers, or themselves)
-        canViewUser = (user['role'] == 'staff' || user['role'] == 'viewer') && user['role'] != 'manager';
-      } else {
-        // Other roles have no access to user management
+        // Admins can ONLY see: managers, staff, viewers
+        // Admins CANNOT see: other admins, themselves
+        if (user['user_id'] == currentUserId) {
+          canViewUser = false; // NEVER show themselves (check this FIRST)
+        } else if (user['role'] == 'admin') {
+          canViewUser = false; // NEVER show other admins
+        } else if (user['role'] == 'manager') {
+          canViewUser = true; // CAN see managers
+        } else if (user['role'] == 'staff') {
+          canViewUser = true; // CAN see staff
+        } else if (user['role'] == 'viewer') {
+          canViewUser = true; // CAN see viewers
+        } else {
+          canViewUser = false; // Unknown roles not allowed
+        }
+      }
+      
+      // MANAGER LOGIC - COMPLETELY SEPARATE
+      else if (currentUserRole == 'manager') {
+        // Managers can ONLY see: staff, viewers
+        // Managers CANNOT see: admins, other managers, themselves
+        if (user['role'] == 'admin') {
+          canViewUser = false; // NEVER show admins
+        } else if (user['role'] == 'manager') {
+          canViewUser = false; // NEVER show other managers
+        } else if (user['user_id'] == currentUserId) {
+          canViewUser = false; // NEVER show themselves
+        } else if (user['role'] == 'staff') {
+          canViewUser = true; // CAN see staff
+        } else if (user['role'] == 'viewer') {
+          canViewUser = true; // CAN see viewers
+        } else {
+          canViewUser = false; // Unknown roles not allowed
+        }
+      }
+      
+      // OTHER ROLES - COMPLETELY SEPARATE
+      else {
+        // Staff, viewers, etc. have NO access to user management
         canViewUser = false;
       }
 
