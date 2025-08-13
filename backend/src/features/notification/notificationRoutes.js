@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 const NotificationController = require('./notificationController');
 const NotificationValidator = require('./notificationValidator');
 const { authenticateToken } = require('../auth/authMiddleware');
+const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
 
 const router = express.Router();
 
@@ -39,6 +40,7 @@ router.post(
 router.get(
   '/',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationValidator.getNotifications,
   handleValidationErrors,
   NotificationController.getNotifications
@@ -48,6 +50,7 @@ router.get(
 router.get(
   '/counts',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationController.getNotificationsCounts
 );
 
@@ -62,6 +65,7 @@ router.get(
 router.get(
   '/all-reports',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationValidator.getNotifications,
   handleValidationErrors,
   NotificationController.getAllReports
@@ -72,6 +76,7 @@ router.get(
 router.get(
   '/:id',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationValidator.notificationId,
   handleValidationErrors,
   NotificationController.getNotificationById
@@ -81,6 +86,7 @@ router.get(
 router.patch(
   '/:id/status',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationValidator.updateStatus,
   handleValidationErrors,
   NotificationController.updateNotificationStatus
@@ -90,6 +96,7 @@ router.patch(
 router.get(
   '/asset/:assetNo',
   authenticateToken,
+  requireManagerOrAdmin,
   NotificationValidator.assetNo,
   handleValidationErrors,
   NotificationController.getAssetNotifications

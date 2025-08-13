@@ -388,6 +388,54 @@ class AdminController {
          const { userId } = req.params;
          const { role } = req.body;
          const updatedBy = req.user?.userId || req.user?.user_id;
+         const currentUserRole = req.user?.role;
+
+         const isChangingOwnRole = userId === (req.user?.userId || req.user?.user_id);
+         
+         // Prevent anyone from assigning admin role
+         if (role === 'admin') {
+            return res.status(403).json({
+               success: false,
+               message: 'Admin role cannot be assigned',
+               data: null
+            });
+         }
+
+         // Prevent admins from changing their own role
+         if (currentUserRole === 'admin' && isChangingOwnRole) {
+            return res.status(403).json({
+               success: false,
+               message: 'Admins cannot change their own role',
+               data: null
+            });
+         }
+         
+         // Prevent managers from assigning manager roles to others
+         if (currentUserRole === 'manager' && !isChangingOwnRole && role === 'manager') {
+            return res.status(403).json({
+               success: false,
+               message: 'Managers cannot assign manager role to others',
+               data: null
+            });
+         }
+
+         // Prevent managers from changing their own role to manager
+         if (currentUserRole === 'manager' && isChangingOwnRole && role === 'manager') {
+            return res.status(403).json({
+               success: false,
+               message: 'Managers cannot change their role to manager',
+               data: null
+            });
+         }
+
+         // Additional check: Only allow staff and viewer roles for managers
+         if (currentUserRole === 'manager' && !['staff', 'viewer'].includes(role)) {
+            return res.status(403).json({
+               success: false,
+               message: 'Managers can only assign staff or viewer roles',
+               data: null
+            });
+         }
 
          const result = await this.adminService.updateUserRole(userId, role, updatedBy);
          

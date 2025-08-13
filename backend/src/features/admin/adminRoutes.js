@@ -2,7 +2,7 @@ const express = require('express');
 const AdminController = require('./adminController');
 const AdminValidator = require('./adminValidator');
 const { authenticateToken } = require('../auth/authMiddleware');
-const { requireAdmin } = require('../../core/middleware/roleMiddleware');
+const { requireAdmin, requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
 
 const router = express.Router();
 const adminController = new AdminController();
@@ -10,9 +10,6 @@ const adminValidator = new AdminValidator();
 
 // Apply authentication to all admin routes
 router.use(authenticateToken);
-
-// Apply admin role requirement to all admin routes
-router.use(requireAdmin);
 
 // Apply input sanitization to all routes
 router.use(adminValidator.sanitizeInput);
@@ -22,16 +19,17 @@ router.use(adminValidator.sanitizeInput);
 /**
  * @route   GET /admin/assets
  * @desc    Get all assets with details
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.get('/assets', 
+   requireManagerOrAdmin,
    adminController.getAllAssets
 );
 
 /**
  * @route   GET /admin/assets/search
  * @desc    Search assets with filters
- * @access  Admin only
+ * @access  Admin and Manager
  * @query   {string} search - Search term (optional)
  * @query   {string} status - Status filter: A (Awaiting), C (Checked), or I (Inactive) (optional)
  * @query   {string} plant_code - Plant filter (optional)
@@ -41,6 +39,7 @@ router.get('/assets',
  * @query   {string} brand_code - Brand filter (optional)
  */
 router.get('/assets/search',
+   requireManagerOrAdmin,
    adminValidator.validateSearchQuery(),
    adminValidator.handleValidationErrors,
    adminController.searchAssets
@@ -49,9 +48,10 @@ router.get('/assets/search',
 /**
  * @route   GET /admin/assets/:assetNo
  * @desc    Get specific asset by asset number
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.get('/assets/:assetNo',
+   requireManagerOrAdmin,
    adminValidator.validateAssetNoParam(),
    adminValidator.handleValidationErrors,
    adminController.getAssetByNo
@@ -60,9 +60,10 @@ router.get('/assets/:assetNo',
 /**
  * @route   PUT /admin/assets/:assetNo
  * @desc    Update specific asset
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.put('/assets/:assetNo',
+   requireManagerOrAdmin,
    adminValidator.validateAssetNoParam(),
    adminValidator.validateAssetUpdate(),
    adminValidator.handleValidationErrors,
@@ -73,9 +74,10 @@ router.put('/assets/:assetNo',
 /**
  * @route   DELETE /admin/assets/:assetNo
  * @desc    Deactivate specific asset (soft delete - sets status to Inactive)
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.delete('/assets/:assetNo',
+   requireManagerOrAdmin,
    adminValidator.validateAssetNoParam(),
    adminValidator.handleValidationErrors,
    adminValidator.validateBusinessRules,
@@ -87,11 +89,12 @@ router.delete('/assets/:assetNo',
 /**
  * @route   PUT /admin/assets/bulk-update
  * @desc    Bulk update multiple assets
- * @access  Admin only
+ * @access  Admin and Manager
  * @body    {string[]} asset_numbers - Array of asset numbers
  * @body    {object} update_data - Data to update
  */
 router.put('/assets/bulk-update',
+   requireManagerOrAdmin,
    adminValidator.validateBulkUpdate(),
    adminValidator.handleValidationErrors,
    adminController.bulkUpdateAssets
@@ -100,10 +103,11 @@ router.put('/assets/bulk-update',
 /**
  * @route   DELETE /admin/assets/bulk-delete
  * @desc    Bulk delete multiple assets
- * @access  Admin only
+ * @access  Admin and Manager
  * @body    {string[]} asset_numbers - Array of asset numbers
  */
 router.delete('/assets/bulk-delete',
+   requireManagerOrAdmin,
    adminValidator.validateBulkDelete(),
    adminValidator.handleValidationErrors,
    adminController.bulkDeleteAssets
@@ -114,9 +118,10 @@ router.delete('/assets/bulk-delete',
 /**
  * @route   GET /admin/statistics
  * @desc    Get asset statistics
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.get('/statistics',
+   requireManagerOrAdmin,
    adminController.getAssetStatistics
 );
 
@@ -125,18 +130,20 @@ router.get('/statistics',
 /**
  * @route   GET /admin/users
  * @desc    Get all users for role management
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.get('/users',
+   requireManagerOrAdmin,
    adminController.getAllUsers
 );
 
 /**
  * @route   PUT /admin/users/:userId/role
- * @desc    Update user role
- * @access  Admin only
+ * @desc    Update user role (managers cannot assign admin role)
+ * @access  Admin and Manager
  */
 router.put('/users/:userId/role',
+   requireManagerOrAdmin,
    adminValidator.validateUserIdParam(),
    adminValidator.validateRoleUpdate(),
    adminValidator.handleValidationErrors,
@@ -146,9 +153,10 @@ router.put('/users/:userId/role',
 /**
  * @route   PUT /admin/users/:userId/status
  * @desc    Toggle user active status
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.put('/users/:userId/status',
+   requireManagerOrAdmin,
    adminValidator.validateUserIdParam(),
    adminValidator.validateStatusUpdate(),
    adminValidator.handleValidationErrors,
@@ -160,9 +168,10 @@ router.put('/users/:userId/status',
 /**
  * @route   GET /admin/master-data
  * @desc    Get all master data for dropdowns (plants, locations, units, etc.)
- * @access  Admin only
+ * @access  Admin and Manager
  */
 router.get('/master-data',
+   requireManagerOrAdmin,
    adminController.getMasterData
 );
 
@@ -171,9 +180,9 @@ router.get('/master-data',
 /**
  * @route   GET /admin/health
  * @desc    Health check for admin service
- * @access  Admin only
+ * @access  Admin and Manager
  */
-router.get('/health', (req, res) => {
+router.get('/health', requireManagerOrAdmin, (req, res) => {
    res.status(200).json({
       success: true,
       message: 'Admin service is running',

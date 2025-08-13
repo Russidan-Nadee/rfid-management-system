@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const ExportController = require('./exportController');
 const { authenticateToken } = require('../auth/authMiddleware');
+const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
 const { createRateLimit } = require('../scan/scanMiddleware');
 const {
    createExportValidator,
@@ -114,20 +115,22 @@ router.get('/stats',
  */
 
 /**
- * Manual Cleanup Expired Files (Admin Only)
+ * Manual Cleanup Expired Files (Admin and Manager)
  * POST /api/v1/export/cleanup
  */
 router.post('/cleanup',
    strictRateLimit,
+   requireManagerOrAdmin,
    (req, res) => exportController.cleanupExpiredFiles(req, res)
 );
 
 /**
- * Get Storage Statistics (Admin Only)
+ * Get Storage Statistics (Admin and Manager)
  * GET /api/v1/export/storage-stats
  */
 router.get('/storage-stats',
    generalRateLimit,
+   requireManagerOrAdmin,
    (req, res) => exportController.getStorageStats(req, res)
 );
 

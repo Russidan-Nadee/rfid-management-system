@@ -17,6 +17,8 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
   String selectedRoleFilter = 'all';
   String selectedStatusFilter = 'all';
   bool _isSearchExpanded = false;
+  String? currentUserRole;
+  String? currentUserId;
 
   final List<String> roles = ['admin', 'manager', 'staff', 'viewer'];
   final List<String> statusOptions = ['all', 'active', 'inactive'];
@@ -24,7 +26,29 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
   @override
   void initState() {
     super.initState();
+    _loadCurrentUserRole();
     _loadUsers();
+  }
+
+  Future<void> _loadCurrentUserRole() async {
+    try {
+      final datasource = AdminRemoteDatasourceImpl();
+      // Get current user's role from token or session
+      // For now, we'll assume it's available through the datasource
+      // In a real app, you'd get this from your auth service
+      // TODO: Get actual user role and ID from auth service
+      // For testing purposes - YOU can change this line to test different roles:
+      // Option 1: Test as ADMIN
+      currentUserRole = 'admin';
+      currentUserId = 'test_admin_id';
+      
+      // Option 2: Test as MANAGER (uncomment these 2 lines and comment the above 2 lines)
+      // currentUserRole = 'manager';
+      // currentUserId = 'test_manager_id';
+    } catch (error) {
+      currentUserRole = 'viewer'; // Default to most restrictive
+      currentUserId = null;
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -95,7 +119,22 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
           (selectedStatusFilter == 'active' && user['is_active']) ||
           (selectedStatusFilter == 'inactive' && !user['is_active']);
 
-      return matchesSearch && matchesRole && matchesStatus;
+      // Filter users based on current user role
+      bool canViewUser = true;
+      
+      if (currentUserRole == 'admin') {
+        // Admins can see: managers, staff, viewers (NOT other admins or themselves)
+        canViewUser = (user['role'] == 'manager' || user['role'] == 'staff' || user['role'] == 'viewer') && 
+                     user['user_id'] != currentUserId;
+      } else if (currentUserRole == 'manager') {
+        // Managers can see: staff, viewers ONLY (NOT admins, other managers, or themselves)
+        canViewUser = (user['role'] == 'staff' || user['role'] == 'viewer') && user['role'] != 'manager';
+      } else {
+        // Other roles have no access to user management
+        canViewUser = false;
+      }
+
+      return matchesSearch && matchesRole && matchesStatus && canViewUser;
     }).toList();
   }
 
@@ -608,15 +647,40 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                     ),
                     onSelected: (newRole) =>
                         _updateUserRole(user['user_id'], newRole),
-                    itemBuilder: (context) => roles
-                        .where((role) => role != user['role'])
-                        .map(
-                          (role) => PopupMenuItem(
-                            value: role,
-                            child: Text(role.toUpperCase()),
-                          ),
-                        )
-                        .toList(),
+                    itemBuilder: (context) {
+                      List<String> availableRoles;
+                      
+                      if (currentUserRole == 'admin') {
+                        // Admins can assign any role except admin
+                        availableRoles = roles
+                            .where((role) => role != 'admin') // Admins cannot assign admin role
+                            .where((role) => role != user['role'])
+                            .toList();
+                      } else if (currentUserRole == 'manager') {
+                        // Managers can only assign staff and viewer, except when changing their own role
+                        if (user['user_id'] == currentUserId) {
+                          // Managers can change their own role to staff or viewer
+                          availableRoles = ['staff', 'viewer']
+                              .where((role) => role != user['role'])
+                              .toList();
+                        } else {
+                          // Managers can assign staff and viewer to others
+                          availableRoles = ['staff', 'viewer']
+                              .where((role) => role != user['role'])
+                              .toList();
+                        }
+                      } else {
+                        // Other roles have no permissions
+                        availableRoles = [];
+                      }
+                      
+                      return availableRoles.map(
+                        (role) => PopupMenuItem(
+                          value: role,
+                          child: Text(role.toUpperCase()),
+                        ),
+                      ).toList();
+                    },
                   ),
                 ),
                 const SizedBox(width: 6),

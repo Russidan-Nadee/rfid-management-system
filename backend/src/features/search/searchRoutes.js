@@ -17,6 +17,7 @@ const {
 // Import middleware
 const { createRateLimit } = require('../scan/scanMiddleware');
 const { authenticateToken, optionalAuth } = require('../auth/authMiddleware');
+const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
 
 // สำหรับเพิ่มใน routes/route.js:
 // router.use('/search', require('./searchRoutes'));
@@ -98,19 +99,19 @@ router.delete('/recent',
  * สำหรับ admin ดูสถิติและ debug
  */
 
-// GET /api/v1/search/stats - สถิติการค้นหา (admin only)
+// GET /api/v1/search/stats - สถิติการค้นหา (admin and manager)
 router.get('/stats',
    searchRateLimit,
    authenticateToken,
-   // requireRole(['admin']), // uncomment if you have role middleware
+   requireManagerOrAdmin,
    (req, res) => searchController.getSearchStats(req, res)
 );
 
-// POST /api/v1/search/reindex - rebuild search index (admin only)  
+// POST /api/v1/search/reindex - rebuild search index (admin and manager)  
 router.post('/reindex',
    createRateLimit(60 * 60 * 1000, 1), // 1 time per hour
    authenticateToken,
-   // requireRole(['admin']), // uncomment if you have role middleware
+   requireManagerOrAdmin,
    (req, res) => searchController.rebuildSearchIndex(req, res)
 );
 
