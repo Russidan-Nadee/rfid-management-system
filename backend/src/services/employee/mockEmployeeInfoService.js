@@ -15,7 +15,7 @@ class MockEmployeeInfoService {
          },
          {
             employee_id: '000002',
-            full_name: 'Jane Smith',
+            full_name: 'Staff 1',
             department: 'Human Resources',
             position: 'HR Manager',
             company_role: 'Manager',
@@ -24,7 +24,7 @@ class MockEmployeeInfoService {
          },
          {
             employee_id: '000003',
-            full_name: 'Mike Wilson',
+            full_name: 'Manager 1',
             department: 'Operations',
             position: 'Operations Coordinator',
             company_role: 'Staff',
@@ -33,7 +33,7 @@ class MockEmployeeInfoService {
          },
          {
             employee_id: '000004',
-            full_name: 'Sarah Johnson',
+            full_name: 'User 2',
             department: 'Finance',
             position: 'Financial Analyst',
             company_role: 'Staff',
