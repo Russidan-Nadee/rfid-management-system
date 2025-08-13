@@ -340,6 +340,43 @@ class AdminModel {
          orderBy: { brand_code: 'asc' }
       });
    }
+
+   // ===== USER MANAGEMENT METHODS =====
+
+   async getAllUsers() {
+      return await this.prisma.mst_user.findMany({
+         orderBy: [
+            { role: 'asc' },
+            { full_name: 'asc' }
+         ]
+      });
+   }
+
+   async getUserById(userId) {
+      return await this.prisma.mst_user.findUnique({
+         where: { user_id: userId }
+      });
+   }
+
+   async updateUserRole(userId, role, updatedBy) {
+      return await this.prisma.mst_user.update({
+         where: { user_id: userId },
+         data: {
+            role: role,
+            updated_at: new Date()
+         }
+      });
+   }
+
+   async updateUserStatus(userId, isActive, updatedBy) {
+      return await this.prisma.mst_user.update({
+         where: { user_id: userId },
+         data: {
+            is_active: isActive,
+            updated_at: new Date()
+         }
+      });
+   }
 }
 
 module.exports = AdminModel;

@@ -23,6 +23,11 @@ abstract class AdminRemoteDatasource {
   Future<void> deleteImage(int imageId);
   Future<List<AdminAssetImageEntity>> getAssetImages(String assetNo);
   Future<bool> uploadImage(String assetNo, File imageFile);
+  
+  // User management methods
+  Future<List<Map<String, dynamic>>> getAllUsers();
+  Future<void> updateUserRole(String userId, String role);
+  Future<void> updateUserStatus(String userId, bool isActive);
 }
 
 class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
@@ -324,6 +329,46 @@ class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
         return 'image/webp';
       default:
         return 'image/jpeg';
+    }
+  }
+
+  // ===== USER MANAGEMENT METHODS =====
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final apiResponse = await _apiService.get('/admin/users');
+    
+    if (apiResponse.success) {
+      final List<dynamic> usersJson = apiResponse.data ?? [];
+      return usersJson
+          .map((json) => Map<String, dynamic>.from(json))
+          .toList();
+    } else {
+      throw Exception('Failed to fetch users: ${apiResponse.message}');
+    }
+  }
+
+  @override
+  Future<void> updateUserRole(String userId, String role) async {
+    final apiResponse = await _apiService.put(
+      '/admin/users/$userId/role',
+      body: {'role': role},
+    );
+
+    if (!apiResponse.success) {
+      throw Exception('Failed to update user role: ${apiResponse.message}');
+    }
+  }
+
+  @override
+  Future<void> updateUserStatus(String userId, bool isActive) async {
+    final apiResponse = await _apiService.put(
+      '/admin/users/$userId/status',
+      body: {'is_active': isActive},
+    );
+
+    if (!apiResponse.success) {
+      throw Exception('Failed to update user status: ${apiResponse.message}');
     }
   }
 }

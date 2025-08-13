@@ -358,6 +358,77 @@ class AdminController {
          });
       }
    };
+
+   // ===== USER MANAGEMENT ENDPOINTS =====
+
+   // GET /admin/users - Get all users for role management
+   getAllUsers = async (req, res) => {
+      try {
+         const result = await this.adminService.getAllUsers();
+         
+         res.status(200).json({
+            success: true,
+            message: 'Users retrieved successfully',
+            data: result.data,
+            total: result.total
+         });
+      } catch (error) {
+         console.error('Error in getAllUsers:', error);
+         res.status(500).json({
+            success: false,
+            message: error.message,
+            data: null
+         });
+      }
+   };
+
+   // PUT /admin/users/:userId/role - Update user role
+   updateUserRole = async (req, res) => {
+      try {
+         const { userId } = req.params;
+         const { role } = req.body;
+         const updatedBy = req.user?.userId || req.user?.user_id;
+
+         const result = await this.adminService.updateUserRole(userId, role, updatedBy);
+         
+         res.status(200).json({
+            success: true,
+            message: `User role updated to ${role} successfully`,
+            data: result.data
+         });
+      } catch (error) {
+         console.error('Error in updateUserRole:', error);
+         res.status(500).json({
+            success: false,
+            message: error.message,
+            data: null
+         });
+      }
+   };
+
+   // PUT /admin/users/:userId/status - Update user status
+   updateUserStatus = async (req, res) => {
+      try {
+         const { userId } = req.params;
+         const { is_active } = req.body;
+         const updatedBy = req.user?.userId || req.user?.user_id;
+
+         const result = await this.adminService.updateUserStatus(userId, is_active, updatedBy);
+         
+         res.status(200).json({
+            success: true,
+            message: `User ${is_active ? 'activated' : 'deactivated'} successfully`,
+            data: result.data
+         });
+      } catch (error) {
+         console.error('Error in updateUserStatus:', error);
+         res.status(500).json({
+            success: false,
+            message: error.message,
+            data: null
+         });
+      }
+   };
 }
 
 module.exports = AdminController;

@@ -120,6 +120,41 @@ router.get('/statistics',
    adminController.getAssetStatistics
 );
 
+// ===== USER MANAGEMENT ROUTES =====
+
+/**
+ * @route   GET /admin/users
+ * @desc    Get all users for role management
+ * @access  Admin only
+ */
+router.get('/users',
+   adminController.getAllUsers
+);
+
+/**
+ * @route   PUT /admin/users/:userId/role
+ * @desc    Update user role
+ * @access  Admin only
+ */
+router.put('/users/:userId/role',
+   adminValidator.validateUserIdParam(),
+   adminValidator.validateRoleUpdate(),
+   adminValidator.handleValidationErrors,
+   adminController.updateUserRole
+);
+
+/**
+ * @route   PUT /admin/users/:userId/status
+ * @desc    Toggle user active status
+ * @access  Admin only
+ */
+router.put('/users/:userId/status',
+   adminValidator.validateUserIdParam(),
+   adminValidator.validateStatusUpdate(),
+   adminValidator.handleValidationErrors,
+   adminController.updateUserStatus
+);
+
 // ===== MASTER DATA ROUTES =====
 
 /**

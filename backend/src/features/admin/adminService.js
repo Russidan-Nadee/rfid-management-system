@@ -298,6 +298,110 @@ class AdminService {
          throw new Error('Failed to get master data: ' + error.message);
       }
    }
+
+   // ===== USER MANAGEMENT SERVICES =====
+
+   async getAllUsers() {
+      try {
+         const users = await this.adminModel.getAllUsers();
+         
+         // Format the response with additional computed fields
+         const formattedUsers = users.map(user => this.formatUserResponse(user));
+
+         return {
+            success: true,
+            data: formattedUsers,
+            total: formattedUsers.length
+         };
+      } catch (error) {
+         console.error('Error getting all users:', error);
+         throw new Error('Failed to fetch users: ' + error.message);
+      }
+   }
+
+   async updateUserRole(userId, newRole, updatedBy) {
+      try {
+         if (!userId || !newRole) {
+            throw new Error('User ID and role are required');
+         }
+
+         // Validate role
+         const validRoles = ['admin', 'manager', 'staff', 'viewer'];
+         if (!validRoles.includes(newRole)) {
+            throw new Error('Invalid role specified');
+         }
+
+         // Check if user exists
+         const existingUser = await this.adminModel.getUserById(userId);
+         if (!existingUser) {
+            throw new Error('User not found');
+         }
+
+         // Update user role
+         const updatedUser = await this.adminModel.updateUserRole(userId, newRole, updatedBy);
+
+         return {
+            success: true,
+            data: this.formatUserResponse(updatedUser),
+            message: `User role updated to ${newRole}`
+         };
+      } catch (error) {
+         console.error('Error updating user role:', error);
+         throw new Error('Failed to update user role: ' + error.message);
+      }
+   }
+
+   async updateUserStatus(userId, isActive, updatedBy) {
+      try {
+         if (!userId || typeof isActive !== 'boolean') {
+            throw new Error('User ID and status are required');
+         }
+
+         // Check if user exists
+         const existingUser = await this.adminModel.getUserById(userId);
+         if (!existingUser) {
+            throw new Error('User not found');
+         }
+
+         // Prevent admin from deactivating themselves
+         if (updatedBy === userId && !isActive) {
+            throw new Error('You cannot deactivate your own account');
+         }
+
+         // Update user status
+         const updatedUser = await this.adminModel.updateUserStatus(userId, isActive, updatedBy);
+
+         return {
+            success: true,
+            data: this.formatUserResponse(updatedUser),
+            message: `User ${isActive ? 'activated' : 'deactivated'}`
+         };
+      } catch (error) {
+         console.error('Error updating user status:', error);
+         throw new Error('Failed to update user status: ' + error.message);
+      }
+   }
+
+   // ===== HELPER METHODS =====
+
+   formatUserResponse(user) {
+      if (!user) return null;
+
+      return {
+         user_id: user.user_id,
+         employee_id: user.employee_id,
+         full_name: user.full_name,
+         department: user.department,
+         position: user.position,
+         company_role: user.company_role,
+         email: user.email,
+         role: user.role,
+         is_active: user.is_active,
+         last_login: user.last_login,
+         created_at: user.created_at,
+         updated_at: user.updated_at
+      };
+   }
 }
 
 module.exports = AdminService;

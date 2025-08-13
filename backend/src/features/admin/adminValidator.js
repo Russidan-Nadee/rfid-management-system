@@ -292,6 +292,43 @@ class AdminValidator {
          });
       }
    };
+
+   // ===== USER MANAGEMENT VALIDATION RULES =====
+
+   // User ID parameter validation
+   validateUserIdParam() {
+      return [
+         param('userId')
+            .notEmpty()
+            .withMessage('User ID is required')
+            .isLength({ min: 1, max: 20 })
+            .withMessage('User ID must be between 1 and 20 characters')
+            .matches(/^[A-Za-z0-9_-]+$/)
+            .withMessage('User ID can only contain letters, numbers, underscores, and hyphens')
+      ];
+   }
+
+   // Role update validation
+   validateRoleUpdate() {
+      return [
+         body('role')
+            .notEmpty()
+            .withMessage('Role is required')
+            .isIn(['admin', 'manager', 'staff', 'viewer'])
+            .withMessage('Role must be one of: admin, manager, staff, viewer')
+      ];
+   }
+
+   // Status update validation  
+   validateStatusUpdate() {
+      return [
+         body('is_active')
+            .notEmpty()
+            .withMessage('Status is required')
+            .isBoolean()
+            .withMessage('Status must be true or false')
+      ];
+   }
 }
 
 module.exports = AdminValidator;
