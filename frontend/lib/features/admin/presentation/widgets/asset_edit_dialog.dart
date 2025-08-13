@@ -30,7 +30,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   late TextEditingController _descriptionController;
   late TextEditingController _serialNoController;
   late TextEditingController _inventoryNoController;
-  late TextEditingController _quantityController;
+  late TextEditingController _plantCodeController;
+  late TextEditingController _locationCodeController;
+  late TextEditingController _deptCodeController;
   late String _status;
   
   // Image management
@@ -51,11 +53,19 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
     _serialNoController = TextEditingController(
       text: widget.asset.serialNo ?? '',
     );
+    print('🔍 Serial No initialized with: ${widget.asset.serialNo}');
     _inventoryNoController = TextEditingController(
       text: widget.asset.inventoryNo ?? '',
     );
-    _quantityController = TextEditingController(
-      text: widget.asset.quantity?.toString() ?? '',
+    print('🔍 Inventory No initialized with: ${widget.asset.inventoryNo}');
+    _plantCodeController = TextEditingController(
+      text: widget.asset.plantCode,
+    );
+    _locationCodeController = TextEditingController(
+      text: widget.asset.locationCode,
+    );
+    _deptCodeController = TextEditingController(
+      text: widget.asset.deptCode ?? '',
     );
     _status = widget.asset.status;
     
@@ -75,7 +85,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
     _descriptionController.dispose();
     _serialNoController.dispose();
     _inventoryNoController.dispose();
-    _quantityController.dispose();
+    _plantCodeController.dispose();
+    _locationCodeController.dispose();
+    _deptCodeController.dispose();
     super.dispose();
   }
 
@@ -368,42 +380,104 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
-        child: Column(
+        child: Form(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // EDITABLE FIELDS SECTION
+            Text(
+              'Editable Fields',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
             TextField(
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: l10n.descriptionLabel,
                 border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
               maxLines: 2,
             ),
             const SizedBox(height: 16),
-            TextField(
+            TextFormField(
               controller: _serialNoController,
+              enabled: true,
+              readOnly: false,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 labelText: l10n.serialNoLabel,
                 border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
+                helperText: 'Click to edit serial number',
+                hintText: 'Enter serial number',
               ),
+              onChanged: (value) {
+                print('🔍 Serial No changed to: $value');
+              },
+              onTap: () {
+                print('🔍 Serial No field tapped');
+              },
+              validator: (value) {
+                // Optional: Add validation if needed
+                return null;
+              },
             ),
             const SizedBox(height: 16),
-            TextField(
+            TextFormField(
               controller: _inventoryNoController,
+              enabled: true,
+              readOnly: false,
+              keyboardType: TextInputType.text,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 labelText: l10n.inventoryNoLabel,
                 border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
+                helperText: 'Click to edit inventory number',
+                hintText: 'Enter inventory number',
+              ),
+              onChanged: (value) {
+                print('🔍 Inventory No changed to: $value');
+              },
+              onTap: () {
+                print('🔍 Inventory No field tapped');
+              },
+              validator: (value) {
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _plantCodeController,
+              decoration: InputDecoration(
+                labelText: 'Plant Code',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: _quantityController,
+              controller: _locationCodeController,
               decoration: InputDecoration(
-                labelText: l10n.quantityLabel,
+                labelText: 'Location Code',
                 border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _deptCodeController,
+              decoration: InputDecoration(
+                labelText: 'Department Code',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
             ),
             const SizedBox(height: 16),
@@ -412,6 +486,7 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
               decoration: InputDecoration(
                 labelText: l10n.statusLabel,
                 border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.edit, color: Colors.green),
               ),
               items: [
                 DropdownMenuItem(value: 'A', child: Text(l10n.statusAwaiting)),
@@ -426,38 +501,75 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                 }
               },
             ),
+            
+            const SizedBox(height: 32),
+            const Divider(thickness: 2),
+            const SizedBox(height: 16),
+            
+            // READ-ONLY FIELDS SECTION
+            Text(
+              'Read-Only Information',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
             const SizedBox(height: 16),
             Card(
               color: Colors.grey[100],
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.readOnlyInfoTitle,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('${l10n.assetNo}: ${widget.asset.assetNo}'),
-                    Text('${l10n.epcCodeLabel}: ${widget.asset.epcCode}'),
-                    Text(
-                      '${l10n.plantLabel}: ${widget.asset.plantDescription ?? widget.asset.plantCode}',
-                    ),
-                    Text(
-                      '${l10n.locationLabel}: ${widget.asset.locationDescription ?? widget.asset.locationCode}',
-                    ),
-                    Text(
-                      '${l10n.unitLabel}: ${widget.asset.unitName ?? widget.asset.unitCode}',
-                    ),
+                    _buildReadOnlyField('Asset No', widget.asset.assetNo, Icons.tag),
+                    _buildReadOnlyField('EPC Code', widget.asset.epcCode, Icons.qr_code),
+                    _buildReadOnlyField('Unit', widget.asset.unitName ?? widget.asset.unitCode, Icons.straighten),
+                    _buildReadOnlyField('Quantity', widget.asset.quantity?.toString() ?? 'N/A', Icons.inventory),
+                    _buildReadOnlyField('Brand', widget.asset.brandCode ?? 'N/A', Icons.branding_watermark),
+                    _buildReadOnlyField('Category', widget.asset.categoryCode ?? 'N/A', Icons.category),
+                    _buildReadOnlyField('Created By', widget.asset.createdByName ?? widget.asset.createdBy, Icons.person),
+                    _buildReadOnlyField('Created At', _formatDateTime(widget.asset.createdAt), Icons.access_time),
                   ],
                 ),
               ),
             ),
           ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildReadOnlyField(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black87, fontSize: 14),
+                children: [
+                  TextSpan(
+                    text: '$label: ',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  TextSpan(text: value),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildImagesTab(AdminLocalizations l10n) {
@@ -505,19 +617,29 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   }
 
   void _handleUpdate() {
+    print('🔍 Update called - Serial No controller text: "${_serialNoController.text}"');
+    print('🔍 Update called - Inventory No controller text: "${_inventoryNoController.text}"');
+    
+    final serialNoValue = _serialNoController.text.trim();
+    final inventoryNoValue = _inventoryNoController.text.trim();
+    print('🔍 Serial No value after trim: "$serialNoValue"');
+    print('🔍 Inventory No value after trim: "$inventoryNoValue"');
+    
     final request = UpdateAssetRequest(
       assetNo: widget.asset.assetNo,
       description: _descriptionController.text.trim().isNotEmpty
           ? _descriptionController.text.trim()
           : null,
-      serialNo: _serialNoController.text.trim().isNotEmpty
-          ? _serialNoController.text.trim()
+      serialNo: serialNoValue.isNotEmpty ? serialNoValue : null,
+      inventoryNo: inventoryNoValue.isNotEmpty ? inventoryNoValue : null,
+      plantCode: _plantCodeController.text.trim().isNotEmpty
+          ? _plantCodeController.text.trim()
           : null,
-      inventoryNo: _inventoryNoController.text.trim().isNotEmpty
-          ? _inventoryNoController.text.trim()
+      locationCode: _locationCodeController.text.trim().isNotEmpty
+          ? _locationCodeController.text.trim()
           : null,
-      quantity: _quantityController.text.trim().isNotEmpty
-          ? double.tryParse(_quantityController.text.trim())
+      deptCode: _deptCodeController.text.trim().isNotEmpty
+          ? _deptCodeController.text.trim()
           : null,
       status: _status,
     );
