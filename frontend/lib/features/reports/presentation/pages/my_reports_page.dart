@@ -248,7 +248,8 @@ class MyReportsPageView extends StatelessWidget {
   }
 }
 
-class _UniformCardGrid extends StatefulWidget {
+// Auto-adjusting grid where each row height adjusts to its tallest card
+class _UniformCardGrid extends StatelessWidget {
   final List<dynamic> reports;
   final VoidCallback onReportUpdated;
 
@@ -258,84 +259,7 @@ class _UniformCardGrid extends StatefulWidget {
   });
 
   @override
-  State<_UniformCardGrid> createState() => _UniformCardGridState();
-}
-
-class _UniformCardGridState extends State<_UniformCardGrid> {
-  Size? _maxCardSize;
-  final List<GlobalKey> _cardKeys = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeCardKeys();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _measureCards();
-    });
-  }
-
-  void _initializeCardKeys() {
-    _cardKeys.clear();
-    for (int i = 0; i < widget.reports.length; i++) {
-      _cardKeys.add(GlobalKey());
-    }
-  }
-
-  void _measureCards() {
-    double maxWidth = 0;
-    double maxHeight = 0;
-
-    for (final key in _cardKeys) {
-      final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final size = renderBox.size;
-        if (size.width > maxWidth) maxWidth = size.width;
-        if (size.height > maxHeight) maxHeight = size.height;
-      }
-    }
-
-    if (maxWidth > 0 && maxHeight > 0) {
-      setState(() {
-        _maxCardSize = Size(maxWidth, maxHeight);
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_maxCardSize == null) {
-      // First render - measure cards
-      return _buildMeasuringLayout();
-    } else {
-      // Second render - with uniform sizing
-      return _buildUniformLayout();
-    }
-  }
-
-  Widget _buildMeasuringLayout() {
-    return Opacity(
-      opacity: 0.0, // Hide while measuring
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            children: widget.reports.asMap().entries.map((entry) {
-              final index = entry.key;
-              final report = entry.value;
-              return Container(
-                key: _cardKeys[index],
-                child: ReportCardWidget(
-                  report: report,
-                  onReportUpdated: widget.onReportUpdated,
-                ),
-              );
-            }).toList(),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildUniformLayout() {
     return LayoutBuilder(
       builder: (context, constraints) {
         // Responsive column count based on screen width
@@ -351,71 +275,61 @@ class _UniformCardGridState extends State<_UniformCardGrid> {
           crossAxisCount = 1; // Small screens: 1 column
         }
 
-        // Calculate available width per card
-        final totalSpacing = (crossAxisCount - 1) * 16; // 16px spacing between cards
-        final availableWidth = constraints.maxWidth - totalSpacing;
-        final cardWidth = availableWidth / crossAxisCount;
-        
-        // Use the measured max size, but respect the available width
-        final finalCardWidth = cardWidth.clamp(0.0, _maxCardSize!.width).toDouble();
-        final finalCardHeight = _maxCardSize!.height;
-
-        return _buildFlexGrid(
-          crossAxisCount: crossAxisCount,
-          cardWidth: finalCardWidth,
-          cardHeight: finalCardHeight,
-        );
+        return _buildAutoAdjustingGrid(crossAxisCount: crossAxisCount);
       },
     );
   }
 
-  Widget _buildFlexGrid({
-    required int crossAxisCount,
-    required double cardWidth,
-    required double cardHeight,
-  }) {
+  Widget _buildAutoAdjustingGrid({required int crossAxisCount}) {
     final rows = <Widget>[];
     
-    for (int i = 0; i < widget.reports.length; i += crossAxisCount) {
-      final rowChildren = <Widget>[];
+    // Group reports into rows
+    for (int i = 0; i < reports.length; i += crossAxisCount) {
+      final rowReports = <dynamic>[];
       
+      // Collect reports for this row
       for (int j = 0; j < crossAxisCount; j++) {
         final index = i + j;
-        
-        if (index < widget.reports.length) {
-          rowChildren.add(
-            Expanded(
-              child: Container(
-                width: cardWidth,
-                height: cardHeight,
-                margin: EdgeInsets.only(
-                  right: j < crossAxisCount - 1 ? 16 : 0,
-                ),
-                child: ReportCardWidget(
-                  report: widget.reports[index],
-                  onReportUpdated: widget.onReportUpdated,
-                ),
-              ),
-            ),
-          );
-        } else {
-          // Empty space for incomplete rows
-          rowChildren.add(
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.only(
-                  right: j < crossAxisCount - 1 ? 16 : 0,
-                ),
-              ),
-            ),
-          );
+        if (index < reports.length) {
+          rowReports.add(reports[index]);
         }
       }
       
+      // Create row with IntrinsicHeight to auto-adjust height
       rows.add(
         Container(
-          margin: EdgeInsets.only(bottom: i + crossAxisCount < widget.reports.length ? 16 : 0),
-          child: Row(children: rowChildren),
+          margin: EdgeInsets.only(bottom: i + crossAxisCount < reports.length ? 16 : 0),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: rowReports.asMap().entries.map((entry) {
+                final j = entry.key;
+                final report = entry.value;
+                
+                return Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(
+                      right: j < rowReports.length - 1 ? 16 : 0,
+                    ),
+                    child: ReportCardWidget(
+                      report: report,
+                      onReportUpdated: onReportUpdated,
+                    ),
+                  ),
+                );
+              }).toList() +
+              // Add empty spaces for incomplete rows
+              List.generate(crossAxisCount - rowReports.length, (index) {
+                return Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(
+                      right: (rowReports.length + index) < crossAxisCount - 1 ? 16 : 0,
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
         ),
       );
     }
