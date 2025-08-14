@@ -181,4 +181,16 @@ class ReportsLocalizationsTh extends ReportsLocalizations {
 
   @override
   String get by => 'โดย';
+
+  @override
+  String get reportedLabel => 'รายงานเมื่อ';
+
+  @override
+  String get updatedLabel => 'อัปเดตเมื่อ';
+
+  @override
+  String get acknowledgedLabel => 'รับทราบเมื่อ';
+
+  @override
+  String get resolvedLabel => 'แก้ไขเมื่อ';
 }

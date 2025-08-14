@@ -185,4 +185,144 @@ class AdminLocalizationsEn extends AdminLocalizations {
 
   @override
   String get noReportsFoundMessage => 'There are no reports in the system yet.';
+  
+  // Report Actions Dialog
+  @override
+  String get acknowledgeReportTitle => 'Acknowledge Report';
+
+  @override
+  String get completeReportTitle => 'Complete Report';
+
+  @override
+  String get rejectReportTitle => 'Reject Report';
+
+  @override
+  String get updateReportTitle => 'Update Report';
+
+  @override
+  String get acknowledgeDescription => 'Acknowledge this report and move it to in-progress status.';
+
+  @override
+  String get completeDescription => 'Mark this report as resolved. Please provide resolution details.';
+
+  @override
+  String get rejectDescription => 'Reject this report and mark it as cancelled. Please provide a reason.';
+
+  @override
+  String get updateDescription => 'Update this report.';
+
+  @override
+  String get resolutionNoteRequired => 'Resolution Note *';
+
+  @override
+  String get rejectionReasonRequired => 'Rejection Reason *';
+
+  @override
+  String get acknowledgmentNoteOptional => 'Acknowledgment Note (Optional)';
+
+  @override
+  String get resolutionNotePlaceholder => 'Describe how the issue was resolved...';
+
+  @override
+  String get rejectionReasonPlaceholder => 'Explain why this report is being rejected...';
+
+  @override
+  String get acknowledgmentNotePlaceholder => 'Add any notes about this acknowledgment...';
+
+  @override
+  String get acknowledgeButton => 'Acknowledge';
+
+  @override
+  String get markCompleteButton => 'Mark Complete';
+
+  @override
+  String get rejectReportButton => 'Reject Report';
+
+  @override
+  String get updateButton => 'Update';
+
+  @override
+  String get reportAcknowledgedMessage => 'Report acknowledged and moved to in-progress';
+
+  @override
+  String get reportCompletedMessage => 'Report marked as resolved';
+
+  @override
+  String get reportRejectedMessage => 'Report rejected and cancelled';
+
+  @override
+  String get reportUpdatedMessage => 'Report updated';
+
+  @override
+  String get noSubject => 'No Subject';
+
+  @override
+  String get noDescription => 'No Description';
+
+  @override
+  String get asset => 'Asset';
+
+  @override
+  String get reportNumber => 'Report #';
+
+  @override
+  String get pleaseProvideResolution => 'Please provide resolution details';
+
+  @override
+  String get pleaseProvideRejection => 'Please provide rejection reason';
+  
+  // Role Management
+  @override
+  String get roleManagement => 'Role Management';
+
+  @override
+  String get totalUsers => 'Total Users';
+
+  @override
+  String get filterByRole => 'Filter by Role';
+
+  @override
+  String get allRoles => 'All Roles';
+
+  @override
+  String get filterByStatus => 'Filter by Status';
+
+  @override
+  String get allStatus => 'All';
+
+  @override
+  String get roleLabel => 'Role';
+
+  @override
+  String get statusFilterLabel => 'Status';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get activateUser => 'Activate';
+
+  @override
+  String get deactivateUser => 'Deactivate';
+
+  @override
+  String get activeStatus => 'ACTIVE';
+
+  @override
+  String get inactiveStatus => 'INACTIVE';
+
+  @override
+  String get neverLoggedIn => 'Never';
+
+  @override
+  String get searchAndFilters => 'Search & Filters';
+
+  @override
+  String get searchByNameEmployeeId => 'Search by name, employee ID, or email...';
+
+  @override
+  String get searchUsers => 'Search users...';
+
+  @override
+  String get primaryImage => 'PRIMARY';
 }

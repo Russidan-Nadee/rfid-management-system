@@ -99,4 +99,54 @@ abstract class AdminLocalizations {
   String get errorLoadingReports;
   String get noReportsFound;
   String get noReportsFoundMessage;
+  
+  // Report Actions Dialog
+  String get acknowledgeReportTitle;
+  String get completeReportTitle;
+  String get rejectReportTitle;
+  String get updateReportTitle;
+  String get acknowledgeDescription;
+  String get completeDescription;
+  String get rejectDescription;
+  String get updateDescription;
+  String get resolutionNoteRequired;
+  String get rejectionReasonRequired;
+  String get acknowledgmentNoteOptional;
+  String get resolutionNotePlaceholder;
+  String get rejectionReasonPlaceholder;
+  String get acknowledgmentNotePlaceholder;
+  String get acknowledgeButton;
+  String get markCompleteButton;
+  String get rejectReportButton;
+  String get updateButton;
+  String get reportAcknowledgedMessage;
+  String get reportCompletedMessage;
+  String get reportRejectedMessage;
+  String get reportUpdatedMessage;
+  String get noSubject;
+  String get noDescription;
+  String get asset;
+  String get reportNumber;
+  String get pleaseProvideResolution;
+  String get pleaseProvideRejection;
+  
+  // Role Management
+  String get roleManagement;
+  String get totalUsers;
+  String get filterByRole;
+  String get allRoles;
+  String get filterByStatus;
+  String get allStatus;
+  String get roleLabel;
+  String get statusFilterLabel;
+  String get noUsersFound;
+  String get activateUser;
+  String get deactivateUser;
+  String get activeStatus;
+  String get inactiveStatus;
+  String get neverLoggedIn;
+  String get searchAndFilters;
+  String get searchByNameEmployeeId;
+  String get searchUsers;
+  String get primaryImage;
 }

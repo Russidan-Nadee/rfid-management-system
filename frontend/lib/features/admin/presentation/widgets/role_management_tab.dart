@@ -5,6 +5,7 @@ import '../../../auth/data/repositories/auth_repository_impl.dart';
 import '../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/services/api_service.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class RoleManagementTab extends StatefulWidget {
   const RoleManagementTab({super.key});
@@ -252,16 +253,16 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                     children: [
                       const Icon(Icons.people),
                       AppSpacing.horizontalSpaceSM,
-                      const Text(
-                        'Role Management',
-                        style: TextStyle(
+                      Text(
+                        AdminLocalizations.of(context).roleManagement,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const Spacer(),
                       Text(
-                        'Total Users: ${filteredUsers.length}',
+                        '${AdminLocalizations.of(context).totalUsers}: ${filteredUsers.length}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -293,9 +294,9 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                           children: [
                             const Icon(Icons.search),
                             const SizedBox(width: 8),
-                            const Text(
-                              'Search & Filters',
-                              style: TextStyle(
+                            Text(
+                              AdminLocalizations.of(context).searchAndFilters,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -325,11 +326,10 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                                   Expanded(
                                     flex: 2,
                                     child: TextField(
-                                      decoration: const InputDecoration(
-                                        hintText:
-                                            'Search by name, employee ID, or email...',
-                                        prefixIcon: Icon(Icons.search),
-                                        border: OutlineInputBorder(),
+                                      decoration: InputDecoration(
+                                        hintText: AdminLocalizations.of(context).searchByNameEmployeeId,
+                                        prefixIcon: const Icon(Icons.search),
+                                        border: const OutlineInputBorder(),
                                         isDense: true,
                                       ),
                                       onChanged: _onSearchChanged,
@@ -340,15 +340,15 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: selectedRoleFilter,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Filter by Role',
-                                        border: OutlineInputBorder(),
+                                      decoration: InputDecoration(
+                                        labelText: AdminLocalizations.of(context).filterByRole,
+                                        border: const OutlineInputBorder(),
                                         isDense: true,
                                       ),
                                       items: [
-                                        const DropdownMenuItem(
+                                        DropdownMenuItem(
                                           value: 'all',
-                                          child: Text('All Roles'),
+                                          child: Text(AdminLocalizations.of(context).allRoles),
                                         ),
                                         ...availableRoles.map(
                                           (role) => DropdownMenuItem(
@@ -370,16 +370,16 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: selectedStatusFilter,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Filter by Status',
-                                        border: OutlineInputBorder(),
+                                      decoration: InputDecoration(
+                                        labelText: AdminLocalizations.of(context).filterByStatus,
+                                        border: const OutlineInputBorder(),
                                         isDense: true,
                                       ),
                                       items: statusOptions
                                           .map(
                                             (status) => DropdownMenuItem(
                                               value: status,
-                                              child: Text(status.toUpperCase()),
+                                              child: Text(_getStatusLabel(context, status)),
                                             ),
                                           )
                                           .toList(),
@@ -396,10 +396,10 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                             } else ...{
                               // Mobile layout - stacked filters
                               TextField(
-                                decoration: const InputDecoration(
-                                  hintText: 'Search users...',
-                                  prefixIcon: Icon(Icons.search),
-                                  border: OutlineInputBorder(),
+                                decoration: InputDecoration(
+                                  hintText: AdminLocalizations.of(context).searchUsers,
+                                  prefixIcon: const Icon(Icons.search),
+                                  border: const OutlineInputBorder(),
                                   isDense: true,
                                 ),
                                 onChanged: _onSearchChanged,
@@ -410,15 +410,15 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: selectedRoleFilter,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Role',
-                                        border: OutlineInputBorder(),
+                                      decoration: InputDecoration(
+                                        labelText: AdminLocalizations.of(context).roleLabel,
+                                        border: const OutlineInputBorder(),
                                         isDense: true,
                                       ),
                                       items: [
-                                        const DropdownMenuItem(
+                                        DropdownMenuItem(
                                           value: 'all',
-                                          child: Text('All'),
+                                          child: Text(AdminLocalizations.of(context).allStatus),
                                         ),
                                         ...availableRoles.map(
                                           (role) => DropdownMenuItem(
@@ -439,9 +439,9 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                                   Expanded(
                                     child: DropdownButtonFormField<String>(
                                       value: selectedStatusFilter,
-                                      decoration: const InputDecoration(
-                                        labelText: 'Status',
-                                        border: OutlineInputBorder(),
+                                      decoration: InputDecoration(
+                                        labelText: AdminLocalizations.of(context).statusFilterLabel,
+                                        border: const OutlineInputBorder(),
                                         isDense: true,
                                       ),
                                       items: statusOptions
@@ -482,19 +482,19 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                   child: isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : filteredUsers.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.people_outline,
                                 size: 64,
                                 color: Colors.grey,
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Text(
-                                'No users found',
-                                style: TextStyle(
+                                AdminLocalizations.of(context).noUsersFound,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey,
                                 ),
@@ -651,12 +651,12 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                         border: Border.all(color: Colors.grey.shade400),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit, size: 14),
-                          SizedBox(width: 4),
-                          Text('Role', style: TextStyle(fontSize: 11)),
+                          const Icon(Icons.edit, size: 14),
+                          const SizedBox(width: 4),
+                          Text(AdminLocalizations.of(context).roleLabel, style: const TextStyle(fontSize: 11)),
                         ],
                       ),
                     ),
@@ -713,7 +713,7 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
                         ),
                       ),
                       child: Text(
-                        user['is_active'] ? 'Deactivate' : 'Activate',
+                        user['is_active'] ? AdminLocalizations.of(context).deactivateUser : AdminLocalizations.of(context).activateUser,
                       ),
                     ),
                   ),
@@ -759,7 +759,7 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        isActive ? 'ACTIVE' : 'INACTIVE',
+        isActive ? AdminLocalizations.of(context).activeStatus : AdminLocalizations.of(context).inactiveStatus,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 9,
@@ -785,7 +785,7 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
   }
 
   String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'Never';
+    if (dateTime == null) return AdminLocalizations.of(context).neverLoggedIn;
 
     final now = DateTime.now();
     final difference = now.difference(dateTime);
@@ -798,6 +798,20 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
       return '${difference.inHours}h ago';
     } else {
       return '${difference.inMinutes}m ago';
+    }
+  }
+
+  String _getStatusLabel(BuildContext context, String status) {
+    final l10n = AdminLocalizations.of(context);
+    switch (status) {
+      case 'all':
+        return l10n.allStatus;
+      case 'active':
+        return l10n.activeStatus;
+      case 'inactive':
+        return l10n.inactiveStatus;
+      default:
+        return status.toUpperCase();
     }
   }
 }

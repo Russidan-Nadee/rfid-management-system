@@ -185,4 +185,144 @@ class AdminLocalizationsTh extends AdminLocalizations {
 
   @override
   String get noReportsFoundMessage => 'ยังไม่มีรายงานในระบบ';
+  
+  // Report Actions Dialog
+  @override
+  String get acknowledgeReportTitle => 'รับทราบรายงาน';
+
+  @override
+  String get completeReportTitle => 'ปิดรายงาน';
+
+  @override
+  String get rejectReportTitle => 'ปฏิเสธรายงาน';
+
+  @override
+  String get updateReportTitle => 'อัปเดตรายงาน';
+
+  @override
+  String get acknowledgeDescription => 'รับทราบรายงานนี้และเปลี่ยนสถานะเป็นกำลังดำเนินการ';
+
+  @override
+  String get completeDescription => 'ทำเครื่องหมายรายงานนี้เป็นแก้ไขแล้ว กรุณาระบุรายละเอียดการแก้ไข';
+
+  @override
+  String get rejectDescription => 'ปฏิเสธรายงานนี้และทำเครื่องหมายเป็นยกเลิก กรุณาระบุเหตุผล';
+
+  @override
+  String get updateDescription => 'อัปเดตรายงานนี้';
+
+  @override
+  String get resolutionNoteRequired => 'หมายเหตุการแก้ไข *';
+
+  @override
+  String get rejectionReasonRequired => 'เหตุผลการปฏิเสธ *';
+
+  @override
+  String get acknowledgmentNoteOptional => 'หมายเหตุการรับทราบ (ไม่จำเป็น)';
+
+  @override
+  String get resolutionNotePlaceholder => 'อธิบายวิธีการแก้ไขปัญหา...';
+
+  @override
+  String get rejectionReasonPlaceholder => 'อธิบายเหตุผลที่ปฏิเสธรายงานนี้...';
+
+  @override
+  String get acknowledgmentNotePlaceholder => 'เพิ่มหมายเหตุเกี่ยวกับการรับทราบนี้...';
+
+  @override
+  String get acknowledgeButton => 'รับทราบ';
+
+  @override
+  String get markCompleteButton => 'ทำเครื่องหมายเสร็จสิ้น';
+
+  @override
+  String get rejectReportButton => 'ปฏิเสธรายงาน';
+
+  @override
+  String get updateButton => 'อัปเดต';
+
+  @override
+  String get reportAcknowledgedMessage => 'รับทราบรายงานแล้วและเปลี่ยนเป็นกำลังดำเนินการ';
+
+  @override
+  String get reportCompletedMessage => 'ทำเครื่องหมายรายงานเป็นแก้ไขแล้ว';
+
+  @override
+  String get reportRejectedMessage => 'ปฏิเสธรายงานและยกเลิกแล้ว';
+
+  @override
+  String get reportUpdatedMessage => 'อัปเดตรายงานแล้ว';
+
+  @override
+  String get noSubject => 'ไม่มีหัวข้อ';
+
+  @override
+  String get noDescription => 'ไม่มีคำอธิบาย';
+
+  @override
+  String get asset => 'สินทรัพย์';
+
+  @override
+  String get reportNumber => 'รายงานหมายเลข';
+
+  @override
+  String get pleaseProvideResolution => 'กรุณาระบุรายละเอียดการแก้ไข';
+
+  @override
+  String get pleaseProvideRejection => 'กรุณาระบุเหตุผลการปฏิเสธ';
+  
+  // Role Management
+  @override
+  String get roleManagement => 'จัดการบทบาทผู้ใช้';
+
+  @override
+  String get totalUsers => 'ผู้ใช้ทั้งหมด';
+
+  @override
+  String get filterByRole => 'กรองตามบทบาท';
+
+  @override
+  String get allRoles => 'บทบาททั้งหมด';
+
+  @override
+  String get filterByStatus => 'กรองตามสถานะ';
+
+  @override
+  String get allStatus => 'ทั้งหมด';
+
+  @override
+  String get roleLabel => 'บทบาท';
+
+  @override
+  String get statusFilterLabel => 'สถานะ';
+
+  @override
+  String get noUsersFound => 'ไม่พบผู้ใช้';
+
+  @override
+  String get activateUser => 'เปิดใช้งาน';
+
+  @override
+  String get deactivateUser => 'ปิดใช้งาน';
+
+  @override
+  String get activeStatus => 'ใช้งาน';
+
+  @override
+  String get inactiveStatus => 'ไม่ใช้งาน';
+
+  @override
+  String get neverLoggedIn => 'ไม่เคย';
+
+  @override
+  String get searchAndFilters => 'ค้นหาและกรอง';
+
+  @override
+  String get searchByNameEmployeeId => 'ค้นหาด้วยชื่อ รหัสพนักงาน หรืออีเมล...';
+
+  @override
+  String get searchUsers => 'ค้นหาผู้ใช้...';
+
+  @override
+  String get primaryImage => 'หลัก';
 }

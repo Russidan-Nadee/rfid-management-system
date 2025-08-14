@@ -181,4 +181,16 @@ class ReportsLocalizationsEn extends ReportsLocalizations {
 
   @override
   String get by => 'by';
+
+  @override
+  String get reportedLabel => 'Reported';
+
+  @override
+  String get updatedLabel => 'Updated';
+
+  @override
+  String get acknowledgedLabel => 'Acknowledged';
+
+  @override
+  String get resolvedLabel => 'Resolved';
 }

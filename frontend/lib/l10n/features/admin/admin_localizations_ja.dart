@@ -185,4 +185,144 @@ class AdminLocalizationsJa extends AdminLocalizations {
 
   @override
   String get noReportsFoundMessage => 'システムにはまだレポートがありません。';
+  
+  // Report Actions Dialog
+  @override
+  String get acknowledgeReportTitle => 'レポートを確認';
+
+  @override
+  String get completeReportTitle => 'レポートを完了';
+
+  @override
+  String get rejectReportTitle => 'レポートを拒否';
+
+  @override
+  String get updateReportTitle => 'レポートを更新';
+
+  @override
+  String get acknowledgeDescription => 'このレポートを確認し、進行中ステータスに移動します。';
+
+  @override
+  String get completeDescription => 'このレポートを解決済みとしてマークします。解決詳細を入力してください。';
+
+  @override
+  String get rejectDescription => 'このレポートを拒否し、キャンセル済みとしてマークします。理由を入力してください。';
+
+  @override
+  String get updateDescription => 'このレポートを更新します。';
+
+  @override
+  String get resolutionNoteRequired => '解決メモ *';
+
+  @override
+  String get rejectionReasonRequired => '拒否理由 *';
+
+  @override
+  String get acknowledgmentNoteOptional => '確認メモ（任意）';
+
+  @override
+  String get resolutionNotePlaceholder => '問題がどのように解決されたかを説明...';
+
+  @override
+  String get rejectionReasonPlaceholder => 'このレポートが拒否される理由を説明...';
+
+  @override
+  String get acknowledgmentNotePlaceholder => 'この確認についてのメモを追加...';
+
+  @override
+  String get acknowledgeButton => '確認';
+
+  @override
+  String get markCompleteButton => '完了とマーク';
+
+  @override
+  String get rejectReportButton => 'レポートを拒否';
+
+  @override
+  String get updateButton => '更新';
+
+  @override
+  String get reportAcknowledgedMessage => 'レポートを確認し、進行中に移動しました';
+
+  @override
+  String get reportCompletedMessage => 'レポートを解決済みとしてマークしました';
+
+  @override
+  String get reportRejectedMessage => 'レポートを拒否しキャンセルしました';
+
+  @override
+  String get reportUpdatedMessage => 'レポートを更新しました';
+
+  @override
+  String get noSubject => '件名なし';
+
+  @override
+  String get noDescription => '説明なし';
+
+  @override
+  String get asset => '資産';
+
+  @override
+  String get reportNumber => 'レポート #';
+
+  @override
+  String get pleaseProvideResolution => '解決詳細を入力してください';
+
+  @override
+  String get pleaseProvideRejection => '拒否理由を入力してください';
+  
+  // Role Management
+  @override
+  String get roleManagement => 'ロール管理';
+
+  @override
+  String get totalUsers => '総ユーザー数';
+
+  @override
+  String get filterByRole => 'ロールで絞り込み';
+
+  @override
+  String get allRoles => '全てのロール';
+
+  @override
+  String get filterByStatus => 'ステータスで絞り込み';
+
+  @override
+  String get allStatus => '全て';
+
+  @override
+  String get roleLabel => 'ロール';
+
+  @override
+  String get statusFilterLabel => 'ステータス';
+
+  @override
+  String get noUsersFound => 'ユーザーが見つかりません';
+
+  @override
+  String get activateUser => '有効化';
+
+  @override
+  String get deactivateUser => '無効化';
+
+  @override
+  String get activeStatus => '有効';
+
+  @override
+  String get inactiveStatus => '無効';
+
+  @override
+  String get neverLoggedIn => 'なし';
+
+  @override
+  String get searchAndFilters => '検索とフィルター';
+
+  @override
+  String get searchByNameEmployeeId => '名前、従業員ID、またはメールで検索...';
+
+  @override
+  String get searchUsers => 'ユーザーを検索...';
+
+  @override
+  String get primaryImage => 'プライマリ';
 }

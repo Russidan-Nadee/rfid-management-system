@@ -181,4 +181,16 @@ class ReportsLocalizationsJa extends ReportsLocalizations {
 
   @override
   String get by => '';
+
+  @override
+  String get reportedLabel => '報告日時';
+
+  @override
+  String get updatedLabel => '更新日時';
+
+  @override
+  String get acknowledgedLabel => '確認日時';
+
+  @override
+  String get resolvedLabel => '解決日時';
 }

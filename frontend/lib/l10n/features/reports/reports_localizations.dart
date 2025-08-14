@@ -101,4 +101,8 @@ abstract class ReportsLocalizations {
   // General Labels
   String get notAvailable;
   String get by;
+  String get reportedLabel;
+  String get updatedLabel;
+  String get acknowledgedLabel;
+  String get resolvedLabel;
 }

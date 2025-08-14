@@ -102,7 +102,7 @@ class _RootLayoutState extends State<RootLayout> {
       NavigationDestination(
         icon: const Icon(Icons.assignment_outlined),
         selectedIcon: const Icon(Icons.assignment_rounded),
-        label: 'Reports',
+        label: appLoc.reports,
       ),
     );
 
@@ -123,7 +123,7 @@ class _RootLayoutState extends State<RootLayout> {
         NavigationDestination(
           icon: const Icon(Icons.admin_panel_settings_outlined),
           selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
-          label: 'Admin',
+          label: appLoc.admin,
         ),
       );
     }
@@ -180,7 +180,7 @@ class _RootLayoutState extends State<RootLayout> {
       NavigationRailDestination(
         icon: const Icon(Icons.assignment_outlined),
         selectedIcon: const Icon(Icons.assignment_rounded),
-        label: const Text('Reports'),
+        label: Text(appLoc.reports),
       ),
     );
 
@@ -201,7 +201,7 @@ class _RootLayoutState extends State<RootLayout> {
         NavigationRailDestination(
           icon: const Icon(Icons.admin_panel_settings_outlined),
           selectedIcon: const Icon(Icons.admin_panel_settings_rounded),
-          label: const Text('Admin'),
+          label: Text(appLoc.admin),
         ),
       );
     }

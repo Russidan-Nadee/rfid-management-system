@@ -14,7 +14,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get search => 'Search';
 
   @override
+  String get reports => 'Reports';
+
+  @override
   String get export => 'Export';
+
+  @override
+  String get admin => 'Admin';
 
   @override
   String get settings => 'Settings';

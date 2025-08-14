@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class UserCardWidget extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -64,7 +65,7 @@ class UserCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                _buildCompactStatusChip(user['is_active']),
+                _buildCompactStatusChip(user['is_active'], context),
               ],
             ),
             const SizedBox(height: 4),
@@ -97,7 +98,7 @@ class UserCardWidget extends StatelessWidget {
 
             // Last login
             Text(
-              'Last: ${_formatDateTime(user['last_login'])}',
+              'Last: ${_formatDateTime(user['last_login'], context)}',
               style: const TextStyle(fontSize: 10, color: Colors.grey),
             ),
 
@@ -114,12 +115,12 @@ class UserCardWidget extends StatelessWidget {
                         border: Border.all(color: Colors.grey.shade400),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.edit, size: 14),
-                          SizedBox(width: 4),
-                          Text('Role', style: TextStyle(fontSize: 11)),
+                          const Icon(Icons.edit, size: 14),
+                          const SizedBox(width: 4),
+                          Text(AdminLocalizations.of(context).roleLabel, style: const TextStyle(fontSize: 11)),
                         ],
                       ),
                     ),
@@ -157,7 +158,7 @@ class UserCardWidget extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        user['is_active'] ? 'Deactivate' : 'Activate',
+                        user['is_active'] ? AdminLocalizations.of(context).deactivateUser : AdminLocalizations.of(context).activateUser,
                       ),
                     ),
                   ),
@@ -195,7 +196,7 @@ class UserCardWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactStatusChip(bool isActive) {
+  Widget _buildCompactStatusChip(bool isActive, BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -203,7 +204,7 @@ class UserCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        isActive ? 'ACTIVE' : 'INACTIVE',
+        isActive ? AdminLocalizations.of(context).activeStatus : AdminLocalizations.of(context).inactiveStatus,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 9,
@@ -228,8 +229,8 @@ class UserCardWidget extends StatelessWidget {
     }
   }
 
-  String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'Never';
+  String _formatDateTime(DateTime? dateTime, BuildContext context) {
+    if (dateTime == null) return AdminLocalizations.of(context).neverLoggedIn;
 
     final now = DateTime.now();
     final difference = now.difference(dateTime);

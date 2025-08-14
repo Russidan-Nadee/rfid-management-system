@@ -6,6 +6,7 @@ import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class AdminActionDialog extends StatefulWidget {
   final dynamic report;
@@ -33,29 +34,29 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
     super.dispose();
   }
 
-  String get _actionTitle {
+  String _actionTitle(AdminLocalizations l10n) {
     switch (widget.action) {
       case 'acknowledge':
-        return 'Acknowledge Report';
+        return l10n.acknowledgeReportTitle;
       case 'complete':
-        return 'Complete Report';
+        return l10n.completeReportTitle;
       case 'reject':
-        return 'Reject Report';
+        return l10n.rejectReportTitle;
       default:
-        return 'Update Report';
+        return l10n.updateReportTitle;
     }
   }
 
-  String get _actionDescription {
+  String _actionDescription(AdminLocalizations l10n) {
     switch (widget.action) {
       case 'acknowledge':
-        return 'Acknowledge this report and move it to in-progress status.';
+        return l10n.acknowledgeDescription;
       case 'complete':
-        return 'Mark this report as resolved. Please provide resolution details.';
+        return l10n.completeDescription;
       case 'reject':
-        return 'Reject this report and mark it as cancelled. Please provide a reason.';
+        return l10n.rejectDescription;
       default:
-        return 'Update this report.';
+        return l10n.updateDescription;
     }
   }
 
@@ -89,6 +90,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AdminLocalizations.of(context);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: AppBorders.lg),
@@ -124,7 +126,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _actionTitle,
+                        _actionTitle(l10n),
                         style: AppTextStyles.headline6.copyWith(
                           color: isDark ? AppColors.darkText : AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
@@ -132,7 +134,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                       ),
                       AppSpacing.verticalSpaceXS,
                       Text(
-                        'Report #${widget.report['notification_id']}',
+                        '${l10n.reportNumber}${widget.report['notification_id']}',
                         style: AppTextStyles.body2.copyWith(
                           color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                         ),
@@ -165,7 +167,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.report['subject'] ?? 'No Subject',
+                    widget.report['subject'] ?? l10n.noSubject,
                     style: AppTextStyles.body1.copyWith(
                       color: isDark ? AppColors.darkText : AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -173,7 +175,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                   ),
                   AppSpacing.verticalSpaceXS,
                   Text(
-                    widget.report['description'] ?? 'No Description',
+                    widget.report['description'] ?? l10n.noDescription,
                     style: AppTextStyles.body2.copyWith(
                       color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                     ),
@@ -183,7 +185,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                   if (widget.report['asset_no'] != null) ...[
                     AppSpacing.verticalSpaceXS,
                     Text(
-                      'Asset: ${widget.report['asset_no']}',
+                      '${l10n.asset}: ${widget.report['asset_no']}',
                       style: AppTextStyles.caption.copyWith(
                         color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                       ),
@@ -197,7 +199,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
 
             // Description
             Text(
-              _actionDescription,
+              _actionDescription(l10n),
               style: AppTextStyles.body2.copyWith(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
@@ -208,7 +210,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
             // Note Input (required for complete/reject)
             if (widget.action == 'complete' || widget.action == 'reject') ...[
               Text(
-                widget.action == 'complete' ? 'Resolution Note *' : 'Rejection Reason *',
+                widget.action == 'complete' ? l10n.resolutionNoteRequired : l10n.rejectionReasonRequired,
                 style: AppTextStyles.body2.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -220,8 +222,8 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: widget.action == 'complete' 
-                      ? 'Describe how the issue was resolved...'
-                      : 'Explain why this report is being rejected...',
+                      ? l10n.resolutionNotePlaceholder
+                      : l10n.rejectionReasonPlaceholder,
                   border: OutlineInputBorder(borderRadius: AppBorders.md),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: AppBorders.md,
@@ -233,7 +235,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
               AppSpacing.verticalSpaceLG,
             ] else if (widget.action == 'acknowledge') ...[
               Text(
-                'Acknowledgment Note (Optional)',
+                l10n.acknowledgmentNoteOptional,
                 style: AppTextStyles.body2.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
@@ -244,7 +246,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                 controller: _noteController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  hintText: 'Add any notes about this acknowledgment...',
+                  hintText: l10n.acknowledgmentNotePlaceholder,
                   border: OutlineInputBorder(borderRadius: AppBorders.md),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: AppBorders.md,
@@ -267,7 +269,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                       shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
                     ),
                     child: Text(
-                      'Cancel',
+                      l10n.cancel,
                       style: AppTextStyles.button.copyWith(
                         color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                       ),
@@ -294,7 +296,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                             ),
                           )
                         : Text(
-                            _getActionButtonText(),
+                            _getActionButtonText(l10n),
                             style: AppTextStyles.button.copyWith(color: Colors.white),
                           ),
                   ),
@@ -320,28 +322,30 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
     }
   }
 
-  String _getActionButtonText() {
+  String _getActionButtonText(AdminLocalizations l10n) {
     switch (widget.action) {
       case 'acknowledge':
-        return 'Acknowledge';
+        return l10n.acknowledgeButton;
       case 'complete':
-        return 'Mark Complete';
+        return l10n.markCompleteButton;
       case 'reject':
-        return 'Reject Report';
+        return l10n.rejectReportButton;
       default:
-        return 'Update';
+        return l10n.updateButton;
     }
   }
 
   Future<void> _handleSubmit() async {
+    final l10n = AdminLocalizations.of(context);
+    
     // Validate required fields
     if ((widget.action == 'complete' || widget.action == 'reject') && 
         _noteController.text.trim().isEmpty) {
       Helpers.showError(
         context, 
         widget.action == 'complete' 
-            ? 'Please provide resolution details'
-            : 'Please provide rejection reason'
+            ? l10n.pleaseProvideResolution
+            : l10n.pleaseProvideRejection
       );
       return;
     }
@@ -377,7 +381,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
       if (response.success) {
         Helpers.showSuccess(
           context, 
-          _getSuccessMessage(),
+          _getSuccessMessage(l10n),
         );
         widget.onActionCompleted();
       } else {
@@ -392,16 +396,16 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
     }
   }
 
-  String _getSuccessMessage() {
+  String _getSuccessMessage(AdminLocalizations l10n) {
     switch (widget.action) {
       case 'acknowledge':
-        return 'Report acknowledged and moved to in-progress';
+        return l10n.reportAcknowledgedMessage;
       case 'complete':
-        return 'Report marked as resolved';
+        return l10n.reportCompletedMessage;
       case 'reject':
-        return 'Report rejected and cancelled';
+        return l10n.reportRejectedMessage;
       default:
-        return 'Report updated';
+        return l10n.reportUpdatedMessage;
     }
   }
 }

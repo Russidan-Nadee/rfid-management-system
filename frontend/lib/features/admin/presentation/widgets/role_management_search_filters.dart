@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class RoleManagementSearchFilters extends StatelessWidget {
   final bool isExpanded;
@@ -28,6 +29,7 @@ class RoleManagementSearchFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AdminLocalizations.of(context);
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(4),
@@ -43,9 +45,9 @@ class RoleManagementSearchFilters extends StatelessWidget {
                 children: [
                   const Icon(Icons.search),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Search & Filters',
-                    style: TextStyle(
+                  Text(
+                    l10n.searchAndFilters,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -75,11 +77,10 @@ class RoleManagementSearchFilters extends StatelessWidget {
                         Expanded(
                           flex: 2,
                           child: TextField(
-                            decoration: const InputDecoration(
-                              hintText:
-                                  'Search by name, employee ID, or email...',
-                              prefixIcon: Icon(Icons.search),
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              hintText: l10n.searchByNameEmployeeId,
+                              prefixIcon: const Icon(Icons.search),
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             onChanged: onSearchChanged,
@@ -90,15 +91,15 @@ class RoleManagementSearchFilters extends StatelessWidget {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: selectedRoleFilter,
-                            decoration: const InputDecoration(
-                              labelText: 'Filter by Role',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.filterByRole,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             items: [
-                              const DropdownMenuItem(
+                              DropdownMenuItem(
                                 value: 'all',
-                                child: Text('All Roles'),
+                                child: Text(l10n.allRoles),
                               ),
                               ...roles.map(
                                 (role) => DropdownMenuItem(
@@ -115,9 +116,9 @@ class RoleManagementSearchFilters extends StatelessWidget {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: selectedStatusFilter,
-                            decoration: const InputDecoration(
-                              labelText: 'Filter by Status',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.filterByStatus,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             items: statusOptions
@@ -136,10 +137,10 @@ class RoleManagementSearchFilters extends StatelessWidget {
                   } else ...{
                     // Mobile layout - stacked filters
                     TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search users...',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: l10n.searchUsers,
+                        prefixIcon: const Icon(Icons.search),
+                        border: const OutlineInputBorder(),
                         isDense: true,
                       ),
                       onChanged: onSearchChanged,
@@ -150,15 +151,15 @@ class RoleManagementSearchFilters extends StatelessWidget {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: selectedRoleFilter,
-                            decoration: const InputDecoration(
-                              labelText: 'Role',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.roleLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             items: [
-                              const DropdownMenuItem(
+                              DropdownMenuItem(
                                 value: 'all',
-                                child: Text('All'),
+                                child: Text(l10n.allStatus),
                               ),
                               ...roles.map(
                                 (role) => DropdownMenuItem(
@@ -174,9 +175,9 @@ class RoleManagementSearchFilters extends StatelessWidget {
                         Expanded(
                           child: DropdownButtonFormField<String>(
                             value: selectedStatusFilter,
-                            decoration: const InputDecoration(
-                              labelText: 'Status',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.statusFilterLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             items: statusOptions

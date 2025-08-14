@@ -7,6 +7,7 @@ import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
+import '../../../../l10n/features/reports/reports_localizations.dart';
 import 'admin_action_dialog.dart';
 
 class AdminReportCardWidget extends StatelessWidget {
@@ -19,6 +20,7 @@ class AdminReportCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final reportsL10n = ReportsLocalizations.of(context);
 
     return Card(
       color: isDark ? AppColors.darkSurfaceVariant : theme.colorScheme.surface,
@@ -40,7 +42,7 @@ class AdminReportCardWidget extends StatelessWidget {
                     borderRadius: AppBorders.sm,
                   ),
                   child: Text(
-                    _getStatusText(context, report['status']),
+                    _getStatusText(reportsL10n, report['status']),
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -56,7 +58,7 @@ class AdminReportCardWidget extends StatelessWidget {
                     borderRadius: AppBorders.sm,
                   ),
                   child: Text(
-                    _getPriorityText(context, report['priority']),
+                    _getPriorityText(reportsL10n, report['priority']),
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -70,7 +72,7 @@ class AdminReportCardWidget extends StatelessWidget {
             
             // Subject
             Text(
-              report['subject'] ?? 'No Subject',
+              report['subject'] ?? reportsL10n.noSubject,
               style: AppTextStyles.body1.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
@@ -84,7 +86,7 @@ class AdminReportCardWidget extends StatelessWidget {
             
             // Description
             Text(
-              report['description'] ?? 'No Description',
+              report['description'] ?? reportsL10n.noDescription,
               style: AppTextStyles.caption.copyWith(
                 color: isDark 
                     ? AppColors.darkTextSecondary 
@@ -112,7 +114,7 @@ class AdminReportCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _getProblemTypeText(context, report['problem_type']),
+                      _getProblemTypeText(reportsL10n, report['problem_type']),
                       style: AppTextStyles.body2.copyWith(
                         color: isDark 
                             ? AppColors.darkTextSecondary 
@@ -219,7 +221,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 // Created timestamp
                 const SizedBox(height: 2),
                 Text(
-                  'Reported: ${_formatDate(report['created_at'])}',
+                  '${reportsL10n.reportedLabel}: ${_formatDate(report['created_at'], reportsL10n)}',
                   style: AppTextStyles.caption.copyWith(
                     color: isDark 
                         ? AppColors.darkTextSecondary 
@@ -231,7 +233,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 if (report['updated_at'] != null && report['updated_at'] != report['created_at']) ...[
                   const SizedBox(height: 2),
                   Text(
-                    'Updated: ${_formatDate(report['updated_at'])}',
+                    '${reportsL10n.updatedLabel}: ${_formatDate(report['updated_at'], reportsL10n)}',
                     style: AppTextStyles.caption.copyWith(
                       color: isDark 
                           ? AppColors.darkTextSecondary 
@@ -278,7 +280,7 @@ class AdminReportCardWidget extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Acknowledged: ${_formatDate(report['acknowledged_at'])}${_getAcknowledgerName(context, report)}',
+                          '${reportsL10n.acknowledgedLabel}: ${_formatDate(report['acknowledged_at'], reportsL10n)}${_getAcknowledgerName(context, report)}',
                           style: AppTextStyles.caption.copyWith(
                             color: Colors.blue,
                             fontWeight: FontWeight.w500,
@@ -302,7 +304,7 @@ class AdminReportCardWidget extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Resolved: ${_formatDate(report['resolved_at'])}${_getResolverName(context, report)}',
+                          '${reportsL10n.resolvedLabel}: ${_formatDate(report['resolved_at'], reportsL10n)}${_getResolverName(context, report)}',
                           style: AppTextStyles.caption.copyWith(
                             color: Colors.green,
                             fontWeight: FontWeight.w500,
@@ -415,7 +417,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: AppBorders.sm),
               ),
-              child: Text('Acknowledge', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+              child: Text(ReportsLocalizations.of(context).acknowledge, style: AppTextStyles.caption.copyWith(color: Colors.white)),
             ),
           ),
           const SizedBox(width: 8),
@@ -429,7 +431,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: AppBorders.sm),
               ),
-              child: Text('Reject', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+              child: Text(ReportsLocalizations.of(context).reject, style: AppTextStyles.caption.copyWith(color: Colors.white)),
             ),
           ),
         ] else if (status == 'acknowledged' || status == 'in_progress') ...[
@@ -443,7 +445,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: AppBorders.sm),
               ),
-              child: Text('Complete', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+              child: Text(ReportsLocalizations.of(context).complete, style: AppTextStyles.caption.copyWith(color: Colors.white)),
             ),
           ),
           const SizedBox(width: 8),
@@ -457,7 +459,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: AppBorders.sm),
               ),
-              child: Text('Reject', style: AppTextStyles.caption.copyWith(color: Colors.white)),
+              child: Text(ReportsLocalizations.of(context).reject, style: AppTextStyles.caption.copyWith(color: Colors.white)),
             ),
           ),
         ],
@@ -497,7 +499,7 @@ class AdminReportCardWidget extends StatelessWidget {
           onReportUpdated!();
         }
       } else {
-        Helpers.showError(context, response.message ?? 'Failed to acknowledge report');
+        Helpers.showError(context, response.message ?? ReportsLocalizations.of(context).failedToAcknowledgeReport);
       }
     } catch (e) {
       Helpers.showError(context, 'Error acknowledging report: $e');
@@ -521,18 +523,18 @@ class AdminReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getStatusText(BuildContext context, String status) {
+  String _getStatusText(ReportsLocalizations reportsL10n, String status) {
     switch (status) {
       case 'pending':
-        return 'Pending';
+        return reportsL10n.pending;
       case 'acknowledged':
-        return 'Acknowledged';
+        return reportsL10n.acknowledgedStatus;
       case 'in_progress':
-        return 'In Progress';
+        return reportsL10n.inProgress;
       case 'resolved':
-        return 'Resolved';
+        return reportsL10n.resolvedStatus;
       case 'cancelled':
-        return 'Cancelled';
+        return reportsL10n.cancelled;
       default:
         return status.replaceAll('_', ' ').toUpperCase();
     }
@@ -553,16 +555,16 @@ class AdminReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getPriorityText(BuildContext context, String priority) {
+  String _getPriorityText(ReportsLocalizations reportsL10n, String priority) {
     switch (priority) {
       case 'low':
-        return 'Low';
+        return reportsL10n.low;
       case 'normal':
-        return 'Normal';
+        return reportsL10n.normal;
       case 'high':
-        return 'High';
+        return reportsL10n.high;
       case 'critical':
-        return 'Critical';
+        return reportsL10n.critical;
       default:
         return priority.toUpperCase();
     }
@@ -587,27 +589,27 @@ class AdminReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getProblemTypeText(BuildContext context, String problemType) {
+  String _getProblemTypeText(ReportsLocalizations reportsL10n, String problemType) {
     switch (problemType) {
       case 'asset_damage':
-        return 'Asset Damage';
+        return reportsL10n.assetDamage;
       case 'asset_missing':
-        return 'Missing Asset';
+        return reportsL10n.missingAsset;
       case 'location_issue':
-        return 'Location Issue';
+        return reportsL10n.locationIssue;
       case 'data_error':
-        return 'Data Error';
+        return reportsL10n.dataError;
       case 'urgent_issue':
-        return 'Urgent Issue';
+        return reportsL10n.urgentIssue;
       case 'other':
-        return 'Other';
+        return reportsL10n.other;
       default:
         return problemType.replaceAll('_', ' ').toUpperCase();
     }
   }
 
-  String _formatDate(dynamic dateTime) {
-    if (dateTime == null) return 'N/A';
+  String _formatDate(dynamic dateTime, ReportsLocalizations reportsL10n) {
+    if (dateTime == null) return reportsL10n.notAvailable;
     try {
       final DateTime date = DateTime.parse(dateTime.toString());
       return Helpers.formatDate(date);

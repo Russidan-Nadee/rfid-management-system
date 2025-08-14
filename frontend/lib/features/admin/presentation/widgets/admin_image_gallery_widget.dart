@@ -124,7 +124,7 @@ class AdminImageGalleryWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'PRIMARY',
+                          l10n.primaryImage,
                           style: TextStyle(
                             color: theme.colorScheme.onPrimary,
                             fontSize: 10,
@@ -395,7 +395,7 @@ class AdminImageGalleryWidget extends StatelessWidget {
                         children: [
                           _buildInfoItem(Icons.straighten, image.dimensions),
                           _buildInfoItem(Icons.file_present, image.formattedFileSize),
-                          if (image.isPrimary) _buildInfoItem(Icons.star, 'PRIMARY'),
+                          if (image.isPrimary) _buildInfoItem(Icons.star, l10n.primaryImage),
                         ],
                       ),
                     ),

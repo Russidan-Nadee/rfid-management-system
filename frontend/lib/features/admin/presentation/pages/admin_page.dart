@@ -125,9 +125,9 @@ class _AssetManagementTabState extends State<AssetManagementTab> {
                           children: [
                             const Icon(Icons.search),
                             const SizedBox(width: 8),
-                            const Text(
-                              'Search & Filters',
-                              style: TextStyle(
+                            Text(
+                              l10n.searchTitle,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),

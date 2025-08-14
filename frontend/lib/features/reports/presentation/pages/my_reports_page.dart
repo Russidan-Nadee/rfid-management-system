@@ -8,6 +8,7 @@ import '../../../../di/injection.dart';
 import '../bloc/reports_bloc.dart';
 import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
+import '../../../../l10n/features/reports/reports_localizations.dart';
 // Note: Using admin widget for now - could create a simpler user-only version later
 import '../../../admin/presentation/widgets/admin_report_card_widget.dart';
 
@@ -30,6 +31,7 @@ class MyReportsPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = ReportsLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: isDark
@@ -37,7 +39,7 @@ class MyReportsPageView extends StatelessWidget {
           : theme.colorScheme.background,
       appBar: AppBar(
         title: Text(
-          'My Reports',
+          l10n.myReportsTitle,
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -57,21 +59,21 @@ class MyReportsPageView extends StatelessWidget {
               Icons.refresh,
               color: isDark ? AppColors.darkText : AppColors.primary,
             ),
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
           ),
         ],
       ),
       body: BlocBuilder<ReportsBloc, ReportsState>(
         builder: (context, state) {
           if (state is ReportsLoading) {
-            return _buildLoadingView();
+            return _buildLoadingView(l10n);
           } else if (state is ReportsLoaded) {
             if (state.reports.isEmpty) {
-              return _buildEmptyView(context);
+              return _buildEmptyView(context, l10n);
             }
             return _buildReportsView(context, state.reports);
           } else if (state is ReportsError) {
-            return _buildErrorView(context, state.message);
+            return _buildErrorView(context, l10n, state.message);
           }
           return const SizedBox.shrink();
         },
@@ -79,20 +81,20 @@ class MyReportsPageView extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingView() {
-    return const Center(
+  Widget _buildLoadingView(ReportsLocalizations l10n) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading your reports...'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(l10n.loadingReports),
         ],
       ),
     );
   }
 
-  Widget _buildEmptyView(BuildContext context) {
+  Widget _buildEmptyView(BuildContext context, ReportsLocalizations l10n) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
@@ -125,7 +127,7 @@ class MyReportsPageView extends StatelessWidget {
             ),
             AppSpacing.verticalSpaceXXL,
             Text(
-              'No Reports Yet',
+              l10n.noReportsFoundUser,
               style: AppTextStyles.headline4.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -133,7 +135,7 @@ class MyReportsPageView extends StatelessWidget {
             ),
             AppSpacing.verticalSpaceLG,
             Text(
-              'You haven\'t submitted any problem reports yet.\nWhen you report issues through the scan feature,\nthey will appear here.',
+              l10n.noReportsFound,
               style: AppTextStyles.body2.copyWith(
                 color: isDark
                     ? AppColors.darkTextSecondary
@@ -147,7 +149,7 @@ class MyReportsPageView extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorView(BuildContext context, String message) {
+  Widget _buildErrorView(BuildContext context, ReportsLocalizations l10n, String message) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
@@ -178,7 +180,7 @@ class MyReportsPageView extends StatelessWidget {
             ),
             AppSpacing.verticalSpaceXXL,
             Text(
-              'Error Loading Reports',
+              l10n.errorLoadingReports,
               style: AppTextStyles.headline4.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -213,7 +215,7 @@ class MyReportsPageView extends StatelessWidget {
               },
               icon: Icon(Icons.refresh, color: AppColors.onPrimary),
               label: Text(
-                'Try Again',
+                l10n.tryAgain,
                 style: AppTextStyles.button.copyWith(
                   color: AppColors.onPrimary,
                 ),
