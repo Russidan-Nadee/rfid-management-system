@@ -18,7 +18,7 @@ class AssetListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AdminLocalizations.of(context);
-    
+
     if (assets.isEmpty) {
       return Center(
         child: Column(
@@ -88,8 +88,14 @@ class AssetListWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(l10n.serialNo, asset.serialNo ?? '-'),
-                _buildInfoRow(l10n.plant, asset.plantDescription ?? asset.plantCode),
-                _buildInfoRow(l10n.location, asset.locationDescription ?? asset.locationCode),
+                _buildInfoRow(
+                  l10n.plant,
+                  asset.plantDescription ?? asset.plantCode,
+                ),
+                _buildInfoRow(
+                  l10n.location,
+                  asset.locationDescription ?? asset.locationCode,
+                ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -152,8 +158,14 @@ class AssetListWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${l10n.serialNo}: ${asset.serialNo ?? '-'}', style: const TextStyle(fontSize: 12)),
-                      Text('${l10n.plant}: ${asset.plantDescription ?? asset.plantCode}', style: const TextStyle(fontSize: 12)),
+                      Text(
+                        '${l10n.serialNo}: ${asset.serialNo ?? '-'}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        '${l10n.plant}: ${asset.plantDescription ?? asset.plantCode}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ],
                   ),
                 ),
@@ -194,7 +206,7 @@ class AssetListWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isUltraWide = constraints.maxWidth > 1400;
-        
+
         if (isUltraWide) {
           return _buildExpandableTable(context, constraints);
         } else {
@@ -210,7 +222,9 @@ class AssetListWidget extends StatelessWidget {
                 DataColumn(label: Text(l10n.location)),
                 DataColumn(label: Text(l10n.actions)),
               ],
-              rows: assets.map((asset) => _buildDataRow(context, asset)).toList(),
+              rows: assets
+                  .map((asset) => _buildDataRow(context, asset))
+                  .toList(),
             ),
           );
         }
@@ -218,26 +232,29 @@ class AssetListWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildExpandableTable(BuildContext context, BoxConstraints constraints) {
+  Widget _buildExpandableTable(
+    BuildContext context,
+    BoxConstraints constraints,
+  ) {
     final l10n = AdminLocalizations.of(context);
     // Account for container margins and borders
     final containerMargin = 16.0; // 8px on each side
     final borderWidth = 2.0; // 1px border on each side
     final availableWidth = constraints.maxWidth - containerMargin - borderWidth;
-    
+
     // Define column flex weights for proportional sizing
     const columnFlexes = {
-      'assetNo': 2,      // Asset number gets more space
-      'description': 4,   // Description gets the most space
-      'serialNo': 2,     // Serial number
-      'status': 1,       // Status is compact
-      'plant': 2,        // Plant description
-      'location': 2,     // Location description
-      'actions': 2,      // Action buttons
+      'assetNo': 3, // Asset number gets more space
+      'description': 5, // Description gets the most space
+      'serialNo': 2, // Serial number
+      'status': 2, // Status column expanded
+      'plant': 3, // Plant description
+      'location': 3, // Location description
+      'actions': 2, // Action buttons
     };
-    
+
     final totalFlex = columnFlexes.values.reduce((a, b) => a + b);
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
@@ -255,25 +272,30 @@ class AssetListWidget extends StatelessWidget {
           // Header row
           Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),
               ),
             ),
-          child: Row(
-            children: [
-              _buildHeaderCell(l10n.assetNo, columnFlexes['assetNo']!),
-              _buildHeaderCell(l10n.description, columnFlexes['description']!),
-              _buildHeaderCell(l10n.serialNo, columnFlexes['serialNo']!),
-              _buildHeaderCell(l10n.status, columnFlexes['status']!),
-              _buildHeaderCell(l10n.plant, columnFlexes['plant']!),
-              _buildHeaderCell(l10n.location, columnFlexes['location']!),
-              _buildHeaderCell(l10n.actions, columnFlexes['actions']!),
-            ],
+            child: Row(
+              children: [
+                _buildHeaderCell(l10n.assetNo, columnFlexes['assetNo']!),
+                _buildHeaderCell(
+                  l10n.description,
+                  columnFlexes['description']!,
+                ),
+                _buildHeaderCell(l10n.serialNo, columnFlexes['serialNo']!),
+                _buildHeaderCell(l10n.status, columnFlexes['status']!),
+                _buildHeaderCell(l10n.plant, columnFlexes['plant']!),
+                _buildHeaderCell(l10n.location, columnFlexes['location']!),
+                _buildHeaderCell(l10n.actions, columnFlexes['actions']!),
+              ],
+            ),
           ),
-        ),
           // Data rows
           Expanded(
             child: ListView.builder(
@@ -299,19 +321,16 @@ class AssetListWidget extends StatelessWidget {
         ),
         child: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
       ),
     );
   }
 
   Widget _buildExpandableDataRow(
-    BuildContext context, 
-    AssetAdminEntity asset, 
-    Map<String, int> columnFlexes
+    BuildContext context,
+    AssetAdminEntity asset,
+    Map<String, int> columnFlexes,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -323,7 +342,9 @@ class AssetListWidget extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () => _showEditDialog(context, asset),
-        hoverColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+        hoverColor: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
         child: Row(
           children: [
             _buildDataCell(
@@ -337,15 +358,8 @@ class AssetListWidget extends StatelessWidget {
               null,
               2,
             ),
-            _buildDataCell(
-              asset.serialNo ?? '-',
-              columnFlexes['serialNo']!,
-            ),
-            _buildStatusCell(
-              context,
-              asset.status,
-              columnFlexes['status']!,
-            ),
+            _buildDataCell(asset.serialNo ?? '-', columnFlexes['serialNo']!),
+            _buildStatusCell(context, asset.status, columnFlexes['status']!),
             _buildDataCell(
               asset.plantDescription ?? asset.plantCode,
               columnFlexes['plant']!,
@@ -354,11 +368,7 @@ class AssetListWidget extends StatelessWidget {
               asset.locationDescription ?? asset.locationCode,
               columnFlexes['location']!,
             ),
-            _buildActionCell(
-              context,
-              asset,
-              columnFlexes['actions']!,
-            ),
+            _buildActionCell(context, asset, columnFlexes['actions']!),
           ],
         ),
       ),
@@ -366,10 +376,11 @@ class AssetListWidget extends StatelessWidget {
   }
 
   Widget _buildDataCell(
-    String text, 
-    int flex,
-    [TextStyle? style, int? maxLines]
-  ) {
+    String text,
+    int flex, [
+    TextStyle? style,
+    int? maxLines,
+  ]) {
     return Expanded(
       flex: flex,
       child: Container(
@@ -395,9 +406,7 @@ class AssetListWidget extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(right: BorderSide(color: Colors.grey.shade200)),
         ),
-        child: Center(
-          child: _buildStatusChip(context, status),
-        ),
+        child: Center(child: _buildStatusChip(context, status)),
       ),
     );
   }
@@ -454,12 +463,7 @@ class AssetListWidget extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
         ],
       ),
     );
@@ -495,10 +499,7 @@ class AssetListWidget extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
     );
   }
@@ -511,10 +512,7 @@ class AssetListWidget extends StatelessWidget {
         DataCell(
           Container(
             constraints: const BoxConstraints(maxWidth: 200),
-            child: Text(
-              asset.description,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(asset.description, overflow: TextOverflow.ellipsis),
           ),
         ),
         DataCell(Text(asset.serialNo ?? '-')),
@@ -546,10 +544,7 @@ class AssetListWidget extends StatelessWidget {
   void _showEditDialog(BuildContext context, AssetAdminEntity asset) {
     showDialog(
       context: context,
-      builder: (context) => AssetEditDialog(
-        asset: asset,
-        onUpdate: onUpdate,
-      ),
+      builder: (context) => AssetEditDialog(asset: asset, onUpdate: onUpdate),
     );
   }
 

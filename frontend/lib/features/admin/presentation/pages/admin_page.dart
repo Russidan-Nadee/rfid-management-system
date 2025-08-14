@@ -17,6 +17,7 @@ import '../widgets/role_management_tab.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
 import 'admin_all_reports_page.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../app/theme/app_colors.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -52,7 +53,22 @@ class AdminPageView extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.menuTitle),
+          title: Text(
+            l10n.menuTitle,
+            style: TextStyle(
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkText
+                  : AppColors.primary,
+            ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          foregroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkText
+              : AppColors.primary,
+          elevation: 0,
+          scrolledUnderElevation: 1,
           bottom: const TabBar(
             tabs: [
               Tab(

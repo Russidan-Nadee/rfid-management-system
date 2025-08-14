@@ -67,13 +67,12 @@ class _ExportPageState extends State<ExportPage>
       return AppBar(
         title: Text(
           l10n.pageTitle,
-          style: AppTextStyles.responsive(
-            context: context,
-            style: AppTextStyles.headline4.copyWith(
-              fontWeight: FontWeight.bold,
-              color: isDark ? AppColors.darkText : AppColors.primary,
-            ),
-            desktopFactor: 1.1,
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkText
+                : AppColors.primary,
           ),
         ),
         backgroundColor: isDark
