@@ -169,4 +169,20 @@ class AdminLocalizationsTh extends AdminLocalizations {
 
   @override
   String get internalServerError => 'ข้อผิดพลาดภายในเซิร์ฟเวอร์';
+  
+  // Reports Section
+  @override
+  String get allReports => 'รายงานทั้งหมด';
+
+  @override
+  String get loadingAllReports => 'กำลังโหลดรายงานทั้งหมด...';
+
+  @override
+  String get errorLoadingReports => 'เกิดข้อผิดพลาดในการโหลดรายงาน';
+
+  @override
+  String get noReportsFound => 'ไม่พบรายงาน';
+
+  @override
+  String get noReportsFoundMessage => 'ยังไม่มีรายงานในระบบ';
 }

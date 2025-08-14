@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
@@ -286,7 +285,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                       shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
                     ),
                     child: _isSubmitting
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(

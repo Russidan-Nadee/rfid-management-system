@@ -15,7 +15,7 @@ import '../widgets/asset_search_widget.dart';
 import '../widgets/asset_list_widget.dart';
 import '../widgets/role_management_tab.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
-import '../../../reports/presentation/pages/all_reports_page.dart';
+import 'admin_all_reports_page.dart';
 import '../../../../app/theme/app_spacing.dart';
 
 class AdminPage extends StatelessWidget {
@@ -70,7 +70,7 @@ class AdminPageView extends StatelessWidget {
             // Asset Management Tab
             AssetManagementTab(),
             // All Reports Tab
-            AllReportsPage(),
+            AdminAllReportsPage(),
             // Role Management Tab
             RoleManagementTab(),
           ],

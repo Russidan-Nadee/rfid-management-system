@@ -92,4 +92,11 @@ abstract class AdminLocalizations {
   String get errorDeactivatingAsset;
   String get validationFailed;
   String get internalServerError;
+  
+  // Reports Section
+  String get allReports;
+  String get loadingAllReports;
+  String get errorLoadingReports;
+  String get noReportsFound;
+  String get noReportsFoundMessage;
 }

@@ -169,4 +169,20 @@ class AdminLocalizationsEn extends AdminLocalizations {
 
   @override
   String get internalServerError => 'Internal server error';
+  
+  // Reports Section
+  @override
+  String get allReports => 'All Reports';
+
+  @override
+  String get loadingAllReports => 'Loading all reports...';
+
+  @override
+  String get errorLoadingReports => 'Error Loading Reports';
+
+  @override
+  String get noReportsFound => 'No Reports Found';
+
+  @override
+  String get noReportsFoundMessage => 'There are no reports in the system yet.';
 }

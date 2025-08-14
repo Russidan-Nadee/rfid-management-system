@@ -5,18 +5,19 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/services/notification_service.dart';
-import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../../../features/auth/presentation/bloc/auth_state.dart';
-import '../widgets/report_card_widget.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
+import '../widgets/admin_report_card_widget.dart';
 
-class AllReportsPage extends StatefulWidget {
-  const AllReportsPage({super.key});
+class AdminAllReportsPage extends StatefulWidget {
+  const AdminAllReportsPage({super.key});
 
   @override
-  State<AllReportsPage> createState() => _AllReportsPageState();
+  State<AdminAllReportsPage> createState() => _AdminAllReportsPageState();
 }
 
-class _AllReportsPageState extends State<AllReportsPage> {
+class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
   List<dynamic> _reports = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -38,8 +39,8 @@ class _AllReportsPageState extends State<AllReportsPage> {
       final authState = context.read<AuthBloc>().state;
       final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
 
-      print('🔍 AllReportsPage: Loading reports...');
-      print('🔍 AllReportsPage: User is admin/manager: $isAdmin');
+      print('🔍 AdminAllReportsPage: Loading reports...');
+      print('🔍 AdminAllReportsPage: User is admin/manager: $isAdmin');
 
       final notificationService = getIt<NotificationService>();
       
@@ -52,8 +53,8 @@ class _AllReportsPageState extends State<AllReportsPage> {
             )
           : await notificationService.getMyReports();
 
-      print('🔍 AllReportsPage: API Response - Success: ${response.success}');
-      print('🔍 AllReportsPage: API Response - Message: ${response.message}');
+      print('🔍 AdminAllReportsPage: API Response - Success: ${response.success}');
+      print('🔍 AdminAllReportsPage: API Response - Message: ${response.message}');
       
       if (response.success && response.data != null) {
         List<dynamic> notifications = [];
@@ -61,16 +62,16 @@ class _AllReportsPageState extends State<AllReportsPage> {
         if (isAdmin) {
           // Admin endpoint returns Map with 'notifications' key
           final data = response.data! as Map<String, dynamic>;
-          print('🔍 AllReportsPage: Admin response data keys: ${data.keys}');
+          print('🔍 AdminAllReportsPage: Admin response data keys: ${data.keys}');
           
           if (data['notifications'] != null) {
             notifications = data['notifications'] as List<dynamic>;
-            print('🔍 AllReportsPage: Found ${notifications.length} reports from all users');
+            print('🔍 AdminAllReportsPage: Found ${notifications.length} reports from all users');
           }
         } else {
           // Regular user endpoint returns List directly
           notifications = response.data! as List<dynamic>;
-          print('🔍 AllReportsPage: Found ${notifications.length} personal reports');
+          print('🔍 AdminAllReportsPage: Found ${notifications.length} personal reports');
         }
         
         setState(() {
@@ -78,14 +79,14 @@ class _AllReportsPageState extends State<AllReportsPage> {
           _isLoading = false;
         });
       } else {
-        print('🔍 AllReportsPage: API call failed - ${response.message}');
+        print('🔍 AdminAllReportsPage: API call failed - ${response.message}');
         setState(() {
           _errorMessage = response.message ?? 'Failed to load reports';
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('🔍 AllReportsPage: Exception occurred - $e');
+      print('🔍 AdminAllReportsPage: Exception occurred - $e');
       setState(() {
         _errorMessage = 'Error loading reports: $e';
         _isLoading = false;
@@ -99,22 +100,8 @@ class _AllReportsPageState extends State<AllReportsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get current user to determine title
-    final authState = context.read<AuthBloc>().state;
-    final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
-    
+    // Since this is in admin, always show admin title
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isAdmin ? 'All Reports (Admin)' : 'My Reports'),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bug_report),
-            onPressed: _testApiConnection,
-            tooltip: 'Test API Connection',
-          ),
-        ],
-      ),
       body: _buildBody(),
     );
   }
@@ -170,8 +157,8 @@ class _AllReportsPageState extends State<AllReportsPage> {
       // Show results in UI
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('API Test Complete (${isAdmin ? 'Admin' : 'User'} Mode) - Check console'),
+          const SnackBar(
+            content: Text('API Test Complete (Admin Mode) - Check console'),
             backgroundColor: Colors.blue,
           ),
         );
@@ -216,13 +203,13 @@ class _AllReportsPageState extends State<AllReportsPage> {
   }
 
   Widget _buildLoadingView() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading all reports...'),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(AdminLocalizations.of(context).loadingAllReports),
         ],
       ),
     );
@@ -257,7 +244,7 @@ class _AllReportsPageState extends State<AllReportsPage> {
             ),
             AppSpacing.verticalSpaceXXL,
             Text(
-              'Error Loading Reports',
+              AdminLocalizations.of(context).errorLoadingReports,
               style: AppTextStyles.headline4.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -290,10 +277,6 @@ class _AllReportsPageState extends State<AllReportsPage> {
 
   Widget _buildEmptyView() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // Get current user role to determine message
-    final authState = context.read<AuthBloc>().state;
-    final isAdmin = authState is AuthAuthenticated && (authState.user.isAdmin || authState.user.isManager);
 
     return Center(
       child: Padding(
@@ -318,14 +301,14 @@ class _AllReportsPageState extends State<AllReportsPage> {
                 ),
               ),
               child: Icon(
-                isAdmin ? Icons.admin_panel_settings_outlined : Icons.assignment_outlined,
+                Icons.admin_panel_settings_outlined,
                 color: isDark ? AppColors.darkText : AppColors.primary,
                 size: 60,
               ),
             ),
             AppSpacing.verticalSpaceXXL,
             Text(
-              'No Reports Found',
+              AdminLocalizations.of(context).noReportsFound,
               style: AppTextStyles.headline4.copyWith(
                 color: isDark ? AppColors.darkText : AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
@@ -333,9 +316,7 @@ class _AllReportsPageState extends State<AllReportsPage> {
             ),
             AppSpacing.verticalSpaceMD,
             Text(
-              isAdmin 
-                ? 'There are no reports in the system yet.'
-                : 'You haven\'t submitted any reports yet.',
+              AdminLocalizations.of(context).noReportsFoundMessage,
               style: AppTextStyles.body1.copyWith(
                 color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
@@ -411,7 +392,7 @@ class _UniformCardGrid extends StatelessWidget {
                     margin: EdgeInsets.only(
                       right: j < rowReports.length - 1 ? 16 : 0,
                     ),
-                    child: ReportCardWidget(
+                    child: AdminReportCardWidget(
                       report: report,
                       onReportUpdated: onReportUpdated,
                     ),

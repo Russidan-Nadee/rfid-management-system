@@ -6,13 +6,14 @@ import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../di/injection.dart';
 import '../../../../core/services/notification_service.dart';
-import '../widgets/admin_action_dialog.dart';
+import '../../../../l10n/features/admin/admin_localizations.dart';
+import 'admin_action_dialog.dart';
 
-class ReportCardWidget extends StatelessWidget {
+class AdminReportCardWidget extends StatelessWidget {
   final dynamic report;
   final VoidCallback? onReportUpdated;
 
-  const ReportCardWidget({super.key, required this.report, this.onReportUpdated});
+  const AdminReportCardWidget({super.key, required this.report, this.onReportUpdated});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,7 @@ class ReportCardWidget extends StatelessWidget {
                     borderRadius: AppBorders.sm,
                   ),
                   child: Text(
-                    _getStatusText(report['status']),
+                    _getStatusText(context, report['status']),
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -55,7 +56,7 @@ class ReportCardWidget extends StatelessWidget {
                     borderRadius: AppBorders.sm,
                   ),
                   child: Text(
-                    _getPriorityText(report['priority']),
+                    _getPriorityText(context, report['priority']),
                     style: AppTextStyles.caption.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -111,7 +112,7 @@ class ReportCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _getProblemTypeText(report['problem_type']),
+                      _getProblemTypeText(context, report['problem_type']),
                       style: AppTextStyles.body2.copyWith(
                         color: isDark 
                             ? AppColors.darkTextSecondary 
@@ -277,7 +278,7 @@ class ReportCardWidget extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Acknowledged: ${_formatDate(report['acknowledged_at'])}${_getAcknowledgerName(report)}',
+                          'Acknowledged: ${_formatDate(report['acknowledged_at'])}${_getAcknowledgerName(context, report)}',
                           style: AppTextStyles.caption.copyWith(
                             color: Colors.blue,
                             fontWeight: FontWeight.w500,
@@ -301,7 +302,7 @@ class ReportCardWidget extends StatelessWidget {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Resolved: ${_formatDate(report['resolved_at'])}${_getResolverName(report)}',
+                          'Resolved: ${_formatDate(report['resolved_at'])}${_getResolverName(context, report)}',
                           style: AppTextStyles.caption.copyWith(
                             color: Colors.green,
                             fontWeight: FontWeight.w500,
@@ -395,14 +396,11 @@ class ReportCardWidget extends StatelessWidget {
   
   bool _shouldShowAdminActions(String status) {
     // Show admin buttons for pending, acknowledged, and in_progress statuses
-    // TODO: Add role check here - for now showing to all users for testing
-    // In production, check if user is admin/manager
     return ['pending', 'acknowledged', 'in_progress'].contains(status);
   }
   
   Widget _buildAdminActions(BuildContext context, dynamic report) {
     final status = report['status'];
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Row(
       children: [
@@ -523,7 +521,7 @@ class ReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getStatusText(String status) {
+  String _getStatusText(BuildContext context, String status) {
     switch (status) {
       case 'pending':
         return 'Pending';
@@ -555,7 +553,7 @@ class ReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getPriorityText(String priority) {
+  String _getPriorityText(BuildContext context, String priority) {
     switch (priority) {
       case 'low':
         return 'Low';
@@ -589,7 +587,7 @@ class ReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getProblemTypeText(String problemType) {
+  String _getProblemTypeText(BuildContext context, String problemType) {
     switch (problemType) {
       case 'asset_damage':
         return 'Asset Damage';
@@ -618,7 +616,7 @@ class ReportCardWidget extends StatelessWidget {
     }
   }
 
-  String _getAcknowledgerName(dynamic report) {
+  String _getAcknowledgerName(BuildContext context, dynamic report) {
     final acknowledger = report['acknowledger'];
     if (acknowledger != null && acknowledger['full_name'] != null) {
       return ' by ${acknowledger['full_name']}';
@@ -626,7 +624,7 @@ class ReportCardWidget extends StatelessWidget {
     return '';
   }
 
-  String _getResolverName(dynamic report) {
+  String _getResolverName(BuildContext context, dynamic report) {
     final resolver = report['resolver'];
     if (resolver != null && resolver['full_name'] != null) {
       return ' by ${resolver['full_name']}';

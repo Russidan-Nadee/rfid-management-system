@@ -169,4 +169,20 @@ class AdminLocalizationsJa extends AdminLocalizations {
 
   @override
   String get internalServerError => 'サーバー内部エラー';
+  
+  // Reports Section
+  @override
+  String get allReports => 'すべてのレポート';
+
+  @override
+  String get loadingAllReports => 'すべてのレポートを読み込み中...';
+
+  @override
+  String get errorLoadingReports => 'レポート読み込みエラー';
+
+  @override
+  String get noReportsFound => 'レポートが見つかりません';
+
+  @override
+  String get noReportsFoundMessage => 'システムにはまだレポートがありません。';
 }

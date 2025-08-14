@@ -8,7 +8,8 @@ import '../../../../di/injection.dart';
 import '../bloc/reports_bloc.dart';
 import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
-import '../widgets/report_card_widget.dart';
+// Note: Using admin widget for now - could create a simpler user-only version later
+import '../../../admin/presentation/widgets/admin_report_card_widget.dart';
 
 class MyReportsPage extends StatelessWidget {
   const MyReportsPage({super.key});
@@ -311,7 +312,7 @@ class _UniformCardGrid extends StatelessWidget {
                     margin: EdgeInsets.only(
                       right: j < rowReports.length - 1 ? 16 : 0,
                     ),
-                    child: ReportCardWidget(
+                    child: AdminReportCardWidget(
                       report: report,
                       onReportUpdated: onReportUpdated,
                     ),
