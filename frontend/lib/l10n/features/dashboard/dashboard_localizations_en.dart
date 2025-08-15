@@ -272,6 +272,16 @@ class DashboardLocalizationsEn extends DashboardLocalizations {
   @override
   String get noChartDataAvailable => 'No chart data available';
 
+  // Chart Types
+  @override
+  String get pieChart => 'Pie Chart';
+
+  @override
+  String get barChart => 'Bar Chart';
+
+  @override
+  String get lineChart => 'Line Chart';
+
   // Error Messages
   @override
   String get noDepartmentDataForThisDepartment =>

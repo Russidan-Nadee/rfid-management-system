@@ -11,7 +11,9 @@ import 'common/dashboard_card.dart';
 import 'common/empty_state.dart';
 import 'common/loading_skeleton.dart';
 
-class AssetDistributionChartWidget extends StatelessWidget {
+enum ChartType { pie, bar }
+
+class AssetDistributionChartWidget extends StatefulWidget {
   final AssetDistribution distribution;
   final bool isLoading;
 
@@ -22,34 +24,117 @@ class AssetDistributionChartWidget extends StatelessWidget {
   });
 
   @override
+  State<AssetDistributionChartWidget> createState() => _AssetDistributionChartWidgetState();
+}
+
+class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWidget> {
+  ChartType _selectedChartType = ChartType.bar;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = DashboardLocalizations.of(context);
 
-    if (isLoading) {
+    if (widget.isLoading) {
       return _buildLoadingWidget(l10n);
     }
 
-    return ChartCard(
+    return DashboardCard(
       title: l10n.assetDistribution,
-      chart: SizedBox(
-        height: 200,
-        child: distribution.hasData
-            ? _buildPieChart()
-            : _buildEmptyState(context),
+      trailing: widget.distribution.hasData ? _buildChartTypeSelector(context) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.distribution.hasData) ...[
+            _buildSummary(context),
+            AppSpacing.verticalSpaceMedium,
+          ],
+          SizedBox(
+            height: 200,
+            child: widget.distribution.hasData
+                ? _buildSelectedChart()
+                : _buildEmptyState(context),
+          ),
+          if (widget.distribution.hasData) ...[
+            AppSpacing.verticalSpaceMedium,
+            _buildLegend(context),
+          ],
+        ],
       ),
-      legend: distribution.hasData ? _buildLegend(context) : null,
-      filters: distribution.hasData ? _buildSummary(context) : null,
     );
+  }
+
+  Widget _buildChartTypeSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = DashboardLocalizations.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<ChartType>(
+          value: _selectedChartType,
+          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: theme.colorScheme.onSurface),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: ChartType.pie,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.pie_chart, size: 16, color: theme.colorScheme.onSurface),
+                  const SizedBox(width: 8),
+                  Text(l10n.pieChart),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: ChartType.bar,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.bar_chart, size: 16, color: theme.colorScheme.onSurface),
+                  const SizedBox(width: 8),
+                  Text(l10n.barChart),
+                ],
+              ),
+            ),
+          ],
+          onChanged: (ChartType? newType) {
+            if (newType != null) {
+              setState(() {
+                _selectedChartType = newType;
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedChart() {
+    switch (_selectedChartType) {
+      case ChartType.pie:
+        return _buildPieChart();
+      case ChartType.bar:
+        return _buildBarChart();
+    }
   }
 
   Widget _buildPieChart() {
     return charts.PieChart(
       charts.PieChartData(
-        sections: distribution.pieChartData.map((data) {
+        sections: widget.distribution.pieChartData.map((data) {
           return charts.PieChartSectionData(
             value: data.value.toDouble(),
             title: data.formattedPercentage,
-            color: _getColorForIndex(distribution.pieChartData.indexOf(data)),
+            color: _getColorForIndex(widget.distribution.pieChartData.indexOf(data)),
             radius: 60,
             titleStyle: AppTextStyles.caption.copyWith(
               fontWeight: FontWeight.bold,
@@ -66,6 +151,108 @@ class AssetDistributionChartWidget extends StatelessWidget {
                 charts.PieTouchResponse? pieTouchResponse,
               ) {},
         ),
+      ),
+    );
+  }
+
+  Widget _buildBarChart() {
+    final maxValue = widget.distribution.pieChartData
+        .map((data) => data.value)
+        .fold(0, (prev, current) => current > prev ? current : prev)
+        .toDouble();
+
+    return charts.BarChart(
+      charts.BarChartData(
+        alignment: charts.BarChartAlignment.spaceAround,
+        maxY: maxValue * 1.2,
+        barTouchData: charts.BarTouchData(
+          touchTooltipData: charts.BarTouchTooltipData(
+            getTooltipColor: (group) => Colors.black87,
+            tooltipBorder: BorderSide.none,
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final data = widget.distribution.pieChartData[group.x.toInt()];
+              return charts.BarTooltipItem(
+                '${data.displayName}\n${data.value} (${data.formattedPercentage})',
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+          ),
+        ),
+        titlesData: charts.FlTitlesData(
+          show: true,
+          rightTitles: const charts.AxisTitles(
+            sideTitles: charts.SideTitles(showTitles: false),
+          ),
+          topTitles: const charts.AxisTitles(
+            sideTitles: charts.SideTitles(showTitles: false),
+          ),
+          bottomTitles: charts.AxisTitles(
+            sideTitles: charts.SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < widget.distribution.pieChartData.length) {
+                  final data = widget.distribution.pieChartData[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      data.displayName.length > 8 
+                          ? '${data.displayName.substring(0, 8)}...'
+                          : data.displayName,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                return const SizedBox();
+              },
+              reservedSize: 40,
+            ),
+          ),
+          leftTitles: charts.AxisTitles(
+            sideTitles: charts.SideTitles(
+              showTitles: true,
+              reservedSize: 40,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  value.toInt().toString(),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: charts.FlBorderData(show: false),
+        barGroups: widget.distribution.pieChartData.asMap().entries.map((entry) {
+          final index = entry.key;
+          final data = entry.value;
+          return charts.BarChartGroupData(
+            x: index,
+            barRods: [
+              charts.BarChartRodData(
+                toY: data.value.toDouble(),
+                color: _getColorForIndex(index),
+                width: 20,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+        gridData: const charts.FlGridData(show: false),
       ),
     );
   }
@@ -88,8 +275,8 @@ class AssetDistributionChartWidget extends StatelessWidget {
       child: Wrap(
         spacing: AppSpacing.medium,
         runSpacing: AppSpacing.small,
-        children: distribution.pieChartData.map((data) {
-          final colorIndex = distribution.pieChartData.indexOf(data);
+        children: widget.distribution.pieChartData.map((data) {
+          final colorIndex = widget.distribution.pieChartData.indexOf(data);
           return _buildLegendItem(
             context,
             color: _getColorForIndex(colorIndex),
@@ -151,22 +338,22 @@ class AssetDistributionChartWidget extends StatelessWidget {
           _buildSummaryItem(
             context,
             label: l10n.totalAssets,
-            value: distribution.summary.totalAssets.toString(),
+            value: widget.distribution.summary.totalAssets.toString(),
             icon: Icons.inventory,
           ),
           _buildDivider(context),
           _buildSummaryItem(
             context,
             label: l10n.departments,
-            value: distribution.summary.totalDepartments.toString(),
+            value: widget.distribution.summary.totalDepartments.toString(),
             icon: Icons.business,
           ),
-          if (distribution.summary.isFiltered) ...[
+          if (widget.distribution.summary.isFiltered) ...[
             _buildDivider(context),
             _buildSummaryItem(
               context,
               label: l10n.filter,
-              value: distribution.summary.plantFilter,
+              value: widget.distribution.summary.plantFilter,
               icon: Icons.filter_alt,
             ),
           ],

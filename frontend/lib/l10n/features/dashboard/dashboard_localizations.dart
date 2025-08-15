@@ -134,6 +134,11 @@ abstract class DashboardLocalizations {
   String get noChartData;
   String get noChartDataAvailable;
 
+  // Chart Types
+  String get pieChart;
+  String get barChart;
+  String get lineChart;
+
   // Error Messages
   String get noDepartmentDataForThisDepartment;
   String get failedToLoadDashboard;

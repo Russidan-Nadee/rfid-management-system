@@ -273,6 +273,16 @@ class DashboardLocalizationsTh extends DashboardLocalizations {
   @override
   String get noChartDataAvailable => 'ไม่มีข้อมูลกราฟ';
 
+  // Chart Types
+  @override
+  String get pieChart => 'แผนภูมิวงกลม';
+
+  @override
+  String get barChart => 'แผนภูมิแท่ง';
+
+  @override
+  String get lineChart => 'แผนภูมิเส้น';
+
   // Error Messages
   @override
   String get noDepartmentDataForThisDepartment => 'ไม่มีข้อมูลสำหรับแผนกนี้';

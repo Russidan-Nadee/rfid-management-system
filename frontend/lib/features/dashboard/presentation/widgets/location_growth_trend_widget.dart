@@ -11,6 +11,8 @@ import 'common/dashboard_card.dart';
 import 'common/empty_state.dart';
 import 'common/loading_skeleton.dart';
 
+enum GrowthChartType { line, bar }
+
 class LocationGrowthTrendWidget extends StatefulWidget {
   final GrowthTrend growthTrend; // ใช้ GrowthTrend entity
   final bool isLoading;
@@ -33,6 +35,8 @@ class LocationGrowthTrendWidget extends StatefulWidget {
 }
 
 class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
+  GrowthChartType _selectedChartType = GrowthChartType.bar;
+
   @override
   void initState() {
     super.initState();
@@ -63,23 +67,95 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
       return _buildLoadingWidget(l10n);
     }
 
-    return ChartCard(
+    return DashboardCard(
       title: l10n.assetGrowthLocation,
-      filters: _buildLocationFilter(context),
-      chart: Column(
+      trailing: widget.growthTrend.hasData ? _buildChartTypeSelector(context) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPeriodInfo(context),
-          AppSpacing.verticalSpaceMedium,
+          if (widget.growthTrend.hasData) ...[
+            _buildLocationFilter(context),
+            AppSpacing.verticalSpaceMedium,
+            _buildPeriodInfo(context),
+            AppSpacing.verticalSpaceMedium,
+          ],
           SizedBox(
             height: 200,
             child: widget.growthTrend.hasData
-                ? _buildLineChart()
+                ? _buildSelectedChart()
                 : _buildEmptyState(context),
           ),
+          if (widget.growthTrend.hasData) ...[
+            AppSpacing.verticalSpaceMedium,
+            _buildTrendSummary(context),
+          ],
         ],
       ),
-      legend: widget.growthTrend.hasData ? _buildTrendSummary(context) : null,
     );
+  }
+
+  Widget _buildChartTypeSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = DashboardLocalizations.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<GrowthChartType>(
+          value: _selectedChartType,
+          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: theme.colorScheme.onSurface),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+          items: [
+            DropdownMenuItem(
+              value: GrowthChartType.line,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.show_chart, size: 16, color: theme.colorScheme.onSurface),
+                  const SizedBox(width: 8),
+                  Text(l10n.lineChart),
+                ],
+              ),
+            ),
+            DropdownMenuItem(
+              value: GrowthChartType.bar,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.bar_chart, size: 16, color: theme.colorScheme.onSurface),
+                  const SizedBox(width: 8),
+                  Text(l10n.barChart),
+                ],
+              ),
+            ),
+          ],
+          onChanged: (GrowthChartType? newType) {
+            if (newType != null) {
+              setState(() {
+                _selectedChartType = newType;
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectedChart() {
+    switch (_selectedChartType) {
+      case GrowthChartType.line:
+        return _buildLineChart();
+      case GrowthChartType.bar:
+        return _buildBarChart();
+    }
   }
 
   Widget _buildLocationFilter(BuildContext context) {
@@ -356,6 +432,150 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
               }).toList();
             },
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarChart() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = DashboardLocalizations.of(context);
+
+    final maxValue = widget.growthTrend.trends
+        .map((trend) => trend.assetCount)
+        .fold(0, (prev, current) => current > prev ? current : prev)
+        .toDouble();
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: maxValue * 1.2,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (group) => Colors.black87,
+            tooltipBorder: BorderSide.none,
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final trend = widget.growthTrend.trends[group.x.toInt()];
+              return BarTooltipItem(
+                l10n.chartTooltip(
+                  trend.period,
+                  trend.assetCount,
+                  trend.formattedGrowthPercentage,
+                ),
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                final index = value.toInt();
+                if (index >= 0 && index < widget.growthTrend.trends.length) {
+                  final trend = widget.growthTrend.trends[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      trend.period,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 10,
+                        color: isDark
+                            ? AppColors.darkTextSecondary.withValues(alpha: 0.8)
+                            : AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                }
+                return const SizedBox();
+              },
+              reservedSize: 30,
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 50,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  value.toInt().toString(),
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 10,
+                    color: isDark
+                        ? AppColors.darkTextSecondary.withValues(alpha: 0.8)
+                        : AppColors.textSecondary,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(
+            color: isDark
+                ? AppColors.darkBorder.withValues(alpha: 0.4)
+                : AppColors.divider,
+          ),
+        ),
+        barGroups: widget.growthTrend.trends.asMap().entries.map((entry) {
+          final index = entry.key;
+          final trend = entry.value;
+          
+          // Choose bar color based on growth
+          Color barColor;
+          if (trend.isPositiveGrowth) {
+            barColor = isDark
+                ? Color.lerp(AppColors.trendUp, Colors.black, 0.2)!
+                : AppColors.trendUp;
+          } else if (trend.isNegativeGrowth) {
+            barColor = AppColors.trendDown;
+          } else {
+            barColor = AppColors.trendStable;
+          }
+
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: trend.assetCount.toDouble(),
+                color: barColor,
+                width: 20,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxValue / 5,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: isDark
+                  ? AppColors.darkBorder.withValues(alpha: 0.4)
+                  : AppColors.divider,
+              strokeWidth: 1,
+            );
+          },
         ),
       ),
     );

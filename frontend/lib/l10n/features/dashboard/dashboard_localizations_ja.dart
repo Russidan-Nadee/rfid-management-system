@@ -268,6 +268,16 @@ class DashboardLocalizationsJa extends DashboardLocalizations {
   @override
   String get noChartDataAvailable => 'チャートデータがありません';
 
+  // Chart Types
+  @override
+  String get pieChart => '円グラフ';
+
+  @override
+  String get barChart => '棒グラフ';
+
+  @override
+  String get lineChart => '折れ線グラフ';
+
   // Error Messages
   @override
   String get noDepartmentDataForThisDepartment => 'この部門のデータがありません。';
