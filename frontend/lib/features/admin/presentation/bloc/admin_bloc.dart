@@ -4,6 +4,7 @@ import '../../domain/usecases/search_assets_usecase.dart';
 import '../../domain/usecases/update_asset_usecase.dart';
 import '../../domain/usecases/delete_asset_usecase.dart';
 import '../../domain/usecases/delete_image_usecase.dart';
+import '../../domain/entities/asset_admin_entity.dart';
 import 'admin_event.dart';
 import 'admin_state.dart';
 
@@ -64,8 +65,15 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     UpdateAsset event,
     Emitter<AdminState> emit,
   ) async {
+    List<AssetAdminEntity> currentAssets = [];
+    
     if (state is AdminLoaded) {
-      final currentAssets = (state as AdminLoaded).assets;
+      currentAssets = (state as AdminLoaded).assets;
+    } else if (state is AssetUpdated) {
+      currentAssets = (state as AssetUpdated).assets;
+    }
+    
+    if (currentAssets.isNotEmpty) {
       emit(AssetUpdating(currentAssets));
       
       try {
