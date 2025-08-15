@@ -40,7 +40,7 @@ class ExportLocalizationsEn extends ExportLocalizations {
       'Export all asset information including locations, status, and descriptions';
 
   @override
-  String get allStatusLabel => 'All Status (Active, Inactive, Created)';
+  String get allStatusLabel => 'All Status (Awaiting, Checked, Inactive)';
 
   // File Formats
   @override
@@ -331,6 +331,19 @@ class ExportLocalizationsEn extends ExportLocalizations {
 
   @override
   String get statusFilter => 'Status: ';
+
+  // Status Descriptions
+  @override
+  String get activeStatusDescription => 'Assets waiting for verification';
+
+  @override
+  String get createdStatusDescription => 'Assets that have been verified';
+
+  @override
+  String get inactiveStatusDescription => 'Inactive or retired assets';
+
+  @override
+  String get allStatusDescription => 'Export all assets regardless of status';
 
   // Additional Info
   @override

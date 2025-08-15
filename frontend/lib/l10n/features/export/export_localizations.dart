@@ -168,6 +168,12 @@ abstract class ExportLocalizations {
   String get locationsFilter;
   String get statusFilter;
 
+  // Status Descriptions
+  String get activeStatusDescription;
+  String get createdStatusDescription;
+  String get inactiveStatusDescription;
+  String get allStatusDescription;
+
   // Additional Info
   String get totalSize;
   String get exportFormat;

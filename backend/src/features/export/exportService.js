@@ -150,9 +150,20 @@ class ExportService {
    async _fetchExportData(exportJob) {
       const { export_type } = exportJob;
 
+      // Parse export_config if it's a string
+      let config = exportJob.export_config || {};
+      if (typeof config === 'string') {
+         try {
+            config = JSON.parse(config);
+         } catch (error) {
+            console.error('Failed to parse export_config:', error);
+            config = {};
+         }
+      }
+
       // รองรับเฉพาะ assets export
       if (export_type === 'assets') {
-         return this._fetchAssetData(exportJob.export_config || {});
+         return this._fetchAssetData(config);
       } else {
          throw new Error(`Export type '${export_type}' is no longer supported. Only 'assets' export is available.`);
       }
@@ -167,9 +178,9 @@ class ExportService {
    async _fetchAssetData(config) {
       const { filters = {} } = config;
 
-      console.log('🗄️ Fetching all assets data (no date restrictions)');
+      console.log('🗄️ Fetching assets data');
 
-      // Build where conditions (ไม่มี date range แล้ว)
+      // Build where conditions
       const whereConditions = {};
 
       // Plant filter
@@ -245,7 +256,14 @@ class ExportService {
          orderBy: { asset_no: 'asc' }
       });
 
-      console.log(`✅ Retrieved ${assets.length} assets (all historical data)`);
+      console.log(`✅ Retrieved ${assets.length} assets`);
+
+      // Log status distribution for verification
+      const statusCounts = {};
+      assets.forEach(asset => {
+         statusCounts[asset.status] = (statusCounts[asset.status] || 0) + 1;
+      });
+      console.log('📊 Status distribution:', statusCounts);
 
       // Return ทุก field ครบทั้งหมด 24 columns
       return assets.map(asset => ({

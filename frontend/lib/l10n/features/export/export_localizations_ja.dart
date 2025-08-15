@@ -38,7 +38,7 @@ class ExportLocalizationsJa extends ExportLocalizations {
   String get assetsExportDescription => '場所、ステータス、説明を含むすべてのアセット情報をエクスポート';
 
   @override
-  String get allStatusLabel => 'すべてのステータス (Active, Inactive, Created)';
+  String get allStatusLabel => 'すべてのステータス (検証待ち, 検証済み, 非アクティブ)';
 
   // File Formats
   @override
@@ -327,6 +327,19 @@ class ExportLocalizationsJa extends ExportLocalizations {
 
   @override
   String get statusFilter => 'ステータス: ';
+
+  // Status Descriptions
+  @override
+  String get activeStatusDescription => '検証待ちの資産';
+
+  @override
+  String get createdStatusDescription => '検証済みの資産';
+
+  @override
+  String get inactiveStatusDescription => '非アクティブまたは廃棄された資産';
+
+  @override
+  String get allStatusDescription => 'ステータスに関係なくすべての資産をエクスポート';
 
   // Additional Info
   @override

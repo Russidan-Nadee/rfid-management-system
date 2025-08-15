@@ -13,6 +13,7 @@ import '../../data/models/export_config_model.dart';
 import 'export_header_card.dart';
 import 'export_type_section.dart';
 import 'file_format_section.dart';
+import 'status_filter_section.dart';
 
 class ExportConfigWidget extends StatefulWidget {
   const ExportConfigWidget({super.key});
@@ -23,6 +24,7 @@ class ExportConfigWidget extends StatefulWidget {
 
 class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
+  List<String> _selectedStatuses = []; // Empty = all statuses
 
   void _onFormatSelected(String format) {
     print('${ExportLocalizations.of(context).formatSelected}$format');
@@ -34,15 +36,26 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
     );
   }
 
+  void _onStatusesChanged(List<String> statuses) {
+    setState(() {
+      _selectedStatuses = statuses;
+    });
+    print('Selected statuses: ${statuses.isEmpty ? 'All' : statuses.join(', ')}');
+  }
+
   void _onExportPressed() {
     final l10n = ExportLocalizations.of(context);
     print(l10n.exportPressed);
     print('${l10n.selectedFormatLabel}$_selectedFormat');
 
-    // Build simple export configuration (no date range, no filters)
+    // Build export configuration with status filter if selected
+    final filters = _selectedStatuses.isNotEmpty 
+        ? ExportFiltersModel(status: _selectedStatuses)
+        : null;
+    
     final config = ExportConfigModel(
       format: _selectedFormat,
-      filters: null, // No filters = export all data
+      filters: filters,
     );
 
     print('${l10n.configFormatLabel}${config.format}');
@@ -175,6 +188,22 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
           ),
         ),
 
+        // Status Filter Section
+        StatusFilterSection(
+          selectedStatuses: _selectedStatuses,
+          onStatusesChanged: _onStatusesChanged,
+          isLargeScreen: isLargeScreen,
+        ),
+
+        SizedBox(
+          height: AppSpacing.responsiveSpacing(
+            context,
+            mobile: AppSpacing.xl,
+            tablet: AppSpacing.xxl,
+            desktop: AppSpacing.xxxl,
+          ),
+        ),
+
         // All Data Notice Card
         _buildAllDataNoticeCard(context, isLargeScreen),
 
@@ -246,7 +275,9 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 ),
                 SizedBox(height: AppSpacing.xs),
                 Text(
-                  l10n.exportDataDescription,
+                  _selectedStatuses.isEmpty 
+                    ? l10n.exportDataDescription 
+                    : 'Export assets with selected status filters: ${_selectedStatuses.join(', ')}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark
                         ? AppColors.darkTextSecondary

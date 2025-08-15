@@ -40,7 +40,7 @@ class ExportLocalizationsTh extends ExportLocalizations {
       'ส่งออกข้อมูลสินทรัพย์ทั้งหมด รวมทั้งสถานที่ สถานะ และรายละเอียด';
 
   @override
-  String get allStatusLabel => 'ทุกสถานะ (Active, Inactive, Created)';
+  String get allStatusLabel => 'ทุกสถานะ (รอตรวจสอบ, ตรวจสอบแล้ว, ไม่ใช้งาน)';
 
   // File Formats
   @override
@@ -331,6 +331,19 @@ class ExportLocalizationsTh extends ExportLocalizations {
 
   @override
   String get statusFilter => 'สถานะ: ';
+
+  // Status Descriptions
+  @override
+  String get activeStatusDescription => 'ทรัพย์สินที่รอการตรวจสอบ';
+
+  @override
+  String get createdStatusDescription => 'ทรัพย์สินที่ตรวจสอบแล้ว';
+
+  @override
+  String get inactiveStatusDescription => 'ทรัพย์สินที่ไม่ใช้งานหรือเกษียณ';
+
+  @override
+  String get allStatusDescription => 'ส่งออกทรัพย์สินทั้งหมดไม่ว่าสถานะใด';
 
   // Additional Info
   @override
