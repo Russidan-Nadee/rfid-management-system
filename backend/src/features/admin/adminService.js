@@ -90,13 +90,6 @@ class AdminService {
             throw new Error('Asset not found');
          }
 
-         // Validate unique constraints if updating serial_no, inventory_no, or epc_code
-         if (updateData.serial_no) {
-            const serialExists = await this.adminModel.checkSerialNoExists(updateData.serial_no, assetNo);
-            if (serialExists) {
-               throw new Error('Serial number already exists for another asset');
-            }
-         }
 
 
          if (updateData.epc_code) {
@@ -128,30 +121,18 @@ class AdminService {
 
    async deleteAsset(assetNo, deletedBy) {
       try {
-         // Validate asset exists
-         const assetExists = await this.adminModel.checkAssetExists(assetNo);
-         if (!assetExists) {
-            throw new Error('Asset not found');
-         }
-
-         // Check if asset can be deleted (business rules)
-         const canDelete = await this.canDeleteAsset(assetNo);
-         if (!canDelete.allowed) {
-            throw new Error(canDelete.reason);
-         }
-
-         // Deactivate asset (soft delete)
-         const result = await this.adminModel.deleteAsset(assetNo, deletedBy);
+         // Just update status to 'I' like a normal update
+         const updateData = { status: 'I' };
+         const result = await this.updateAsset(assetNo, updateData, deletedBy);
 
          return {
             success: true,
-            message: 'Asset deactivated successfully',
-            deactivatedAssetNo: result.deactivatedAssetNo,
-            deactivatedAt: result.deactivatedAt
+            message: 'Asset status changed to Inactive',
+            data: result.data
          };
       } catch (error) {
-         console.error('Error deleting asset:', error);
-         throw new Error('Failed to delete asset: ' + error.message);
+         console.error('Error changing asset status:', error);
+         throw new Error('Failed to change asset status: ' + error.message);
       }
    }
 

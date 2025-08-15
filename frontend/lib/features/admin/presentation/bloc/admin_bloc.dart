@@ -71,6 +71,8 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       currentAssets = (state as AdminLoaded).assets;
     } else if (state is AssetUpdated) {
       currentAssets = (state as AssetUpdated).assets;
+    } else if (state is AssetDeleted) {
+      currentAssets = (state as AssetDeleted).assets;
     }
     
     if (currentAssets.isNotEmpty) {
@@ -93,15 +95,28 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     DeleteAsset event,
     Emitter<AdminState> emit,
   ) async {
+    List<AssetAdminEntity> currentAssets = [];
+    
     if (state is AdminLoaded) {
-      final currentAssets = (state as AdminLoaded).assets;
+      currentAssets = (state as AdminLoaded).assets;
+    } else if (state is AssetUpdated) {
+      currentAssets = (state as AssetUpdated).assets;
+    } else if (state is AssetDeleted) {
+      currentAssets = (state as AssetDeleted).assets;
+    }
+    
+    if (currentAssets.isNotEmpty) {
       emit(AssetDeleting(currentAssets, event.assetNo));
       
       try {
-        await deleteAssetUsecase(event.assetNo);
-        final updatedAssets = currentAssets
-            .where((asset) => asset.assetNo != event.assetNo)
-            .toList();
+        final result = await deleteAssetUsecase(event.assetNo);
+        final updatedAssets = currentAssets.map((asset) {
+          if (asset.assetNo == event.assetNo) {
+            // Update the asset status to Inactive instead of removing
+            return asset.copyWith(status: 'I');
+          }
+          return asset;
+        }).toList();
         
         emit(AssetDeleted(updatedAssets));
       } catch (e) {
