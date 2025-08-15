@@ -360,4 +360,27 @@ class ExportLocalizationsEn extends ExportLocalizations {
 
   @override
   String get remainingTime => 'Remaining Time';
+
+  // Status Filter Card Labels
+  @override
+  String get statusAwaitingLabel => 'Awaiting';
+
+  @override
+  String get statusCheckedLabel => 'Checked';
+
+  @override
+  String get statusInactiveLabel => 'Inactive';
+
+  @override
+  String get statusAllLabel => 'All Status';
+  
+  // Status Filter Card Descriptions
+  @override
+  String get statusAwaitingDescription => 'Assets waiting for verification';
+
+  @override
+  String get statusCheckedDescription => 'Assets that have been verified';
+
+  @override
+  String get statusInactiveDescription => 'Inactive or retired assets';
 }

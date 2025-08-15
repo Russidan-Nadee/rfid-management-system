@@ -360,4 +360,27 @@ class ExportLocalizationsTh extends ExportLocalizations {
 
   @override
   String get remainingTime => 'เวลาที่เหลือ';
+
+  // Status Filter Card Labels
+  @override
+  String get statusAwaitingLabel => 'รอตรวจสอบ';
+
+  @override
+  String get statusCheckedLabel => 'ตรวจสอบแล้ว';
+
+  @override
+  String get statusInactiveLabel => 'ไม่ใช้งาน';
+
+  @override
+  String get statusAllLabel => 'ทุกสถานะ';
+  
+  // Status Filter Card Descriptions
+  @override
+  String get statusAwaitingDescription => 'สินทรัพย์ที่รอการตรวจสอบ';
+
+  @override
+  String get statusCheckedDescription => 'สินทรัพย์ที่ได้รับการตรวจสอบแล้ว';
+
+  @override
+  String get statusInactiveDescription => 'สินทรัพย์ที่ไม่ใช้งานหรือปลดระบบ';
 }

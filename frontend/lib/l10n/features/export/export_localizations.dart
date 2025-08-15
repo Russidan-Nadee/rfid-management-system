@@ -180,4 +180,15 @@ abstract class ExportLocalizations {
   String get exportProgress;
   String get estimatedTime;
   String get remainingTime;
+
+  // Status Filter Card Labels
+  String get statusAwaitingLabel;
+  String get statusCheckedLabel;
+  String get statusInactiveLabel;
+  String get statusAllLabel;
+  
+  // Status Filter Card Descriptions
+  String get statusAwaitingDescription;
+  String get statusCheckedDescription;
+  String get statusInactiveDescription;
 }

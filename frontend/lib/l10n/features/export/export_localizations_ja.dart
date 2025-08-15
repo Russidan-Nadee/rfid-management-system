@@ -356,4 +356,27 @@ class ExportLocalizationsJa extends ExportLocalizations {
 
   @override
   String get remainingTime => '残り時間';
+
+  // Status Filter Card Labels
+  @override
+  String get statusAwaitingLabel => '待機中';
+
+  @override
+  String get statusCheckedLabel => '確認済み';
+
+  @override
+  String get statusInactiveLabel => '非アクティブ';
+
+  @override
+  String get statusAllLabel => '全ステータス';
+  
+  // Status Filter Card Descriptions
+  @override
+  String get statusAwaitingDescription => '確認待ちのアセット';
+
+  @override
+  String get statusCheckedDescription => '確認済みのアセット';
+
+  @override
+  String get statusInactiveDescription => '非アクティブまたは廃止されたアセット';
 }

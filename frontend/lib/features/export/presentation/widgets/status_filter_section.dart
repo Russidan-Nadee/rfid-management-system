@@ -52,10 +52,14 @@ class StatusFilterSection extends StatelessWidget {
       children: [
         Icon(Icons.filter_list, color: AppColors.primary, size: 20),
         AppSpacing.horizontalSpaceSM,
-        Text(
-          l10n.statusFilter.replaceAll(': ', ''),
-          style: AppTextStyles.cardTitle.copyWith(
-            color: theme.colorScheme.onSurface,
+        Flexible(
+          child: Text(
+            l10n.statusFilter.replaceAll(': ', ''),
+            style: AppTextStyles.cardTitle.copyWith(
+              color: theme.colorScheme.onSurface,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
         if (selectedStatuses.isNotEmpty) ...[
@@ -75,6 +79,7 @@ class StatusFilterSection extends StatelessWidget {
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
+              overflow: TextOverflow.visible,
             ),
           ),
         ],
@@ -90,19 +95,19 @@ class StatusFilterSection extends StatelessWidget {
     final statusOptions = [
       {
         'code': 'A',
-        'label': 'Awaiting',
-        'color': AppColors.warning,
+        'label': l10n.statusAwaitingLabel,
+        'color': AppColors.vibrantOrange,
         'icon': Icons.schedule,
       },
       {
         'code': 'C',
-        'label': 'Checked',
+        'label': l10n.statusCheckedLabel,
         'color': AppColors.success,
         'icon': Icons.check_circle,
       },
       {
         'code': 'I',
-        'label': 'Inactive',
+        'label': l10n.statusInactiveLabel,
         'color': AppColors.error,
         'icon': Icons.cancel,
       },
@@ -125,40 +130,40 @@ class StatusFilterSection extends StatelessWidget {
       // All Status card
       {
         'code': '',
-        'label': 'All Status',
+        'label': l10n.statusAllLabel,
         'subtitle': l10n.allStatusDescription,
         'icon': Icons.select_all,
         'color': AppColors.primary,
         'isAllCard': true,
       },
       // Individual status cards
-      ...statusOptions.map((status) => {
-        ...status,
-        'subtitle': _getStatusDescription(status['code'] as String, l10n),
-        'isAllCard': false,
-      }),
+      ...statusOptions.map(
+        (status) => {
+          ...status,
+          'subtitle': _getStatusDescription(status['code'] as String, l10n),
+          'isAllCard': false,
+        },
+      ),
     ];
 
     return Row(
       children: allCards.map((card) {
         final isLast = allCards.last == card;
         final isAllCard = card['isAllCard'] as bool;
-        
+
         return Expanded(
           child: Padding(
             padding: EdgeInsets.only(right: isLast ? 0 : AppSpacing.lg),
             child: StatusFilterCard(
-              isSelected: isAllCard 
-                ? selectedStatuses.isEmpty 
-                : selectedStatuses.contains(card['code']),
+              isSelected: isAllCard
+                  ? selectedStatuses.isEmpty
+                  : selectedStatuses.contains(card['code']),
               statusCode: card['code'] as String,
               title: card['label'] as String,
               subtitle: card['subtitle'] as String,
               icon: card['icon'] as IconData,
               color: card['color'] as Color,
-              onTap: isAllCard 
-                ? (_) => onStatusesChanged([])
-                : _toggleStatus,
+              onTap: isAllCard ? (_) => onStatusesChanged([]) : _toggleStatus,
               isMultiSelect: !isAllCard,
             ),
           ),
@@ -177,18 +182,20 @@ class StatusFilterSection extends StatelessWidget {
       // All Status card
       {
         'code': '',
-        'label': 'All Status',
+        'label': l10n.statusAllLabel,
         'subtitle': l10n.allStatusDescription,
         'icon': Icons.select_all,
         'color': AppColors.primary,
         'isAllCard': true,
       },
       // Individual status cards
-      ...statusOptions.map((status) => {
-        ...status,
-        'subtitle': _getStatusDescription(status['code'] as String, l10n),
-        'isAllCard': false,
-      }),
+      ...statusOptions.map(
+        (status) => {
+          ...status,
+          'subtitle': _getStatusDescription(status['code'] as String, l10n),
+          'isAllCard': false,
+        },
+      ),
     ];
 
     return Column(
@@ -196,26 +203,18 @@ class StatusFilterSection extends StatelessWidget {
         // First row: All + Awaiting
         Row(
           children: [
-            Expanded(
-              child: _buildStatusCard(allCards[0], l10n),
-            ),
+            Expanded(child: _buildStatusCard(allCards[0], l10n)),
             SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: _buildStatusCard(allCards[1], l10n),
-            ),
+            Expanded(child: _buildStatusCard(allCards[1], l10n)),
           ],
         ),
         SizedBox(height: AppSpacing.lg),
         // Second row: Checked + Inactive
         Row(
           children: [
-            Expanded(
-              child: _buildStatusCard(allCards[2], l10n),
-            ),
+            Expanded(child: _buildStatusCard(allCards[2], l10n)),
             SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: _buildStatusCard(allCards[3], l10n),
-            ),
+            Expanded(child: _buildStatusCard(allCards[3], l10n)),
           ],
         ),
       ],
@@ -224,23 +223,20 @@ class StatusFilterSection extends StatelessWidget {
 
   Widget _buildStatusCard(Map<String, dynamic> card, ExportLocalizations l10n) {
     final isAllCard = card['isAllCard'] as bool;
-    
+
     return StatusFilterCard(
-      isSelected: isAllCard 
-        ? selectedStatuses.isEmpty 
-        : selectedStatuses.contains(card['code']),
+      isSelected: isAllCard
+          ? selectedStatuses.isEmpty
+          : selectedStatuses.contains(card['code']),
       statusCode: card['code'] as String,
       title: card['label'] as String,
       subtitle: card['subtitle'] as String,
       icon: card['icon'] as IconData,
       color: card['color'] as Color,
-      onTap: isAllCard 
-        ? (_) => onStatusesChanged([])
-        : _toggleStatus,
+      onTap: isAllCard ? (_) => onStatusesChanged([]) : _toggleStatus,
       isMultiSelect: !isAllCard,
     );
   }
-
 
   void _toggleStatus(String statusCode) {
     final newStatuses = List<String>.from(selectedStatuses);
@@ -255,11 +251,11 @@ class StatusFilterSection extends StatelessWidget {
   String _getStatusDescription(String statusCode, ExportLocalizations l10n) {
     switch (statusCode) {
       case 'A':
-        return 'Assets waiting for verification';
+        return l10n.statusAwaitingDescription;
       case 'C':
-        return 'Assets that have been verified';
+        return l10n.statusCheckedDescription;
       case 'I':
-        return 'Inactive or retired assets';
+        return l10n.statusInactiveDescription;
       default:
         return '';
     }

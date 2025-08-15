@@ -94,15 +94,21 @@ class StatusFilterCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : theme.colorScheme.onSurface,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             SizedBox(height: AppSpacing.xs),
-            Text(
-              subtitle,
-              style: AppTextStyles.caption.copyWith(
-                fontSize: screenWidth >= 1024 ? 13 : 12,
-                color: isSelected
-                    ? Colors.white.withValues(alpha: 0.9)
-                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            Flexible(
+              child: Text(
+                subtitle,
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: screenWidth >= 1024 ? 13 : 12,
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.9)
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
               ),
             ),
           ],
