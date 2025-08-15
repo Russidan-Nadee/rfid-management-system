@@ -25,6 +25,7 @@ model asset_master {
   status         asset_master_status? @default(C)
   created_by     String?              @db.VarChar(20)
   created_at     DateTime?            @db.DateTime(0)
+  last_update    DateTime?            @updatedAt @db.DateTime(0)
   deactivated_at DateTime?            @db.DateTime(0)
 
   // Relations with Master Tables (ทั้งหมดเป็น optional)
