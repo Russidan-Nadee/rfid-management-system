@@ -237,39 +237,18 @@ class AssetService extends BaseService {
             throw new Error('Invalid status. Must be C, A, or I');
          }
 
-         // Get current asset by EPC
-         const currentAsset = await this.getAssetByEpc(epcCode);
-         const oldStatus = currentAsset.status;
+         const updateData = { status };
+         if (status === 'I') {
+            updateData.deactivated_at = new Date();
+         }
 
-         // Use Prisma transaction
-         const result = await prisma.$transaction(async (tx) => {
-            const updateData = { status };
-            if (status === 'I') {
-               updateData.deactivated_at = new Date();
-            }
-
-            // Update asset status
-            await tx.asset_master.update({
-               where: { asset_no: currentAsset.asset_no },
-               data: updateData
-            });
-
-            // Insert status history
-            await tx.asset_status_history.create({
-               data: {
-                  asset_no: currentAsset.asset_no,
-                  old_status: oldStatus,
-                  new_status: status,
-                  changed_at: new Date(),
-                  changed_by: updatedBy,
-                  remarks: remarks
-               }
-            });
-
-            return true;
-         });
-
-         return await this.getAssetWithDetailsByEpc(epcCode);
+         // Use the model layer which now includes automatic status logging
+         return await this.model.updateAssetStatusByEpc(
+            epcCode, 
+            updateData, 
+            updatedBy, 
+            remarks || `Status changed to ${status} via EPC scan`
+         );
 
       } catch (error) {
          throw new Error(`Error updating asset status by EPC: ${error.message}`);
@@ -450,7 +429,7 @@ class AssetService extends BaseService {
       }
    }
 
-   async updateAsset(assetNo, updateData) {
+   async updateAsset(assetNo, updateData, changedBy = null, remarks = null) {
       try {
          const existingAsset = await this.getAssetByNo(assetNo);
 
@@ -475,7 +454,7 @@ class AssetService extends BaseService {
             }
          }
 
-         return await this.model.updateAsset(assetNo, updateData);
+         return await this.model.updateAsset(assetNo, updateData, changedBy, remarks);
       } catch (error) {
          throw new Error(`Error updating asset: ${error.message}`);
       }
@@ -488,39 +467,18 @@ class AssetService extends BaseService {
             throw new Error('Invalid status. Must be C, A, or I');
          }
 
-         // Get current asset
-         const currentAsset = await this.getAssetByNo(assetNo);
-         const oldStatus = currentAsset.status;
+         const updateData = { status };
+         if (status === 'I') {
+            updateData.deactivated_at = new Date();
+         }
 
-         // Use Prisma transaction
-         const result = await prisma.$transaction(async (tx) => {
-            const updateData = { status };
-            if (status === 'I') {
-               updateData.deactivated_at = new Date();
-            }
-
-            // Update asset status
-            await tx.asset_master.update({
-               where: { asset_no: assetNo },
-               data: updateData
-            });
-
-            // Insert status history
-            await tx.asset_status_history.create({
-               data: {
-                  asset_no: assetNo,
-                  old_status: oldStatus,
-                  new_status: status,
-                  changed_at: new Date(),
-                  changed_by: updatedBy,
-                  remarks: remarks
-               }
-            });
-
-            return true;
-         });
-
-         return await this.getAssetWithDetails(assetNo);
+         // Use the model layer which now includes automatic status logging
+         return await this.model.updateAssetStatus(
+            assetNo, 
+            updateData, 
+            updatedBy, 
+            remarks
+         );
 
       } catch (error) {
          throw new Error(`Error updating asset status: ${error.message}`);

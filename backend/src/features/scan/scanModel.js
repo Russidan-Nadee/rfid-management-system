@@ -1,5 +1,6 @@
 // Path: src/models/model.js
 const prisma = require('../../core/database/prisma');
+const StatusChangeLogger = require('../../core/utils/statusChangeLogger');
 
 // Base Model Class for common operations
 class BaseModel {
@@ -203,15 +204,13 @@ class AssetModel extends BaseModel {
       };
    }
 
-   async updateAssetStatusByEpc(epcCode, updateData) {
-      // หา asset ก่อน
-      const asset = await this.getAssetByEpc(epcCode);
-      if (!asset) throw new Error('Asset not found');
-
-      // update ผ่าน asset_no
-      await this.prisma.asset_master.update({
-         where: { asset_no: asset.asset_no },
-         data: updateData
+   async updateAssetStatusByEpc(epcCode, updateData, changedBy = null, remarks = null) {
+      // Use the centralized status change logger
+      await StatusChangeLogger.updateAssetByEpcWithLogging({
+         epcCode,
+         updateData,
+         changedBy,
+         remarks
       });
 
       return this.getAssetWithDetailsByEpc(epcCode);
@@ -355,19 +354,27 @@ class AssetModel extends BaseModel {
       return !!asset;
    }
 
-   async updateAsset(assetNo, updateData) {
-      await this.prisma.asset_master.update({
-         where: { asset_no: assetNo },
-         data: updateData
+   async updateAsset(assetNo, updateData, changedBy = null, remarks = null) {
+      // Use the centralized status change logger
+      await StatusChangeLogger.updateAssetWithLogging({
+         assetNo,
+         updateData,
+         changedBy,
+         remarks
       });
+      
       return this.getAssetWithDetails(assetNo);
    }
 
-   async updateAssetStatus(assetNo, updateData) {
-      await this.prisma.asset_master.update({
-         where: { asset_no: assetNo },
-         data: updateData
+   async updateAssetStatus(assetNo, updateData, changedBy = null, remarks = null) {
+      // Use the centralized status change logger for status updates
+      await StatusChangeLogger.updateAssetWithLogging({
+         assetNo,
+         updateData,
+         changedBy,
+         remarks
       });
+      
       return this.getAssetWithDetails(assetNo);
    }
 

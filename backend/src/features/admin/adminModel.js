@@ -1,4 +1,5 @@
 const prisma = require('../../core/database/prisma');
+const StatusChangeLogger = require('../../core/utils/statusChangeLogger');
 
 class AdminModel {
    constructor() {
@@ -162,120 +163,42 @@ class AdminModel {
    }
 
    async updateAsset(assetNo, updateData, updatedBy) {
-      // Start a transaction to update asset and log the change
-      return await this.prisma.$transaction(async (tx) => {
-         // Get current asset data for history
-         const currentAsset = await tx.asset_master.findUnique({
-            where: { asset_no: assetNo }
-         });
-
-         if (!currentAsset) {
-            throw new Error('Asset not found');
-         }
-
-         // Update asset
-         const updatedAsset = await tx.asset_master.update({
-            where: { asset_no: assetNo },
-            data: updateData
-         });
-
-         // Log status change if status was updated (skip if user doesn't exist)
-         if (updateData.status && updateData.status !== currentAsset.status) {
-            try {
-               await tx.asset_status_history.create({
-                  data: {
-                     asset_no: assetNo,
-                     old_status: currentAsset.status,
-                     new_status: updateData.status,
-                     changed_by: updatedBy,
-                     changed_at: new Date(),
-                     remarks: `Status changed from ${currentAsset.status} to ${updateData.status} via Admin Panel`
-                  }
-               });
-            } catch (historyError) {
-               console.warn('Failed to log status history:', historyError.message);
-               // Continue with update even if history logging fails
-            }
-         }
-
-         return updatedAsset;
+      // Use the centralized status change logger for consistency
+      return await StatusChangeLogger.updateAssetWithLogging({
+         assetNo,
+         updateData,
+         changedBy: updatedBy,
+         remarks: `Asset updated via Admin Panel`
       });
    }
 
    async deleteAsset(assetNo, deletedBy) {
       console.log('AdminModel.deleteAsset called with:', { assetNo, deletedBy });
       
-      return await this.prisma.$transaction(async (tx) => {
-         try {
-            // Check if asset exists
-            console.log('Checking if asset exists:', assetNo);
-            const asset = await tx.asset_master.findUnique({
-               where: { asset_no: assetNo }
-            });
+      // Use the centralized status change logger for soft delete
+      const updateData = {
+         status: 'I',
+         deactivated_at: new Date()
+      };
+      
+      try {
+         const updatedAsset = await StatusChangeLogger.updateAssetWithLogging({
+            assetNo,
+            updateData,
+            changedBy: deletedBy,
+            remarks: `Asset deactivated via Admin Panel (soft delete)`
+         });
 
-            if (!asset) {
-               throw new Error('Asset not found');
-            }
-
-            console.log('Asset found:', asset.asset_no, 'current status:', asset.status);
-
-            const currentTime = new Date();
-
-            // Set status to 'I' (Inactive) and save deactivation timestamp
-            console.log('Updating asset status to I');
-            const updatedAsset = await tx.asset_master.update({
-               where: { asset_no: assetNo },
-               data: {
-                  status: 'I',
-                  deactivated_at: currentTime
-               }
-            });
-
-            console.log('Asset updated successfully');
-
-            // Log status change to inactive
-            if (asset.status !== 'I') {
-               console.log('Creating status history entry');
-               
-               // Verify user exists before creating status history
-               const userExists = await tx.mst_user.findUnique({
-                  where: { user_id: deletedBy }
-               });
-               
-               if (userExists) {
-                  await tx.asset_status_history.create({
-                     data: {
-                        asset_no: assetNo,
-                        old_status: asset.status,
-                        new_status: 'I',
-                        changed_by: deletedBy,
-                        changed_at: currentTime,
-                        remarks: `Asset deactivated via Admin Panel (soft delete)`
-                     }
-                  });
-                  console.log('Status history created');
-               } else {
-                  console.log('User not found, creating status history without changed_by');
-                  await tx.asset_status_history.create({
-                     data: {
-                        asset_no: assetNo,
-                        old_status: asset.status,
-                        new_status: 'I',
-                        changed_by: null, // Allow null if user doesn't exist
-                        changed_at: currentTime,
-                        remarks: `Asset deactivated via Admin Panel (soft delete) - User not found`
-                     }
-                  });
-               }
-            }
-
-            console.log('Soft delete completed successfully');
-            return { success: true, deactivatedAssetNo: assetNo, deactivatedAt: currentTime };
-         } catch (error) {
-            console.error('Error in deleteAsset transaction:', error);
-            throw error;
-         }
-      });
+         console.log('Soft delete completed successfully');
+         return { 
+            success: true, 
+            deactivatedAssetNo: assetNo, 
+            deactivatedAt: updateData.deactivated_at 
+         };
+      } catch (error) {
+         console.error('Error in deleteAsset:', error);
+         throw error;
+      }
    }
 
    // ===== VALIDATION METHODS =====

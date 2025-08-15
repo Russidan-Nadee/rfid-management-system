@@ -1,6 +1,7 @@
 // Path: backend/src/features/scan/scanController.js
 const { PlantService, LocationService, UnitService, UserService, AssetService, DepartmentService } = require('./scanService');
 const { CategoryService, BrandService } = require('./scanService');
+const LastLoginTracker = require('../../core/utils/lastLoginTracker');
 
 const departmentService = new DepartmentService();
 
@@ -295,6 +296,11 @@ const assetController = {
 
          const updatedAsset = await assetService.updateAssetStatusByEpc(epc_code, status, updated_by, remarks);
 
+         // Track scan action and update last login
+         const ipAddress = req.ip || req.connection.remoteAddress;
+         const userAgent = req.get('User-Agent');
+         await LastLoginTracker.trackScanAction(updated_by, updatedAsset.asset_no, ipAddress, userAgent);
+
          return sendResponse(res, 200, true, 'Asset status updated successfully', updatedAsset);
       } catch (error) {
          console.error('Update asset status by EPC error:', error);
@@ -506,8 +512,16 @@ const assetController = {
 
          await Promise.all(validations);
 
-         // Update asset
-         const updatedAsset = await assetService.updateAsset(asset_no, updateData);
+         // Update asset with user tracking
+         const changedBy = req.user?.userId || null;
+         const updatedAsset = await assetService.updateAsset(asset_no, updateData, changedBy);
+
+         // Track scan action and update last login
+         if (changedBy) {
+            const ipAddress = req.ip || req.connection.remoteAddress;
+            const userAgent = req.get('User-Agent');
+            await LastLoginTracker.trackScanAction(changedBy, asset_no, ipAddress, userAgent);
+         }
 
          return sendResponse(res, 200, true, 'Asset updated successfully', updatedAsset);
       } catch (error) {
@@ -523,6 +537,11 @@ const assetController = {
          const { status, updated_by, remarks } = req.body;
 
          const updatedAsset = await assetService.updateAssetStatus(asset_no, status, updated_by, remarks);
+
+         // Track scan action and update last login
+         const ipAddress = req.ip || req.connection.remoteAddress;
+         const userAgent = req.get('User-Agent');
+         await LastLoginTracker.trackScanAction(updated_by, asset_no, ipAddress, userAgent);
 
          return sendResponse(res, 200, true, 'Asset status updated successfully', updatedAsset);
       } catch (error) {

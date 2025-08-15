@@ -1,4 +1,5 @@
 const AdminService = require('./adminService');
+const LastLoginTracker = require('../../core/utils/lastLoginTracker');
 
 class AdminController {
    constructor() {
@@ -137,6 +138,17 @@ class AdminController {
 
          const result = await this.adminService.updateAsset(assetNo, updateData, updatedBy);
          
+         // Track admin action and update last login
+         const ipAddress = req.ip || req.connection.remoteAddress;
+         const userAgent = req.get('User-Agent');
+         await LastLoginTracker.trackAdminAction(
+            updatedBy, 
+            'Update Asset', 
+            assetNo, 
+            ipAddress, 
+            userAgent
+         );
+         
          res.status(200).json({
             success: true,
             message: result.message,
@@ -172,6 +184,17 @@ class AdminController {
          }
 
          const result = await this.adminService.deleteAsset(assetNo, deletedBy);
+         
+         // Track admin action and update last login
+         const ipAddress = req.ip || req.connection.remoteAddress;
+         const userAgent = req.get('User-Agent');
+         await LastLoginTracker.trackAdminAction(
+            deletedBy, 
+            'Delete Asset', 
+            assetNo, 
+            ipAddress, 
+            userAgent
+         );
          
          res.status(200).json({
             success: true,
