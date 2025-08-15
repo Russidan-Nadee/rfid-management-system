@@ -191,4 +191,37 @@ abstract class ExportLocalizations {
   String get statusAwaitingDescription;
   String get statusCheckedDescription;
   String get statusInactiveDescription;
+
+  // Date Range Filter
+  String get dateRangeFilter;
+  String get dateRangeFilterDescription;
+  String get enableDateFilter;
+  String get dateFieldLabel;
+  String get periodLabel;
+  String get dateRangeEnabled;
+  String get dateRangeDisabled;
+  String get loadingPeriods;
+
+  // Date Field Options
+  String get createdDateField;
+  String get createdDateFieldDescription;
+  String get lastUpdatedField;
+  String get lastUpdatedFieldDescription;
+  String get lastScanField;
+  String get lastScanFieldDescription;
+
+  // Period Options
+  String get todayPeriod;
+  String get last7DaysPeriod;
+  String get last30DaysPeriod;
+  String get last90DaysPeriod;
+  String get last180DaysPeriod;
+  String get last365DaysPeriod;
+  String get customDateRange;
+
+  // Custom Date Picker
+  String get customDateRangeTitle;
+  String get startDateLabel;
+  String get endDateLabel;
+  String get selectDate;
 }

@@ -167,7 +167,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
         SizedBox(width: AppSpacing.sm),
         Flexible(
           child: Text(
-            'Date Range Filter',
+            l10n.dateRangeFilter,
             style: AppTextStyles.cardTitle.copyWith(
               color: theme.colorScheme.onSurface,
             ),
@@ -228,7 +228,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
               ),
               SizedBox(width: AppSpacing.md),
               Text(
-                widget.selectedDateRange != null ? 'Date filter enabled' : 'Enable date filter',
+                widget.selectedDateRange != null ? l10n.dateRangeEnabled : l10n.enableDateFilter,
                 style: AppTextStyles.body1.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
                   fontWeight: widget.selectedDateRange != null ? FontWeight.w600 : FontWeight.normal,
@@ -251,7 +251,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                     SizedBox(width: AppSpacing.md),
-                    Text('Loading periods...', style: TextStyle(color: Colors.orange)),
+                    Text(l10n.loadingPeriods, style: TextStyle(color: Colors.orange)),
                   ],
                 ),
               ),
@@ -259,17 +259,17 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
               if (widget.isLargeScreen)
                 Row(
                   children: [
-                    Expanded(child: _buildSimpleDropdown('Date Field', _selectedField, _datePeriodsData!.availableFields.map((f) => {'value': f.field, 'label': f.label}).toList(), _onFieldChanged, theme, isDark)),
+                    Expanded(child: _buildSimpleDropdown(l10n.dateFieldLabel, _selectedField, _getLocalizedDateFields(l10n), _onFieldChanged, theme, isDark)),
                     SizedBox(width: AppSpacing.lg),
-                    Expanded(child: _buildSimpleDropdown('Period', _selectedPeriod, _datePeriodsData!.periods.map((p) => {'value': p.value, 'label': p.label}).toList(), _onPeriodChanged, theme, isDark)),
+                    Expanded(child: _buildSimpleDropdown(l10n.periodLabel, _selectedPeriod, _getLocalizedPeriods(l10n), _onPeriodChanged, theme, isDark)),
                   ],
                 )
               else
                 Column(
                   children: [
-                    _buildSimpleDropdown('Date Field', _selectedField, _datePeriodsData!.availableFields.map((f) => {'value': f.field, 'label': f.label}).toList(), _onFieldChanged, theme, isDark),
+                    _buildSimpleDropdown(l10n.dateFieldLabel, _selectedField, _getLocalizedDateFields(l10n), _onFieldChanged, theme, isDark),
                     SizedBox(height: AppSpacing.lg),
-                    _buildSimpleDropdown('Period', _selectedPeriod, _datePeriodsData!.periods.map((p) => {'value': p.value, 'label': p.label}).toList(), _onPeriodChanged, theme, isDark),
+                    _buildSimpleDropdown(l10n.periodLabel, _selectedPeriod, _getLocalizedPeriods(l10n), _onPeriodChanged, theme, isDark),
                   ],
                 ),
             ],
@@ -277,6 +277,26 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
         ],
       ),
     );
+  }
+
+  List<Map<String, String>> _getLocalizedDateFields(ExportLocalizations l10n) {
+    return [
+      {'value': 'created_at', 'label': l10n.createdDateField},
+      {'value': 'updated_at', 'label': l10n.lastUpdatedField},
+      {'value': 'last_scan_date', 'label': l10n.lastScanField},
+    ];
+  }
+
+  List<Map<String, String>> _getLocalizedPeriods(ExportLocalizations l10n) {
+    return [
+      {'value': 'today', 'label': l10n.todayPeriod},
+      {'value': 'last_7_days', 'label': l10n.last7DaysPeriod},
+      {'value': 'last_30_days', 'label': l10n.last30DaysPeriod},
+      {'value': 'last_90_days', 'label': l10n.last90DaysPeriod},
+      {'value': 'last_180_days', 'label': l10n.last180DaysPeriod},
+      {'value': 'last_365_days', 'label': l10n.last365DaysPeriod},
+      {'value': 'custom', 'label': l10n.customDateRange},
+    ];
   }
 
   Widget _buildSimpleDropdown(
@@ -660,7 +680,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Custom Date Range',
+          l10n.customDateRangeTitle,
           style: AppTextStyles.subtitle2.copyWith(
             color: isDark ? AppColors.darkText : AppColors.textPrimary,
             fontWeight: FontWeight.w600,
@@ -670,24 +690,24 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
         if (widget.isLargeScreen)
           Row(
             children: [
-              Expanded(child: _buildDateField('Start Date', _customStartDate, true)),
+              Expanded(child: _buildDateField(l10n.startDateLabel, _customStartDate, true, l10n)),
               SizedBox(width: AppSpacing.md),
-              Expanded(child: _buildDateField('End Date', _customEndDate, false)),
+              Expanded(child: _buildDateField(l10n.endDateLabel, _customEndDate, false, l10n)),
             ],
           )
         else
           Column(
             children: [
-              _buildDateField('Start Date', _customStartDate, true),
+              _buildDateField(l10n.startDateLabel, _customStartDate, true, l10n),
               SizedBox(height: AppSpacing.sm),
-              _buildDateField('End Date', _customEndDate, false),
+              _buildDateField(l10n.endDateLabel, _customEndDate, false, l10n),
             ],
           ),
       ],
     );
   }
 
-  Widget _buildDateField(String label, DateTime? selectedDate, bool isStartDate) {
+  Widget _buildDateField(String label, DateTime? selectedDate, bool isStartDate, ExportLocalizations l10n) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -740,7 +760,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
                   Text(
                     selectedDate != null 
                         ? _formatDate(selectedDate) 
-                        : 'Select date',
+                        : l10n.selectDate,
                     style: AppTextStyles.body1.copyWith(
                       color: selectedDate != null
                           ? (isDark ? AppColors.darkText : AppColors.textPrimary)

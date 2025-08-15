@@ -379,4 +379,83 @@ class ExportLocalizationsJa extends ExportLocalizations {
 
   @override
   String get statusInactiveDescription => '非アクティブまたは廃止されたアセット';
+
+  // Date Range Filter
+  @override
+  String get dateRangeFilter => '日付範囲フィルター';
+
+  @override
+  String get dateRangeFilterDescription => '日付範囲でアセットをフィルタリング';
+
+  @override
+  String get enableDateFilter => '日付フィルターを有効にする';
+
+  @override
+  String get dateFieldLabel => '日付フィールド';
+
+  @override
+  String get periodLabel => '期間';
+
+  @override
+  String get dateRangeEnabled => '日付フィルターが有効です';
+
+  @override
+  String get dateRangeDisabled => '日付フィルターが無効です';
+
+  @override
+  String get loadingPeriods => '期間を読み込み中...';
+
+  // Date Field Options
+  @override
+  String get createdDateField => '作成日';
+
+  @override
+  String get createdDateFieldDescription => 'アセットが作成された日時';
+
+  @override
+  String get lastUpdatedField => '最終更新日';
+
+  @override
+  String get lastUpdatedFieldDescription => 'アセットが最後に変更された日時';
+
+  @override
+  String get lastScanField => '最終スキャン日';
+
+  @override
+  String get lastScanFieldDescription => 'アセットが最後にスキャンされた日時';
+
+  // Period Options
+  @override
+  String get todayPeriod => '今日';
+
+  @override
+  String get last7DaysPeriod => '過去7日間';
+
+  @override
+  String get last30DaysPeriod => '過去30日間';
+
+  @override
+  String get last90DaysPeriod => '過去90日間';
+
+  @override
+  String get last180DaysPeriod => '過去180日間';
+
+  @override
+  String get last365DaysPeriod => '過去365日間';
+
+  @override
+  String get customDateRange => 'カスタム日付範囲';
+
+  // Custom Date Picker
+  @override
+  String get customDateRangeTitle => 'カスタム日付範囲';
+
+  @override
+  String get startDateLabel => '開始日';
+
+  @override
+  String get endDateLabel => '終了日';
+
+  @override
+  String get selectDate => '日付を選択';
 }

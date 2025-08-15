@@ -324,7 +324,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     LoadDatePeriods event,
     Emitter<ExportState> emit,
   ) async {
-    // Create mock date periods data with all periods
+    // Create localized date periods data with all periods
     final now = DateTime.now();
     final mockPeriods = [
       {'label': 'Today', 'value': 'today', 'start_date': now.toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},

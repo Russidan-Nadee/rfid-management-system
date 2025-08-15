@@ -383,4 +383,83 @@ class ExportLocalizationsEn extends ExportLocalizations {
 
   @override
   String get statusInactiveDescription => 'Inactive or retired assets';
+
+  // Date Range Filter
+  @override
+  String get dateRangeFilter => 'Date Range Filter';
+
+  @override
+  String get dateRangeFilterDescription => 'Filter assets by date range';
+
+  @override
+  String get enableDateFilter => 'Enable date filter';
+
+  @override
+  String get dateFieldLabel => 'Date Field';
+
+  @override
+  String get periodLabel => 'Period';
+
+  @override
+  String get dateRangeEnabled => 'Date filter enabled';
+
+  @override
+  String get dateRangeDisabled => 'Date filter disabled';
+
+  @override
+  String get loadingPeriods => 'Loading periods...';
+
+  // Date Field Options
+  @override
+  String get createdDateField => 'Created Date';
+
+  @override
+  String get createdDateFieldDescription => 'When asset was created';
+
+  @override
+  String get lastUpdatedField => 'Last Updated';
+
+  @override
+  String get lastUpdatedFieldDescription => 'When asset was last modified';
+
+  @override
+  String get lastScanField => 'Last Scan';
+
+  @override
+  String get lastScanFieldDescription => 'When asset was last scanned';
+
+  // Period Options
+  @override
+  String get todayPeriod => 'Today';
+
+  @override
+  String get last7DaysPeriod => 'Last 7 days';
+
+  @override
+  String get last30DaysPeriod => 'Last 30 days';
+
+  @override
+  String get last90DaysPeriod => 'Last 90 days';
+
+  @override
+  String get last180DaysPeriod => 'Last 180 days';
+
+  @override
+  String get last365DaysPeriod => 'Last 365 days';
+
+  @override
+  String get customDateRange => 'Custom date range';
+
+  // Custom Date Picker
+  @override
+  String get customDateRangeTitle => 'Custom Date Range';
+
+  @override
+  String get startDateLabel => 'Start Date';
+
+  @override
+  String get endDateLabel => 'End Date';
+
+  @override
+  String get selectDate => 'Select date';
 }

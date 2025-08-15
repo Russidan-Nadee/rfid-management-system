@@ -383,4 +383,83 @@ class ExportLocalizationsTh extends ExportLocalizations {
 
   @override
   String get statusInactiveDescription => 'สินทรัพย์ที่ไม่ใช้งานหรือปลดระบบ';
+
+  // Date Range Filter
+  @override
+  String get dateRangeFilter => 'กรองตามช่วงวันที่';
+
+  @override
+  String get dateRangeFilterDescription => 'กรองสินทรัพย์ตามช่วงวันที่';
+
+  @override
+  String get enableDateFilter => 'เปิดใช้งานกรองวันที่';
+
+  @override
+  String get dateFieldLabel => 'ฟิลด์วันที่';
+
+  @override
+  String get periodLabel => 'ช่วงเวลา';
+
+  @override
+  String get dateRangeEnabled => 'เปิดใช้งานกรองวันที่แล้ว';
+
+  @override
+  String get dateRangeDisabled => 'ปิดการกรองวันที่';
+
+  @override
+  String get loadingPeriods => 'กำลังโหลดช่วงเวลา...';
+
+  // Date Field Options
+  @override
+  String get createdDateField => 'วันที่สร้าง';
+
+  @override
+  String get createdDateFieldDescription => 'เมื่อสินทรัพย์ถูกสร้าง';
+
+  @override
+  String get lastUpdatedField => 'วันที่อัปเดตล่าสุด';
+
+  @override
+  String get lastUpdatedFieldDescription => 'เมื่อสินทรัพย์ถูกแก้ไขล่าสุด';
+
+  @override
+  String get lastScanField => 'วันที่สแกนล่าสุด';
+
+  @override
+  String get lastScanFieldDescription => 'เมื่อสินทรัพย์ถูกสแกนล่าสุด';
+
+  // Period Options
+  @override
+  String get todayPeriod => 'วันนี้';
+
+  @override
+  String get last7DaysPeriod => '7 วันที่ผ่านมา';
+
+  @override
+  String get last30DaysPeriod => '30 วันที่ผ่านมา';
+
+  @override
+  String get last90DaysPeriod => '90 วันที่ผ่านมา';
+
+  @override
+  String get last180DaysPeriod => '180 วันที่ผ่านมา';
+
+  @override
+  String get last365DaysPeriod => '365 วันที่ผ่านมา';
+
+  @override
+  String get customDateRange => 'กำหนดช่วงวันที่เอง';
+
+  // Custom Date Picker
+  @override
+  String get customDateRangeTitle => 'กำหนดช่วงวันที่';
+
+  @override
+  String get startDateLabel => 'วันที่เริ่มต้น';
+
+  @override
+  String get endDateLabel => 'วันที่สิ้นสุด';
+
+  @override
+  String get selectDate => 'เลือกวันที่';
 }
