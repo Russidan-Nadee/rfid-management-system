@@ -1,5 +1,6 @@
 // Path: backend/src/features/export/exportService.js
 const ExportModel = require('./exportModel');
+const ExportDateUtils = require('./exportDateUtils');
 const prisma = require('../../core/database/prisma');
 const path = require('path');
 const fs = require('fs').promises;
@@ -25,11 +26,26 @@ class ExportService {
          throw new Error('You already have a pending export job. Please wait for it to complete.');
       }
 
+      // Parse and validate export config
+      let config;
+      try {
+         config = typeof exportConfig === 'string' ? JSON.parse(exportConfig) : exportConfig;
+      } catch (error) {
+         throw new Error('Invalid export configuration format');
+      }
+
+      // Validate and normalize date configuration
+      try {
+         config = ExportDateUtils.validateAndNormalizeDateConfig(config);
+      } catch (error) {
+         throw new Error(`Date configuration error: ${error.message}`);
+      }
+
       // สร้าง export job
       const jobData = {
          user_id: userId,
          export_type: exportType,
-         export_config: exportConfig,
+         export_config: JSON.stringify(config),
          status: 'P',
          expires_at: this._calculateExpiryDate()
       };
@@ -170,7 +186,7 @@ class ExportService {
    }
 
    /**
-    * ดึงข้อมูล assets พร้อมทุก field และ master data (ทั้งหมด ไม่มี date range)
+    * ดึงข้อมูล assets พร้อมทุก field และ master data (รองรับ date range filtering)
     * @param {Object} config - การตั้งค่า export
     * @returns {Promise<Array>} ข้อมูล assets ครบทั้งหมด 24 columns
     * @private
@@ -179,6 +195,7 @@ class ExportService {
       const { filters = {} } = config;
 
       console.log('🗄️ Fetching assets data');
+      console.log('🔍 Full config received:', JSON.stringify(config, null, 2));
 
       // Build where conditions
       const whereConditions = {};
@@ -201,8 +218,48 @@ class ExportService {
          console.log(`📊 Status filter: ${filters.status.join(', ')}`);
       }
 
-      // ไม่มี date range filter แล้ว - export ทั้งหมด
-      console.log('📅 No date range filter - exporting all historical data');
+      // Date range filter - now inside filters object
+      const dateRange = filters.date_range;
+      if (dateRange) {
+         console.log('📅 Date range config found:', JSON.stringify(dateRange, null, 2));
+         
+         // Handle different period types
+         // Map frontend field names to database field names
+         const fieldMapping = {
+            'created_at': 'created_at',
+            'updated_at': 'last_update', // Map frontend 'updated_at' to database 'last_update'
+            'last_update': 'last_update',
+            'deactivated_at': 'deactivated_at',
+            'last_scan_date': 'last_scan_date'
+         };
+         
+         if (dateRange.period === 'custom' && dateRange.custom_start_date && dateRange.custom_end_date) {
+            // Custom date range
+            const frontendField = dateRange.field || 'created_at';
+            const dateField = fieldMapping[frontendField] || frontendField;
+            ExportDateUtils.applyDateRangeFilter(
+               whereConditions, 
+               dateField, 
+               dateRange.custom_start_date, 
+               dateRange.custom_end_date
+            );
+            console.log(`📅 Custom date range filter on ${frontendField} (${dateField}): ${dateRange.custom_start_date} to ${dateRange.custom_end_date}`);
+         } else if (dateRange.period && dateRange.period !== 'custom') {
+            // Predefined period - calculate dates
+            const frontendField = dateRange.field || 'created_at';
+            const dateField = fieldMapping[frontendField] || frontendField;
+            const { start_date, end_date } = ExportDateUtils.getDateRangeForPeriod(dateRange.period);
+            ExportDateUtils.applyDateRangeFilter(
+               whereConditions, 
+               dateField, 
+               start_date, 
+               end_date
+            );
+            console.log(`📅 Period filter (${dateRange.period}) on ${frontendField} (${dateField}): ${start_date} to ${end_date}`);
+         }
+      } else {
+         console.log('📅 No date range filter - exporting all historical data');
+      }
 
       // ดึงข้อมูล assets พร้อม include ทุก master tables
       const assets = await prisma.asset_master.findMany({

@@ -1,6 +1,7 @@
 // Path: frontend/lib/features/export/presentation/bloc/export_state.dart
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/export_job_entity.dart';
+import '../../data/models/period_model.dart';
 
 abstract class ExportState extends Equatable {
   const ExportState();
@@ -146,6 +147,19 @@ class ExportPlatformNotSupported extends ExportState {
 
   @override
   String toString() => 'ExportPlatformNotSupported(message: $message)';
+}
+
+/// Date Periods Loaded State - New state for date period options
+class DatePeriodsLoaded extends ExportState {
+  final DatePeriodsResponse datePeriodsData;
+
+  const DatePeriodsLoaded(this.datePeriodsData);
+
+  @override
+  List<Object?> get props => [datePeriodsData];
+
+  @override
+  String toString() => 'DatePeriodsLoaded(periods: ${datePeriodsData.periods.length})';
 }
 
 /// Export Error State (คล้ายเดิม)

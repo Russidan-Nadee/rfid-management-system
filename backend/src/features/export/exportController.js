@@ -1,5 +1,6 @@
 // Path: backend/src/features/export/exportController.js
 const ExportService = require('./exportService');
+const ExportDateUtils = require('./exportDateUtils');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -536,6 +537,50 @@ class ExportController {
 
       } catch (error) {
          console.error('Get storage stats error:', error);
+         res.status(500).json({
+            success: false,
+            message: error.message,
+            timestamp: new Date().toISOString()
+         });
+      }
+   }
+
+   /**
+    * Get available date period options for export filtering
+    * GET /api/v1/export/date-periods
+    */
+   async getDatePeriods(req, res) {
+      try {
+         const periods = ExportDateUtils.getPeriodOptions();
+
+         res.status(200).json({
+            success: true,
+            message: 'Date period options retrieved successfully',
+            data: {
+               periods,
+               available_fields: [
+                  {
+                     field: 'created_at',
+                     label: 'Created Date',
+                     description: 'Filter by when the asset was created'
+                  },
+                  {
+                     field: 'last_update', 
+                     label: 'Last Updated',
+                     description: 'Filter by when the asset was last modified'
+                  },
+                  {
+                     field: 'deactivated_at',
+                     label: 'Deactivated Date',
+                     description: 'Filter by when the asset was deactivated'
+                  }
+               ]
+            },
+            timestamp: new Date().toISOString()
+         });
+
+      } catch (error) {
+         console.error('Get date periods error:', error);
          res.status(500).json({
             success: false,
             message: error.message,

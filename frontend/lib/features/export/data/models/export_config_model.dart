@@ -83,8 +83,9 @@ class ExportFiltersModel extends Equatable {
   final List<String>? plantCodes;
   final List<String>? locationCodes;
   final List<String>? status;
+  final DateRangeFilterModel? dateRange;
 
-  const ExportFiltersModel({this.plantCodes, this.locationCodes, this.status});
+  const ExportFiltersModel({this.plantCodes, this.locationCodes, this.status, this.dateRange});
 
   /// Convert to JSON for API request
   Map<String, dynamic> toJson() {
@@ -102,7 +103,9 @@ class ExportFiltersModel extends Equatable {
       json['status'] = status;
     }
 
-    // ไม่มี date_range แล้ว
+    if (dateRange != null) {
+      json['date_range'] = dateRange!.toJson();
+    }
 
     return json;
   }
@@ -117,6 +120,9 @@ class ExportFiltersModel extends Equatable {
           ? List<String>.from(json['location_codes'])
           : null,
       status: json['status'] != null ? List<String>.from(json['status']) : null,
+      dateRange: json['date_range'] != null
+          ? DateRangeFilterModel.fromJson(json['date_range'])
+          : null,
     );
   }
 
@@ -124,17 +130,20 @@ class ExportFiltersModel extends Equatable {
   bool get hasAnyFilter =>
       (plantCodes?.isNotEmpty ?? false) ||
       (locationCodes?.isNotEmpty ?? false) ||
-      (status?.isNotEmpty ?? false);
+      (status?.isNotEmpty ?? false) ||
+      dateRange != null;
 
   bool get hasPlantFilter => plantCodes?.isNotEmpty ?? false;
   bool get hasLocationFilter => locationCodes?.isNotEmpty ?? false;
   bool get hasStatusFilter => status?.isNotEmpty ?? false;
+  bool get hasDateRangeFilter => dateRange != null;
 
   int get filterCount {
     int count = 0;
     if (hasPlantFilter) count++;
     if (hasLocationFilter) count++;
     if (hasStatusFilter) count++;
+    if (hasDateRangeFilter) count++;
     return count;
   }
 
@@ -143,6 +152,7 @@ class ExportFiltersModel extends Equatable {
     if (hasPlantFilter) labels.add('Plants (${plantCodes!.length})');
     if (hasLocationFilter) labels.add('Locations (${locationCodes!.length})');
     if (hasStatusFilter) labels.add('Status (${status!.length})');
+    if (hasDateRangeFilter) labels.add('Date Range');
     return labels;
   }
 
@@ -180,16 +190,18 @@ class ExportFiltersModel extends Equatable {
     List<String>? plantCodes,
     List<String>? locationCodes,
     List<String>? status,
+    DateRangeFilterModel? dateRange,
   }) {
     return ExportFiltersModel(
       plantCodes: plantCodes ?? this.plantCodes,
       locationCodes: locationCodes ?? this.locationCodes,
       status: status ?? this.status,
+      dateRange: dateRange ?? this.dateRange,
     );
   }
 
   @override
-  List<Object?> get props => [plantCodes, locationCodes, status];
+  List<Object?> get props => [plantCodes, locationCodes, status, dateRange];
 
   @override
   String toString() => 'ExportFiltersModel(filterCount: $filterCount)';
@@ -227,4 +239,67 @@ class ExportRequestModel {
   @override
   String toString() =>
       'ExportRequestModel(type: $exportType, format: ${exportConfig.format})';
+}
+
+/// Model for date range filter in export config
+class DateRangeFilterModel extends Equatable {
+  final String period;
+  final String field;
+  final String? customStartDate;
+  final String? customEndDate;
+
+  const DateRangeFilterModel({
+    required this.period,
+    this.field = 'created_at',
+    this.customStartDate,
+    this.customEndDate,
+  });
+
+  factory DateRangeFilterModel.fromJson(Map<String, dynamic> json) {
+    return DateRangeFilterModel(
+      period: json['period'] ?? 'last_30_days',
+      field: json['field'] ?? 'created_at',
+      customStartDate: json['custom_start_date'],
+      customEndDate: json['custom_end_date'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{
+      'period': period,
+      'field': field,
+    };
+
+    if (customStartDate != null) {
+      json['custom_start_date'] = customStartDate;
+    }
+    if (customEndDate != null) {
+      json['custom_end_date'] = customEndDate;
+    }
+
+    return json;
+  }
+
+  bool get isCustom => period == 'custom';
+  bool get hasCustomDates => customStartDate != null && customEndDate != null;
+
+  DateRangeFilterModel copyWith({
+    String? period,
+    String? field,
+    String? customStartDate,
+    String? customEndDate,
+  }) {
+    return DateRangeFilterModel(
+      period: period ?? this.period,
+      field: field ?? this.field,
+      customStartDate: customStartDate ?? this.customStartDate,
+      customEndDate: customEndDate ?? this.customEndDate,
+    );
+  }
+
+  @override
+  List<Object?> get props => [period, field, customStartDate, customEndDate];
+
+  @override
+  String toString() => 'DateRangeFilterModel(period: $period, field: $field)';
 }

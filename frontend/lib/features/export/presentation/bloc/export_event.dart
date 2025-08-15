@@ -135,3 +135,11 @@ class LoadMasterData extends ExportEvent {
   @override
   String toString() => 'LoadMasterData()';
 }
+
+/// Load Date Periods Event - New event for loading date period options
+class LoadDatePeriods extends ExportEvent {
+  const LoadDatePeriods();
+
+  @override
+  String toString() => 'LoadDatePeriods()';
+}

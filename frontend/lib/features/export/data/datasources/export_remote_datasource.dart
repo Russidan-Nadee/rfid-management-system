@@ -5,6 +5,7 @@ import '../../../../core/services/api_service.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/export_job_model.dart';
 import '../models/export_config_model.dart';
+import '../models/period_model.dart';
 
 abstract class ExportRemoteDataSource {
   /// Create export job (Web only)
@@ -25,6 +26,9 @@ abstract class ExportRemoteDataSource {
 
   /// Cancel export job
   Future<bool> cancelExportJob(int exportId);
+
+  /// Get available date period options
+  Future<DatePeriodsResponse> getDatePeriods();
 }
 
 class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
@@ -199,6 +203,34 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     } catch (e) {
       print('❌ Cancel export job failed: $e');
       throw _handleException(e, 'cancel export job');
+    }
+  }
+
+  @override
+  Future<DatePeriodsResponse> getDatePeriods() async {
+    try {
+      print('📅 Fetching date period options');
+
+      final response = await apiService.get<Map<String, dynamic>>(
+        '${ApiConstants.exportBase}/date-periods',
+        fromJson: (json) => json,
+        requiresAuth: true,
+      );
+
+      if (response.success && response.data != null) {
+        final datePeriodsData = response.data!['data'] as Map<String, dynamic>;
+        final datePeriods = DatePeriodsResponse.fromJson(datePeriodsData);
+        print('✅ Got ${datePeriods.periods.length} period options');
+        return datePeriods;
+      } else {
+        throw _createApiException(
+          'Failed to get date periods',
+          response.message,
+        );
+      }
+    } catch (e) {
+      print('❌ Get date periods failed: $e');
+      throw _handleException(e, 'get date periods');
     }
   }
 

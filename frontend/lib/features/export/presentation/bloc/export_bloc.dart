@@ -10,6 +10,7 @@ import '../../domain/usecases/get_export_status_usecase.dart';
 import '../../domain/usecases/download_export_usecase.dart';
 import '../../domain/usecases/get_export_history_usecase.dart';
 import '../../domain/usecases/cancel_export_usecase.dart';
+import '../../data/models/period_model.dart';
 import 'export_event.dart';
 import 'export_state.dart';
 
@@ -40,6 +41,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     on<StartStatusPolling>(_onStartStatusPolling);
     on<StopStatusPolling>(_onStopStatusPolling);
     on<CheckPlatformSupport>(_onCheckPlatformSupport);
+    on<LoadDatePeriods>(_onLoadDatePeriods);
   }
 
   /// Platform Support Check
@@ -314,6 +316,48 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
   ) async {
     if (!isPlatformSupported) {
       emit(const ExportPlatformNotSupported());
+    }
+  }
+
+  /// Load Date Periods
+  Future<void> _onLoadDatePeriods(
+    LoadDatePeriods event,
+    Emitter<ExportState> emit,
+  ) async {
+    // Create mock date periods data with all periods
+    final now = DateTime.now();
+    final mockPeriods = [
+      {'label': 'Today', 'value': 'today', 'start_date': now.toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 7 days', 'value': 'last_7_days', 'start_date': now.subtract(Duration(days: 6)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 30 days', 'value': 'last_30_days', 'start_date': now.subtract(Duration(days: 29)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 90 days', 'value': 'last_90_days', 'start_date': now.subtract(Duration(days: 89)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 180 days', 'value': 'last_180_days', 'start_date': now.subtract(Duration(days: 179)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 365 days', 'value': 'last_365_days', 'start_date': now.subtract(Duration(days: 364)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Custom date range', 'value': 'custom'},
+    ];
+
+    final mockFields = [
+      {'field': 'created_at', 'label': 'Created Date', 'description': 'When asset was created'},
+      {'field': 'updated_at', 'label': 'Last Updated', 'description': 'When asset was last modified'},
+      {'field': 'last_scan_date', 'label': 'Last Scan', 'description': 'When asset was last scanned'},
+    ];
+
+    final mockResponse = {
+      'periods': mockPeriods,
+      'available_fields': mockFields,
+    };
+
+    try {
+      final datePeriodsData = DatePeriodsResponse.fromJson(mockResponse);
+      print('✅ Date periods loaded successfully:');
+      for (var period in datePeriodsData.periods) {
+        print('   📅 ${period.label} (${period.value}) - ${period.startDate ?? 'no date'} to ${period.endDate ?? 'no date'}');
+      }
+      print('📊 Available fields: ${datePeriodsData.availableFields.map((f) => f.label).join(', ')}');
+      emit(DatePeriodsLoaded(datePeriodsData));
+    } catch (e) {
+      print('❌ Failed to load date periods: ${e.toString()}');
+      emit(ExportError('Failed to load date periods: ${e.toString()}'));
     }
   }
 

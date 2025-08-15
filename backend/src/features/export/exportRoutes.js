@@ -109,6 +109,15 @@ router.get('/stats',
 );
 
 /**
+ * Get Available Date Period Options
+ * GET /api/v1/export/date-periods
+ */
+router.get('/date-periods',
+   generalRateLimit,
+   (req, res) => exportController.getDatePeriods(req, res)
+);
+
+/**
  * =================================
  * ADMIN ROUTES
  * =================================

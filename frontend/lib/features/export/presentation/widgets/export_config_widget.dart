@@ -14,6 +14,7 @@ import 'export_header_card.dart';
 import 'export_type_section.dart';
 import 'file_format_section.dart';
 import 'status_filter_section.dart';
+import 'date_range_filter_section.dart';
 
 class ExportConfigWidget extends StatefulWidget {
   const ExportConfigWidget({super.key});
@@ -25,6 +26,7 @@ class ExportConfigWidget extends StatefulWidget {
 class _ExportConfigWidgetState extends State<ExportConfigWidget> {
   String _selectedFormat = 'xlsx';
   List<String> _selectedStatuses = []; // Empty = all statuses
+  DateRangeFilterModel? _selectedDateRange;
 
   void _onFormatSelected(String format) {
     print('${ExportLocalizations.of(context).formatSelected}$format');
@@ -43,14 +45,24 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
     print('Selected statuses: ${statuses.isEmpty ? 'All' : statuses.join(', ')}');
   }
 
+  void _onDateRangeChanged(DateRangeFilterModel? dateRange) {
+    setState(() {
+      _selectedDateRange = dateRange;
+    });
+    print('Date range changed: ${dateRange?.period ?? 'None'}');
+  }
+
   void _onExportPressed() {
     final l10n = ExportLocalizations.of(context);
     print(l10n.exportPressed);
     print('${l10n.selectedFormatLabel}$_selectedFormat');
 
-    // Build export configuration with status filter if selected
-    final filters = _selectedStatuses.isNotEmpty 
-        ? ExportFiltersModel(status: _selectedStatuses)
+    // Build export configuration with filters if selected
+    final filters = (_selectedStatuses.isNotEmpty || _selectedDateRange != null) 
+        ? ExportFiltersModel(
+            status: _selectedStatuses.isNotEmpty ? _selectedStatuses : null,
+            dateRange: _selectedDateRange,
+          )
         : null;
     
     final config = ExportConfigModel(
@@ -204,6 +216,22 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
           ),
         ),
 
+        // Date Range Filter Section
+        DateRangeFilterSection(
+          selectedDateRange: _selectedDateRange,
+          onDateRangeChanged: _onDateRangeChanged,
+          isLargeScreen: isLargeScreen,
+        ),
+
+        SizedBox(
+          height: AppSpacing.responsiveSpacing(
+            context,
+            mobile: AppSpacing.xl,
+            tablet: AppSpacing.xxl,
+            desktop: AppSpacing.xxxl,
+          ),
+        ),
+
         // All Data Notice Card
         _buildAllDataNoticeCard(context, isLargeScreen),
 
@@ -275,9 +303,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 ),
                 SizedBox(height: AppSpacing.xs),
                 Text(
-                  _selectedStatuses.isEmpty 
-                    ? l10n.exportDataDescription 
-                    : 'Export assets with selected status filters: ${_selectedStatuses.join(', ')}',
+                  _buildExportDescription(),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark
                         ? AppColors.darkTextSecondary
@@ -397,5 +423,30 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
         );
       },
     );
+  }
+
+  String _buildExportDescription() {
+    final l10n = ExportLocalizations.of(context);
+    final descriptions = <String>[];
+    
+    if (_selectedStatuses.isNotEmpty) {
+      descriptions.add('Status filters: ${_selectedStatuses.join(', ')}');
+    }
+    
+    if (_selectedDateRange != null) {
+      final period = _selectedDateRange!.period;
+      final field = _selectedDateRange!.field;
+      if (period == 'custom') {
+        descriptions.add('Custom date range on $field');
+      } else {
+        descriptions.add('${period.replaceAll('_', ' ').toUpperCase()} on $field');
+      }
+    }
+    
+    if (descriptions.isEmpty) {
+      return l10n.exportDataDescription;
+    }
+    
+    return 'Export assets with: ${descriptions.join(', ')}';
   }
 }

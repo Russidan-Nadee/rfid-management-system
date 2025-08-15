@@ -205,3 +205,135 @@ class PeriodOption {
   @override
   String toString() => label;
 }
+
+/// Backend Period Models for API Integration
+
+/// Model for date period options from backend
+class BackendPeriodModel extends Equatable {
+  final String label;
+  final String value;
+  final String? startDate;
+  final String? endDate;
+
+  const BackendPeriodModel({
+    required this.label,
+    required this.value,
+    this.startDate,
+    this.endDate,
+  });
+
+  factory BackendPeriodModel.fromJson(Map<String, dynamic> json) {
+    return BackendPeriodModel(
+      label: json['label'] ?? '',
+      value: json['value'] ?? '',
+      startDate: json['start_date'],
+      endDate: json['end_date'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'label': label,
+      'value': value,
+      'start_date': startDate,
+      'end_date': endDate,
+    };
+  }
+
+  bool get isCustom => value == 'custom';
+  bool get hasDateRange => startDate != null && endDate != null;
+
+  @override
+  List<Object?> get props => [label, value, startDate, endDate];
+
+  @override
+  String toString() => 'BackendPeriodModel(label: $label, value: $value)';
+}
+
+/// Model for date field options
+class DateFieldModel extends Equatable {
+  final String field;
+  final String label;
+  final String description;
+
+  const DateFieldModel({
+    required this.field,
+    required this.label,
+    required this.description,
+  });
+
+  factory DateFieldModel.fromJson(Map<String, dynamic> json) {
+    return DateFieldModel(
+      field: json['field'] ?? '',
+      label: json['label'] ?? '',
+      description: json['description'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'field': field,
+      'label': label,
+      'description': description,
+    };
+  }
+
+  @override
+  List<Object?> get props => [field, label, description];
+
+  @override
+  String toString() => 'DateFieldModel(field: $field, label: $label)';
+}
+
+/// Model for date periods response from backend
+class DatePeriodsResponse extends Equatable {
+  final List<BackendPeriodModel> periods;
+  final List<DateFieldModel> availableFields;
+
+  const DatePeriodsResponse({
+    required this.periods,
+    required this.availableFields,
+  });
+
+  factory DatePeriodsResponse.fromJson(Map<String, dynamic> json) {
+    return DatePeriodsResponse(
+      periods: (json['periods'] as List?)
+              ?.map((e) => BackendPeriodModel.fromJson(e))
+              .toList() ??
+          [],
+      availableFields: (json['available_fields'] as List?)
+              ?.map((e) => DateFieldModel.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'periods': periods.map((e) => e.toJson()).toList(),
+      'available_fields': availableFields.map((e) => e.toJson()).toList(),
+    };
+  }
+
+  BackendPeriodModel? getPeriodByValue(String value) {
+    try {
+      return periods.firstWhere((period) => period.value == value);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  DateFieldModel? getFieldByName(String field) {
+    try {
+      return availableFields.firstWhere((f) => f.field == field);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
+  List<Object?> get props => [periods, availableFields];
+
+  @override
+  String toString() => 'DatePeriodsResponse(periods: ${periods.length}, fields: ${availableFields.length})';
+}
