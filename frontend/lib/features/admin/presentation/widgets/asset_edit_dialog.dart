@@ -11,6 +11,7 @@ import '../../data/datasources/admin_remote_datasource.dart';
 import '../../data/repositories/admin_repository_impl.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
 import 'admin_image_gallery_widget.dart';
+import '../../domain/entities/admin_master_data_entity.dart';
 
 class AssetEditDialog extends StatefulWidget {
   final AssetAdminEntity asset;
@@ -30,10 +31,16 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   late TextEditingController _descriptionController;
   late TextEditingController _serialNoController;
   late TextEditingController _inventoryNoController;
-  late TextEditingController _plantCodeController;
-  late TextEditingController _locationCodeController;
-  late TextEditingController _deptCodeController;
   late String _status;
+  
+  // Master data for dropdowns
+  List<AdminPlantEntity> _plants = [];
+  List<AdminLocationEntity> _locations = [];
+  List<AdminDepartmentEntity> _departments = [];
+  AdminPlantEntity? _selectedPlant;
+  AdminLocationEntity? _selectedLocation;
+  AdminDepartmentEntity? _selectedDepartment;
+  bool _loadingMasterData = false;
   
   // Image management
   List<AdminAssetImageEntity> _images = [];
@@ -43,6 +50,7 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
   late GetAdminAssetImagesUsecase _getImagesUsecase;
   late UploadAdminImageUsecase _uploadImageUsecase;
   late DeleteImageUsecase _deleteImageUsecase;
+  late AdminRemoteDatasourceImpl _adminDatasource;
 
   @override
   void initState() {
@@ -58,25 +66,20 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
       text: widget.asset.inventoryNo ?? '',
     );
     print('🔍 Inventory No initialized with: ${widget.asset.inventoryNo}');
-    _plantCodeController = TextEditingController(
-      text: widget.asset.plantCode,
-    );
-    _locationCodeController = TextEditingController(
-      text: widget.asset.locationDescription ?? widget.asset.locationCode,
-    );
-    _deptCodeController = TextEditingController(
-      text: widget.asset.deptDescription ?? widget.asset.deptCode ?? '',
-    );
     _status = widget.asset.status;
     
-    // Initialize image use cases
-    final datasource = AdminRemoteDatasourceImpl();
-    final repository = AdminRepositoryImpl(remoteDataSource: datasource);
+    // Initialize admin datasource and use cases
+    _adminDatasource = AdminRemoteDatasourceImpl();
+    final repository = AdminRepositoryImpl(remoteDataSource: _adminDatasource);
     _getImagesUsecase = GetAdminAssetImagesUsecase(repository);
     _uploadImageUsecase = UploadAdminImageUsecase(repository);
     _deleteImageUsecase = DeleteImageUsecase(repository);
     
-    // Load images
+    // Initialize selected values based on current asset
+    _initializeSelectedValues();
+    
+    // Load data
+    _loadMasterData();
     _loadImages();
   }
 
@@ -85,10 +88,141 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
     _descriptionController.dispose();
     _serialNoController.dispose();
     _inventoryNoController.dispose();
-    _plantCodeController.dispose();
-    _locationCodeController.dispose();
-    _deptCodeController.dispose();
     super.dispose();
+  }
+
+  void _initializeSelectedValues() {
+    // Initialize with current asset values
+    // These will be properly set after master data is loaded
+  }
+
+  Future<void> _loadMasterData() async {
+    setState(() {
+      _loadingMasterData = true;
+    });
+
+    try {
+      final masterData = await _adminDatasource.getMasterData();
+      
+      // Parse plants
+      final plantsJson = masterData['plants'] as List<dynamic>? ?? [];
+      _plants = plantsJson.map((json) => AdminPlantEntity(
+        plantCode: json['plant_code'],
+        description: json['description'],
+      )).toList();
+
+      // Parse locations
+      final locationsJson = masterData['locations'] as List<dynamic>? ?? [];
+      _locations = locationsJson.map((json) => AdminLocationEntity(
+        locationCode: json['location_code'],
+        description: json['description'],
+        plantCode: json['plant_code'],
+      )).toList();
+
+      // Parse departments
+      final departmentsJson = masterData['departments'] as List<dynamic>? ?? [];
+      _departments = departmentsJson.map((json) => AdminDepartmentEntity(
+        deptCode: json['dept_code'],
+        description: json['description'],
+        plantCode: json['plant_code'],
+      )).toList();
+
+      // Set initial selected values based on current asset
+      try {
+        _selectedPlant = _plants.firstWhere(
+          (plant) => plant.plantCode == widget.asset.plantCode,
+        );
+      } catch (e) {
+        _selectedPlant = _plants.isNotEmpty ? _plants.first : null;
+      }
+
+      if (_selectedPlant != null) {
+        // Filter locations and departments for selected plant
+        _updateLocationsForPlant(_selectedPlant!.plantCode);
+        _updateDepartmentsForPlant(_selectedPlant!.plantCode);
+
+        // Set selected location and department
+        try {
+          _selectedLocation = _locations.firstWhere(
+            (location) => location.locationCode == widget.asset.locationCode,
+          );
+        } catch (e) {
+          final availableLocations = _locations
+              .where((location) => location.plantCode == _selectedPlant!.plantCode)
+              .toList();
+          _selectedLocation = availableLocations.isNotEmpty ? availableLocations.first : null;
+        }
+
+        try {
+          _selectedDepartment = _departments.firstWhere(
+            (dept) => dept.deptCode == widget.asset.deptCode,
+          );
+        } catch (e) {
+          final availableDepartments = _departments
+              .where((dept) => dept.plantCode == null || dept.plantCode == _selectedPlant!.plantCode)
+              .toList();
+          _selectedDepartment = availableDepartments.isNotEmpty ? availableDepartments.first : null;
+        }
+      }
+
+      setState(() {
+        _loadingMasterData = false;
+      });
+    } catch (e) {
+      setState(() {
+        _loadingMasterData = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load master data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _updateLocationsForPlant(String plantCode) {
+    setState(() {
+      // Reset location selection when plant changes
+      final availableLocations = _locations
+          .where((location) => location.plantCode == plantCode)
+          .toList();
+      
+      // If current selection is not available for new plant, reset it
+      if (_selectedLocation != null && 
+          !availableLocations.contains(_selectedLocation)) {
+        _selectedLocation = null;
+      }
+    });
+  }
+
+  void _updateDepartmentsForPlant(String plantCode) {
+    setState(() {
+      // Reset department selection when plant changes
+      final availableDepartments = _getAvailableDepartments();
+      
+      // If current selection is not available for new plant, reset it
+      if (_selectedDepartment != null && 
+          !availableDepartments.contains(_selectedDepartment)) {
+        _selectedDepartment = null;
+      }
+    });
+  }
+
+  List<AdminDepartmentEntity> _getAvailableDepartments() {
+    if (_selectedPlant == null) {
+      // If no plant selected, show all departments
+      return _departments;
+    }
+    
+    // Filter departments for selected plant
+    // Include departments that have no plant restriction (plantCode == null) 
+    // or match the selected plant
+    return _departments.where((dept) => 
+      dept.plantCode == null || dept.plantCode == _selectedPlant!.plantCode
+    ).toList();
   }
 
   Future<void> _loadImages() async {
@@ -454,32 +588,122 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
               },
             ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _plantCodeController,
-              decoration: InputDecoration(
-                labelText: 'Plant Code',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.edit, color: Colors.green),
-              ),
-            ),
+            _loadingMasterData
+              ? Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : DropdownButtonFormField<AdminPlantEntity>(
+                  value: _selectedPlant,
+                  decoration: InputDecoration(
+                    labelText: 'Plant',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.factory, color: Colors.green),
+                  ),
+                  items: _plants.map((plant) {
+                    return DropdownMenuItem<AdminPlantEntity>(
+                      value: plant,
+                      child: Text('${plant.plantCode} - ${plant.description}'),
+                    );
+                  }).toList(),
+                  onChanged: (AdminPlantEntity? newPlant) {
+                    setState(() {
+                      _selectedPlant = newPlant;
+                      _selectedLocation = null;
+                      _selectedDepartment = null;
+                    });
+                    if (newPlant != null) {
+                      _updateLocationsForPlant(newPlant.plantCode);
+                      _updateDepartmentsForPlant(newPlant.plantCode);
+                    }
+                  },
+                ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _locationCodeController,
-              decoration: InputDecoration(
-                labelText: 'Location Description',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.edit, color: Colors.green),
-              ),
-            ),
+            _loadingMasterData
+              ? Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : DropdownButtonFormField<AdminLocationEntity>(
+                  value: _selectedLocation,
+                  decoration: InputDecoration(
+                    labelText: 'Location',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.location_on, color: Colors.green),
+                  ),
+                  items: _locations
+                      .where((location) => 
+                        _selectedPlant == null || location.plantCode == _selectedPlant!.plantCode)
+                      .map((location) {
+                    return DropdownMenuItem<AdminLocationEntity>(
+                      value: location,
+                      child: Text('${location.locationCode} - ${location.description}'),
+                    );
+                  }).toList(),
+                  onChanged: (AdminLocationEntity? newLocation) {
+                    setState(() {
+                      _selectedLocation = newLocation;
+                    });
+                  },
+                ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _deptCodeController,
-              decoration: InputDecoration(
-                labelText: 'Department Description',
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.edit, color: Colors.green),
-              ),
-            ),
+            _loadingMasterData
+              ? Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : Builder(
+                  builder: (context) {
+                    final availableDepartments = _getAvailableDepartments();
+                    // Reset selected department if it's not in available list
+                    if (_selectedDepartment != null && 
+                        !availableDepartments.contains(_selectedDepartment)) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        setState(() {
+                          _selectedDepartment = null;
+                        });
+                      });
+                    }
+                    
+                    return DropdownButtonFormField<AdminDepartmentEntity>(
+                      value: availableDepartments.contains(_selectedDepartment) ? _selectedDepartment : null,
+                      decoration: InputDecoration(
+                        labelText: 'Department (${availableDepartments.length} available)',
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.business, color: Colors.green),
+                      ),
+                      items: availableDepartments.map((dept) {
+                        return DropdownMenuItem<AdminDepartmentEntity>(
+                          value: dept,
+                          child: Text('${dept.deptCode} - ${dept.description}'),
+                        );
+                      }).toList(),
+                      onChanged: (AdminDepartmentEntity? newDept) {
+                        setState(() {
+                          _selectedDepartment = newDept;
+                        });
+                      },
+                    );
+                  },
+                ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _status,
@@ -632,15 +856,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
           : null,
       serialNo: serialNoValue.isNotEmpty ? serialNoValue : null,
       inventoryNo: inventoryNoValue.isNotEmpty ? inventoryNoValue : null,
-      plantCode: _plantCodeController.text.trim().isNotEmpty
-          ? _plantCodeController.text.trim()
-          : null,
-      locationCode: _locationCodeController.text.trim().isNotEmpty
-          ? _locationCodeController.text.trim()
-          : null, // Note: This now contains description but API still expects locationCode
-      deptCode: _deptCodeController.text.trim().isNotEmpty
-          ? _deptCodeController.text.trim()
-          : null, // Note: This now contains description but API still expects deptCode
+      plantCode: _selectedPlant?.plantCode,
+      locationCode: _selectedLocation?.locationCode,
+      deptCode: _selectedDepartment?.deptCode,
       status: _status,
     );
 

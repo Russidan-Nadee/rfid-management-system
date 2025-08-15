@@ -276,12 +276,13 @@ class AdminService {
 
    async getMasterData() {
       try {
-         const [plants, locations, units, categories, brands] = await Promise.all([
+         const [plants, locations, units, categories, brands, departments] = await Promise.all([
             this.adminModel.getAllPlants(),
             this.adminModel.getAllLocations(),
             this.adminModel.getAllUnits(),
             this.adminModel.getAllCategories(),
-            this.adminModel.getAllBrands()
+            this.adminModel.getAllBrands(),
+            this.adminModel.getAllDepartments()
          ]);
 
          return {
@@ -291,7 +292,8 @@ class AdminService {
                locations,
                units,
                categories,
-               brands
+               brands,
+               departments
             }
          };
       } catch (error) {

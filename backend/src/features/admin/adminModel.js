@@ -8,7 +8,7 @@ class AdminModel {
    // ===== ASSET MANAGEMENT METHODS =====
 
    async getAllAssetsWithDetails() {
-      return await this.prisma.asset_master.findMany({
+      const assets = await this.prisma.asset_master.findMany({
          include: {
             mst_plant: true,
             mst_location: true,
@@ -25,6 +25,21 @@ class AdminModel {
          },
          orderBy: { asset_no: 'asc' }
       });
+
+      // Format each asset with additional fields
+      return assets.map(asset => ({
+         ...asset,
+         plant_description: asset.mst_plant?.description,
+         location_description: asset.mst_location?.description,
+         dept_description: asset.mst_department?.description,
+         unit_name: asset.mst_unit?.name,
+         created_by_name: asset.mst_user?.full_name,
+         category_name: asset.mst_category?.category_name,
+         brand_name: asset.mst_brand?.brand_name,
+         last_scan_at: asset.asset_scan_log[0]?.scanned_at,
+         last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
+         total_scans: 0 // Will be calculated if needed
+      }));
    }
 
    async getAssetWithDetailsByNo(assetNo) {
@@ -107,7 +122,7 @@ class AdminModel {
 
       console.log('Final whereConditions:', JSON.stringify(whereConditions, null, 2));
       
-      const result = await this.prisma.asset_master.findMany({
+      const assets = await this.prisma.asset_master.findMany({
          where: whereConditions,
          include: {
             mst_plant: true,
@@ -126,8 +141,24 @@ class AdminModel {
          orderBy: { asset_no: 'asc' }
       });
       
-      console.log('Database query returned:', result.length, 'assets');
-      return result;
+      console.log('Database query returned:', assets.length, 'assets');
+      
+      // Format each asset with additional fields
+      const formattedAssets = assets.map(asset => ({
+         ...asset,
+         plant_description: asset.mst_plant?.description,
+         location_description: asset.mst_location?.description,
+         dept_description: asset.mst_department?.description,
+         unit_name: asset.mst_unit?.name,
+         created_by_name: asset.mst_user?.full_name,
+         category_name: asset.mst_category?.category_name,
+         brand_name: asset.mst_brand?.brand_name,
+         last_scan_at: asset.asset_scan_log[0]?.scanned_at,
+         last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
+         total_scans: 0 // Will be calculated if needed
+      }));
+      
+      return formattedAssets;
    }
 
    async updateAsset(assetNo, updateData, updatedBy) {
@@ -341,6 +372,13 @@ class AdminModel {
       return await this.prisma.mst_brand.findMany({
          where: { is_active: true },
          orderBy: { brand_code: 'asc' }
+      });
+   }
+
+   async getAllDepartments() {
+      return await this.prisma.mst_department.findMany({
+         include: { mst_plant: true },
+         orderBy: { dept_code: 'asc' }
       });
    }
 

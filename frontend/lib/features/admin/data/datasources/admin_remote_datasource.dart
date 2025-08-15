@@ -29,6 +29,9 @@ abstract class AdminRemoteDatasource {
   Future<void> updateUserRole(String userId, String role);
   Future<void> updateUserStatus(String userId, bool isActive);
   Future<List<String>> getAvailableRoles();
+  
+  // Master data methods
+  Future<Map<String, dynamic>> getMasterData();
 }
 
 class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
@@ -382,6 +385,17 @@ class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
       return rolesJson.map((role) => role.toString()).toList();
     } else {
       throw Exception('Failed to fetch available roles: ${apiResponse.message}');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getMasterData() async {
+    final apiResponse = await _apiService.get('/admin/master-data');
+    
+    if (apiResponse.success) {
+      return Map<String, dynamic>.from(apiResponse.data ?? {});
+    } else {
+      throw Exception('Failed to fetch master data: ${apiResponse.message}');
     }
   }
 }
