@@ -18,7 +18,6 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   final _ldapUsernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _isPasswordVisible = false;
 
   @override
@@ -34,7 +33,7 @@ class _LoginFormState extends State<LoginForm> {
         LoginRequested(
           ldapUsername: _ldapUsernameController.text.trim(),
           password: _passwordController.text,
-          rememberMe: _rememberMe,
+          rememberMe: false,
         ),
       );
     }
@@ -60,9 +59,6 @@ class _LoginFormState extends State<LoginForm> {
               _buildPasswordField(isLoading),
 
               const SizedBox(height: 16),
-
-              // Remember Me Checkbox
-              _buildRememberMeCheckbox(isLoading),
 
               const SizedBox(height: 24),
 
@@ -137,52 +133,6 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  Widget _buildRememberMeCheckbox(bool isLoading) {
-    return Row(
-      children: [
-        Checkbox(
-          value: _rememberMe,
-          onChanged: isLoading
-              ? null
-              : (value) {
-                  setState(() {
-                    _rememberMe = value ?? false;
-                  });
-                },
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: isLoading
-                ? null
-                : () {
-                    setState(() {
-                      _rememberMe = !_rememberMe;
-                    });
-                  },
-            child: Text(
-              'Remember me',
-              style: TextStyle(
-                fontSize: 14,
-                color: isLoading ? Colors.grey : Colors.grey[700],
-              ),
-            ),
-          ),
-        ),
-        TextButton(
-          onPressed: isLoading
-              ? null
-              : () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Forgot password feature coming soon'),
-                    ),
-                  );
-                },
-          child: const Text('Forgot Password?'),
-        ),
-      ],
-    );
-  }
 
   Widget _buildLoginButton(bool isLoading) {
     return ElevatedButton(
