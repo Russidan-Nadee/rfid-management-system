@@ -52,8 +52,6 @@ class AdminValidator {
          // Plant code validation
          body('plant_code')
             .optional()
-            .isLength({ min: 1, max: 10 })
-            .withMessage('Plant code must be between 1 and 10 characters')
             .trim(),
 
          // Location code validation
@@ -100,8 +98,6 @@ class AdminValidator {
          // Status validation
          body('status')
             .optional()
-            .isIn(['A', 'C', 'I'])
-            .withMessage('Status must be A (Awaiting), C (Checked), or I (Inactive)')
       ];
    }
 

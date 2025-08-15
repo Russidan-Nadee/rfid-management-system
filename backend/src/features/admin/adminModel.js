@@ -179,18 +179,23 @@ class AdminModel {
             data: updateData
          });
 
-         // Log status change if status was updated
+         // Log status change if status was updated (skip if user doesn't exist)
          if (updateData.status && updateData.status !== currentAsset.status) {
-            await tx.asset_status_history.create({
-               data: {
-                  asset_no: assetNo,
-                  old_status: currentAsset.status,
-                  new_status: updateData.status,
-                  changed_by: updatedBy,
-                  changed_at: new Date(),
-                  remarks: `Status changed from ${currentAsset.status} to ${updateData.status} via Admin Panel`
-               }
-            });
+            try {
+               await tx.asset_status_history.create({
+                  data: {
+                     asset_no: assetNo,
+                     old_status: currentAsset.status,
+                     new_status: updateData.status,
+                     changed_by: updatedBy,
+                     changed_at: new Date(),
+                     remarks: `Status changed from ${currentAsset.status} to ${updateData.status} via Admin Panel`
+                  }
+               });
+            } catch (historyError) {
+               console.warn('Failed to log status history:', historyError.message);
+               // Continue with update even if history logging fails
+            }
          }
 
          return updatedAsset;

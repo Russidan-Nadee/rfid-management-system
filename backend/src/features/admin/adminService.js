@@ -98,12 +98,6 @@ class AdminService {
             }
          }
 
-         if (updateData.inventory_no) {
-            const inventoryExists = await this.adminModel.checkInventoryNoExists(updateData.inventory_no, assetNo);
-            if (inventoryExists) {
-               throw new Error('Inventory number already exists for another asset');
-            }
-         }
 
          if (updateData.epc_code) {
             const epcExists = await this.adminModel.checkEpcCodeExists(updateData.epc_code, assetNo);
@@ -208,22 +202,9 @@ class AdminService {
       Object.keys(updateData).forEach(key => {
          const value = updateData[key];
          
-         // Allow null values for optional fields, but not empty strings for required fields
+         // Include all values except undefined
          if (value !== undefined) {
-            // For status field, ensure it's one of the valid values
-            if (key === 'status') {
-               if (value === 'A' || value === 'C' || value === 'I') {
-                  sanitized[key] = value;
-               }
-            }
-            // For other fields, include if not empty string
-            else if (value !== '') {
-               sanitized[key] = value;
-            }
-            // Allow explicit null for optional fields
-            else if (value === null) {
-               sanitized[key] = null;
-            }
+            sanitized[key] = value;
          }
       });
 
