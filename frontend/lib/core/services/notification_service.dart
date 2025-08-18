@@ -220,6 +220,8 @@ class NotificationService {
     String? priority,
     String? problemType,
     String? assetNo,
+    String? plantCode,
+    String? locationCode,
     int page = 1,
     int limit = 100,
     String sortBy = 'created_at',
@@ -245,6 +247,12 @@ class NotificationService {
       if (assetNo != null && assetNo.isNotEmpty) {
         queryParams['asset_no'] = assetNo;
       }
+      if (plantCode != null && plantCode.isNotEmpty) {
+        queryParams['plant_code'] = plantCode;
+      }
+      if (locationCode != null && locationCode.isNotEmpty) {
+        queryParams['location_code'] = locationCode;
+      }
 
       final response = await _apiService.get<Map<String, dynamic>>(
         ApiConstants.allReports,
@@ -256,6 +264,22 @@ class NotificationService {
     } catch (error) {
       return ErrorResponse<Map<String, dynamic>>(
         message: 'Failed to get all reports: $error',
+      );
+    }
+  }
+
+  /// Get master data for dropdowns (plants, locations, etc.)
+  Future<ApiResponse<Map<String, dynamic>>> getMasterData() async {
+    try {
+      final response = await _apiService.get<Map<String, dynamic>>(
+        ApiConstants.masterData,
+        fromJson: (json) => json as Map<String, dynamic>,
+      );
+
+      return response;
+    } catch (error) {
+      return ErrorResponse<Map<String, dynamic>>(
+        message: 'Failed to get master data: $error',
       );
     }
   }

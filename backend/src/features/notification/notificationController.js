@@ -216,6 +216,8 @@ const NotificationController = {
         priority,
         problem_type,
         asset_no,
+        plant_code,
+        location_code,
         page = 1,
         limit = 100, // Default to higher limit for admin view
         sortBy = 'created_at',
@@ -227,6 +229,8 @@ const NotificationController = {
         priority,
         problem_type,
         asset_no,
+        plant_code,
+        location_code,
         page: parseInt(page),
         limit: parseInt(limit),
         sortBy,

@@ -40,69 +40,107 @@ const NotificationModel = {
       priority,
       problem_type,
       asset_no,
+      plant_code,
+      location_code,
       page = 1,
       limit = 20,
       sortBy = 'created_at',
       sortOrder = 'desc'
     } = filters;
 
-    const where = {};
-    
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-    if (problem_type) where.problem_type = problem_type;
-    if (asset_no) where.asset_no = { contains: asset_no };
+    try {
+      // Build base where clause for direct problem_notification fields
+      const where = {};
+      
+      if (status) where.status = status;
+      if (priority) where.priority = priority;
+      if (problem_type) where.problem_type = problem_type;
+      if (asset_no) where.asset_no = { contains: asset_no };
+      
+      // If we need to filter by plant_code or location_code, use a different approach
+      if (plant_code || location_code) {
+        // First get asset numbers that match the plant/location criteria
+        const assetFilter = {};
+        if (plant_code) assetFilter.plant_code = plant_code;
+        if (location_code) assetFilter.location_code = location_code;
+        
+        const matchingAssets = await prisma.asset_master.findMany({
+          where: assetFilter,
+          select: { asset_no: true }
+        });
+        
+        const assetNumbers = matchingAssets.map(asset => asset.asset_no);
+        
+        if (assetNumbers.length > 0) {
+          where.asset_no = { in: assetNumbers };
+        } else {
+          // No matching assets found, return empty result
+          return {
+            notifications: [],
+            pagination: {
+              total: 0,
+              pages: 0,
+              current_page: page,
+              per_page: limit
+            }
+          };
+        }
+      }
 
-    const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
-    const [notifications, total] = await Promise.all([
-      prisma.problem_notification.findMany({
-        where,
-        skip,
-        take: parseInt(limit),
-        orderBy: { [sortBy]: sortOrder },
-        include: {
-          asset_master: {
-            select: {
-              asset_no: true,
-              description: true,
-              location_code: true,
-              plant_code: true
-            }
-          },
-          reporter: {
-            select: {
-              user_id: true,
-              full_name: true,
-              email: true
-            }
-          },
-          acknowledger: {
-            select: {
-              user_id: true,
-              full_name: true
-            }
-          },
-          resolver: {
-            select: {
-              user_id: true,
-              full_name: true
+      const [notifications, total] = await Promise.all([
+        prisma.problem_notification.findMany({
+          where,
+          skip,
+          take: parseInt(limit),
+          orderBy: { [sortBy]: sortOrder },
+          include: {
+            asset_master: {
+              select: {
+                asset_no: true,
+                description: true,
+                location_code: true,
+                plant_code: true
+              }
+            },
+            reporter: {
+              select: {
+                user_id: true,
+                full_name: true,
+                email: true
+              }
+            },
+            acknowledger: {
+              select: {
+                user_id: true,
+                full_name: true
+              }
+            },
+            resolver: {
+              select: {
+                user_id: true,
+                full_name: true
+              }
             }
           }
-        }
-      }),
-      prisma.problem_notification.count({ where })
-    ]);
+        }),
+        prisma.problem_notification.count({ where })
+      ]);
 
-    return {
-      notifications,
-      pagination: {
-        total,
-        pages: Math.ceil(total / limit),
-        current_page: page,
-        per_page: limit
-      }
-    };
+      return {
+        notifications,
+        pagination: {
+          total,
+          pages: Math.ceil(total / limit),
+          current_page: page,
+          per_page: limit
+        }
+      };
+    } catch (error) {
+      console.error('Error in getAllNotifications:', error);
+      throw error;
+    }
   },
 
   // Get notification by ID

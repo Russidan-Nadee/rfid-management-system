@@ -121,72 +121,6 @@ class _AssetManagementTabState extends State<AssetManagementTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Collapsible search section
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Column(
-                  children: [
-                    // Search toggle header
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          _isSearchExpanded = !_isSearchExpanded;
-                        });
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.search),
-                            const SizedBox(width: 8),
-                            Text(
-                              l10n.searchTitle,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const Spacer(),
-                            AnimatedRotation(
-                              turns: _isSearchExpanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 200),
-                              child: const Icon(Icons.expand_more),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Collapsible content
-                    AnimatedCrossFade(
-                      firstChild: const SizedBox.shrink(),
-                      secondChild: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: AssetSearchWidget(
-                          constraints: constraints,
-                          onSearch:
-                              ({searchTerm, status, plantCode, locationCode}) {
-                                context.read<AdminBloc>().add(
-                                  SearchAssets(
-                                    searchTerm: searchTerm,
-                                    status: status,
-                                    plantCode: plantCode,
-                                    locationCode: locationCode,
-                                  ),
-                                );
-                              },
-                        ),
-                      ),
-                      crossFadeState: _isSearchExpanded
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                      duration: const Duration(milliseconds: 200),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
               Expanded(
                 child: BlocConsumer<AdminBloc, AdminState>(
                   listener: (context, state) {
@@ -258,6 +192,7 @@ class _AssetManagementTabState extends State<AssetManagementTab> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Total Assets card (moved to top)
                           Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
@@ -279,6 +214,72 @@ class _AssetManagementTabState extends State<AssetManagementTab> {
                                   ),
                                 ],
                               ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Collapsible search section (moved below total assets)
+                          Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Column(
+                              children: [
+                                // Search toggle header
+                                InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _isSearchExpanded = !_isSearchExpanded;
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.search),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          l10n.searchTitle,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        AnimatedRotation(
+                                          turns: _isSearchExpanded ? 0.5 : 0,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: const Icon(Icons.expand_more),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // Collapsible content
+                                AnimatedCrossFade(
+                                  firstChild: const SizedBox.shrink(),
+                                  secondChild: Padding(
+                                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                    child: AssetSearchWidget(
+                                      constraints: constraints,
+                                      onSearch:
+                                          ({searchTerm, status, plantCode, locationCode}) {
+                                            context.read<AdminBloc>().add(
+                                              SearchAssets(
+                                                searchTerm: searchTerm,
+                                                status: status,
+                                                plantCode: plantCode,
+                                                locationCode: locationCode,
+                                              ),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                  crossFadeState: _isSearchExpanded
+                                      ? CrossFadeState.showSecond
+                                      : CrossFadeState.showFirst,
+                                  duration: const Duration(milliseconds: 200),
+                                ),
+                              ],
                             ),
                           ),
                           AppSpacing.verticalSpaceLG,

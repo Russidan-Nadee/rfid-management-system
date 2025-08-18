@@ -176,6 +176,7 @@ class ApiConstants {
   static const String categories = '/categories';
   static const String brands = '/brands';
   static const String users = '/users';
+  static const String masterData = '/admin/master-data';
 
   // Scan Endpoints
   static const String scanBase = '/scan';

@@ -52,6 +52,20 @@ const NotificationValidator = {
       .optional()
       .isIn(['asset_damage', 'asset_missing', 'location_issue', 'data_error', 'urgent_issue', 'other'])
       .withMessage('Invalid problem type filter'),
+
+    query('plant_code')
+      .optional()
+      .isString()
+      .withMessage('Plant code must be a string')
+      .isLength({ max: 10 })
+      .withMessage('Plant code must be max 10 characters'),
+
+    query('location_code')
+      .optional()
+      .isString()
+      .withMessage('Location code must be a string')
+      .isLength({ max: 10 })
+      .withMessage('Location code must be max 10 characters'),
       
     query('page')
       .optional()
