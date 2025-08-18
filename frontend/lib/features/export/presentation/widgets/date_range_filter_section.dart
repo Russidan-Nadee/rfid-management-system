@@ -91,15 +91,14 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
     DateRangeFilterModel? dateRange;
     
     if (_selectedPeriod == 'custom') {
-      if (_customStartDate != null && _customEndDate != null) {
-        dateRange = DateRangeFilterModel(
-          period: _selectedPeriod,
-          field: _selectedField,
-          customStartDate: _formatDate(_customStartDate!),
-          customEndDate: _formatDate(_customEndDate!),
-        );
-        print('🗓️ Custom date range: ${_formatDate(_customStartDate!)} to ${_formatDate(_customEndDate!)}');
-      }
+      // For custom, we create the model immediately to show the pickers
+      dateRange = DateRangeFilterModel(
+        period: _selectedPeriod,
+        field: _selectedField,
+        customStartDate: _customStartDate != null ? _formatDate(_customStartDate!) : null,
+        customEndDate: _customEndDate != null ? _formatDate(_customEndDate!) : null,
+      );
+      print('🗓️ Custom date range selected. Start: ${_customStartDate}, End: ${_customEndDate}');
     } else {
       dateRange = DateRangeFilterModel(
         period: _selectedPeriod,
@@ -716,8 +715,25 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
         final date = await showDatePicker(
           context: context,
           initialDate: selectedDate ?? DateTime.now(),
-          firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
+          firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
           lastDate: DateTime.now(),
+           builder: (context, child) {
+            return Theme(
+              data: theme.copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: AppColors.primary, // header background color
+                  onPrimary: Colors.white, // header text color
+                  onSurface: AppColors.textPrimary, // body text color
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary, // button text color
+                  ),
+                ),
+              ),
+              child: child!,
+            );
+          },
         );
         
         if (date != null) {
