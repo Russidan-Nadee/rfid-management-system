@@ -29,8 +29,13 @@
       "Bash(rm:*)",
       "Bash(grep:*)",
       "Bash(sed:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npm install:*)",
+      "Bash(true)"
     ],
-    "deny": []
+    "deny": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\russidan\\Desktop\\intern-project-rfid"
+    ]
   }
 }

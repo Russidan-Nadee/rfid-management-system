@@ -6,6 +6,7 @@ import '../constants/api_constants.dart';
 import '../models/api_response.dart';
 import '../errors/exceptions.dart';
 import 'storage_service.dart';
+import 'cookie_session_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -13,6 +14,7 @@ class ApiService {
   ApiService._internal();
 
   final StorageService _storage = StorageService();
+  final CookieSessionService _cookieService = CookieSessionService();
   final http.Client _client = http.Client();
 
   // Request headers
@@ -20,22 +22,15 @@ class ApiService {
     final headers = Map<String, String>.from(ApiConstants.defaultHeaders);
 
     if (requiresAuth) {
-      // ===== Development Mode: ไม่ใช้ token =====
-      if (kDebugMode) {
-        const bool skipAuth = false; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
+      // ===== Session-based Authentication =====
+      final sessionHeaders = _cookieService.getRequestHeaders();
+      headers.addAll(sessionHeaders);
 
-        if (skipAuth) {
-          // ไม่ส่ง Authorization header
-          return headers;
-        }
-      }
-
-      // ===== Production Mode: ใช้ token จริง =====
-      final token = await _storage.getAuthToken();
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
+      if (sessionHeaders.isNotEmpty) {
+        print('✅ Using session authentication');
+        await _storage.updateSessionTimestamp();
       } else {
-        print('NO TOKEN - Request will fail');
+        print('❌ NO ACTIVE SESSION - Request will fail');
       }
     }
 
@@ -177,6 +172,10 @@ class ApiService {
       
       if (response.statusCode >= 200 && response.statusCode < 300) {
         print('✅ API: Success response');
+        
+        // Handle cookies in response
+        await _cookieService.handleLoginResponse(response);
+        
         final responseBody = response.body.isEmpty
             ? '{"success": true, "message": "Success", "timestamp": "${DateTime.now().toIso8601String()}"}'
             : response.body;
@@ -304,6 +303,11 @@ class ApiService {
 
   // Authentication helpers
   Future<bool> isAuthenticated() async {
+    // Check cookie-based session first
+    final hasSession = await _cookieService.hasValidSession();
+    if (hasSession) return true;
+    
+    // Fallback to token-based authentication
     final token = await _storage.getAuthToken();
     return token != null && token.isNotEmpty;
   }
@@ -315,8 +319,13 @@ class ApiService {
     return token;
   }
 
+  Future<Map<String, String>> getSessionHeaders() async {
+    return _cookieService.getRequestHeaders();
+  }
+
   Future<void> clearAuthToken() async {
     await _storage.clearAuthData();
+    await _cookieService.clearSession();
   }
 
   Future<http.Response> downloadFile(
@@ -368,36 +377,42 @@ class ApiService {
     };
   }
 
-  // เพิ่มใน api_service.dart
+  // Session-based refresh for new authentication system
   Future<bool> _refreshToken() async {
-    // print('🔄 ATTEMPTING TOKEN REFRESH...');
-    final refreshToken = await _storage.getRefreshToken();
-    if (refreshToken == null) {
-      // print('❌ NO REFRESH TOKEN FOUND');
-      return false;
-    }
-
     try {
-      print('📡 CALLING REFRESH API...');
+      // Only attempt refresh if we have a valid session
+      final hasSession = await _cookieService.hasValidSession();
+      if (!hasSession) {
+        print('❌ NO VALID SESSION - Cannot refresh');
+        return false;
+      }
+
+      print('📡 CALLING SESSION REFRESH API...');
+      final headers = await _getHeaders(requiresAuth: true);
+      
       final response = await _client.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.refreshToken}'),
-        headers: ApiConstants.defaultHeaders,
-        body: jsonEncode({'token': refreshToken}),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.refreshSession}'),
+        headers: headers,
       );
-      print('📥 REFRESH RESPONSE: ${response.statusCode}');
+      print('📥 SESSION REFRESH RESPONSE: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        await _storage.saveAuthToken(data['token']);
-        print('✅ TOKEN REFRESHED SUCCESSFULLY');
+        // Handle new session cookie
+        await _cookieService.handleLoginResponse(response);
+        print('✅ SESSION REFRESHED SUCCESSFULLY');
         return true;
+      } else if (response.statusCode == 401) {
+        // Session expired - clear local session data
+        print('❌ SESSION EXPIRED - Clearing local session');
+        await clearAuthToken();
+        return false;
       }
+      
+      return false;
     } catch (e) {
-      print('Refresh failed: $e');
+      print('❌ REFRESH FAILED: $e');
+      return false;
     }
-    print('❌ TOKEN REFRESH FAILED');
-
-    return false;
   }
 
   // Upload image using bytes to avoid MediaType namespace issues

@@ -239,9 +239,14 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   /// Download file for web using browser download
   Future<void> _downloadFileForWeb(int exportId, String? filename) async {
     try {
-      // Get auth token for download
-      final token = await apiService.getAuthToken();
-      if (token == null) {
+      // Try session authentication first
+      final sessionHeaders = await apiService.getSessionHeaders();
+      String? sessionId = sessionHeaders['x-session-id'];
+      
+      // Fallback to token authentication
+      String? token = await apiService.getAuthToken();
+      
+      if (sessionId == null && token == null) {
         throw ExportException(
           'Authentication required for download',
           ExportErrorType.authentication,
@@ -253,7 +258,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
           '${ApiConstants.baseUrl}${ApiConstants.exportDownload(exportId)}';
 
       // Use web-specific download implementation
-      await _triggerWebDownload(downloadUrl, token, filename);
+      await _triggerWebDownload(downloadUrl, sessionId: sessionId, token: token, filename: filename);
     } catch (e) {
       throw ExportException(
         'Failed to initiate download: ${e.toString()}',
@@ -264,16 +269,17 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
 
   /// Trigger web download (implementation depends on web platform)
   Future<void> _triggerWebDownload(
-    String url,
-    String token,
+    String url, {
+    String? sessionId,
+    String? token,
     String? filename,
-  ) async {
+  }) async {
     // For web, we can use dart:html or url_launcher
     // This is a simplified implementation
 
     try {
       // Option 1: Create a hidden anchor element (most compatible)
-      _createDownloadLink(url, token, filename);
+      _createDownloadLink(url, sessionId: sessionId, token: token, filename: filename);
     } catch (e) {
       // Fallback: Open in new tab/window
       print('⚠️ Direct download failed, opening in new tab');
@@ -285,10 +291,24 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
   }
 
   /// Create download link for web
-  void _createDownloadLink(String url, String token, String? filename) async {
+  void _createDownloadLink(String url, {String? sessionId, String? token, String? filename}) async {
     try {
-      // Build URL with auth token
-      final downloadUrl = '$url?access_token=$token';
+      String downloadUrl;
+      
+      // Prefer session authentication, fallback to token
+      if (sessionId != null) {
+        // For Flutter web downloads, pass session ID as query parameter
+        // since browser downloads can't include custom headers
+        downloadUrl = '$url?session_id=$sessionId';
+        print('🍪 Using session-based download via query parameter');
+      } else if (token != null) {
+        // Build URL with auth token for token-based auth
+        downloadUrl = '$url?access_token=$token';
+        print('🔑 Using token-based download');
+      } else {
+        throw Exception('No authentication method available');
+      }
+      
       final uri = Uri.parse(downloadUrl);
 
       if (await canLaunchUrl(uri)) {

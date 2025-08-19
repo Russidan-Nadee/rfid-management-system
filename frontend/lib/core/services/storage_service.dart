@@ -157,18 +157,35 @@ class StorageService {
   // Authentication specific methods
   Future<void> saveAuthToken(String token) async {
     await setSecureString(AppConstants.authTokenKey, token);
+    await updateSessionTimestamp();
   }
 
   Future<String?> getAuthToken() async {
-    return await getSecureString(AppConstants.authTokenKey);
+    final token = await getSecureString(AppConstants.authTokenKey);
+    if (token != null && await isSessionValid()) {
+      await updateSessionTimestamp();
+      return token;
+    } else if (token != null) {
+      // Don't clear auth data immediately, let refresh token handle it
+      return null;
+    }
+    return token;
   }
 
   Future<void> saveRefreshToken(String token) async {
     await setSecureString(AppConstants.refreshTokenKey, token);
+    await updateRefreshTokenTimestamp();
   }
 
   Future<String?> getRefreshToken() async {
-    return await getSecureString(AppConstants.refreshTokenKey);
+    final token = await getSecureString(AppConstants.refreshTokenKey);
+    if (token != null && await isRefreshTokenValid()) {
+      return token;
+    } else if (token != null) {
+      await clearAuthData();
+      return null;
+    }
+    return token;
   }
 
   Future<void> saveUserData(Map<String, dynamic> userData) async {
@@ -192,6 +209,8 @@ class StorageService {
     await deleteSecureString(AppConstants.refreshTokenKey);
     await deleteSecureString(AppConstants.userDataKey);
     await remove(AppConstants.rememberLoginKey);
+    await remove(AppConstants.sessionTimestampKey);
+    await remove(AppConstants.refreshTokenTimestampKey);
   }
 
   // Theme preferences
@@ -201,5 +220,59 @@ class StorageService {
 
   String getThemeMode() {
     return getString(AppConstants.themeKey) ?? 'system';
+  }
+
+  // Session management methods
+  Future<void> updateSessionTimestamp() async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    await setInt(AppConstants.sessionTimestampKey, timestamp);
+  }
+
+  Future<bool> isSessionValid() async {
+    final timestamp = getInt(AppConstants.sessionTimestampKey);
+    if (timestamp == null) return false;
+    
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final timeDifference = currentTime - timestamp;
+    
+    return timeDifference < AppConstants.sessionTimeoutMs;
+  }
+
+  Future<int> getSessionRemainingTime() async {
+    final timestamp = getInt(AppConstants.sessionTimestampKey);
+    if (timestamp == null) return 0;
+    
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final timeDifference = currentTime - timestamp;
+    final remainingTime = AppConstants.sessionTimeoutMs - timeDifference;
+    
+    return remainingTime > 0 ? remainingTime : 0;
+  }
+
+  // Refresh token management methods
+  Future<void> updateRefreshTokenTimestamp() async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    await setInt(AppConstants.refreshTokenTimestampKey, timestamp);
+  }
+
+  Future<bool> isRefreshTokenValid() async {
+    final timestamp = getInt(AppConstants.refreshTokenTimestampKey);
+    if (timestamp == null) return false;
+    
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final timeDifference = currentTime - timestamp;
+    
+    return timeDifference < AppConstants.refreshTokenExpiryMs;
+  }
+
+  Future<int> getRefreshTokenRemainingTime() async {
+    final timestamp = getInt(AppConstants.refreshTokenTimestampKey);
+    if (timestamp == null) return 0;
+    
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final timeDifference = currentTime - timestamp;
+    final remainingTime = AppConstants.refreshTokenExpiryMs - timeDifference;
+    
+    return remainingTime > 0 ? remainingTime : 0;
   }
 }

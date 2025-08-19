@@ -3,13 +3,15 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
+import '../models/refresh_token_response.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<LoginResponse> login(LoginRequest request);
   Future<void> logout();
   Future<UserModel> getProfile();
-  Future<bool> refreshToken(String token);
+  Future<RefreshTokenResponse?> refreshToken(String token);
+  Future<bool> refreshSession();
   Future<void> changePassword(String currentPassword, String newPassword);
 }
 
@@ -60,14 +62,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> refreshToken(String token) async {
+  Future<RefreshTokenResponse?> refreshToken(String token) async {
     final response = await apiService.post<Map<String, dynamic>>(
       ApiConstants.refreshToken,
       body: {'token': token},
       requiresAuth: false,
     );
 
-    return response.success;
+    if (response.success && response.data != null) {
+      return RefreshTokenResponse.fromJson(response.data!);
+    }
+    return null;
+  }
+
+  @override
+  Future<bool> refreshSession() async {
+    try {
+      final response = await apiService.post<Map<String, dynamic>>(
+        ApiConstants.refreshSession,
+        requiresAuth: true,
+      );
+
+      return response.success;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override

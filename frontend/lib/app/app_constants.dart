@@ -9,6 +9,14 @@ class AppConstants {
   static const String refreshTokenKey = 'refresh_token';
   static const String rememberLoginKey = 'remember_login';
   static const String themeKey = 'app_theme';
+  static const String sessionTimestampKey = 'session_timestamp';
+  
+  // Session timeout (15 minutes in milliseconds)
+  static const int sessionTimeoutMs = 15 * 60 * 1000;
+  
+  // Refresh token expiry (7 days in milliseconds)
+  static const int refreshTokenExpiryMs = 7 * 24 * 60 * 60 * 1000;
+  static const String refreshTokenTimestampKey = 'refresh_token_timestamp';
 
   // Asset Status
   static const String statusCreated = 'C';

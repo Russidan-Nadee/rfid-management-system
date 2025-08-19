@@ -156,6 +156,7 @@ class ApiConstants {
   static const String logout = '$authBase/logout';
   static const String profile = '$authBase/me';
   static const String refreshToken = '$authBase/refresh';
+  static const String refreshSession = '$authBase/refresh-session';
   static const String changePassword = '$authBase/change-password';
 
   // Dashboard Endpoints

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/datasources/admin_remote_datasource.dart';
 import '../../../../app/theme/app_spacing.dart';
-import '../../../auth/data/repositories/auth_repository_impl.dart';
-import '../../../auth/data/datasources/auth_remote_datasource.dart';
-import '../../../../core/services/storage_service.dart';
-import '../../../../core/services/api_service.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../../../di/injection.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
 
 class RoleManagementTab extends StatefulWidget {
@@ -38,10 +36,7 @@ class _RoleManagementTabState extends State<RoleManagementTab> {
 
   Future<void> _loadCurrentUserRole() async {
     try {
-      final authRepository = AuthRepositoryImpl(
-        remoteDataSource: AuthRemoteDataSourceImpl(ApiService()),
-        storageService: StorageService(),
-      );
+      final authRepository = getIt<AuthRepository>();
       
       final currentUser = await authRepository.getCurrentUser();
       if (currentUser != null) {

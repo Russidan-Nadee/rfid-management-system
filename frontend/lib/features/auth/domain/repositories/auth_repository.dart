@@ -9,34 +9,29 @@ abstract class AuthRepository {
   Future<bool> isAuthenticated();
   Future<bool> refreshToken();
   Future<void> changePassword(String currentPassword, String newPassword);
-  Future<String?> getAuthToken();
   Future<void> clearAuthData();
 }
 
 class AuthResult {
   final bool success;
   final UserEntity? user;
-  final String? token;
   final String? sessionId;
   final String? errorMessage;
 
   AuthResult({
     required this.success,
     this.user,
-    this.token,
     this.sessionId,
     this.errorMessage,
   });
 
   factory AuthResult.success({
     required UserEntity user,
-    required String token,
     required String sessionId,
   }) {
     return AuthResult(
       success: true,
       user: user,
-      token: token,
       sessionId: sessionId,
     );
   }

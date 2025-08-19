@@ -1,5 +1,6 @@
 // Path: frontend/lib/features/auth/data/repositories/auth_repository_impl.dart
 import '../../../../core/services/storage_service.dart';
+import '../../../../core/services/cookie_session_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -9,6 +10,7 @@ import '../models/user_model.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final StorageService storageService;
+  final CookieSessionService cookieService = CookieSessionService();
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
@@ -21,13 +23,11 @@ class AuthRepositoryImpl implements AuthRepository {
       final request = LoginRequest(ldapUsername: ldapUsername, password: password);
       final response = await remoteDataSource.login(request);
 
-      // Save authentication data
-      await storageService.saveAuthToken(response.token);
+      // Save user data
       await storageService.saveUserData(response.user.toJson());
-
+      
       return AuthResult.success(
         user: response.user,
-        token: response.token,
         sessionId: response.sessionId,
       );
     } catch (e) {
@@ -38,13 +38,14 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     try {
-      // Try to logout from server
+      // Try to logout from server (clears session cookies)
       await remoteDataSource.logout();
     } catch (e) {
       // Continue with local logout even if server logout fails
     } finally {
-      // Always clear local data
+      // Always clear local data and session cookies
       await clearAuthData();
+      await cookieService.clearSession();
     }
   }
 
@@ -77,21 +78,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<bool> isAuthenticated() async {
-    final token = await storageService.getAuthToken();
-    return token != null && token.isNotEmpty;
+    // Check session-based authentication only
+    final hasValidSession = await cookieService.hasValidSession();
+    return hasValidSession;
   }
 
   @override
   Future<bool> refreshToken() async {
     try {
-      final refreshToken = await storageService.getRefreshToken();
-      if (refreshToken == null) return false;
-
-      final response = await remoteDataSource.refreshToken(refreshToken);
-
-      if (response) {
-        // ถ้า Backend return token ใหม่ ต้องบันทึก
-        // แต่ตอนนี้ Backend แค่ validate เลยไม่ต้องทำอะไร
+      // Use session-based refresh only
+      final sessionRefreshResult = await remoteDataSource.refreshSession();
+      if (sessionRefreshResult) {
+        await storageService.updateSessionTimestamp();
         return true;
       }
       return false;
@@ -113,12 +111,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<String?> getAuthToken() async {
-    return await storageService.getAuthToken();
-  }
-
-  @override
   Future<void> clearAuthData() async {
     await storageService.clearAuthData();
+    await cookieService.clearSession();
   }
 }

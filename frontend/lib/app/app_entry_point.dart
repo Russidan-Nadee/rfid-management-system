@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_state.dart';
 import '../features/auth/presentation/pages/login_page.dart';
+import '../core/widgets/session_manager.dart';
 import 'splash_screen.dart';
 import '../layouts/root_layout.dart';
 
@@ -18,7 +19,7 @@ class AppEntryPoint extends StatelessWidget {
       const bool skipAuth = false; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
 
       if (skipAuth) {
-        return const RootLayout();
+        return const SessionManager(child: RootLayout());
       }
     }
 
@@ -28,7 +29,7 @@ class AppEntryPoint extends StatelessWidget {
         if (state is AuthLoading || state is AuthInitial) {
           return const SplashScreen();
         } else if (state is AuthAuthenticated) {
-          return const RootLayout();
+          return const SessionManager(child: RootLayout());
         } else {
           return const LoginPage();
         }

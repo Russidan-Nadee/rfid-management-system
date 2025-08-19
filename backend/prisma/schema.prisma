@@ -252,6 +252,9 @@ model mst_user {
   @@index([full_name], map: "idx_mst_user_full_name")
   @@index([role], map: "idx_mst_user_role")
   @@index([is_active], map: "idx_mst_user_active")
+  
+  // Session relation
+  user_sessions user_sessions[]
 }
 
 model sequelizemeta {
@@ -355,4 +358,29 @@ enum problem_notification_status {
   in_progress
   resolved
   cancelled
+}
+
+model user_sessions {
+  session_id    String   @id @db.VarChar(255)
+  user_id       String   @db.VarChar(20)
+  created_at    DateTime @default(now()) @db.Timestamp(0)
+  last_activity DateTime @default(now()) @updatedAt @db.Timestamp(0)
+  expires_at    DateTime @db.Timestamp(0)
+  ip_address    String?  @db.VarChar(45)
+  user_agent    String?  @db.Text
+  is_active     Boolean  @default(true)
+  device_type   String?  @db.VarChar(50)
+  location_info String?  @db.VarChar(255)
+
+  // Relations
+  mst_user mst_user @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade, map: "fk_user_sessions_user_id")
+
+  // Indexes
+  @@index([user_id], map: "idx_user_sessions_user_id")
+  @@index([expires_at], map: "idx_user_sessions_expires_at")
+  @@index([last_activity], map: "idx_user_sessions_last_activity")
+  @@index([is_active], map: "idx_user_sessions_active")
+  @@index([expires_at, is_active], map: "idx_user_sessions_cleanup")
+  @@index([device_type], map: "idx_user_sessions_device_type")
+  @@index([created_at], map: "idx_user_sessions_created_at")
 }

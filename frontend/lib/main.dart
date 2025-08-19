@@ -9,6 +9,7 @@ import 'app.dart';
 
 // เพิ่ม import ApiConstants
 import 'core/constants/api_constants.dart';
+import 'core/services/cookie_session_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,9 @@ void main() async {
 
   // Initialize dependencies
   await configureDependencies();
+  
+  // Initialize cookie session service
+  await CookieSessionService().init();
 
   runApp(const MyApp());
 }

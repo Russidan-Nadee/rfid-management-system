@@ -1,10 +1,36 @@
 // backend/src/features/auth/authMiddleware.js
 
 const { verifyToken } = require('../../core/auth/jwtUtils');
+const SessionModel = require('../../core/session/sessionModel');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
    try {
       console.log('🔍 Auth: Request headers:', req.headers);
+      
+      // First try session-based authentication
+      const sessionId = SessionMiddleware.extractSessionId(req);
+      if (sessionId) {
+         console.log('🔍 Auth: Found session ID, validating...');
+         const session = await SessionModel.validateSession(sessionId);
+         
+         if (session && session.mst_user) {
+            console.log('✅ Auth: Session authentication successful for user:', session.user_id);
+            req.user = {
+               userId: session.user_id,
+               user_id: session.user_id, // For backward compatibility
+               username: session.mst_user.full_name || session.user_id,
+               role: session.mst_user.role,
+               sessionId: sessionId
+            };
+            req.session = session;
+            return next();
+         } else {
+            console.log('❌ Auth: Invalid session');
+         }
+      }
+
+      // Fallback to token-based authentication
       const authHeader = req.headers['authorization'];
       let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
       console.log('🔍 Auth: Extracted token:', token ? `${token.substring(0, 20)}...` : 'null');
@@ -14,8 +40,34 @@ const authenticateToken = (req, res, next) => {
          token = req.query.access_token;
       }
 
+      // Support session ID as query parameter for downloads (Flutter web compatibility)
+      if (!sessionId && req.query.session_id) {
+         const querySessionId = req.query.session_id;
+         console.log('🔍 Auth: Found session ID in query parameter, validating...');
+         const querySession = await SessionModel.validateSession(querySessionId);
+         
+         if (querySession && querySession.mst_user) {
+            console.log('✅ Auth: Query session authentication successful for user:', querySession.user_id);
+            
+            // Update session activity for query-based authentication too
+            await SessionModel.updateActivity(querySessionId);
+            
+            req.user = {
+               userId: querySession.user_id,
+               user_id: querySession.user_id, // For backward compatibility
+               username: querySession.mst_user.full_name || querySession.user_id,
+               role: querySession.mst_user.role,
+               sessionId: querySessionId
+            };
+            req.session = querySession;
+            return next();
+         } else {
+            console.log('❌ Auth: Invalid query session');
+         }
+      }
+
       if (!token) {
-         console.log('❌ Auth: No token provided');
+         console.log('❌ Auth: No token or session provided');
          return res.status(401).json({
             success: false,
             message: 'Access token required',
@@ -28,6 +80,7 @@ const authenticateToken = (req, res, next) => {
       console.log('🔍 Auth: Token decoded successfully:', { userId: decoded.userId, username: decoded.username, role: decoded.role });
       req.user = {
          userId: decoded.userId,
+         user_id: decoded.userId, // For backward compatibility
          username: decoded.username,
          role: decoded.role,
          sessionId: decoded.sessionId
@@ -60,6 +113,7 @@ const optionalAuth = (req, res, next) => {
             const decoded = verifyToken(token);
             req.user = {
                userId: decoded.userId,
+               user_id: decoded.userId, // For backward compatibility
                username: decoded.username,
                role: decoded.role,
                sessionId: decoded.sessionId
