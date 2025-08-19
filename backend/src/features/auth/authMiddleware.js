@@ -27,6 +27,12 @@ const authenticateToken = async (req, res, next) => {
             return next();
          } else {
             console.log('❌ Auth: Invalid session');
+            return res.status(401).json({
+               success: false,
+               message: 'Session expired',
+               code: 'SESSION_EXPIRED',
+               timestamp: new Date().toISOString()
+            });
          }
       }
 
@@ -63,6 +69,12 @@ const authenticateToken = async (req, res, next) => {
             return next();
          } else {
             console.log('❌ Auth: Invalid query session');
+            return res.status(401).json({
+               success: false,
+               message: 'Session expired',
+               code: 'SESSION_EXPIRED',
+               timestamp: new Date().toISOString()
+            });
          }
       }
 
@@ -90,6 +102,17 @@ const authenticateToken = async (req, res, next) => {
       next();
    } catch (error) {
       console.error('Authentication error:', error);
+      
+      // Check if it's a JWT expiration error
+      if (error.name === 'TokenExpiredError') {
+         return res.status(401).json({
+            success: false,
+            message: 'Token expired',
+            code: 'TOKEN_EXPIRED',
+            timestamp: new Date().toISOString()
+         });
+      }
+      
       return res.status(403).json({
          success: false,
          message: 'Invalid or expired token',

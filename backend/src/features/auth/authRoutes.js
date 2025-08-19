@@ -21,6 +21,7 @@ router.use(SessionMiddleware.validateSession);
 
 router.post('/logout', logActivity('logout'), authController.logout);
 router.get('/me', authController.getProfile);
+router.get('/check', authController.checkAuth);
 router.post('/change-password', changePasswordValidator, logActivity('password_change'), authController.changePassword);
 
 // Include session management routes

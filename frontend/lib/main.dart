@@ -10,6 +10,7 @@ import 'app.dart';
 // เพิ่ม import ApiConstants
 import 'core/constants/api_constants.dart';
 import 'core/services/cookie_session_service.dart';
+import 'core/services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +51,16 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<AuthBloc>()..add(const AppStarted()),
+      create: (context) {
+        final authBloc = getIt<AuthBloc>();
+        
+        // Set up force logout callback to trigger logout when session expires
+        ApiService.setForceLogoutCallback(() {
+          authBloc.add(const LogoutRequested());
+        });
+        
+        return authBloc..add(const AppStarted());
+      },
       child: const AssetManagementApp(),
     );
   }

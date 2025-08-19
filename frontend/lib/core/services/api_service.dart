@@ -42,6 +42,7 @@ class ApiService {
     try {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final message = body['message'] ?? 'Unknown error occurred';
+      final code = body['code'];
 
       switch (response.statusCode) {
         case 400:
@@ -55,6 +56,10 @@ class ApiService {
           }
           return ValidationException([message]);
         case 401:
+          // Check for specific session/token expiration codes
+          if (code == 'SESSION_EXPIRED' || code == 'TOKEN_EXPIRED') {
+            return SessionExpiredException(message);
+          }
           throw UnauthorizedException();
         case 403:
           return ForbiddenException();
@@ -189,9 +194,16 @@ class ApiService {
         try {
           throw _handleError(response);
         } catch (e) {
-          if (e is UnauthorizedException && requiresAuth) {
+          if (e is SessionExpiredException) {
+            // Force immediate logout on session expiration
+            print('🚨 SessionExpiredException caught - forcing logout');
+            await _forceLogout();
+            rethrow;
+          } else if (e is UnauthorizedException && requiresAuth) {
+            print('⚠️ UnauthorizedException - attempting token refresh');
             final refreshed = await _refreshToken();
             if (refreshed) {
+              print('✅ Token refresh successful - retrying request');
               // Retry original request
               return _makeRequest<T>(
                 method,
@@ -201,7 +213,16 @@ class ApiService {
                 requiresAuth: requiresAuth,
                 fromJson: fromJson,
               );
+            } else {
+              print('❌ Token refresh failed - forcing logout');
+              await _forceLogout();
+              rethrow;
             }
+          } else if (response.statusCode == 401 && requiresAuth) {
+            // Catch any other 401 errors that might not be properly classified
+            print('🚨 Generic 401 error on authenticated request - forcing logout');
+            await _forceLogout();
+            rethrow;
           }
           rethrow; // throw error ต่อไป
         }
@@ -473,6 +494,28 @@ class ApiService {
         timestamp: DateTime.now(),
       );
     }
+  }
+
+  // Force logout when session expires
+  Future<void> _forceLogout() async {
+    try {
+      print('🚨 FORCING LOGOUT DUE TO SESSION EXPIRATION');
+      await clearAuthToken();
+      
+      // Trigger global logout event through a global callback if available
+      if (_onForceLogout != null) {
+        _onForceLogout!();
+      }
+    } catch (e) {
+      print('❌ Error during force logout: $e');
+    }
+  }
+
+  // Callback for force logout
+  static void Function()? _onForceLogout;
+  
+  static void setForceLogoutCallback(void Function() callback) {
+    _onForceLogout = callback;
   }
 
   // Dispose resources

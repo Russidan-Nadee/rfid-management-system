@@ -273,6 +273,42 @@ const authController = {
             timestamp: new Date().toISOString()
          });
       }
+   },
+
+   // Lightweight authentication check endpoint
+   async checkAuth(req, res) {
+      try {
+         // If we reach this point, the middleware has already validated the session/token
+         const userId = req.user?.userId || req.user?.user_id;
+         
+         if (!userId) {
+            return res.status(401).json({
+               success: false,
+               message: 'User not authenticated',
+               code: 'NOT_AUTHENTICATED',
+               timestamp: new Date().toISOString()
+            });
+         }
+
+         res.status(200).json({
+            success: true,
+            message: 'Authentication valid',
+            data: {
+               userId: userId,
+               authenticated: true
+            },
+            timestamp: new Date().toISOString()
+         });
+
+      } catch (error) {
+         logger.error('Auth check error:', error);
+         res.status(401).json({
+            success: false,
+            message: 'Authentication check failed',
+            code: 'AUTH_CHECK_FAILED',
+            timestamp: new Date().toISOString()
+         });
+      }
    }
 };
 

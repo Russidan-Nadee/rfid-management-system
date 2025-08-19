@@ -82,8 +82,8 @@ class SessionMiddleware {
 
         return res.status(401).json({
           success: false,
-          message: 'Invalid or expired session',
-          error: 'INVALID_SESSION'
+          message: 'Session expired',
+          code: 'SESSION_EXPIRED'
         });
       }
 

@@ -70,6 +70,10 @@ class TokenExpiredException extends AuthException {
   TokenExpiredException() : super('Session expired', code: 'TOKEN_EXPIRED');
 }
 
+class SessionExpiredException extends AuthException {
+  SessionExpiredException(String message) : super(message, code: 'SESSION_EXPIRED');
+}
+
 class AccountLockedException extends AuthException {
   AccountLockedException()
     : super('Account temporarily locked', code: 'ACCOUNT_LOCKED');

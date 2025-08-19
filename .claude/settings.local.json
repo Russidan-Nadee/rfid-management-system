@@ -31,7 +31,8 @@
       "Bash(sed:*)",
       "Bash(timeout:*)",
       "Bash(npm install:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(npm test)"
     ],
     "deny": [],
     "additionalDirectories": [
