@@ -7,6 +7,7 @@ import '../models/api_response.dart';
 import '../errors/exceptions.dart';
 import 'storage_service.dart';
 import 'cookie_session_service.dart';
+import 'api_error_interceptor.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -56,11 +57,10 @@ class ApiService {
           }
           return ValidationException([message]);
         case 401:
-          // Check for specific session/token expiration codes
-          if (code == 'SESSION_EXPIRED' || code == 'TOKEN_EXPIRED') {
-            return SessionExpiredException(message);
-          }
-          throw UnauthorizedException();
+          // AGGRESSIVE: Treat ALL 401s as session expiration for immediate logout
+          // This ensures any authentication failure triggers logout
+          print('🚨 API: 401 Unauthorized - treating as session expiration');
+          return SessionExpiredException(message.isNotEmpty ? message : 'Authentication failed - session expired');
         case 403:
           return ForbiddenException();
         case 404:
@@ -106,6 +106,12 @@ class ApiService {
     T Function(dynamic)? fromJson,
   }) async {
     try {
+      // OPTION 1: Check token expiry BEFORE making request
+      if (requiresAuth && _cookieService.isSessionExpired()) {
+        print('🕐 API: Session expired before request - throwing SessionExpiredException');
+        throw SessionExpiredException('Session expired - please login again');
+      }
+
       // Build URL
       var uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
       if (queryParams != null && queryParams.isNotEmpty) {
@@ -175,6 +181,12 @@ class ApiService {
       print('🔍 API: Response Body: ${response.body}');
       print('🔍 API: Response Headers: ${response.headers}');
       
+      // OPTION 4: Global response interceptor - check for auth errors in ANY response
+      if (requiresAuth && (response.statusCode == 401 || response.statusCode == 403)) {
+        print('🚨 API: Authentication error detected in response (${response.statusCode})');
+        // This will be handled by _handleError below, but log it here for visibility
+      }
+      
       if (response.statusCode >= 200 && response.statusCode < 300) {
         print('✅ API: Success response');
         
@@ -194,6 +206,9 @@ class ApiService {
         try {
           throw _handleError(response);
         } catch (e) {
+          // ALWAYS pass errors to global interceptor first
+          ApiErrorInterceptor.handleError(e, source: 'ApiService._makeRequest');
+          
           if (e is SessionExpiredException) {
             // Force immediate logout on session expiration
             print('🚨 SessionExpiredException caught - forcing logout');
@@ -228,6 +243,9 @@ class ApiService {
         }
       }
     } catch (e) {
+      // Pass ALL errors to global interceptor, including network errors
+      ApiErrorInterceptor.handleError(e, source: 'ApiService.networkError');
+      
       if (e is AppException) {
         rethrow;
       } else {
@@ -499,12 +517,15 @@ class ApiService {
   // Force logout when session expires
   Future<void> _forceLogout() async {
     try {
-      print('🚨 FORCING LOGOUT DUE TO SESSION EXPIRATION');
+      print('🚨 API SERVICE: FORCING LOGOUT DUE TO SESSION EXPIRATION');
       await clearAuthToken();
       
       // Trigger global logout event through a global callback if available
       if (_onForceLogout != null) {
+        print('✅ API SERVICE: Calling force logout callback');
         _onForceLogout!();
+      } else {
+        print('❌ API SERVICE: No force logout callback set!');
       }
     } catch (e) {
       print('❌ Error during force logout: $e');

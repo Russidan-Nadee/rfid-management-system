@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'api_service.dart';
+import '../constants/api_constants.dart';
 import '../errors/exceptions.dart';
+import 'api_error_interceptor.dart';
 
 class AuthMonitorService with WidgetsBindingObserver {
   static final AuthMonitorService _instance = AuthMonitorService._internal();
@@ -16,8 +18,8 @@ class AuthMonitorService with WidgetsBindingObserver {
   DateTime? _lastActiveTime;
   bool _isAppActive = true;
 
-  // Check authentication every 15 minutes for production
-  static const Duration _checkInterval = Duration(minutes: 15);
+  // Check authentication every 5 minutes (production)
+  static const Duration _checkInterval = Duration(minutes: 5);
 
   void startMonitoring() {
     if (_authCheckTimer != null) {
@@ -46,13 +48,28 @@ class AuthMonitorService with WidgetsBindingObserver {
   }
 
   Future<void> _checkAuthenticationStatus() async {
+    // Skip check if monitoring is stopped
+    if (_authCheckTimer == null) {
+      print('ℹ️ AuthMonitor: Monitoring stopped - skipping auth check');
+      return;
+    }
+    
     try {
       print('🔍 AuthMonitor: Checking authentication status...');
-      await _apiService.get('/api/auth/check', requiresAuth: true);
+      await _apiService.get(ApiConstants.authCheck, requiresAuth: true);
       print('✅ AuthMonitor: Authentication check passed');
       // If successful, session is still valid
     } catch (e) {
       print('❌ AuthMonitor: Authentication check failed: ${e.runtimeType}');
+      
+      // Skip handling if monitoring is stopped (user already logged out)
+      if (_authCheckTimer == null) {
+        print('ℹ️ AuthMonitor: Monitoring stopped - skipping error handling');
+        return;
+      }
+      
+      // ALWAYS pass to global error interceptor
+      ApiErrorInterceptor.handleError(e, source: 'AuthMonitorService._checkAuthenticationStatus');
       
       if (e is SessionExpiredException || e is UnauthorizedException) {
         print('🚨 Session expired detected during monitoring - forcing logout');
@@ -65,8 +82,12 @@ class AuthMonitorService with WidgetsBindingObserver {
   }
 
   void _triggerSessionExpired() {
+    print('🔥 AuthMonitor: _triggerSessionExpired called');
     if (_onSessionExpired != null) {
+      print('✅ AuthMonitor: Calling session expired callback');
       _onSessionExpired!();
+    } else {
+      print('❌ AuthMonitor: No session expired callback set!');
     }
   }
 
@@ -82,20 +103,17 @@ class AuthMonitorService with WidgetsBindingObserver {
         print('🔄 App resumed - checking authentication immediately');
         _isAppActive = true;
         
-        // If app was inactive for more than 15 minutes, force an auth check
+        // Check auth on app resume if inactive for more than 5 minutes
         if (_lastActiveTime != null) {
           final inactiveTime = DateTime.now().difference(_lastActiveTime!);
-          if (inactiveTime.inMinutes >= 15) {
-            print('⚠️ App was inactive for ${inactiveTime.inMinutes} minutes - forcing auth check');
+          if (inactiveTime.inMinutes >= 5) {
+            print('🔄 App resumed after ${inactiveTime.inMinutes} minutes - checking auth');
             _checkAuthenticationStatus();
           } else {
-            print('ℹ️ App was inactive for ${inactiveTime.inMinutes} minutes - quick auth check');
-            // Even for shorter inactivity, do a quick check
-            _checkAuthenticationStatus();
+            print('ℹ️ App resumed after ${inactiveTime.inMinutes} minutes - no auth check needed');
           }
         } else {
-          // First resume or no previous inactive time - always check
-          print('🔄 First app resume - performing auth check');
+          print('🔄 First app resume - checking auth');
           _checkAuthenticationStatus();
         }
         break;

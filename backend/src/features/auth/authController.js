@@ -38,7 +38,7 @@ const authController = {
             ipAddress: deviceInfo.ipAddress,
             userAgent: deviceInfo.userAgent,
             deviceType: deviceInfo.deviceType,
-            expiresInMinutes: 15 // 15-minute sessions
+            expiresInMinutes: 15 // 15-minute sessions for production
          });
 
          // Set HTTP-only secure cookie
@@ -52,13 +52,17 @@ const authController = {
 
          res.cookie('session_id', session.session_id, cookieOptions);
 
+         // Calculate expiry timestamp
+         const expiryTimestamp = new Date(Date.now() + (15 * 60 * 1000)).toISOString();
+
          // Return response WITHOUT session ID in body (security)
          res.status(200).json({
             success: true,
             message: 'Login successful',
             data: {
                user: authResult.user,
-               sessionId: session.session_id // Include for mobile apps that can't use cookies
+               sessionId: session.session_id, // Include for mobile apps that can't use cookies
+               expiresAt: expiryTimestamp // Include expiry time for client-side checking
             },
             timestamp: new Date().toISOString()
          });
@@ -209,8 +213,8 @@ const authController = {
             });
          }
 
-         // Session is valid - extend it by 15 minutes
-         const extended = await SessionModel.extendSession(sessionId, 15);
+         // Session is valid - extend it by 2 minutes
+         const extended = await SessionModel.extendSession(sessionId, 2);
          
          if (!extended) {
             return res.status(401).json({
@@ -236,7 +240,7 @@ const authController = {
             message: 'Session extended successfully',
             data: {
                sessionId: sessionId,
-               expiresIn: 15 * 60 // seconds
+               expiresIn: 2 * 60 // seconds
             },
             timestamp: new Date().toISOString()
          });

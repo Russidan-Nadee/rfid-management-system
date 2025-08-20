@@ -11,9 +11,14 @@ import 'app.dart';
 import 'core/constants/api_constants.dart';
 import 'core/services/cookie_session_service.dart';
 import 'core/services/api_service.dart';
+import 'core/services/api_error_interceptor.dart';
+import 'core/services/global_exception_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize global exception handler
+  GlobalExceptionHandler.initialize();
 
   // **แก้ IP เป็นตัวจริง**
   ApiConstants.setManualIP('172.101.35.153'); // <-- แก้เป็น IP จริงของ Laptop
@@ -54,8 +59,12 @@ class MyApp extends StatelessWidget {
       create: (context) {
         final authBloc = getIt<AuthBloc>();
         
+        // Set up global error interceptor with AuthBloc
+        ApiErrorInterceptor.setAuthBloc(authBloc);
+        
         // Set up force logout callback to trigger logout when session expires
         ApiService.setForceLogoutCallback(() {
+          print('🔥 MAIN: Force logout callback triggered - adding LogoutRequested to AuthBloc');
           authBloc.add(const LogoutRequested());
         });
         

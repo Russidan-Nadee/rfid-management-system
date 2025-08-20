@@ -158,6 +158,7 @@ class ApiConstants {
   static const String refreshToken = '$authBase/refresh';
   static const String refreshSession = '$authBase/refresh-session';
   static const String changePassword = '$authBase/change-password';
+  static const String authCheck = '$authBase/check';
 
   // Dashboard Endpoints
   static const String dashboardBase = '/dashboard';
@@ -247,6 +248,8 @@ class ApiConstants {
   static const String notificationCounts = '$notificationBase/counts';
   static const String allReports = '$notificationBase/all-reports';
   static String notificationById(int id) => '$notificationBase/$id';
-  static String updateNotificationStatus(int id) => '$notificationBase/$id/status';
-  static String assetNotifications(String assetNo) => '$notificationBase/asset/$assetNo';
+  static String updateNotificationStatus(int id) =>
+      '$notificationBase/$id/status';
+  static String assetNotifications(String assetNo) =>
+      '$notificationBase/asset/$assetNo';
 }

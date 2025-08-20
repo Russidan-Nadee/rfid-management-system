@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../services/session_timer_service.dart';
 import '../services/auth_monitor_service.dart';
 import '../services/activity_monitor_service.dart';
+import '../services/auth_heartbeat_service.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import 'session_timeout_dialog.dart';
@@ -22,6 +23,7 @@ class SessionManager extends StatefulWidget {
 class _SessionManagerState extends State<SessionManager> with WidgetsBindingObserver {
   final SessionTimerService _sessionTimer = SessionTimerService();
   final AuthMonitorService _authMonitor = AuthMonitorService();
+  final AuthHeartbeatService _heartbeat = AuthHeartbeatService();
   bool _dialogShown = false;
 
   @override
@@ -35,6 +37,9 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
     // Start monitoring authentication status
     _authMonitor.startMonitoring();
     AuthMonitorService.setSessionExpiredCallback(_handleSessionExpired);
+    
+    // Start aggressive heartbeat monitoring
+    _heartbeat.startHeartbeat();
     
     // Listen for app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
@@ -83,6 +88,8 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
   }
 
   void _handleSessionExpired() {
+    print('🚨 SessionManager: Handling session expiration - triggering logout');
+    
     if (_dialogShown) {
       Navigator.of(context).pop();
       setState(() {
@@ -90,7 +97,8 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
       });
     }
     
-    _showSessionExpiredDialog();
+    // Force immediate logout through AuthBloc
+    _handleLogout();
   }
 
   void _showSessionExpiredDialog() {
@@ -122,6 +130,7 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
   }
 
   void _handleLogout() {
+    print('🔥 SessionManager: _handleLogout called - stopping timer and triggering AuthBloc logout');
     _sessionTimer.stopSessionTimer();
     context.read<AuthBloc>().add(const LogoutRequested());
   }
@@ -144,6 +153,9 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
     
     // Stop authentication monitoring
     _authMonitor.stopMonitoring();
+    
+    // Stop heartbeat monitoring
+    _heartbeat.stopHeartbeat();
     
     // Remove lifecycle observer
     WidgetsBinding.instance.removeObserver(this);

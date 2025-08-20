@@ -32,7 +32,8 @@
       "Bash(timeout:*)",
       "Bash(npm install:*)",
       "Bash(true)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(PORT=3001 node src/server.js)"
     ],
     "deny": [],
     "additionalDirectories": [

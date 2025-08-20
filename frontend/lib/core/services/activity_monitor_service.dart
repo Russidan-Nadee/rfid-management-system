@@ -11,16 +11,16 @@ class ActivityMonitorService {
   DateTime? _lastAuthCheckTime;
   Timer? _activityTimer;
   
-  // Check auth if no activity-based check in last 15 minutes
-  static const Duration _maxTimeSinceAuthCheck = Duration(minutes: 15);
+  // Check auth if no activity-based check in last 30 seconds
+  static const Duration _maxTimeSinceAuthCheck = Duration(seconds: 30);
 
   void startMonitoring() {
     print('👀 Starting activity monitoring');
     _lastActivityTime = DateTime.now();
     _lastAuthCheckTime = DateTime.now();
     
-    // Check every 15 minutes if we need an activity-based auth check
-    _activityTimer = Timer.periodic(const Duration(minutes: 15), (_) {
+    // Check every 30 seconds if we need an activity-based auth check
+    _activityTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _checkIfAuthCheckNeeded();
     });
   }
@@ -36,9 +36,9 @@ class ActivityMonitorService {
     final now = DateTime.now();
     _lastActivityTime = now;
     
-    // If it's been more than 15 minutes since last auth check, do one now
+    // If it's been more than 30 seconds since last auth check, do one now
     if (_lastAuthCheckTime == null || 
-        now.difference(_lastAuthCheckTime!) >= const Duration(minutes: 15)) {
+        now.difference(_lastAuthCheckTime!) >= const Duration(seconds: 30)) {
       print('🔄 User activity detected - performing auth check');
       _performAuthCheck();
     }
@@ -52,7 +52,7 @@ class ActivityMonitorService {
       final timeSinceActivity = now.difference(_lastActivityTime!);
       final timeSinceAuthCheck = now.difference(_lastAuthCheckTime!);
       
-      if (timeSinceActivity.inMinutes < 5 && 
+      if (timeSinceActivity.inSeconds < 120 && 
           timeSinceAuthCheck > _maxTimeSinceAuthCheck) {
         print('⏰ Periodic check: User was active recently, checking auth');
         _performAuthCheck();
@@ -103,7 +103,6 @@ class _ActivityDetectorState extends State<ActivityDetector> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _monitor.recordActivity(),
-      onPanStart: (_) => _monitor.recordActivity(),
       onScaleStart: (_) => _monitor.recordActivity(),
       behavior: HitTestBehavior.translucent,
       child: NotificationListener<ScrollNotification>(

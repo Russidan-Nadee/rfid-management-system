@@ -70,21 +70,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const LogoutLoading());
+    // Check if already logged out to prevent multiple logout events
+    if (state is AuthUnauthenticated) {
+      return;
+    }
+    
+    // IMMEDIATE logout - no loading state to avoid UI delay
+    emit(const AuthUnauthenticated());
 
+    // Clean up in background without affecting UI
     try {
-      final result = await logoutUseCase.execute();
-
-      if (result.success) {
-        emit(LogoutSuccess(message: result.message));
-        emit(const AuthUnauthenticated());
-      } else {
-        // Even if logout fails, we should still go to unauthenticated state
-        emit(const AuthUnauthenticated());
-      }
+      await logoutUseCase.execute();
     } catch (e) {
-      // Force logout locally even if network fails
-      emit(const AuthUnauthenticated());
+      // Ignore cleanup errors - user is already logged out in UI
     }
   }
 

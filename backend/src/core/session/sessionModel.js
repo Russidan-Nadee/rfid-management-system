@@ -23,7 +23,7 @@ class SessionModel {
    * @param {string} sessionData.userAgent - Client user agent
    * @param {string} sessionData.deviceType - Device type (web, mobile, desktop)
    * @param {string} sessionData.locationInfo - Location information
-   * @param {number} sessionData.expiresInMinutes - Session expiry in minutes (default: 15)
+   * @param {number} sessionData.expiresInMinutes - Session expiry in minutes (default: 2)
    * @returns {Promise<Object>} Created session
    */
   static async createSession({
@@ -32,7 +32,7 @@ class SessionModel {
     userAgent,
     deviceType = 'web',
     locationInfo = null,
-    expiresInMinutes = 15
+    expiresInMinutes = 2
   }) {
     try {
       const sessionId = this.generateSessionId();
@@ -167,7 +167,7 @@ class SessionModel {
    * @param {number} additionalMinutes - Additional minutes to extend
    * @returns {Promise<boolean>} Success status
    */
-  static async extendSession(sessionId, additionalMinutes = 15) {
+  static async extendSession(sessionId, additionalMinutes = 2) {
     try {
       const now = new Date();
       const newExpiresAt = new Date(now.getTime() + (additionalMinutes * 60 * 1000));

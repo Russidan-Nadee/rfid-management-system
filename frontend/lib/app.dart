@@ -8,13 +8,19 @@ import 'app/app_entry_point.dart';
 import 'features/setting/presentation/bloc/settings_bloc.dart';
 import 'features/setting/presentation/bloc/settings_state.dart';
 import 'features/setting/presentation/bloc/settings_event.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'core/services/api_error_interceptor.dart';
 import 'di/injection.dart';
 
 class AssetManagementApp extends StatelessWidget {
   const AssetManagementApp({super.key});
+  
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
+    // Set up the navigator key for direct navigation
+    ApiErrorInterceptor.setNavigatorKey(navigatorKey);
     return BlocProvider<SettingsBloc>(
       create: (context) => getIt<SettingsBloc>()..add(const LoadSettings()),
       child: BlocBuilder<SettingsBloc, SettingsState>(
@@ -38,6 +44,7 @@ class AssetManagementApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: AppConstants.appName,
+            navigatorKey: navigatorKey, // Add navigator key for direct navigation
 
             // ใช้ Enhanced Theme ที่สร้างไว้
             theme: AppTheme.lightTheme,
@@ -60,8 +67,11 @@ class AssetManagementApp extends StatelessWidget {
             // ใช้ locale จาก settings
             locale: locale,
 
-            // Home page
-            home: const AppEntryPoint(),
+            // Home page - Provide AuthBloc at MaterialApp level
+            home: BlocProvider.value(
+              value: context.read<AuthBloc>(),
+              child: const AppEntryPoint(),
+            ),
           );
         },
       ),
