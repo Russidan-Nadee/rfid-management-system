@@ -1,8 +1,7 @@
 // Path: frontend/lib/layouts/root_layout.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:io' show Platform;
+import '../core/services/browser_api.dart';
 import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
@@ -31,10 +30,12 @@ class _RootLayoutState extends State<RootLayout> {
   bool _enableScannerOnDesktop = true; // Set to false to disable
 
   late List<GlobalKey<NavigatorState>> _navigatorKeys;
+  late BrowserApi _browserApi;
 
   @override
   void initState() {
     super.initState();
+    _browserApi = BrowserApiService.instance;
     // Set default index based on platform
     _currentIndex = _isMobile ? 0 : _getDefaultDesktopIndex();
     _navigatorKeys = List.generate(
@@ -43,11 +44,10 @@ class _RootLayoutState extends State<RootLayout> {
     );
   }
 
-  // Platform detection helpers
-  bool get _isMobile => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-  bool get _isDesktop =>
-      !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
-  bool get _isWeb => kIsWeb;
+  // Platform detection helpers - same logic, works on all platforms
+  bool get _isMobile => _browserApi.isMobilePlatform;
+  bool get _isDesktop => _browserApi.isDesktopPlatform;
+  bool get _isWeb => _browserApi.isWebPlatform;
 
   // Get total destinations count
   int _getDestinationsCount() {

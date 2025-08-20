@@ -11,15 +11,15 @@ class AuthHeartbeatService {
   Timer? _heartbeatTimer;
   final AuthMonitorService _authMonitor = AuthMonitorService();
   
-  // Heartbeat every 5 minutes (production)
-  static const Duration _heartbeatInterval = Duration(minutes: 5);
+  // Heartbeat every 30 seconds (1:10 scaled from 5 minutes)
+  static const Duration _heartbeatInterval = Duration(seconds: 30);
 
   void startHeartbeat() {
     if (_heartbeatTimer != null) {
       return; // Already running
     }
 
-    print('💓 Starting auth heartbeat service (every 5 minutes)');
+    print('💓 Starting auth heartbeat service (every 30 seconds)');
     
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) async {
       await _performHeartbeat();

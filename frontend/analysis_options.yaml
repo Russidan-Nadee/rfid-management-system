@@ -23,6 +23,17 @@ linter:
   rules:
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    
+    # Platform abstraction enforcement
+    avoid_web_libraries_in_flutter: true  # Prevents direct use of dart:html, dart:js, etc.
+    no_self_assignments: true
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    
+    # Additional code quality rules
+    unnecessary_null_checks: true
+    unnecessary_nullable_for_final_variable_declarations: true
+    use_build_context_synchronously: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

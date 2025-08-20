@@ -50,7 +50,7 @@ class CookieSessionService {
           if (responseBody['data']['expiresAt'] != null) {
             _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
             if (kDebugMode) {
-              print('🍪 Web: Session expires at: $_sessionExpiryTime');
+              print('🍪 Web: New session expires at: $_sessionExpiryTime');
             }
           }
           
@@ -72,6 +72,25 @@ class CookieSessionService {
     if (setCookieHeaders != null) {
       _parseCookies(setCookieHeaders);
       await _saveSessionCookies();
+    }
+    
+    // IMPORTANT: Also extract expiry time from response body for Windows/Mobile
+    try {
+      final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+      if (responseBody['success'] == true && 
+          responseBody['data'] != null && 
+          responseBody['data']['expiresAt'] != null) {
+        _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
+        // Save the expiry time to storage
+        await _saveSessionCookies();
+        if (kDebugMode) {
+          print('🍪 Windows/Mobile: New session expires at: $_sessionExpiryTime');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('🍪 Windows/Mobile: Failed to extract expiry time: $e');
+      }
     }
   }
 
@@ -122,6 +141,10 @@ class CookieSessionService {
 
   /// Clear session cookies
   Future<void> clearSession() async {
+    if (kDebugMode) {
+      print('🍪 Clearing session: ${_sessionCookies.length} cookies, expiry: $_sessionExpiryTime');
+    }
+    
     _sessionCookies.clear();
     _sessionExpiryTime = null;
     
@@ -138,14 +161,15 @@ class CookieSessionService {
   bool isSessionExpired() {
     if (_sessionExpiryTime == null) {
       // No expiry time stored - consider expired for safety
+      print('🕐 No session expiry time stored - considering expired');
       return true;
     }
     
     final now = DateTime.now();
     final isExpired = now.isAfter(_sessionExpiryTime!);
     
-    if (kDebugMode && isExpired) {
-      print('🕐 Session expired: now=$now, expiry=$_sessionExpiryTime');
+    if (kDebugMode) {
+      print('🕐 Session expiry check: now=$now, expiry=$_sessionExpiryTime, expired=$isExpired');
     }
     
     return isExpired;

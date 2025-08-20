@@ -1,5 +1,19 @@
 /// Configuration for authentication monitoring and session management
 /// 1:10 SCALED TESTING CONFIGURATION
+/// 
+/// PRODUCTION vs TESTING COMPARISON:
+/// Production (15 min sessions) → Testing (2 min sessions)
+/// - Session expiry: 15 min → 2 min
+/// - Heartbeat checks: 5 min → 30 sec  
+/// - Activity checks: 5 min → 30 sec
+/// - App resume threshold: 5 min → 30 sec
+/// - Detection window: 5 min → 30 sec
+///
+/// EXPECTATIONS:
+/// - Token expires at 2:00 minutes
+/// - Background detection: Within 30 seconds (by 2:30)
+/// - API call after expiry: Immediate logout (0 seconds)
+/// - App resume after >30 sec inactive: Immediate check
 class AuthConfig {
   /// How often to check authentication status in the background
   static const Duration monitoringInterval = Duration(seconds: 30);

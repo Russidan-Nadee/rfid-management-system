@@ -29,17 +29,15 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
   @override
   void initState() {
     super.initState();
-    _sessionTimer.startSessionTimer();
+    // DISABLED: Using only original app_entry_point.dart session logic
+    // _sessionTimer.startSessionTimer();
+    // _sessionTimer.showWarning.addListener(_onShowWarning);
+    // _sessionTimer.sessionExpired.addListener(_onSessionExpired);
     
-    _sessionTimer.showWarning.addListener(_onShowWarning);
-    _sessionTimer.sessionExpired.addListener(_onSessionExpired);
-    
-    // Start monitoring authentication status
-    _authMonitor.startMonitoring();
-    AuthMonitorService.setSessionExpiredCallback(_handleSessionExpired);
-    
-    // Start aggressive heartbeat monitoring
-    _heartbeat.startHeartbeat();
+    // DISABLED: Extra monitoring services (keeping only original app_entry_point.dart logic)
+    // _authMonitor.startMonitoring();
+    // AuthMonitorService.setSessionExpiredCallback(_handleSessionExpired);
+    // _heartbeat.startHeartbeat();
     
     // Listen for app lifecycle changes
     WidgetsBinding.instance.addObserver(this);
@@ -147,15 +145,14 @@ class _SessionManagerState extends State<SessionManager> with WidgetsBindingObse
 
   @override
   void dispose() {
-    _sessionTimer.showWarning.removeListener(_onShowWarning);
-    _sessionTimer.sessionExpired.removeListener(_onSessionExpired);
-    _sessionTimer.stopSessionTimer();
+    // DISABLED: Using only original app_entry_point.dart session logic
+    // _sessionTimer.showWarning.removeListener(_onShowWarning);
+    // _sessionTimer.sessionExpired.removeListener(_onSessionExpired);
+    // _sessionTimer.stopSessionTimer();
     
-    // Stop authentication monitoring
-    _authMonitor.stopMonitoring();
-    
-    // Stop heartbeat monitoring
-    _heartbeat.stopHeartbeat();
+    // DISABLED: Extra monitoring services
+    // _authMonitor.stopMonitoring();
+    // _heartbeat.stopHeartbeat();
     
     // Remove lifecycle observer
     WidgetsBinding.instance.removeObserver(this);

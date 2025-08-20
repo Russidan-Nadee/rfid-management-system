@@ -38,7 +38,7 @@ const authController = {
             ipAddress: deviceInfo.ipAddress,
             userAgent: deviceInfo.userAgent,
             deviceType: deviceInfo.deviceType,
-            expiresInMinutes: 15 // 15-minute sessions for production
+            expiresInMinutes: 2 // 2-minute sessions (1:10 scaled testing)
          });
 
          // Set HTTP-only secure cookie
@@ -46,14 +46,14 @@ const authController = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 15 * 60 * 1000, // 15 minutes
+            maxAge: 2 * 60 * 1000, // 2 minutes (1:10 scaled testing)
             path: '/'
          };
 
          res.cookie('session_id', session.session_id, cookieOptions);
 
          // Calculate expiry timestamp
-         const expiryTimestamp = new Date(Date.now() + (15 * 60 * 1000)).toISOString();
+         const expiryTimestamp = new Date(Date.now() + (2 * 60 * 1000)).toISOString();
 
          // Return response WITHOUT session ID in body (security)
          res.status(200).json({
@@ -229,7 +229,7 @@ const authController = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 15 * 60 * 1000, // 15 minutes
+            maxAge: 2 * 60 * 1000, // 2 minutes (1:10 scaled testing)
             path: '/'
          };
 

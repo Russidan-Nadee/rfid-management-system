@@ -1,6 +1,5 @@
 // Path: frontend/lib/app/app_entry_point.dart
 import 'dart:async';
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +9,7 @@ import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../core/widgets/session_manager.dart';
 import '../core/services/cookie_session_service.dart';
+import '../core/services/browser_api.dart';
 import 'splash_screen.dart';
 import '../layouts/root_layout.dart';
 
@@ -22,7 +22,10 @@ class AppEntryPoint extends StatefulWidget {
 
 class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserver {
   final CookieSessionService _sessionService = CookieSessionService();
+  final BrowserApi _browserApi = BrowserApiService.instance;
   Timer? _expiryCheckTimer;
+  StreamSubscription<void>? _focusSubscription;
+  StreamSubscription<void>? _visibilitySubscription;
 
   @override
   void initState() {
@@ -36,28 +39,28 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _expiryCheckTimer?.cancel();
+    _focusSubscription?.cancel();
+    _visibilitySubscription?.cancel();
     super.dispose();
   }
 
   void _setupWebEventListeners() {
-    if (kIsWeb) {
-      // Listen for window focus (when user returns to tab)
-      html.window.onFocus.listen((event) {
+    // Listen for window focus (when user returns to tab) - works on all platforms
+    _focusSubscription = _browserApi.onWindowFocus.listen((event) {
+      _checkSessionOnResume();
+    });
+    
+    // Listen for visibility change (tab becomes visible/hidden) - works on all platforms
+    _visibilitySubscription = _browserApi.onVisibilityChange.listen((event) {
+      if (!_browserApi.isDocumentHidden) {
         _checkSessionOnResume();
-      });
-      
-      // Listen for visibility change (tab becomes visible/hidden)
-      html.document.onVisibilityChange.listen((event) {
-        if (!html.document.hidden!) {
-          _checkSessionOnResume();
-        }
-      });
-    }
+      }
+    });
   }
 
   void _startPeriodicExpiryCheck() {
-    // Check session expiry every 5 minutes while app is active
-    _expiryCheckTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+    // Check session expiry every 30 seconds while app is active (1:10 scaled)
+    _expiryCheckTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _checkSessionExpiry();
     });
   }
@@ -67,11 +70,17 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     
     final currentState = context.read<AuthBloc>().state;
     if (currentState is! AuthAuthenticated) {
+      print('⏰ Periodic check: User not authenticated, skipping');
       return;
     }
 
+    print('⏰ Periodic session check at ${DateTime.now()}');
     await _sessionService.hasValidSession();
-    if (_sessionService.isSessionExpired() && mounted) {
+    final isExpired = _sessionService.isSessionExpired();
+    print('⏰ Session expired: $isExpired');
+    
+    if (isExpired && mounted) {
+      print('🚨 Session expired - triggering logout');
       context.read<AuthBloc>().add(const LogoutRequested());
     }
   }
