@@ -54,51 +54,75 @@ class CookieSessionService {
     await _handleResponseWithExpiry(response);
   }
 
+  /// Handle web platform responses specifically
+  Future<void> _handleWebResponse(http.Response response) async {
+    try {
+      final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
+      
+      if (responseBody['success'] == true && responseBody['data'] != null) {
+        
+        // Extract sessionId if present (login responses) - with safe type handling
+        if (responseBody['data']['sessionId'] != null) {
+          try {
+            _sessionCookies['session_id'] = responseBody['data']['sessionId'].toString();
+            if (kDebugMode) {
+              final sessionIdStr = responseBody['data']['sessionId'].toString();
+              final displayId = sessionIdStr.length > 8 ? sessionIdStr.substring(0, 8) : sessionIdStr;
+              print('🍪 Web: Updated sessionId from response: $displayId...');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('🍪 Web: Failed to process sessionId: $e');
+            }
+          }
+        }
+        
+        // Extract expiry time if present (login/refresh responses)
+        if (responseBody['data']['expiresAt'] != null) {
+          final expiresAtString = responseBody['data']['expiresAt'].toString();
+          // Web platform: Keep as UTC since browser handles timezone automatically
+          _sessionExpiryTime = DateTime.parse(expiresAtString);
+          if (kDebugMode) {
+            print('🍪 Web: Found expiresAt in data: $expiresAtString');
+            print('🍪 Web: Updated session expiry to: $_sessionExpiryTime (UTC for web)');
+          }
+        }
+        // Also check for sessionInfo from regular API responses
+        else if (responseBody['data']['sessionInfo'] != null && 
+                 responseBody['data']['sessionInfo']['expiresAt'] != null) {
+          try {
+            final sessionInfoExpiresAt = responseBody['data']['sessionInfo']['expiresAt'].toString();
+            // Web platform: Keep as UTC since browser handles timezone automatically
+            _sessionExpiryTime = DateTime.parse(sessionInfoExpiresAt);
+            if (kDebugMode) {
+              print('🍪 Web: Found expiresAt in sessionInfo: $sessionInfoExpiresAt');
+              print('🍪 Web: Updated session expiry from sessionInfo to: $_sessionExpiryTime (UTC for web)');
+            }
+          } catch (e) {
+            if (kDebugMode) {
+              print('🍪 Web: Failed to process sessionInfo: $e');
+            }
+          }
+        }
+        
+        await _saveSessionCookies();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('🍪 Web: Failed to extract session info: $e');
+        print('🍪 Web: Response body snippet: ${response.body.length > 200 ? response.body.substring(0, 200) + "..." : response.body}');
+        // Continue processing - this is not critical for session functionality
+      }
+      // Don't let this error break session functionality
+    }
+  }
+
   /// Common handler for responses that may contain session expiry information
   Future<void> _handleResponseWithExpiry(http.Response response) async {
     if (isWeb) {
       // Web: Extract sessionId and expiry from response body for manual header handling
-      try {
-        final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-        
-        if (responseBody['success'] == true && responseBody['data'] != null) {
-          
-          // Extract sessionId if present (login responses)
-          if (responseBody['data']['sessionId'] != null) {
-            _sessionCookies['session_id'] = responseBody['data']['sessionId'];
-            if (kDebugMode) {
-              print('🍪 Web: Updated sessionId from response: ${responseBody['data']['sessionId'].toString().substring(0, 8)}...');
-            }
-          }
-          
-          // Extract expiry time if present (login/refresh responses)
-          if (responseBody['data']['expiresAt'] != null) {
-            final expiresAtString = responseBody['data']['expiresAt'];
-            _sessionExpiryTime = DateTime.parse(expiresAtString);
-            if (kDebugMode) {
-              print('🍪 Web: Found expiresAt in data: $expiresAtString');
-              print('🍪 Web: Updated session expiry to: $_sessionExpiryTime');
-            }
-          }
-          // Also check for sessionInfo from regular API responses
-          else if (responseBody['data']['sessionInfo'] != null && 
-                   responseBody['data']['sessionInfo']['expiresAt'] != null) {
-            final sessionInfoExpiresAt = responseBody['data']['sessionInfo']['expiresAt'];
-            _sessionExpiryTime = DateTime.parse(sessionInfoExpiresAt);
-            if (kDebugMode) {
-              print('🍪 Web: Found expiresAt in sessionInfo: $sessionInfoExpiresAt');
-              print('🍪 Web: Updated session expiry from sessionInfo to: $_sessionExpiryTime');
-            }
-          }
-          
-          await _saveSessionCookies();
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('🍪 Web: Failed to extract session info: $e');
-        }
-      }
-      return;
+      await _handleWebResponse(response);
+      return; // CRITICAL: Always return here for web platform
     }
 
     // Mobile/Desktop: Extract and store cookies manually
@@ -115,18 +139,24 @@ class CookieSessionService {
         
         // Extract expiry time if present (login/refresh responses)
         if (responseBody['data']['expiresAt'] != null) {
-          _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
+          final expiresAtString = responseBody['data']['expiresAt'].toString();
+          // Windows/Mobile: Convert UTC to local time
+          _sessionExpiryTime = DateTime.parse(expiresAtString).toLocal();
           if (kDebugMode) {
-            print('🍪 Windows/Mobile: Updated session expiry to: $_sessionExpiryTime');
+            print('🍪 Windows/Mobile: Found expiresAt: $expiresAtString');
+            print('🍪 Windows/Mobile: Updated session expiry to: $_sessionExpiryTime (converted to local time)');
           }
           await _saveSessionCookies();
         }
         // Also check for sessionInfo from regular API responses
         else if (responseBody['data']['sessionInfo'] != null && 
                  responseBody['data']['sessionInfo']['expiresAt'] != null) {
-          _sessionExpiryTime = DateTime.parse(responseBody['data']['sessionInfo']['expiresAt']);
+          final sessionInfoExpiresAt = responseBody['data']['sessionInfo']['expiresAt'].toString();
+          // Windows/Mobile: Convert UTC to local time
+          _sessionExpiryTime = DateTime.parse(sessionInfoExpiresAt).toLocal();
           if (kDebugMode) {
-            print('🍪 Windows/Mobile: Updated session expiry from sessionInfo to: $_sessionExpiryTime');
+            print('🍪 Windows/Mobile: Found sessionInfo expiresAt: $sessionInfoExpiresAt');
+            print('🍪 Windows/Mobile: Updated session expiry from sessionInfo to: $_sessionExpiryTime (converted to local time)');
           }
           await _saveSessionCookies();
         }
@@ -219,18 +249,20 @@ class CookieSessionService {
       return true;
     }
     
-    final now = DateTime.now();
-    final isExpired = now.isAfter(_sessionExpiryTime!);
+    // Get current time in appropriate timezone
+    final now = isWeb ? DateTime.now().toUtc() : DateTime.now();
+    final expiryTime = _sessionExpiryTime!;
+    final isExpired = now.isAfter(expiryTime);
     
     if (kDebugMode) {
-      print('🕐 EXPIRY CHECK: now=$now');
-      print('🕐 EXPIRY CHECK: expiry=$_sessionExpiryTime');
+      print('🕐 EXPIRY CHECK: now=$now (${isWeb ? "UTC" : "local"})');
+      print('🕐 EXPIRY CHECK: expiry=$expiryTime (${isWeb ? "UTC" : "local"})');
       print('🕐 EXPIRY CHECK: expired=$isExpired');
       if (isExpired) {
-        final timeDiff = now.difference(_sessionExpiryTime!);
+        final timeDiff = now.difference(expiryTime);
         print('🕐 EXPIRY CHECK: expired by ${timeDiff.inSeconds} seconds');
       } else {
-        final timeLeft = _sessionExpiryTime!.difference(now);
+        final timeLeft = expiryTime.difference(now);
         print('🕐 EXPIRY CHECK: ${timeLeft.inSeconds} seconds remaining');
       }
     }
@@ -242,12 +274,15 @@ class CookieSessionService {
   Duration? getTimeUntilExpiry() {
     if (_sessionExpiryTime == null) return null;
     
-    final now = DateTime.now();
-    if (now.isAfter(_sessionExpiryTime!)) {
+    // Use appropriate timezone for comparison
+    final now = isWeb ? DateTime.now().toUtc() : DateTime.now();
+    final expiryTime = _sessionExpiryTime!;
+    
+    if (now.isAfter(expiryTime)) {
       return Duration.zero; // Already expired
     }
     
-    return _sessionExpiryTime!.difference(now);
+    return expiryTime.difference(now);
   }
 
   /// Extend session expiry time (when backend extends the session)
@@ -329,7 +364,11 @@ class CookieSessionService {
     final expiryString = await _storage.getSecureString('session_expiry');
     if (expiryString != null) {
       try {
+        // Parse stored time and keep in original timezone context
         _sessionExpiryTime = DateTime.parse(expiryString);
+        if (kDebugMode) {
+          print('🍪 Loaded stored session expiry: $_sessionExpiryTime');
+        }
       } catch (e) {
         if (kDebugMode) {
           print('🍪 Failed to parse stored expiry time: $e');

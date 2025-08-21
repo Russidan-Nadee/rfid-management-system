@@ -10,6 +10,7 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../core/widgets/session_manager.dart';
 import '../core/services/cookie_session_service.dart';
 import '../core/services/browser_api.dart';
+import '../core/services/browser_api_io.dart';
 import '../core/services/session_timer_service.dart';
 import 'splash_screen.dart';
 import '../layouts/root_layout.dart';
@@ -109,8 +110,32 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     
-    if (state == AppLifecycleState.resumed) {
-      _checkSessionOnResume();
+    // Handle Windows/Desktop app lifecycle properly
+    if (_browserApi is BrowserApiIO) {
+      final browserApiIO = _browserApi as BrowserApiIO;
+      
+      switch (state) {
+        case AppLifecycleState.resumed:
+          print('🪟 Windows: App resumed - marking as active');
+          browserApiIO.handleAppLifecycleState(true);
+          _checkSessionOnResume();
+          break;
+        case AppLifecycleState.paused:
+        case AppLifecycleState.inactive:
+          print('🪟 Windows: App paused/inactive - marking as background');
+          browserApiIO.handleAppLifecycleState(false);
+          break;
+        case AppLifecycleState.detached:
+        case AppLifecycleState.hidden:
+          print('🪟 Windows: App detached/hidden - marking as background');
+          browserApiIO.handleAppLifecycleState(false);
+          break;
+      }
+    } else {
+      // Web/other platforms - original behavior
+      if (state == AppLifecycleState.resumed) {
+        _checkSessionOnResume();
+      }
     }
   }
 

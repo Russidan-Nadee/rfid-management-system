@@ -1,5 +1,7 @@
 // Path: frontend/lib/layouts/root_layout.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/services/browser_api.dart';
 import '../core/services/session_timer_service.dart';
@@ -33,6 +35,9 @@ class _RootLayoutState extends State<RootLayout> {
   late List<GlobalKey<NavigatorState>> _navigatorKeys;
   late BrowserApi _browserApi;
   final SessionTimerService _sessionTimer = SessionTimerService();
+  
+  // Platform detection
+  bool get _isWindows => !kIsWeb && Platform.isWindows;
 
   @override
   void initState() {
@@ -292,7 +297,7 @@ class _RootLayoutState extends State<RootLayout> {
               final theme = Theme.of(localizedContext);
               final appLoc = AppLocalizations.of(localizedContext);
 
-              return Scaffold(
+              final scaffold = Scaffold(
                 body: Row(
                   children: [
                     // Navigation Rail for wide screens
@@ -308,6 +313,14 @@ class _RootLayoutState extends State<RootLayout> {
                     ? null
                     : _buildCustomBottomNav(appLoc),
               );
+              
+              // Enhanced activity detection for Windows - disabled temporarily to fix crashes
+              // TODO: Re-enable after testing basic functionality
+              // if (_isWindows) {
+              //   return _buildWindowsActivityWrapper(scaffold);
+              // } else {
+                return scaffold;
+              // }
             },
           ),
         );
@@ -508,6 +521,54 @@ class _RootLayoutState extends State<RootLayout> {
         MaterialPage(key: ValueKey(_currentIndex), child: pages[_currentIndex]),
       ],
       onPopPage: (route, result) => route.didPop(result),
+    );
+  }
+  
+  /// Enhanced activity detection wrapper for Windows platform
+  Widget _buildWindowsActivityWrapper(Widget child) {
+    return GestureDetector(
+      // Comprehensive gesture detection for Windows
+      onTap: () {
+        if (kDebugMode) {
+          print('🪟 Windows: Tap activity detected');
+        }
+        _sessionTimer.recordActivity();
+      },
+      onPanUpdate: (_) {
+        if (kDebugMode) {
+          print('🪟 Windows: Pan activity detected');
+        }
+        _sessionTimer.recordActivity();
+      },
+      onScaleUpdate: (_) {
+        if (kDebugMode) {
+          print('🪟 Windows: Scale activity detected');
+        }
+        _sessionTimer.recordActivity();
+      },
+      onLongPress: () {
+        if (kDebugMode) {
+          print('🪟 Windows: Long press activity detected');
+        }
+        _sessionTimer.recordActivity();
+      },
+      onDoubleTap: () {
+        if (kDebugMode) {
+          print('🪟 Windows: Double tap activity detected');
+        }
+        _sessionTimer.recordActivity();
+      },
+      behavior: HitTestBehavior.translucent,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (kDebugMode) {
+            print('🪟 Windows: Scroll activity detected');
+          }
+          _sessionTimer.recordActivity();
+          return false; // Don't consume the notification
+        },
+        child: child,
+      ),
     );
   }
 }

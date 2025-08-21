@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'storage_service.dart';
 import 'cookie_session_service.dart';
@@ -15,6 +16,7 @@ class SessionTimerService {
   final CookieSessionService _cookieService = CookieSessionService();
   Timer? _sessionTimer;
   Timer? _warningTimer;
+  Timer? _proactiveRefreshTimer;
   
   final ValueNotifier<bool> sessionExpired = ValueNotifier<bool>(false);
   final ValueNotifier<bool> showWarning = ValueNotifier<bool>(false);
@@ -24,6 +26,11 @@ class SessionTimerService {
   
   // Track user activity
   DateTime _lastActivityTime = DateTime.now();
+  DateTime? _lastRefreshAttempt;
+  
+  // Platform detection
+  bool get isWindows => !kIsWeb && Platform.isWindows;
+  bool get isDesktop => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   
   // Check if user was recently active within the given duration
   bool wasRecentlyActive(Duration threshold) {
@@ -38,13 +45,18 @@ class SessionTimerService {
     _sessionTimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
       await _checkSession();
     });
+    
+    // Start proactive refresh timer for all platforms
+    _startProactiveRefreshTimer();
   }
 
   void stopSessionTimer() {
     _sessionTimer?.cancel();
     _warningTimer?.cancel();
+    _proactiveRefreshTimer?.cancel();
     _sessionTimer = null;
     _warningTimer = null;
+    _proactiveRefreshTimer = null;
     showWarning.value = false;
   }
 
@@ -86,6 +98,68 @@ class SessionTimerService {
     } catch (e) {
       if (kDebugMode) {
         print('Session check error: $e');
+      }
+    }
+  }
+
+  void _startProactiveRefreshTimer() {
+    // For all platforms, check every 60 seconds if session needs proactive refresh
+    _proactiveRefreshTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
+      try {
+        await _checkProactiveRefresh();
+      } catch (e) {
+        if (kDebugMode) {
+          final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+          print('🔄 $platform: Proactive refresh timer error: $e');
+        }
+      }
+    });
+    
+    if (kDebugMode) {
+      final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+      print('🔄 $platform: Started proactive refresh timer');
+    }
+  }
+  
+  Future<void> _checkProactiveRefresh() async {
+    try {
+      final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
+      
+      if (timeUntilExpiry == null) return;
+      
+      // Refresh if session expires in less than 3 minutes and user was recently active
+      if (timeUntilExpiry.inMinutes <= 3 && wasRecentlyActive(const Duration(minutes: 5))) {
+        
+        // Don't refresh too frequently - at least 30 seconds between attempts
+        if (_lastRefreshAttempt != null) {
+          final timeSinceLastRefresh = DateTime.now().difference(_lastRefreshAttempt!);
+          if (timeSinceLastRefresh.inSeconds < 30) {
+            return;
+          }
+        }
+        
+        final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+        if (kDebugMode) {
+          print('🔄 $platform: Proactive refresh - session expires in ${timeUntilExpiry.inMinutes} minutes, user was recently active');
+        }
+        
+        _lastRefreshAttempt = DateTime.now();
+        final refreshSuccess = await _attemptTokenRefresh();
+        
+        if (refreshSuccess) {
+          if (kDebugMode) {
+            print('🔄 $platform: Proactive refresh successful');
+          }
+        } else {
+          if (kDebugMode) {
+            print('🔄 $platform: Proactive refresh failed');
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+        print('🔄 $platform: Proactive refresh check error: $e');
       }
     }
   }
@@ -143,9 +217,33 @@ class SessionTimerService {
     if (timeUntilExpiry != null) {
       remainingTime.value = timeUntilExpiry.inMilliseconds;
       
-      print('🔄 SESSION ACTIVITY: User activity recorded');
-      print('🕐 SESSION ACTIVITY: Time until expiry: ${timeUntilExpiry.inSeconds}s');
-      print('🕐 SESSION ACTIVITY: Activity recorded at: ${_lastActivityTime.toIso8601String()}');
+      // Platform-specific logging
+      final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+      print('🔄 $platform SESSION ACTIVITY: User activity recorded');
+      print('🕐 $platform SESSION ACTIVITY: Time until expiry: ${timeUntilExpiry.inSeconds}s');
+      print('🕐 $platform SESSION ACTIVITY: Activity recorded at: ${_lastActivityTime.toIso8601String()}');
+      
+      // On all platforms, consider proactive refresh when user is very active and session near expiry
+      if (timeUntilExpiry.inMinutes <= 5) {
+        // Don't refresh too frequently
+        if (_lastRefreshAttempt == null || 
+            DateTime.now().difference(_lastRefreshAttempt!).inMinutes >= 1) {
+          
+          print('🔄 $platform SESSION ACTIVITY: Session near expiry, considering proactive refresh');
+          _lastRefreshAttempt = DateTime.now();
+          
+          // Attempt refresh in background - catch errors to prevent crashes
+          _attemptTokenRefresh().then((success) {
+            if (success && kDebugMode) {
+              print('🔄 $platform SESSION ACTIVITY: Background refresh successful');
+            }
+          }).catchError((error) {
+            if (kDebugMode) {
+              print('🔄 $platform SESSION ACTIVITY: Background refresh error: $error');
+            }
+          });
+        }
+      }
     } else {
       print('⚠️ SESSION ACTIVITY: No session expiry time available');
     }

@@ -9,14 +9,17 @@ import 'browser_api_contract.dart';
 class BrowserApiIO implements BrowserApi {
   late final StreamController<void> _visibilityController;
   late final StreamController<void> _focusController;
+  bool _isAppInFocus = true;
+  DateTime? _lastFocusChange;
   
   BrowserApiIO() {
     _visibilityController = StreamController<void>.broadcast();
     _focusController = StreamController<void>.broadcast();
+    _lastFocusChange = DateTime.now();
   }
   
   @override
-  bool get isDocumentHidden => false; // Always visible on mobile/desktop
+  bool get isDocumentHidden => !_isAppInFocus; // Return true if app lost focus
   
   @override
   Stream<void> get onVisibilityChange => _visibilityController.stream;
@@ -85,6 +88,32 @@ class BrowserApiIO implements BrowserApi {
   
   /// Simulate window focus (useful for testing or app lifecycle events)
   void simulateWindowFocus() {
+    _lastFocusChange = DateTime.now();
+    _isAppInFocus = true;
     _focusController.add(null);
+  }
+  
+  /// Handle app lifecycle state changes for Windows/Desktop
+  void handleAppLifecycleState(bool isActive) {
+    final previousState = _isAppInFocus;
+    _isAppInFocus = isActive;
+    _lastFocusChange = DateTime.now();
+    
+    // Trigger visibility change if state actually changed
+    if (previousState != isActive) {
+      _visibilityController.add(null);
+      
+      // Trigger focus event when app becomes active
+      if (isActive) {
+        _focusController.add(null);
+      }
+    }
+  }
+  
+  /// Check if app recently gained focus (within last few seconds)
+  bool hasRecentlyGainedFocus(Duration threshold) {
+    if (_lastFocusChange == null) return false;
+    final timeSinceFocus = DateTime.now().difference(_lastFocusChange!);
+    return _isAppInFocus && timeSinceFocus <= threshold;
   }
 }
