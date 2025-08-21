@@ -38,7 +38,7 @@ const authController = {
             ipAddress: deviceInfo.ipAddress,
             userAgent: deviceInfo.userAgent,
             deviceType: deviceInfo.deviceType,
-            expiresInMinutes: 2 // 2-minute sessions (1:10 scaled testing)
+            expiresInMinutes: 15 // 15-minute sessions for production
          });
 
          // Set HTTP-only secure cookie
@@ -46,14 +46,14 @@ const authController = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 2 * 60 * 1000, // 2 minutes (1:10 scaled testing)
+            maxAge: 15 * 60 * 1000, // 15 minutes for production
             path: '/'
          };
 
          res.cookie('session_id', session.session_id, cookieOptions);
 
          // Calculate expiry timestamp
-         const expiryTimestamp = new Date(Date.now() + (2 * 60 * 1000)).toISOString();
+         const expiryTimestamp = new Date(Date.now() + (15 * 60 * 1000)).toISOString();
 
          // Return response WITHOUT session ID in body (security)
          res.status(200).json({
@@ -206,12 +206,12 @@ const authController = {
             });
          }
 
-         // Check if session is recent enough to refresh (within 30 seconds of expiry)
+         // Check if session is recent enough to refresh (within 5 minutes of expiry)
          const now = new Date();
          const timeSinceExpiry = now.getTime() - new Date(session.expires_at).getTime();
-         const thirtySeconds = 30 * 1000; // 30 seconds in milliseconds
+         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
          
-         if (timeSinceExpiry > thirtySeconds) {
+         if (timeSinceExpiry > fiveMinutes) {
             // Session has been expired for too long - force re-authentication
             res.clearCookie('session_id', {
                httpOnly: true,
@@ -222,14 +222,14 @@ const authController = {
             
             return res.status(401).json({
                success: false,
-               message: 'Session expired more than 30 seconds ago - please login again',
+               message: 'Session expired more than 5 minutes ago - please login again',
                error: 'SESSION_EXPIRED_TOO_LONG',
                timestamp: new Date().toISOString()
             });
          }
 
-         // Extend session by 2 minutes (works for both valid and recently expired sessions)
-         const extended = await SessionModel.extendSession(sessionId, 2);
+         // Extend session by 15 minutes (works for both valid and recently expired sessions)
+         const extended = await SessionModel.extendSession(sessionId, 15);
          
          if (!extended) {
             return res.status(401).json({
@@ -244,14 +244,14 @@ const authController = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 2 * 60 * 1000, // 2 minutes (1:10 scaled testing)
+            maxAge: 15 * 60 * 1000, // 15 minutes for production
             path: '/'
          };
 
          res.cookie('session_id', sessionId, cookieOptions);
 
          // Calculate new expiry timestamp for frontend
-         const newExpiryTimestamp = new Date(Date.now() + (2 * 60 * 1000)).toISOString();
+         const newExpiryTimestamp = new Date(Date.now() + (15 * 60 * 1000)).toISOString();
 
          res.status(200).json({
             success: true,
@@ -259,7 +259,7 @@ const authController = {
             data: {
                sessionId: sessionId,
                expiresAt: newExpiryTimestamp,
-               expiresIn: 2 * 60 // seconds
+               expiresIn: 15 * 60 // seconds
             },
             timestamp: new Date().toISOString()
          });

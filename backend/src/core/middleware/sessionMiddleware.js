@@ -214,16 +214,16 @@ class SessionMiddleware {
         const timeUntilExpiry = expiresAt.getTime() - now.getTime();
         // Note: Now using thirtySeconds for consistency with 2-minute sessions
 
-        // If session expires in less than 30 seconds OR is expired within 30 seconds, extend it
-        const thirtySeconds = 30 * 1000; // 30 seconds in milliseconds
+        // If session expires in less than 5 minutes OR is expired within 5 minutes, extend it
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
         const timeSinceExpiry = now.getTime() - expiresAt.getTime();
         
-        if (timeUntilExpiry < thirtySeconds || (timeUntilExpiry < 0 && timeSinceExpiry <= thirtySeconds)) {
-          await SessionModel.extendSession(req.session.sessionId, 2);
+        if (timeUntilExpiry < fiveMinutes || (timeUntilExpiry < 0 && timeSinceExpiry <= fiveMinutes)) {
+          await SessionModel.extendSession(req.session.sessionId, 15);
           logger.debug(`Session auto-extended for user: ${req.user.user_id} (expired ${timeSinceExpiry}ms ago)`);
           
           // Update req.session with new expiry time
-          const newExpiryTime = new Date(now.getTime() + (2 * 60 * 1000));
+          const newExpiryTime = new Date(now.getTime() + (15 * 60 * 1000));
           req.session.expiresAt = newExpiryTime;
         }
       }

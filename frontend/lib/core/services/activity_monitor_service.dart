@@ -11,15 +11,15 @@ class ActivityMonitorService {
   DateTime? _lastAuthCheckTime;
   Timer? _activityTimer;
   
-  // Check auth if no activity-based check in last 30 seconds
-  static const Duration _maxTimeSinceAuthCheck = Duration(seconds: 30);
+  // Check auth if no activity-based check in last 5 minutes
+  static const Duration _maxTimeSinceAuthCheck = Duration(minutes: 5);
 
   void startMonitoring() {
     _lastActivityTime = DateTime.now();
     _lastAuthCheckTime = DateTime.now();
     
-    // Check every 30 seconds if we need an activity-based auth check
-    _activityTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    // Check every 5 minutes if we need an activity-based auth check
+    _activityTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _checkIfAuthCheckNeeded();
     });
   }
@@ -34,9 +34,9 @@ class ActivityMonitorService {
     final now = DateTime.now();
     _lastActivityTime = now;
     
-    // If it's been more than 30 seconds since last auth check, do one now
+    // If it's been more than 5 minutes since last auth check, do one now
     if (_lastAuthCheckTime == null || 
-        now.difference(_lastAuthCheckTime!) >= const Duration(seconds: 30)) {
+        now.difference(_lastAuthCheckTime!) >= const Duration(minutes: 5)) {
       print('🔄 User activity detected - performing auth check');
       _performAuthCheck();
     }
@@ -50,7 +50,7 @@ class ActivityMonitorService {
       final timeSinceActivity = now.difference(_lastActivityTime!);
       final timeSinceAuthCheck = now.difference(_lastAuthCheckTime!);
       
-      if (timeSinceActivity.inSeconds < 120 && 
+      if (timeSinceActivity.inMinutes < 15 && 
           timeSinceAuthCheck > _maxTimeSinceAuthCheck) {
         print('⏰ Periodic check: User was active recently, checking auth');
         _performAuthCheck();

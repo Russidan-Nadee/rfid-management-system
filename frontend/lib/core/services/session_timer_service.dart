@@ -22,7 +22,7 @@ class SessionTimerService {
   final ValueNotifier<bool> showWarning = ValueNotifier<bool>(false);
   final ValueNotifier<int> remainingTime = ValueNotifier<int>(0);
 
-  static const int warningTimeMs = 30 * 1000; // 30 seconds before expiry
+  static const int warningTimeMs = 2 * 60 * 1000; // 2 minutes before expiry
   
   // Track user activity
   DateTime _lastActivityTime = DateTime.now();
@@ -42,7 +42,7 @@ class SessionTimerService {
   void startSessionTimer() {
     stopSessionTimer();
     
-    _sessionTimer = Timer.periodic(const Duration(seconds: 30), (timer) async {
+    _sessionTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       await _checkSession();
     });
     
@@ -103,8 +103,8 @@ class SessionTimerService {
   }
 
   void _startProactiveRefreshTimer() {
-    // For all platforms, check every 60 seconds if session needs proactive refresh
-    _proactiveRefreshTimer = Timer.periodic(const Duration(seconds: 60), (timer) async {
+    // For all platforms, check every 5 minutes if session needs proactive refresh
+    _proactiveRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       try {
         await _checkProactiveRefresh();
       } catch (e) {
@@ -127,13 +127,13 @@ class SessionTimerService {
       
       if (timeUntilExpiry == null) return;
       
-      // Refresh if session expires in less than 3 minutes and user was recently active
-      if (timeUntilExpiry.inMinutes <= 3 && wasRecentlyActive(const Duration(minutes: 5))) {
+      // Refresh if session expires in less than 10 minutes and user was recently active
+      if (timeUntilExpiry.inMinutes <= 10 && wasRecentlyActive(const Duration(minutes: 15))) {
         
-        // Don't refresh too frequently - at least 30 seconds between attempts
+        // Don't refresh too frequently - at least 5 minutes between attempts
         if (_lastRefreshAttempt != null) {
           final timeSinceLastRefresh = DateTime.now().difference(_lastRefreshAttempt!);
-          if (timeSinceLastRefresh.inSeconds < 30) {
+          if (timeSinceLastRefresh.inMinutes < 5) {
             return;
           }
         }
@@ -224,10 +224,10 @@ class SessionTimerService {
       print('🕐 $platform SESSION ACTIVITY: Activity recorded at: ${_lastActivityTime.toIso8601String()}');
       
       // On all platforms, consider proactive refresh when user is very active and session near expiry
-      if (timeUntilExpiry.inMinutes <= 5) {
+      if (timeUntilExpiry.inMinutes <= 10) {
         // Don't refresh too frequently
         if (_lastRefreshAttempt == null || 
-            DateTime.now().difference(_lastRefreshAttempt!).inMinutes >= 1) {
+            DateTime.now().difference(_lastRefreshAttempt!).inMinutes >= 5) {
           
           print('🔄 $platform SESSION ACTIVITY: Session near expiry, considering proactive refresh');
           _lastRefreshAttempt = DateTime.now();

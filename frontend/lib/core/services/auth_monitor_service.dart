@@ -18,11 +18,11 @@ class AuthMonitorService with WidgetsBindingObserver {
   DateTime? _lastActiveTime;
   bool _isAppActive = true;
 
-  // Check authentication every 30 seconds (1:10 scaled from 5 minutes)
-  static const Duration _checkInterval = Duration(seconds: 30);
+  // Check authentication every 5 minutes for production
+  static const Duration _checkInterval = Duration(minutes: 5);
   
-  // App resume threshold - check auth if inactive for more than 30 seconds
-  static const Duration _resumeThreshold = Duration(seconds: 30);
+  // App resume threshold - check auth if inactive for more than 5 minutes
+  static const Duration _resumeThreshold = Duration(minutes: 5);
 
   void startMonitoring() {
     if (_authCheckTimer != null) {
@@ -105,7 +105,7 @@ class AuthMonitorService with WidgetsBindingObserver {
         print('🔄 App resumed - checking authentication immediately');
         _isAppActive = true;
         
-        // Check auth on app resume if inactive for more than 30 seconds (1:10 scaled)
+        // Check auth on app resume if inactive for more than 5 minutes
         if (_lastActiveTime != null) {
           final inactiveTime = DateTime.now().difference(_lastActiveTime!);
           if (inactiveTime >= _resumeThreshold) {

@@ -4,9 +4,9 @@
 module.exports = {
    jwt: {
       secret: process.env.JWT_SECRET || 'default_secret_change_in_production',
-      expiresIn: process.env.JWT_EXPIRES_IN || '2m', // 2 minutes (1:10 scaled testing)
+      expiresIn: process.env.JWT_EXPIRES_IN || '15m', // 15 minutes for user inactivity
       refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_change_in_production',
-      refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '20m' // 20 minutes (1:10 scaled)
+      refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' // 7 days for refresh token
    },
    password: {
       minLength: 8,
@@ -19,7 +19,7 @@ module.exports = {
    },
    session: {
       maxConcurrentSessions: 3,
-      sessionTimeout: 2 * 60 * 1000 // 2 minutes (1:10 scaled testing)
+      sessionTimeout: 15 * 60 * 1000 // 15 minutes for user inactivity
    },
    security: {
       enableBruteForceProtection: true,

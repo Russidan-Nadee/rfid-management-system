@@ -11,8 +11,8 @@ class AppConstants {
   static const String themeKey = 'app_theme';
   static const String sessionTimestampKey = 'session_timestamp';
   
-  // Session timeout (2 minutes in milliseconds) - matches backend
-  static const int sessionTimeoutMs = 2 * 60 * 1000;
+  // Session timeout (15 minutes in milliseconds) - matches backend
+  static const int sessionTimeoutMs = 15 * 60 * 1000;
   
   // Refresh token expiry (7 days in milliseconds)
   static const int refreshTokenExpiryMs = 7 * 24 * 60 * 60 * 1000;

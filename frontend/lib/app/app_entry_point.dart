@@ -67,8 +67,8 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   }
 
   void _startPeriodicExpiryCheck() {
-    // Check session expiry every 30 seconds while app is active (1:10 scaled)
-    _expiryCheckTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    // Check session expiry every 5 minutes while app is active for production
+    _expiryCheckTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
       _checkSessionExpiry();
     });
   }
@@ -90,7 +90,7 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     
     if (isExpired && mounted) {
       // Check if user was recently active before expiring
-      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 2));
+      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 15));
       if (isActive) {
         print('🔄 Session expired but user was active - attempting refresh');
         final authBloc = context.read<AuthBloc>();
@@ -100,9 +100,9 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const LogoutRequested());
       }
-    } else if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 2 && mounted) {
+    } else if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 10 && mounted) {
       // Only proactively refresh if app is in foreground AND user was recently active
-      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 5));
+      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 15));
       if (isActive && _isAppInForeground) {
         print('🔄 Session near expiry, user active, and app in foreground - proactive refresh');
         final authBloc = context.read<AuthBloc>();
@@ -178,7 +178,7 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     } else {
       // Session valid but check if close to expiry - preemptively refresh
       final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
-      if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 5 && mounted) {
+      if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 10 && mounted) {
         print('🔄 Session near expiry on resume - proactive refresh');
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const RefreshTokenRequested());
