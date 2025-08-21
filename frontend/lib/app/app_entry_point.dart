@@ -29,6 +29,7 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   Timer? _expiryCheckTimer;
   StreamSubscription<void>? _focusSubscription;
   StreamSubscription<void>? _visibilitySubscription;
+  bool _isAppInForeground = true; // Track app state
 
   @override
   void initState() {
@@ -50,13 +51,17 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   void _setupWebEventListeners() {
     // Listen for window focus (when user returns to tab) - works on all platforms
     _focusSubscription = _browserApi.onWindowFocus.listen((event) {
+      _isAppInForeground = true;
       _checkSessionOnResume();
     });
     
     // Listen for visibility change (tab becomes visible/hidden) - works on all platforms
     _visibilitySubscription = _browserApi.onVisibilityChange.listen((event) {
       if (!_browserApi.isDocumentHidden) {
+        _isAppInForeground = true;
         _checkSessionOnResume();
+      } else {
+        _isAppInForeground = false;
       }
     });
   }
@@ -77,11 +82,11 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
       return;
     }
 
-    print('⏰ Periodic session check at ${DateTime.now()}');
+    print('⏰ Periodic session check at ${DateTime.now()} (App in foreground: $_isAppInForeground)');
     await _sessionService.hasValidSession();
     final isExpired = _sessionService.isSessionExpired();
     final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
-    print('⏰ Session expired: $isExpired');
+    print('⏰ Session expired: $isExpired, Time until expiry: ${timeUntilExpiry?.inSeconds} seconds');
     
     if (isExpired && mounted) {
       // Check if user was recently active before expiring
@@ -96,12 +101,16 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
         authBloc.add(const LogoutRequested());
       }
     } else if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 2 && mounted) {
-      // Proactively refresh when close to expiry if user was recently active
+      // Only proactively refresh if app is in foreground AND user was recently active
       final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 5));
-      if (isActive) {
-        print('🔄 Session near expiry but user active - proactive refresh');
+      if (isActive && _isAppInForeground) {
+        print('🔄 Session near expiry, user active, and app in foreground - proactive refresh');
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const RefreshTokenRequested());
+      } else if (!_isAppInForeground) {
+        print('⏸️ Session near expiry but app in background - skipping proactive refresh');
+      } else {
+        print('💤 Session near expiry but user not recently active - skipping proactive refresh');
       }
     }
   }
@@ -117,24 +126,30 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
       switch (state) {
         case AppLifecycleState.resumed:
           print('🪟 Windows: App resumed - marking as active');
+          _isAppInForeground = true;
           browserApiIO.handleAppLifecycleState(true);
           _checkSessionOnResume();
           break;
         case AppLifecycleState.paused:
         case AppLifecycleState.inactive:
           print('🪟 Windows: App paused/inactive - marking as background');
+          _isAppInForeground = false;
           browserApiIO.handleAppLifecycleState(false);
           break;
         case AppLifecycleState.detached:
         case AppLifecycleState.hidden:
           print('🪟 Windows: App detached/hidden - marking as background');
+          _isAppInForeground = false;
           browserApiIO.handleAppLifecycleState(false);
           break;
       }
     } else {
       // Web/other platforms - original behavior
       if (state == AppLifecycleState.resumed) {
+        _isAppInForeground = true;
         _checkSessionOnResume();
+      } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+        _isAppInForeground = false;
       }
     }
   }
