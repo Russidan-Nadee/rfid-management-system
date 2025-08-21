@@ -34,7 +34,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/instant',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       return SearchResponseModel.fromJson(responseJson);
@@ -66,7 +66,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/suggestions',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       final response = SearchResponseModel.fromJson(responseJson);
@@ -119,7 +119,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/global',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       return SearchResponseModel.fromJson(responseJson);
@@ -164,7 +164,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/advanced',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       return SearchResponseModel.fromJson(responseJson);
@@ -184,7 +184,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/recent',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       final response = SearchResponseModel.fromJson(responseJson);
@@ -216,7 +216,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/popular',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       final response = SearchResponseModel.fromJson(responseJson);
@@ -241,7 +241,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final response = await apiService.delete<void>(
         '/search/recent',
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       if (!response.success) {
@@ -368,7 +368,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
       final responseJson = await apiService.getSearchResponse(
         '/search/stats',
         queryParams: queryParams,
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       final response = SearchResponseModel.fromJson(responseJson);
@@ -388,7 +388,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     try {
       final responseJson = await apiService.getSearchResponse(
         '/search/reindex',
-        requiresAuth: false,
+        requiresAuth: true,
       );
 
       final response = SearchResponseModel.fromJson(responseJson);
