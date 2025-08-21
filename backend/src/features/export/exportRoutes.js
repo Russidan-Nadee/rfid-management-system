@@ -5,6 +5,7 @@ const ExportController = require('./exportController');
 const { authenticateToken } = require('../auth/authMiddleware');
 const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
 const { createRateLimit } = require('../scan/scanMiddleware');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 const {
    createExportValidator,
    getExportJobValidator,
@@ -22,8 +23,9 @@ const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests
 const strictRateLimit = createRateLimit(15 * 60 * 1000, 100);   // 100 requests per 15 minutes
 const exportRateLimit = createRateLimit(5 * 60 * 1000, 10);     // 10 export jobs per 5 minutes
 
-// Apply authentication to all routes
+// Apply authentication and session auto-extension to all routes
 router.use(authenticateToken);
+router.use(SessionMiddleware.extendActiveSession);
 
 /**
  * =================================

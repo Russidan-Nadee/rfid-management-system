@@ -10,6 +10,7 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../core/widgets/session_manager.dart';
 import '../core/services/cookie_session_service.dart';
 import '../core/services/browser_api.dart';
+import '../core/services/session_timer_service.dart';
 import 'splash_screen.dart';
 import '../layouts/root_layout.dart';
 
@@ -23,6 +24,7 @@ class AppEntryPoint extends StatefulWidget {
 class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserver {
   final CookieSessionService _sessionService = CookieSessionService();
   final BrowserApi _browserApi = BrowserApiService.instance;
+  final SessionTimerService _sessionTimer = SessionTimerService();
   Timer? _expiryCheckTimer;
   StreamSubscription<void>? _focusSubscription;
   StreamSubscription<void>? _visibilitySubscription;
@@ -77,11 +79,29 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     print('⏰ Periodic session check at ${DateTime.now()}');
     await _sessionService.hasValidSession();
     final isExpired = _sessionService.isSessionExpired();
+    final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
     print('⏰ Session expired: $isExpired');
     
     if (isExpired && mounted) {
-      print('🚨 Session expired - triggering logout');
-      context.read<AuthBloc>().add(const LogoutRequested());
+      // Check if user was recently active before expiring
+      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 2));
+      if (isActive) {
+        print('🔄 Session expired but user was active - attempting refresh');
+        final authBloc = context.read<AuthBloc>();
+        authBloc.add(const RefreshTokenRequested());
+      } else {
+        print('🔄 Session expired and user inactive - forcing logout');
+        final authBloc = context.read<AuthBloc>();
+        authBloc.add(const LogoutRequested());
+      }
+    } else if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 2 && mounted) {
+      // Proactively refresh when close to expiry if user was recently active
+      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 5));
+      if (isActive) {
+        print('🔄 Session near expiry but user active - proactive refresh');
+        final authBloc = context.read<AuthBloc>();
+        authBloc.add(const RefreshTokenRequested());
+      }
     }
   }
 
@@ -111,7 +131,18 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     final isExpired = _sessionService.isSessionExpired();
     
     if (isExpired && mounted) {
-      context.read<AuthBloc>().add(const LogoutRequested());
+      // User returned to app - always attempt refresh on resume
+      print('🔄 Session expired on resume - attempting refresh');
+      final authBloc = context.read<AuthBloc>();
+      authBloc.add(const RefreshTokenRequested());
+    } else {
+      // Session valid but check if close to expiry - preemptively refresh
+      final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
+      if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 5 && mounted) {
+        print('🔄 Session near expiry on resume - proactive refresh');
+        final authBloc = context.read<AuthBloc>();
+        authBloc.add(const RefreshTokenRequested());
+      }
     }
   }
 
@@ -130,18 +161,27 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     // ===== PRODUCTION MODE: ใช้ Auth ปกติ =====
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        print('🎯 AppEntryPoint: BlocConsumer received state: ${state.runtimeType}');
-        if (state is AuthUnauthenticated) {
-          print('🚨 AppEntryPoint: AuthUnauthenticated detected - should show LoginPage');
-        }
+        // Handle auth state changes
       },
       builder: (context, state) {
-        print('🔍 AppEntryPoint: Building with state: ${state.runtimeType}');
         
         if (state is AuthLoading || state is AuthInitial) {
           return const SplashScreen();
         } else if (state is AuthAuthenticated) {
-          return const SessionManager(child: RootLayout());
+          // Wrap with global activity detector
+          return GestureDetector(
+            onTap: () {
+              _sessionTimer.recordActivity();
+            },
+            onPanDown: (_) {
+              _sessionTimer.recordActivity();
+            },
+            onScaleStart: (_) {
+              _sessionTimer.recordActivity();
+            },
+            behavior: HitTestBehavior.translucent,
+            child: const SessionManager(child: RootLayout()),
+          );
         } else {
           return const LoginPage();
         }

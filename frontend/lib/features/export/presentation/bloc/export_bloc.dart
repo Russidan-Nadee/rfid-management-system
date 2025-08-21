@@ -349,14 +349,9 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
 
     try {
       final datePeriodsData = DatePeriodsResponse.fromJson(mockResponse);
-      print('✅ Date periods loaded successfully:');
-      for (var period in datePeriodsData.periods) {
-        print('   📅 ${period.label} (${period.value}) - ${period.startDate ?? 'no date'} to ${period.endDate ?? 'no date'}');
-      }
-      print('📊 Available fields: ${datePeriodsData.availableFields.map((f) => f.label).join(', ')}');
+      // Date periods loaded successfully
       emit(DatePeriodsLoaded(datePeriodsData));
     } catch (e) {
-      print('❌ Failed to load date periods: ${e.toString()}');
       emit(ExportError('Failed to load date periods: ${e.toString()}'));
     }
   }

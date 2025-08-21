@@ -38,7 +38,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   Widget build(BuildContext context) {
     final l10n = DashboardLocalizations.of(context);
 
-    print('🔥 Widget rebuild with props: ${widget.selectedDeptCode}');
+    // Widget rebuild
 
     if (widget.isLoading) {
       return _buildLoadingWidget(l10n);
@@ -65,9 +65,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
   }
 
   String _getCardTitle(DashboardLocalizations l10n) {
-    print(
-      '🎯 Building title with selectedDeptCode: ${widget.selectedDeptCode}',
-    );
+    // Building title
     if (widget.selectedDeptCode == null) {
       return l10n.auditProgressAllDepartments;
     }
@@ -181,12 +179,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     final isDark = theme.brightness == Brightness.dark;
     final l10n = DashboardLocalizations.of(context);
 
-    print(
-      '🎯 Building progress with selectedDeptCode: ${widget.selectedDeptCode}',
-    );
-    print(
-      '🎯 Has overall progress: ${widget.auditProgress.overallProgress != null}',
-    );
+    // Building progress
 
     Widget content;
 
@@ -239,7 +232,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
       // 2. ถ้าเลือก "All Departments" (selectedDeptCode เป็น null)
       final overallProgress = widget.auditProgress.overallProgress;
       if (overallProgress != null) {
-        print('🎯 Showing overall progress data');
+        // Showing overall progress data
         content = Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

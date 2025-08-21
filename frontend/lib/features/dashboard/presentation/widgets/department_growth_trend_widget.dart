@@ -39,9 +39,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
   @override
   void initState() {
     super.initState();
-    print(
-      '✅ GrowthTrendChartWidget initState: Initial selectedDeptCode: ${widget.selectedDeptCode}',
-    );
+    // GrowthTrendChartWidget initState
   }
 
   @override
@@ -169,9 +167,7 @@ class _GrowthTrendChartWidgetState extends State<GrowthTrendChartWidget> {
 
     String? dropdownDisplayValue = widget.selectedDeptCode;
 
-    print(
-      '🔵 GrowthTrendChartWidget _buildDepartmentFilter: Dropdown value: $dropdownDisplayValue',
-    );
+    // Building department filter
 
     return Container(
       padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),

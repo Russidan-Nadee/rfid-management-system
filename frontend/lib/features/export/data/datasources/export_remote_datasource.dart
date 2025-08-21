@@ -136,8 +136,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     String? status,
   }) async {
     try {
-      print('📋 Getting export history: page=$page, limit=$limit');
-
       final queryParams = <String, String>{
         'page': page.toString(),
         'limit': limit.toString(),
@@ -181,7 +179,6 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
         );
       }
     } catch (e) {
-      print('❌ Get export history failed: $e');
       throw _handleException(e, 'get export history');
     }
   }

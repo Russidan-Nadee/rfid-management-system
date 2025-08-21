@@ -11,7 +11,8 @@ const { loginValidator, changePasswordValidator, refreshTokenValidator } = requi
 router.post('/login', loginValidator, authController.login);
 
 // Session-based routes
-router.post('/refresh-session', SessionMiddleware.validateSession, authController.refreshSession);
+// Refresh session endpoint - no validation middleware since we need to handle expired sessions
+router.post('/refresh-session', authController.refreshSession);
 
 // Legacy token-based routes (for backward compatibility)
 router.post('/refresh', refreshTokenValidator, authController.refreshToken);
@@ -22,6 +23,20 @@ router.use(SessionMiddleware.validateSession);
 router.post('/logout', logActivity('logout'), authController.logout);
 router.get('/me', authController.getProfile);
 router.get('/check', authController.checkAuth);
+
+// Test endpoint to verify session extension is working
+router.get('/test-session', (req, res) => {
+  const now = new Date();
+  res.json({
+    success: true,
+    message: 'Session test endpoint - this should extend your session',
+    user: req.user?.user_id || 'No user',
+    sessionExpiry: req.session?.expiresAt || 'No session',
+    currentTime: now.toISOString(),
+    timestamp: now.toISOString()
+  });
+});
+
 router.post('/change-password', changePasswordValidator, logActivity('password_change'), authController.changePassword);
 
 // Include session management routes

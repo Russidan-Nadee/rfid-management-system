@@ -11,26 +11,42 @@ const authenticateToken = async (req, res, next) => {
       // First try session-based authentication
       const sessionId = SessionMiddleware.extractSessionId(req);
       if (sessionId) {
-         console.log('🔍 Auth: Found session ID, validating...');
-         const session = await SessionModel.validateSession(sessionId);
+         console.log('🔍 Auth: Found session ID, checking session...');
+         const session = await SessionModel.getSession(sessionId);
          
          if (session && session.mst_user) {
-            console.log('✅ Auth: Session authentication successful for user:', session.user_id);
-            req.user = {
-               userId: session.user_id,
-               user_id: session.user_id, // For backward compatibility
-               username: session.mst_user.full_name || session.user_id,
-               role: session.mst_user.role,
-               sessionId: sessionId
-            };
-            req.session = session;
-            return next();
+            const now = new Date();
+            const isExpired = session.expires_at < now;
+            const timeSinceExpiry = now.getTime() - new Date(session.expires_at).getTime();
+            const thirtySeconds = 30 * 1000; // 30 seconds grace period
+            
+            // Allow active sessions OR recently expired sessions (within 30 seconds)
+            if (session.is_active && (!isExpired || timeSinceExpiry <= thirtySeconds)) {
+               console.log('✅ Auth: Session valid or recently expired - allowing through for extension');
+               req.user = {
+                  userId: session.user_id,
+                  user_id: session.user_id, // For backward compatibility
+                  username: session.mst_user.full_name || session.user_id,
+                  role: session.mst_user.role,
+                  sessionId: sessionId
+               };
+               req.session = session;
+               return next();
+            } else {
+               console.log('❌ Auth: Session expired too long ago');
+               return res.status(401).json({
+                  success: false,
+                  message: 'Session expired too long ago - please login again',
+                  code: 'SESSION_EXPIRED',
+                  timestamp: new Date().toISOString()
+               });
+            }
          } else {
-            console.log('❌ Auth: Invalid session');
+            console.log('❌ Auth: Invalid session or inactive user');
             return res.status(401).json({
                success: false,
-               message: 'Session expired',
-               code: 'SESSION_EXPIRED',
+               message: 'Invalid session',
+               code: 'INVALID_SESSION',
                timestamp: new Date().toISOString()
             });
          }

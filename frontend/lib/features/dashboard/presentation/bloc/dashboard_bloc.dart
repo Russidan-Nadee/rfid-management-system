@@ -211,11 +211,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     LoadInitialDashboard event,
     Emitter<DashboardState> emit,
   ) async {
-    print('🔵 Starting dashboard load...');
     emit(const DashboardLoading(loadingMessage: 'Loading dashboard...'));
 
     try {
-      print('📡 Calling dashboard APIs...');
 
       // Load all dashboard data in parallel
       final Future<Either<Failure, DashboardStats>> statsResult =
@@ -264,28 +262,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         locationAnalyticsResult,
       ]);
 
-      print(
-        '📊 Stats result: ${results[0].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-      print(
-        '📈 Distribution result: ${results[1].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-      print(
-        '📉 Department trends result: ${results[2].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-      print(
-        '🏢 Location trends result: ${results[3].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-      print(
-        '📋 Audit result: ${results[4].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-      print(
-        '📍 Location Analytics result: ${results[5].isRight ? "✅ SUCCESS" : "❌ FAILED"}',
-      );
-
       // Check if any critical data failed to load
       if (results[0].isLeft) {
-        print('💥 Critical failure: Dashboard stats failed');
         emit(
           DashboardError(
             message: 'Failed to load dashboard statistics',
@@ -295,7 +273,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         return;
       }
 
-      print('✅ Loading dashboard data successfully');
       emit(
         DashboardLoaded(
           stats: results[0].fold((l) => null, (r) => r as DashboardStats?),
@@ -323,10 +300,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         ),
       );
 
-      print('🎉 Dashboard loaded successfully!');
     } catch (e, stackTrace) {
-      print('💥 Unexpected dashboard error: $e');
-      print('📍 Stack trace: $stackTrace');
       emit(
         DashboardError(
           message: 'Unexpected error loading dashboard: $e',
@@ -667,11 +641,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         );
       },
       (locationAnalytics) {
-        print('✅ Location Analytics success!');
-        print(
-          '📊 Location trends count: ${locationAnalytics.locationTrends.length}',
-        );
-        print('📊 Has data: ${locationAnalytics.hasData}');
+        // Location Analytics success
 
         if (currentState is DashboardLoaded) {
           emit(

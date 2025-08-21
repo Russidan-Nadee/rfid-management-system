@@ -40,9 +40,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
   @override
   void initState() {
     super.initState();
-    print(
-      '✅ LocationGrowthTrendWidget initState: Initial selectedLocationCode: ${widget.selectedLocationCode}',
-    );
+    // LocationGrowthTrendWidget initState
   }
 
   @override
@@ -170,9 +168,7 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
 
     String? dropdownDisplayValue = widget.selectedLocationCode;
 
-    print(
-      '🔵 LocationGrowthTrendWidget _buildLocationFilter: Dropdown value: $dropdownDisplayValue',
-    );
+    // Building location filter
 
     return Container(
       padding: AppSpacing.paddingHorizontalLG.add(AppSpacing.paddingVerticalSM),

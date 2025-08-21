@@ -212,12 +212,19 @@ class SessionMiddleware {
         const now = new Date();
         const expiresAt = new Date(req.session.expiresAt);
         const timeUntilExpiry = expiresAt.getTime() - now.getTime();
-        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+        // Note: Now using thirtySeconds for consistency with 2-minute sessions
 
-        // If session expires in less than 5 minutes, extend it
-        if (timeUntilExpiry < fiveMinutes) {
-          await SessionModel.extendSession(req.session.sessionId, 15);
-          logger.debug(`Session auto-extended for user: ${req.user.user_id}`);
+        // If session expires in less than 30 seconds OR is expired within 30 seconds, extend it
+        const thirtySeconds = 30 * 1000; // 30 seconds in milliseconds
+        const timeSinceExpiry = now.getTime() - expiresAt.getTime();
+        
+        if (timeUntilExpiry < thirtySeconds || (timeUntilExpiry < 0 && timeSinceExpiry <= thirtySeconds)) {
+          await SessionModel.extendSession(req.session.sessionId, 2);
+          logger.debug(`Session auto-extended for user: ${req.user.user_id} (expired ${timeSinceExpiry}ms ago)`);
+          
+          // Update req.session with new expiry time
+          const newExpiryTime = new Date(now.getTime() + (2 * 60 * 1000));
+          req.session.expiresAt = newExpiryTime;
         }
       }
       next();
@@ -243,6 +250,38 @@ class SessionMiddleware {
       logger.error('Session cleanup error:', error);
       next();
     }
+  }
+
+  /**
+   * Add session info to response for frontend synchronization
+   */
+  static addSessionInfoToResponse(req, res, next) {
+    // Store original json method
+    const originalJson = res.json;
+    
+    // Override json method to add session info
+    res.json = function(body) {
+      // Only add session info if user is authenticated and response is successful
+      if (req.session && req.user && body && typeof body === 'object' && body.success !== false) {
+        // Add session expiry info to response data
+        if (!body.data) {
+          body.data = {};
+        }
+        
+        // Only add if data is an object (not array or primitive)
+        if (typeof body.data === 'object' && !Array.isArray(body.data)) {
+          body.data.sessionInfo = {
+            expiresAt: req.session.expiresAt.toISOString(),
+            expiresIn: Math.max(0, Math.floor((new Date(req.session.expiresAt).getTime() - Date.now()) / 1000))
+          };
+        }
+      }
+      
+      // Call original json method
+      return originalJson.call(this, body);
+    };
+    
+    next();
   }
 
   /**

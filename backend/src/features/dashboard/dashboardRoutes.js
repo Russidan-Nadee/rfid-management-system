@@ -22,12 +22,14 @@ const {
 // Import middleware
 const { createRateLimit } = require('../scan/scanMiddleware');
 const { authenticateToken } = require('../auth/authMiddleware');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000); // 1000 requests per 15 minutes
 
-// Apply authentication to all dashboard routes
+// Apply authentication and session auto-extension to all dashboard routes
 router.use(authenticateToken);
+router.use(SessionMiddleware.extendActiveSession);
 
 /**
  * =================================

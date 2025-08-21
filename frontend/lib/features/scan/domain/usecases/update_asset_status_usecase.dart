@@ -6,10 +6,7 @@ import '../repositories/scan_repository.dart';
 class UpdateAssetStatusUseCase {
   final ScanRepository repository;
 
-  UpdateAssetStatusUseCase(this.repository) {
-    print('UpdateAssetStatusUseCase created with repository: $repository');
-    print('Repository type: ${repository.runtimeType}');
-  }
+  UpdateAssetStatusUseCase(this.repository);
 
   /// Mark asset as checked (A -> C) พร้อม log
   Future<ScannedItemEntity> markAsChecked(

@@ -15,7 +15,6 @@ class ActivityMonitorService {
   static const Duration _maxTimeSinceAuthCheck = Duration(seconds: 30);
 
   void startMonitoring() {
-    print('👀 Starting activity monitoring');
     _lastActivityTime = DateTime.now();
     _lastAuthCheckTime = DateTime.now();
     
@@ -26,7 +25,6 @@ class ActivityMonitorService {
   }
 
   void stopMonitoring() {
-    print('🛑 Stopping activity monitoring');
     _activityTimer?.cancel();
     _activityTimer = null;
   }

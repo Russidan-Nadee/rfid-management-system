@@ -11,8 +11,7 @@ class LocationAnalyticsModel {
   });
 
   factory LocationAnalyticsModel.fromJson(Map<String, dynamic> json) {
-    print('🔍 Raw JSON: ${json.toString()}');
-    print('🔍 Available keys: ${json.keys.toList()}');
+    // Processing location analytics data
 
     try {
       List<LocationTrendDataModel> trends = [];
@@ -50,7 +49,7 @@ class LocationAnalyticsModel {
       // วิธีที่ 3: ตรวจสอบ location_analytics array format
       else if (json['location_analytics'] != null &&
           json['location_analytics'] is List) {
-        print('✅ Using location_analytics array format');
+        // Using location_analytics array format
         // แปลงข้อมูล location analytics เป็น trend format
         final locationAnalytics = json['location_analytics'] as List<dynamic>;
         trends = locationAnalytics
@@ -96,12 +95,7 @@ class LocationAnalyticsModel {
         };
       }
 
-      print('📊 Final trends count: ${trends.length}');
-      for (int i = 0; i < trends.length && i < 3; i++) {
-        print(
-          '📊 Trend $i: ${trends[i].locationCode} - ${trends[i].assetCount} assets',
-        );
-      }
+      // Location analytics trends processed
 
       return LocationAnalyticsModel(
         locationTrends: trends,

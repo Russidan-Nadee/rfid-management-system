@@ -168,22 +168,14 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         if (endDate != null) queryParams['end_date'] = endDate;
       }
 
-      print('🔍 Final API URL: ${ApiConstants.dashboardGrowthTrends}');
-      print('🔍 Final query params: $queryParams');
-
       final response = await apiService.get<Map<String, dynamic>>(
         ApiConstants.dashboardGrowthTrends,
         queryParams: queryParams,
       );
-
-      print('🔍 API Response success: ${response.success}');
       if (response.data != null) {
         final trendsData = response.data!['trends'] as List<dynamic>?;
-        print('🔍 API Response trends count: ${trendsData?.length ?? 0}');
         if (trendsData != null && trendsData.isNotEmpty) {
-          final firstTrend = trendsData.first as Map<String, dynamic>;
-          print('🔍 First trend dept_code: ${firstTrend['dept_code']}');
-          print('🔍 First trend location_code: ${firstTrend['location_code']}');
+          // Process trends data
         }
       }
 

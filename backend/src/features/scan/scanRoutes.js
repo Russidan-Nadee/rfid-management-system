@@ -17,6 +17,7 @@ const {
 // Import middleware
 const { createRateLimit } = require('./scanMiddleware');
 const { authenticateToken } = require('../auth/authMiddleware');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 
 // Import validators
 const {
@@ -28,6 +29,10 @@ const {
 
 // Apply rate limiting
 const generalRateLimit = createRateLimit(15 * 60 * 1000, 1000);
+
+// Apply authentication and session auto-extension to protected routes
+router.use(authenticateToken);
+router.use(SessionMiddleware.extendActiveSession);
 
 // Department Routes
 router.get('/departments', generalRateLimit, departmentController.getDepartments);

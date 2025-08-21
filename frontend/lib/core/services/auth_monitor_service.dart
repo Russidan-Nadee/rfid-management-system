@@ -44,7 +44,6 @@ class AuthMonitorService with WidgetsBindingObserver {
   }
 
   void stopMonitoring() {
-    print('🛑 Stopping authentication monitoring');
     _authCheckTimer?.cancel();
     _authCheckTimer = null;
     WidgetsBinding.instance.removeObserver(this);

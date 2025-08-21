@@ -22,7 +22,8 @@ class CookieSessionService {
   /// Initialize session handling based on platform
   Future<void> init() async {
     if (isWeb) {
-      // Web: Cookies handled automatically by browser
+      // Web: Load stored session data
+      await _loadStoredSession();
       if (kDebugMode) {
         print('🍪 Cookie session initialized for Web');
       }
@@ -37,31 +38,64 @@ class CookieSessionService {
 
   /// Handle login response and extract session cookies
   Future<void> handleLoginResponse(http.Response response) async {
+    if (kDebugMode) {
+      print('🍪 LOGIN: Handling login response...');
+      print('🍪 LOGIN: Response status: ${response.statusCode}');
+      print('🍪 LOGIN: Response body: ${response.body}');
+    }
+    await _handleResponseWithExpiry(response);
+    if (kDebugMode) {
+      print('🍪 LOGIN: After handling - session expiry: $_sessionExpiryTime');
+    }
+  }
+
+  /// Handle any API response that might contain session expiry updates
+  Future<void> handleApiResponse(http.Response response) async {
+    await _handleResponseWithExpiry(response);
+  }
+
+  /// Common handler for responses that may contain session expiry information
+  Future<void> _handleResponseWithExpiry(http.Response response) async {
     if (isWeb) {
       // Web: Extract sessionId and expiry from response body for manual header handling
       try {
         final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-        if (responseBody['success'] == true && 
-            responseBody['data'] != null && 
-            responseBody['data']['sessionId'] != null) {
-          _sessionCookies['session_id'] = responseBody['data']['sessionId'];
+        
+        if (responseBody['success'] == true && responseBody['data'] != null) {
           
-          // Store session expiry time
-          if (responseBody['data']['expiresAt'] != null) {
-            _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
+          // Extract sessionId if present (login responses)
+          if (responseBody['data']['sessionId'] != null) {
+            _sessionCookies['session_id'] = responseBody['data']['sessionId'];
             if (kDebugMode) {
-              print('🍪 Web: New session expires at: $_sessionExpiryTime');
+              print('🍪 Web: Updated sessionId from response: ${responseBody['data']['sessionId'].toString().substring(0, 8)}...');
+            }
+          }
+          
+          // Extract expiry time if present (login/refresh responses)
+          if (responseBody['data']['expiresAt'] != null) {
+            final expiresAtString = responseBody['data']['expiresAt'];
+            _sessionExpiryTime = DateTime.parse(expiresAtString);
+            if (kDebugMode) {
+              print('🍪 Web: Found expiresAt in data: $expiresAtString');
+              print('🍪 Web: Updated session expiry to: $_sessionExpiryTime');
+            }
+          }
+          // Also check for sessionInfo from regular API responses
+          else if (responseBody['data']['sessionInfo'] != null && 
+                   responseBody['data']['sessionInfo']['expiresAt'] != null) {
+            final sessionInfoExpiresAt = responseBody['data']['sessionInfo']['expiresAt'];
+            _sessionExpiryTime = DateTime.parse(sessionInfoExpiresAt);
+            if (kDebugMode) {
+              print('🍪 Web: Found expiresAt in sessionInfo: $sessionInfoExpiresAt');
+              print('🍪 Web: Updated session expiry from sessionInfo to: $_sessionExpiryTime');
             }
           }
           
           await _saveSessionCookies();
-          if (kDebugMode) {
-            print('🍪 Web: Stored sessionId from response body');
-          }
         }
       } catch (e) {
         if (kDebugMode) {
-          print('🍪 Web: Failed to extract sessionId: $e');
+          print('🍪 Web: Failed to extract session info: $e');
         }
       }
       return;
@@ -77,14 +111,24 @@ class CookieSessionService {
     // IMPORTANT: Also extract expiry time from response body for Windows/Mobile
     try {
       final responseBody = jsonDecode(response.body) as Map<String, dynamic>;
-      if (responseBody['success'] == true && 
-          responseBody['data'] != null && 
-          responseBody['data']['expiresAt'] != null) {
-        _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
-        // Save the expiry time to storage
-        await _saveSessionCookies();
-        if (kDebugMode) {
-          print('🍪 Windows/Mobile: New session expires at: $_sessionExpiryTime');
+      if (responseBody['success'] == true && responseBody['data'] != null) {
+        
+        // Extract expiry time if present (login/refresh responses)
+        if (responseBody['data']['expiresAt'] != null) {
+          _sessionExpiryTime = DateTime.parse(responseBody['data']['expiresAt']);
+          if (kDebugMode) {
+            print('🍪 Windows/Mobile: Updated session expiry to: $_sessionExpiryTime');
+          }
+          await _saveSessionCookies();
+        }
+        // Also check for sessionInfo from regular API responses
+        else if (responseBody['data']['sessionInfo'] != null && 
+                 responseBody['data']['sessionInfo']['expiresAt'] != null) {
+          _sessionExpiryTime = DateTime.parse(responseBody['data']['sessionInfo']['expiresAt']);
+          if (kDebugMode) {
+            print('🍪 Windows/Mobile: Updated session expiry from sessionInfo to: $_sessionExpiryTime');
+          }
+          await _saveSessionCookies();
         }
       }
     } catch (e) {
@@ -100,9 +144,6 @@ class CookieSessionService {
       // Web: Send sessionId as custom header since HTTP-only cookies don't work with Flutter web HTTP client
       if (_sessionCookies.containsKey('session_id')) {
         final sessionId = _sessionCookies['session_id']!;
-        if (kDebugMode) {
-          print('🍪 Web: Using sessionId header: ${sessionId.substring(0, 8)}...');
-        }
         return {'x-session-id': sessionId};
       }
       return {};
@@ -124,9 +165,6 @@ class CookieSessionService {
       // Web: Check if we have stored sessionId from login response
       await _loadStoredSession();
       final hasSessionId = _sessionCookies.containsKey('session_id');
-      if (kDebugMode) {
-        print('🍪 Web: Session check: hasSessionId=$hasSessionId');
-      }
       return hasSessionId;
     }
 
@@ -157,11 +195,27 @@ class CookieSessionService {
     }
   }
 
+  /// Initialize new session (call this at login to ensure clean state)
+  Future<void> initializeNewSession() async {
+    if (kDebugMode) {
+      print('🍪 Initializing new session - clearing old data');
+    }
+    
+    // Clear any existing session data first
+    await clearSession();
+    
+    if (kDebugMode) {
+      print('🍪 New session initialized - ready for login response');
+    }
+  }
+
   /// Check if current session token is expired (client-side check)
   bool isSessionExpired() {
     if (_sessionExpiryTime == null) {
       // No expiry time stored - consider expired for safety
-      print('🕐 No session expiry time stored - considering expired');
+      if (kDebugMode) {
+        print('🕐 EXPIRY CHECK: No session expiry time stored - considering expired');
+      }
       return true;
     }
     
@@ -169,7 +223,16 @@ class CookieSessionService {
     final isExpired = now.isAfter(_sessionExpiryTime!);
     
     if (kDebugMode) {
-      print('🕐 Session expiry check: now=$now, expiry=$_sessionExpiryTime, expired=$isExpired');
+      print('🕐 EXPIRY CHECK: now=$now');
+      print('🕐 EXPIRY CHECK: expiry=$_sessionExpiryTime');
+      print('🕐 EXPIRY CHECK: expired=$isExpired');
+      if (isExpired) {
+        final timeDiff = now.difference(_sessionExpiryTime!);
+        print('🕐 EXPIRY CHECK: expired by ${timeDiff.inSeconds} seconds');
+      } else {
+        final timeLeft = _sessionExpiryTime!.difference(now);
+        print('🕐 EXPIRY CHECK: ${timeLeft.inSeconds} seconds remaining');
+      }
     }
     
     return isExpired;
@@ -185,6 +248,35 @@ class CookieSessionService {
     }
     
     return _sessionExpiryTime!.difference(now);
+  }
+
+  /// Extend session expiry time (when backend extends the session)
+  Future<void> extendSessionExpiry(int additionalMinutes) async {
+    if (_sessionExpiryTime != null) {
+      _sessionExpiryTime = _sessionExpiryTime!.add(Duration(minutes: additionalMinutes));
+      await _saveSessionCookies();
+      if (kDebugMode) {
+        print('🍪 Extended session expiry by $additionalMinutes minutes to: $_sessionExpiryTime');
+      }
+    }
+  }
+
+  /// Update session expiry time directly
+  Future<void> updateSessionExpiry(DateTime newExpiryTime) async {
+    _sessionExpiryTime = newExpiryTime;
+    await _saveSessionCookies();
+    if (kDebugMode) {
+      print('🍪 Updated session expiry to: $_sessionExpiryTime');
+    }
+  }
+
+  /// Store session ID manually (for login responses)
+  Future<void> storeSessionId(String sessionId) async {
+    _sessionCookies['session_id'] = sessionId;
+    await _saveSessionCookies();
+    if (kDebugMode) {
+      print('🍪 Stored session ID: ${sessionId.substring(0, 8)}...');
+    }
   }
 
   /// Parse Set-Cookie headers
@@ -254,6 +346,22 @@ class CookieSessionService {
       'cookieCount': _sessionCookies.length,
       'cookieKeys': _sessionCookies.keys.toList(),
       'hasSession': _sessionCookies.isNotEmpty,
+      'sessionExpiryTime': _sessionExpiryTime?.toIso8601String(),
+      'isExpired': isSessionExpired(),
+      'timeUntilExpiry': getTimeUntilExpiry()?.inSeconds,
     };
+  }
+
+  /// Debug method to print current session state
+  void debugSessionState() {
+    if (kDebugMode) {
+      print('🔍 SESSION DEBUG STATE:');
+      print('  Platform: ${isWeb ? "Web" : isMobile ? "Mobile" : "Desktop"}');
+      print('  Session ID: ${_sessionCookies["session_id"]?.substring(0, 8) ?? "none"}...');
+      print('  Expiry Time: $_sessionExpiryTime');
+      print('  Is Expired: ${isSessionExpired()}');
+      print('  Time Until Expiry: ${getTimeUntilExpiry()?.inSeconds ?? "N/A"} seconds');
+      print('  Cookie Count: ${_sessionCookies.length}');
+    }
   }
 }

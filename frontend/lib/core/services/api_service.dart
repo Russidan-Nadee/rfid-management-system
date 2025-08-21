@@ -28,10 +28,7 @@ class ApiService {
       headers.addAll(sessionHeaders);
 
       if (sessionHeaders.isNotEmpty) {
-        print('✅ Using session authentication');
         await _storage.updateSessionTimestamp();
-      } else {
-        print('❌ NO ACTIVE SESSION - Request will fail');
       }
     }
 
@@ -57,10 +54,7 @@ class ApiService {
           }
           return ValidationException([message]);
         case 401:
-          // AGGRESSIVE: Treat ALL 401s as session expiration for immediate logout
-          // This ensures any authentication failure triggers logout
-          print('🚨 API: 401 Unauthorized - treating as session expiration');
-          return SessionExpiredException(message.isNotEmpty ? message : 'Authentication failed - session expired');
+          return UnauthorizedException();
         case 403:
           return ForbiddenException();
         case 404:
@@ -106,9 +100,8 @@ class ApiService {
     T Function(dynamic)? fromJson,
   }) async {
     try {
-      // OPTION 1: Check token expiry BEFORE making request
+      // Check session expiry before making request
       if (requiresAuth && _cookieService.isSessionExpired()) {
-        print('🕐 API: Session expired before request - throwing SessionExpiredException');
         throw SessionExpiredException('Session expired - please login again');
       }
 
@@ -118,15 +111,7 @@ class ApiService {
         uri = uri.replace(queryParameters: queryParams);
       }
 
-      print('🔍 API: Making $method request');
-      print('🔍 API: URL: $uri');
-      print('🔍 API: Requires Auth: $requiresAuth');
-      if (body != null) {
-        print('🔍 API: Request Body: $body');
-      }
-      if (queryParams != null) {
-        print('🔍 API: Query Params: $queryParams');
-      }
+      // API request logging removed
 
       // Get headers
       final headers = await _getHeaders(requiresAuth: requiresAuth);
@@ -177,9 +162,6 @@ class ApiService {
       }
 
       // Handle response
-      print('🔍 API: Response Status: ${response.statusCode}');
-      print('🔍 API: Response Body: ${response.body}');
-      print('🔍 API: Response Headers: ${response.headers}');
       
       // OPTION 4: Global response interceptor - check for auth errors in ANY response
       if (requiresAuth && (response.statusCode == 401 || response.statusCode == 403)) {
@@ -188,10 +170,8 @@ class ApiService {
       }
       
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        print('✅ API: Success response');
-        
-        // Handle cookies in response
-        await _cookieService.handleLoginResponse(response);
+        // Handle cookies and session expiry updates in response for all successful responses
+        await _cookieService.handleApiResponse(response);
         
         final responseBody = response.body.isEmpty
             ? '{"success": true, "message": "Success", "timestamp": "${DateTime.now().toIso8601String()}"}'
@@ -199,10 +179,8 @@ class ApiService {
 
         final jsonResponse = jsonDecode(responseBody) as Map<String, dynamic>;
         final apiResponse = ApiResponse.fromJson(jsonResponse, fromJson);
-        print('🔍 API: Parsed response success: ${apiResponse.success}');
         return apiResponse;
       } else {
-        print('❌ API: Error response');
         try {
           throw _handleError(response);
         } catch (e) {
@@ -211,14 +189,11 @@ class ApiService {
           
           if (e is SessionExpiredException) {
             // Force immediate logout on session expiration
-            print('🚨 SessionExpiredException caught - forcing logout');
             await _forceLogout();
             rethrow;
           } else if (e is UnauthorizedException && requiresAuth) {
-            print('⚠️ UnauthorizedException - attempting token refresh');
             final refreshed = await _refreshToken();
             if (refreshed) {
-              print('✅ Token refresh successful - retrying request');
               // Retry original request
               return _makeRequest<T>(
                 method,
@@ -229,13 +204,11 @@ class ApiService {
                 fromJson: fromJson,
               );
             } else {
-              print('❌ Token refresh failed - forcing logout');
               await _forceLogout();
               rethrow;
             }
           } else if (response.statusCode == 401 && requiresAuth) {
             // Catch any other 401 errors that might not be properly classified
-            print('🚨 Generic 401 error on authenticated request - forcing logout');
             await _forceLogout();
             rethrow;
           }
@@ -353,8 +326,6 @@ class ApiService {
 
   Future<String?> getAuthToken() async {
     final token = await _storage.getAuthToken();
-    print('🔑 DEBUG TOKEN: $token');
-    print('🔑 TOKEN LENGTH: ${token?.length ?? 0}');
     return token;
   }
 
@@ -422,34 +393,28 @@ class ApiService {
       // Only attempt refresh if we have a valid session
       final hasSession = await _cookieService.hasValidSession();
       if (!hasSession) {
-        print('❌ NO VALID SESSION - Cannot refresh');
         return false;
       }
 
-      print('📡 CALLING SESSION REFRESH API...');
       final headers = await _getHeaders(requiresAuth: true);
       
       final response = await _client.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.refreshSession}'),
         headers: headers,
       );
-      print('📥 SESSION REFRESH RESPONSE: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        // Handle new session cookie
-        await _cookieService.handleLoginResponse(response);
-        print('✅ SESSION REFRESHED SUCCESSFULLY');
+        // Handle new session cookie and updated expiry time
+        await _cookieService.handleApiResponse(response);
         return true;
       } else if (response.statusCode == 401) {
         // Session expired - clear local session data
-        print('❌ SESSION EXPIRED - Clearing local session');
         await clearAuthToken();
         return false;
       }
       
       return false;
     } catch (e) {
-      print('❌ REFRESH FAILED: $e');
       return false;
     }
   }
@@ -515,20 +480,29 @@ class ApiService {
   }
 
   // Force logout when session expires
+  static bool _isLoggingOut = false;
+  
   Future<void> _forceLogout() async {
+    if (_isLoggingOut) {
+      print('⚠️ API SERVICE: Logout already in progress, skipping');
+      return;
+    }
+    
     try {
-      print('🚨 API SERVICE: FORCING LOGOUT DUE TO SESSION EXPIRATION');
+      _isLoggingOut = true;
       await clearAuthToken();
       
       // Trigger global logout event through a global callback if available
       if (_onForceLogout != null) {
-        print('✅ API SERVICE: Calling force logout callback');
         _onForceLogout!();
-      } else {
-        print('❌ API SERVICE: No force logout callback set!');
       }
     } catch (e) {
-      print('❌ Error during force logout: $e');
+      // Handle logout errors silently
+    } finally {
+      // Reset the flag after a delay to allow the logout process to complete
+      Future.delayed(const Duration(seconds: 2), () {
+        _isLoggingOut = false;
+      });
     }
   }
 

@@ -6,12 +6,14 @@ class LoginResponse {
   final String? refreshToken; // Optional for backward compatibility
   final UserModel user;
   final String sessionId;
+  final String? expiresAt; // Session expiry time
 
   LoginResponse({
     this.token,
     this.refreshToken,
     required this.user,
     required this.sessionId,
+    this.expiresAt,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class LoginResponse {
       refreshToken: data['refreshToken'] ?? data['refresh_token'],
       user: UserModel.fromJson(data['user'] ?? {}),
       sessionId: data['sessionId'] ?? '',
+      expiresAt: data['expiresAt'],
     );
   }
 
@@ -30,13 +33,14 @@ class LoginResponse {
       'token': token,
       'refreshToken': refreshToken,
       'user': user.toJson(),
-      'sessionId': sessionId
+      'sessionId': sessionId,
+      'expiresAt': expiresAt,
     };
   }
 
   @override
   String toString() {
-    return 'LoginResponse(token: ${token?.substring(0, 10) ?? 'null'}..., refreshToken: ${refreshToken?.substring(0, 10) ?? 'null'}..., user: $user, sessionId: $sessionId)';
+    return 'LoginResponse(token: ${token?.substring(0, 10) ?? 'null'}..., refreshToken: ${refreshToken?.substring(0, 10) ?? 'null'}..., user: $user, sessionId: $sessionId, expiresAt: $expiresAt)';
   }
 
   @override
@@ -46,9 +50,10 @@ class LoginResponse {
         other.token == token &&
         other.refreshToken == refreshToken &&
         other.user == user &&
-        other.sessionId == sessionId;
+        other.sessionId == sessionId &&
+        other.expiresAt == expiresAt;
   }
 
   @override
-  int get hashCode => token.hashCode ^ refreshToken.hashCode ^ user.hashCode ^ sessionId.hashCode;
+  int get hashCode => token.hashCode ^ refreshToken.hashCode ^ user.hashCode ^ sessionId.hashCode ^ expiresAt.hashCode;
 }

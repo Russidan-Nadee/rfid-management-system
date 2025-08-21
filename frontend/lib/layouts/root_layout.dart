@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/services/browser_api.dart';
+import '../core/services/session_timer_service.dart';
 import 'package:frontend/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:frontend/features/export/presentation/pages/export_page.dart';
 import 'package:frontend/features/search/presentation/pages/search_page.dart';
@@ -31,6 +32,7 @@ class _RootLayoutState extends State<RootLayout> {
 
   late List<GlobalKey<NavigatorState>> _navigatorKeys;
   late BrowserApi _browserApi;
+  final SessionTimerService _sessionTimer = SessionTimerService();
 
   @override
   void initState() {
@@ -253,6 +255,9 @@ class _RootLayoutState extends State<RootLayout> {
   }
 
   void _onNavTap(int index) {
+    // Record user activity on any navigation
+    _sessionTimer.recordActivity();
+    
     if (index == _currentIndex) {
       // Pop to first route if same tab is tapped
       _navigatorKeys[_currentIndex].currentState?.popUntil(
@@ -364,7 +369,10 @@ class _RootLayoutState extends State<RootLayout> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(8),
-          onTap: () => setState(() => _isRailExtended = !_isRailExtended),
+          onTap: () {
+            _sessionTimer.recordActivity();
+            setState(() => _isRailExtended = !_isRailExtended);
+          },
           child: Icon(
             _isRailExtended ? Icons.menu_open : Icons.menu,
             color: AppColors.onPrimary,

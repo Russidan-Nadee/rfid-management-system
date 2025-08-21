@@ -20,8 +20,21 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<AuthResult> login(String ldapUsername, String password) async {
     try {
+      // Initialize new session (clears old session data)
+      await cookieService.initializeNewSession();
+      
       final request = LoginRequest(ldapUsername: ldapUsername, password: password);
       final response = await remoteDataSource.login(request);
+
+      // Update session cookie and expiry time if provided
+      if (response.sessionId.isNotEmpty) {
+        // Store session ID as cookie
+        await cookieService.storeSessionId(response.sessionId);
+      }
+      
+      if (response.expiresAt != null) {
+        await cookieService.updateSessionExpiry(DateTime.parse(response.expiresAt!));
+      }
 
       // Save user data
       await storageService.saveUserData(response.user.toJson());

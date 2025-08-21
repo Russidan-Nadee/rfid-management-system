@@ -6,9 +6,6 @@ class GlobalExceptionHandler {
   
   /// Set up global error handling
   static void initialize() {
-    if (kDebugMode) {
-      print('🔧 GlobalExceptionHandler: Initializing global error handling');
-    }
     
     // Catch any unhandled errors in Flutter
     FlutterError.onError = (FlutterErrorDetails details) {

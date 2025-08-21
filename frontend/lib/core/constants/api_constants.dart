@@ -68,7 +68,6 @@ class ApiConstants {
   // **Manual control methods**
   static void setManualIP(String ip) {
     _manualIP = ip;
-    print('API: Manual IP set to $ip');
   }
 
   static void useEmulator() {

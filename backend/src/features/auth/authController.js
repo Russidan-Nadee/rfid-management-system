@@ -194,10 +194,25 @@ const authController = {
             });
          }
 
-         // First validate the session - if expired/invalid, don't try to extend
-         const session = await SessionModel.validateSession(sessionId);
+         // Get session (even if expired) to check if it exists and is recent
+         const session = await SessionModel.getSession(sessionId);
          if (!session) {
-            // Session is expired or invalid - clear cookies and return error
+            // Session doesn't exist at all
+            return res.status(401).json({
+               success: false,
+               message: 'Session not found',
+               error: 'NO_SESSION',
+               timestamp: new Date().toISOString()
+            });
+         }
+
+         // Check if session is recent enough to refresh (within 30 seconds of expiry)
+         const now = new Date();
+         const timeSinceExpiry = now.getTime() - new Date(session.expires_at).getTime();
+         const thirtySeconds = 30 * 1000; // 30 seconds in milliseconds
+         
+         if (timeSinceExpiry > thirtySeconds) {
+            // Session has been expired for too long - force re-authentication
             res.clearCookie('session_id', {
                httpOnly: true,
                secure: process.env.NODE_ENV === 'production',
@@ -207,13 +222,13 @@ const authController = {
             
             return res.status(401).json({
                success: false,
-               message: 'Session expired or invalid',
-               error: 'SESSION_EXPIRED',
+               message: 'Session expired more than 30 seconds ago - please login again',
+               error: 'SESSION_EXPIRED_TOO_LONG',
                timestamp: new Date().toISOString()
             });
          }
 
-         // Session is valid - extend it by 2 minutes
+         // Extend session by 2 minutes (works for both valid and recently expired sessions)
          const extended = await SessionModel.extendSession(sessionId, 2);
          
          if (!extended) {
@@ -235,11 +250,15 @@ const authController = {
 
          res.cookie('session_id', sessionId, cookieOptions);
 
+         // Calculate new expiry timestamp for frontend
+         const newExpiryTimestamp = new Date(Date.now() + (2 * 60 * 1000)).toISOString();
+
          res.status(200).json({
             success: true,
             message: 'Session extended successfully',
             data: {
                sessionId: sessionId,
+               expiresAt: newExpiryTimestamp,
                expiresIn: 2 * 60 // seconds
             },
             timestamp: new Date().toISOString()

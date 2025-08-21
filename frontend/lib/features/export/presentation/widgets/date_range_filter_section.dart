@@ -38,26 +38,19 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
   @override
   void initState() {
     super.initState();
-    print('🔧 DateRangeFilterSection initState - Loading periods...');
     if (widget.selectedDateRange != null) {
       _selectedPeriod = widget.selectedDateRange!.period;
       _selectedField = widget.selectedDateRange!.field;
-      print('🔧 Restored from widget: period=$_selectedPeriod, field=$_selectedField');
-    } else {
-      print('🔧 Using defaults: period=$_selectedPeriod, field=$_selectedField');
     }
     _loadDatePeriods();
   }
 
   void _loadDatePeriods() {
-    print('🔧 _loadDatePeriods() called - dispatching LoadDatePeriods event');
     context.read<ExportBloc>().add(const LoadDatePeriods());
   }
 
   void _onPeriodChanged(String? period) {
     if (period == null) return;
-    
-    print('📅 Period changed to: $period');
     
     setState(() {
       _selectedPeriod = period;
@@ -130,13 +123,11 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
 
     return BlocListener<ExportBloc, ExportState>(
       listener: (context, state) {
-        print('🔧 BlocListener received state: ${state.runtimeType}');
+        // Handle export state changes
         if (state is DatePeriodsLoaded) {
-          print('🔧 DatePeriodsLoaded state received! Setting data...');
           setState(() {
             _datePeriodsData = state.datePeriodsData;
           });
-          print('🔧 _datePeriodsData set: ${_datePeriodsData?.periods.length} periods, ${_datePeriodsData?.availableFields.length} fields');
         }
       },
       child: Column(

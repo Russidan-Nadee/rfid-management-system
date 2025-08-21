@@ -4,8 +4,13 @@ const NotificationController = require('./notificationController');
 const NotificationValidator = require('./notificationValidator');
 const { authenticateToken } = require('../auth/authMiddleware');
 const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 
 const router = express.Router();
+
+// Apply authentication and session auto-extension to all notification routes
+router.use(authenticateToken);
+router.use(SessionMiddleware.extendActiveSession);
 
 // Middleware to handle validation errors
 const handleValidationErrors = (req, res, next) => {

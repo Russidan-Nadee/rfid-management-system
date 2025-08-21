@@ -18,6 +18,7 @@ const {
 const { createRateLimit } = require('../scan/scanMiddleware');
 const { authenticateToken, optionalAuth } = require('../auth/authMiddleware');
 const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware');
+const SessionMiddleware = require('../../core/middleware/sessionMiddleware');
 
 // สำหรับเพิ่มใน routes/route.js:
 // router.use('/search', require('./searchRoutes'));
@@ -25,6 +26,9 @@ const { requireManagerOrAdmin } = require('../../core/middleware/roleMiddleware'
 // Rate limiting - more strict for search APIs
 const searchRateLimit = createRateLimit(1 * 60 * 1000, 60);    // 60 requests per minute
 const instantRateLimit = createRateLimit(1 * 60 * 1000, 120);  // 120 requests per minute for instant
+
+// Apply session auto-extension to authenticated search routes
+router.use(authenticateToken, SessionMiddleware.extendActiveSession);
 
 /**
  * 🔍 INSTANT SEARCH ROUTES
