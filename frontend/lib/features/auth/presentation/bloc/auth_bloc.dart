@@ -29,10 +29,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      final isAuthenticated = await authRepository.isAuthenticated();
+      // Add timeout to prevent infinite loading
+      final isAuthenticated = await authRepository.isAuthenticated()
+          .timeout(const Duration(seconds: 10));
 
       if (isAuthenticated) {
-        final user = await authRepository.getCurrentUser();
+        final user = await authRepository.getCurrentUser()
+            .timeout(const Duration(seconds: 5));
         if (user != null) {
           emit(AuthAuthenticated(user: user));
         } else {
@@ -42,6 +45,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthUnauthenticated());
       }
     } catch (e) {
+      // Log the error for debugging and default to unauthenticated
+      print('Auth check failed: $e');
       emit(const AuthUnauthenticated());
     }
   }
@@ -75,14 +80,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     
+    // Clear auth data IMMEDIATELY before emitting unauthenticated state
+    try {
+      await authRepository.clearAuthData();
+    } catch (e) {
+      // Continue with logout even if clearing fails
+    }
+    
     // IMMEDIATE logout - no loading state to avoid UI delay
     emit(const AuthUnauthenticated());
 
-    // Clean up in background without affecting UI
+    // Server logout in background without affecting UI
     try {
-      await logoutUseCase.execute();
+      await authRepository.logout();
     } catch (e) {
-      // Ignore cleanup errors - user is already logged out in UI
+      // Ignore server logout errors - user is already logged out locally
     }
   }
 
