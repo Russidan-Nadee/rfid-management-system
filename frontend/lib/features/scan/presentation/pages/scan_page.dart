@@ -64,7 +64,7 @@ class _ScanPageViewState extends State<ScanPageView> {
     return Scaffold(
       backgroundColor: Theme.of(context).brightness == Brightness.dark
           ? AppColors.darkSurface.withValues(alpha: 0.5)
-          : theme.colorScheme.background,
+          : theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.scanPageTitle,
@@ -87,7 +87,7 @@ class _ScanPageViewState extends State<ScanPageView> {
             builder: (context, state) {
               // ✅ Update our widget-level state tracking
               _updateScanState(state);
-              
+
               // ✅ Show refresh button based on whether we have scanned items
               if (_hasScannedItems) {
                 return IconButton(
@@ -110,7 +110,6 @@ class _ScanPageViewState extends State<ScanPageView> {
       ),
       body: BlocListener<ScanBloc, ScanState>(
         listener: (context, state) {
-
           if (state is ScanError) {
             Helpers.showError(context, state.message);
           } else if (state is ScanSuccess && state is! ScanSuccessFiltered) {
@@ -154,11 +153,11 @@ class _ScanPageViewState extends State<ScanPageView> {
             } else if (state is ScanError) {
               return _buildErrorView(context, state.message, l10n);
             } else if (state is AssetStatusUpdating) {
-
               // ใช้ _lastScanSuccess ที่เก็บไว้ (เฉพาะเมื่อไม่ได้อยู่ในระหว่าง scan ใหม่)
               if (_lastScanSuccess != null) {
                 return ScanListView(
-                  scannedItems: _lastScanSuccess!.filteredItems, // Use filtered items
+                  scannedItems:
+                      _lastScanSuccess!.filteredItems, // Use filtered items
                   isLoading: true, // แสดง loading indicator
                   onRefresh: () {
                     context.read<ScanBloc>().add(const RefreshScanResults());
@@ -174,7 +173,8 @@ class _ScanPageViewState extends State<ScanPageView> {
               // Image states ไม่ควรเปลี่ยน main UI - ใช้ _lastScanSuccess ที่เก็บไว้
               if (_lastScanSuccess != null) {
                 return ScanListView(
-                  scannedItems: _lastScanSuccess!.filteredItems, // Use filtered items
+                  scannedItems:
+                      _lastScanSuccess!.filteredItems, // Use filtered items
                   onRefresh: () {
                     context.read<ScanBloc>().add(const RefreshScanResults());
                   },
@@ -188,7 +188,8 @@ class _ScanPageViewState extends State<ScanPageView> {
               // แต่เก็บไว้เป็น fallback
               if (_lastScanSuccess != null) {
                 return ScanListView(
-                  scannedItems: _lastScanSuccess!.filteredItems, // Use filtered items
+                  scannedItems:
+                      _lastScanSuccess!.filteredItems, // Use filtered items
                   onRefresh: () {
                     context.read<ScanBloc>().add(const RefreshScanResults());
                   },
@@ -198,9 +199,11 @@ class _ScanPageViewState extends State<ScanPageView> {
             }
 
             // ✅ แก้ไข: ถ้าเคยสแกนแล้วให้แสดง ScanListView เสมอ
-            if (_lastScanSuccess != null && _lastScanSuccess!.scannedItems.isNotEmpty) {
+            if (_lastScanSuccess != null &&
+                _lastScanSuccess!.scannedItems.isNotEmpty) {
               return ScanListView(
-                scannedItems: _lastScanSuccess!.filteredItems, // Use filtered items
+                scannedItems:
+                    _lastScanSuccess!.filteredItems, // Use filtered items
                 onRefresh: () {
                   context.read<ScanBloc>().add(const RefreshScanResults());
                 },
@@ -214,7 +217,6 @@ class _ScanPageViewState extends State<ScanPageView> {
   }
 
   Widget _buildLoadingView(BuildContext context, ScanLocalizations l10n) {
-
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -323,7 +325,6 @@ class _ScanPageViewState extends State<ScanPageView> {
     String message,
     ScanLocalizations l10n,
   ) {
-
     return Center(
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
@@ -395,7 +396,7 @@ class _ScanPageViewState extends State<ScanPageView> {
                 onPressed: () {
                   context.read<ScanBloc>().add(const StartScan());
                 },
-                icon: Icon(Icons.refresh, color: AppColors.onPrimary),
+                icon: const Icon(Icons.refresh, color: AppColors.onPrimary),
                 label: Text(
                   l10n.tryAgain,
                   style: AppTextStyles.button.copyWith(
@@ -406,7 +407,9 @@ class _ScanPageViewState extends State<ScanPageView> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
                   padding: AppSpacing.buttonPaddingSymmetric,
-                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: AppBorders.md,
+                  ),
                 ),
               ),
             ),

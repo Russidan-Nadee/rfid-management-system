@@ -121,12 +121,12 @@ class _SplashScreenState extends State<SplashScreen>
     return Container(
       width: 120,
       height: 120,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppBorders.large,
         boxShadow: AppShadows.large,
       ),
-      child: Icon(
+      child: const Icon(
         Icons.inventory_2_outlined,
         color: AppColors.primary,
         size: 60,
@@ -135,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildLoadingIndicator() {
-    return SizedBox(
+    return const SizedBox(
       width: 32,
       height: 32,
       child: CircularProgressIndicator(
@@ -163,7 +163,7 @@ class MinimalSplashScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: AppDecorations.card,
-              child: Icon(
+              child: const Icon(
                 Icons.inventory_2_outlined,
                 color: AppColors.primary,
                 size: 40,
@@ -181,7 +181,7 @@ class MinimalSplashScreen extends StatelessWidget {
             AppSpacing.verticalSpaceXL,
 
             // Loading
-            CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+            const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
           ],
         ),
       ),

@@ -555,7 +555,7 @@ class CustomAssetDistributionChart extends StatelessWidget {
     if (value > 100) {
       return Container(
         padding: AppSpacing.paddingXS,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.surface,
           shape: BoxShape.circle,
           boxShadow: AppShadows.small,

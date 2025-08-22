@@ -48,7 +48,7 @@ class CreateExportButton extends StatelessWidget {
   BoxDecoration _buildContainerDecoration(ThemeData theme, bool isEnabled) {
     if (isLoading) {
       return AppDecorations.buttonSecondary.copyWith(
-        color: theme.colorScheme.surfaceVariant,
+        color: theme.colorScheme.surfaceContainerHighest,
       );
     }
 
@@ -65,7 +65,7 @@ class CreateExportButton extends StatelessWidget {
     }
 
     return AppDecorations.buttonSecondary.copyWith(
-      color: theme.colorScheme.surfaceVariant,
+      color: theme.colorScheme.surfaceContainerHighest,
     );
   }
 
@@ -254,7 +254,7 @@ class CompactExportButton extends StatelessWidget {
       width: 120,
       height: 40,
       decoration: BoxDecoration(
-        color: isEnabled ? AppColors.primary : theme.colorScheme.surfaceVariant,
+        color: isEnabled ? AppColors.primary : theme.colorScheme.surfaceContainerHighest,
         borderRadius: AppBorders.md,
         boxShadow: isEnabled
             ? [

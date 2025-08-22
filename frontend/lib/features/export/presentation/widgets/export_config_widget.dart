@@ -116,12 +116,12 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
     final clampedWidth = maxWidth.clamp(600.0, 1200.0);
 
     return Padding(
-      padding: EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: SizedBox(
         width: double.infinity,
         child: Container(
           constraints: BoxConstraints(maxWidth: clampedWidth),
-          margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: SingleChildScrollView(
             child: _buildContent(context, isLargeScreen: true),
           ),
@@ -286,7 +286,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                 : theme.colorScheme.primary,
             size: isLargeScreen ? 24 : 20,
           ),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,7 +301,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                     fontSize: isLargeScreen ? 16 : 14,
                   ),
                 ),
-                SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   _buildExportDescription(),
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -350,7 +350,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
             color: isLoading
                 ? (isDark
                       ? AppColors.darkSurfaceVariant
-                      : theme.colorScheme.surfaceVariant)
+                      : theme.colorScheme.surfaceContainerHighest)
                 : theme.colorScheme.primary,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
@@ -368,7 +368,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
               onTap: isLoading ? null : _onExportPressed,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg,
                   vertical: AppSpacing.md,
                 ),
@@ -388,7 +388,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                               ),
                             ),
                           ),
-                          SizedBox(width: AppSpacing.lg),
+                          const SizedBox(width: AppSpacing.lg),
                           Text(
                             state.message,
                             style: theme.textTheme.labelLarge?.copyWith(
@@ -407,7 +407,7 @@ class _ExportConfigWidgetState extends State<ExportConfigWidget> {
                             color: theme.colorScheme.onPrimary,
                             size: 20,
                           ),
-                          SizedBox(width: AppSpacing.sm),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             l10n.exportData,
                             style: theme.textTheme.labelLarge?.copyWith(

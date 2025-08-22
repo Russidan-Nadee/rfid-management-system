@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../../app/theme/app_decorations.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../l10n/features/export/export_localizations.dart';
@@ -10,7 +9,6 @@ import '../../data/models/period_model.dart';
 import '../bloc/export_bloc.dart';
 import '../bloc/export_event.dart';
 import '../bloc/export_state.dart';
-import 'date_filter_card.dart';
 
 class DateRangeFilterSection extends StatefulWidget {
   final DateRangeFilterModel? selectedDateRange;
@@ -51,21 +49,21 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
 
   void _onPeriodChanged(String? period) {
     if (period == null) return;
-    
+
     setState(() {
       _selectedPeriod = period;
     });
-    
+
     _updateDateRange();
   }
 
   void _onFieldChanged(String? field) {
     if (field == null) return;
-    
+
     setState(() {
       _selectedField = field;
     });
-    
+
     _updateDateRange();
   }
 
@@ -74,24 +72,32 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
       if (startDate != null) _customStartDate = startDate;
       if (endDate != null) _customEndDate = endDate;
     });
-    
-    if (_selectedPeriod == 'custom' && _customStartDate != null && _customEndDate != null) {
+
+    if (_selectedPeriod == 'custom' &&
+        _customStartDate != null &&
+        _customEndDate != null) {
       _updateDateRange();
     }
   }
 
   void _updateDateRange() {
     DateRangeFilterModel? dateRange;
-    
+
     if (_selectedPeriod == 'custom') {
       // For custom, we create the model immediately to show the pickers
       dateRange = DateRangeFilterModel(
         period: _selectedPeriod,
         field: _selectedField,
-        customStartDate: _customStartDate != null ? _formatDate(_customStartDate!) : null,
-        customEndDate: _customEndDate != null ? _formatDate(_customEndDate!) : null,
+        customStartDate: _customStartDate != null
+            ? _formatDate(_customStartDate!)
+            : null,
+        customEndDate: _customEndDate != null
+            ? _formatDate(_customEndDate!)
+            : null,
       );
-      print('🗓️ Custom date range selected. Start: ${_customStartDate}, End: ${_customEndDate}');
+      print(
+        '🗓️ Custom date range selected. Start: ${_customStartDate}, End: ${_customEndDate}',
+      );
     } else {
       dateRange = DateRangeFilterModel(
         period: _selectedPeriod,
@@ -99,7 +105,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
       );
       print('⏰ Period selected: $_selectedPeriod for field: $_selectedField');
     }
-    
+
     widget.onDateRangeChanged(dateRange);
   }
 
@@ -134,10 +140,11 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(context, theme, isDark, l10n),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           _buildDateFilterCards(context, theme, isDark, l10n),
-          if (widget.selectedDateRange != null && _selectedPeriod == 'custom') ...[
-            SizedBox(height: AppSpacing.lg),
+          if (widget.selectedDateRange != null &&
+              _selectedPeriod == 'custom') ...[
+            const SizedBox(height: AppSpacing.lg),
             _buildCustomDatePicker(context, theme, isDark, l10n),
           ],
         ],
@@ -153,8 +160,8 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
   ) {
     return Row(
       children: [
-        Icon(Icons.date_range, color: AppColors.primary, size: 20),
-        SizedBox(width: AppSpacing.sm),
+        const Icon(Icons.date_range, color: AppColors.primary, size: 20),
+        const SizedBox(width: AppSpacing.sm),
         Flexible(
           child: Text(
             l10n.dateRangeFilter,
@@ -166,9 +173,9 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
           ),
         ),
         if (widget.selectedDateRange != null) ...[
-          SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,
               vertical: AppSpacing.xs,
             ),
@@ -196,7 +203,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
     ExportLocalizations l10n,
   ) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.surface,
         borderRadius: BorderRadius.circular(12),
@@ -216,32 +223,39 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
                 onChanged: _toggleDateRangeFilter,
                 activeColor: theme.colorScheme.primary,
               ),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               Text(
-                widget.selectedDateRange != null ? l10n.dateRangeEnabled : l10n.enableDateFilter,
+                widget.selectedDateRange != null
+                    ? l10n.dateRangeEnabled
+                    : l10n.enableDateFilter,
                 style: AppTextStyles.body1.copyWith(
                   color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                  fontWeight: widget.selectedDateRange != null ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: widget.selectedDateRange != null
+                      ? FontWeight.w600
+                      : FontWeight.normal,
                 ),
               ),
             ],
           ),
-          
+
           // Show dropdowns when enabled
           if (widget.selectedDateRange != null) ...[
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             if (_datePeriodsData == null) ...[
               Container(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    SizedBox(width: AppSpacing.md),
-                    Text(l10n.loadingPeriods, style: TextStyle(color: Colors.orange)),
+                    const SizedBox(width: AppSpacing.md),
+                    Text(
+                      l10n.loadingPeriods,
+                      style: const TextStyle(color: Colors.orange),
+                    ),
                   ],
                 ),
               ),
@@ -249,17 +263,49 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
               if (widget.isLargeScreen)
                 Row(
                   children: [
-                    Expanded(child: _buildSimpleDropdown(l10n.dateFieldLabel, _selectedField, _getLocalizedDateFields(l10n), _onFieldChanged, theme, isDark)),
-                    SizedBox(width: AppSpacing.lg),
-                    Expanded(child: _buildSimpleDropdown(l10n.periodLabel, _selectedPeriod, _getLocalizedPeriods(l10n), _onPeriodChanged, theme, isDark)),
+                    Expanded(
+                      child: _buildSimpleDropdown(
+                        l10n.dateFieldLabel,
+                        _selectedField,
+                        _getLocalizedDateFields(l10n),
+                        _onFieldChanged,
+                        theme,
+                        isDark,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: _buildSimpleDropdown(
+                        l10n.periodLabel,
+                        _selectedPeriod,
+                        _getLocalizedPeriods(l10n),
+                        _onPeriodChanged,
+                        theme,
+                        isDark,
+                      ),
+                    ),
                   ],
                 )
               else
                 Column(
                   children: [
-                    _buildSimpleDropdown(l10n.dateFieldLabel, _selectedField, _getLocalizedDateFields(l10n), _onFieldChanged, theme, isDark),
-                    SizedBox(height: AppSpacing.lg),
-                    _buildSimpleDropdown(l10n.periodLabel, _selectedPeriod, _getLocalizedPeriods(l10n), _onPeriodChanged, theme, isDark),
+                    _buildSimpleDropdown(
+                      l10n.dateFieldLabel,
+                      _selectedField,
+                      _getLocalizedDateFields(l10n),
+                      _onFieldChanged,
+                      theme,
+                      isDark,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    _buildSimpleDropdown(
+                      l10n.periodLabel,
+                      _selectedPeriod,
+                      _getLocalizedPeriods(l10n),
+                      _onPeriodChanged,
+                      theme,
+                      isDark,
+                    ),
                   ],
                 ),
             ],
@@ -307,12 +353,14 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
+            color: isDark
+                ? AppColors.darkSurfaceVariant
+                : AppColors.surfaceContainer,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isDark ? AppColors.darkBorder : AppColors.divider,
@@ -322,335 +370,20 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
             child: DropdownButton<String>(
               value: value,
               onChanged: onChanged,
-              items: items.map((item) => DropdownMenuItem(
-                value: item['value'],
-                child: Text(
-                  item['label']!,
-                  style: AppTextStyles.body1.copyWith(
-                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                  ),
-                ),
-              )).toList(),
-              dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToggleCard(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.divider,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Enable Filter',
-            style: AppTextStyles.subtitle2.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Switch(
-                value: widget.selectedDateRange != null,
-                onChanged: _toggleDateRangeFilter,
-                activeColor: theme.colorScheme.primary,
-              ),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  widget.selectedDateRange != null ? 'Enabled' : 'Disabled',
-                  style: AppTextStyles.body2.copyWith(
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateRangeToggle(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    return Row(
-      children: [
-        Switch(
-          value: widget.selectedDateRange != null,
-          onChanged: _toggleDateRangeFilter,
-          activeColor: theme.colorScheme.primary,
-        ),
-        SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Text(
-            widget.selectedDateRange != null
-                ? 'Date range filter enabled'
-                : 'Enable date range filter',
-            style: AppTextStyles.body1.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-              fontWeight: widget.selectedDateRange != null ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDateFieldCard(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    if (_datePeriodsData == null) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.divider,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Date Field',
-            style: AppTextStyles.subtitle2.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.divider,
-              ),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedField,
-                onChanged: _onFieldChanged,
-                items: _datePeriodsData!.availableFields
-                    .map((field) => DropdownMenuItem(
-                          value: field.field,
-                          child: Text(
-                            field.label,
-                            style: AppTextStyles.body2.copyWith(
-                              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                            ),
-                          ),
-                        ))
-                    .toList(),
-                dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateFieldSelector(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    if (_datePeriodsData == null) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Filter by Date Field',
-          style: AppTextStyles.subtitle2.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: AppSpacing.sm),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.divider,
-            ),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedField,
-              onChanged: _onFieldChanged,
-              items: _datePeriodsData!.availableFields
-                  .map((field) => DropdownMenuItem(
-                        value: field.field,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              field.label,
-                              style: AppTextStyles.body1.copyWith(
-                                color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              field.description,
-                              style: AppTextStyles.caption.copyWith(
-                                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
+              items: items
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item['value'],
+                      child: Text(
+                        item['label']!,
+                        style: AppTextStyles.body1.copyWith(
+                          color: isDark
+                              ? AppColors.darkText
+                              : AppColors.textPrimary,
                         ),
-                      ))
-                  .toList(),
-              dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPeriodCard(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    if (_datePeriodsData == null) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : AppColors.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.divider,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Period',
-            style: AppTextStyles.subtitle2.copyWith(
-              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: AppSpacing.sm),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.divider,
-              ),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedPeriod,
-                onChanged: _onPeriodChanged,
-                items: _datePeriodsData!.periods
-                    .map((period) => DropdownMenuItem(
-                          value: period.value,
-                          child: Text(
-                            period.label,
-                            style: AppTextStyles.body2.copyWith(
-                              color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                            ),
-                          ),
-                        ))
-                    .toList(),
-                dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodSelector(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    ExportLocalizations l10n,
-  ) {
-    if (_datePeriodsData == null) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Period',
-          style: AppTextStyles.subtitle2.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: AppSpacing.sm),
-        Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.divider,
-            ),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedPeriod,
-              onChanged: _onPeriodChanged,
-              items: _datePeriodsData!.periods
-                  .map((period) => DropdownMenuItem(
-                        value: period.value,
-                        child: Text(
-                          period.label,
-                          style: AppTextStyles.body1.copyWith(
-                            color: isDark ? AppColors.darkText : AppColors.textPrimary,
-                          ),
-                        ),
-                      ))
+                      ),
+                    ),
+                  )
                   .toList(),
               dropdownColor: isDark ? AppColors.darkSurface : AppColors.surface,
             ),
@@ -676,20 +409,39 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         if (widget.isLargeScreen)
           Row(
             children: [
-              Expanded(child: _buildDateField(l10n.startDateLabel, _customStartDate, true, l10n)),
-              SizedBox(width: AppSpacing.md),
-              Expanded(child: _buildDateField(l10n.endDateLabel, _customEndDate, false, l10n)),
+              Expanded(
+                child: _buildDateField(
+                  l10n.startDateLabel,
+                  _customStartDate,
+                  true,
+                  l10n,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: _buildDateField(
+                  l10n.endDateLabel,
+                  _customEndDate,
+                  false,
+                  l10n,
+                ),
+              ),
             ],
           )
         else
           Column(
             children: [
-              _buildDateField(l10n.startDateLabel, _customStartDate, true, l10n),
-              SizedBox(height: AppSpacing.sm),
+              _buildDateField(
+                l10n.startDateLabel,
+                _customStartDate,
+                true,
+                l10n,
+              ),
+              const SizedBox(height: AppSpacing.sm),
               _buildDateField(l10n.endDateLabel, _customEndDate, false, l10n),
             ],
           ),
@@ -697,7 +449,12 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
     );
   }
 
-  Widget _buildDateField(String label, DateTime? selectedDate, bool isStartDate, ExportLocalizations l10n) {
+  Widget _buildDateField(
+    String label,
+    DateTime? selectedDate,
+    bool isStartDate,
+    ExportLocalizations l10n,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -708,10 +465,10 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
           initialDate: selectedDate ?? DateTime.now(),
           firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
           lastDate: DateTime.now(),
-           builder: (context, child) {
+          builder: (context, child) {
             return Theme(
               data: theme.copyWith(
-                colorScheme: ColorScheme.light(
+                colorScheme: const ColorScheme.light(
                   primary: AppColors.primary, // header background color
                   onPrimary: Colors.white, // header text color
                   onSurface: AppColors.textPrimary, // body text color
@@ -726,7 +483,7 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
             );
           },
         );
-        
+
         if (date != null) {
           if (isStartDate) {
             _onCustomDateChanged(startDate: date);
@@ -738,9 +495,11 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurfaceVariant : AppColors.surfaceContainer,
+          color: isDark
+              ? AppColors.darkSurfaceVariant
+              : AppColors.surfaceContainer,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isDark ? AppColors.darkBorder : AppColors.divider,
@@ -751,9 +510,11 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
             Icon(
               Icons.calendar_today,
               size: 20,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -761,17 +522,23 @@ class _DateRangeFilterSectionState extends State<DateRangeFilterSection> {
                   Text(
                     label,
                     style: AppTextStyles.caption.copyWith(
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.textSecondary,
                     ),
                   ),
                   Text(
-                    selectedDate != null 
-                        ? _formatDate(selectedDate) 
+                    selectedDate != null
+                        ? _formatDate(selectedDate)
                         : l10n.selectDate,
                     style: AppTextStyles.body1.copyWith(
                       color: selectedDate != null
-                          ? (isDark ? AppColors.darkText : AppColors.textPrimary)
-                          : (isDark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+                          ? (isDark
+                                ? AppColors.darkText
+                                : AppColors.textPrimary)
+                          : (isDark
+                                ? AppColors.darkTextSecondary
+                                : AppColors.textSecondary),
                     ),
                   ),
                 ],

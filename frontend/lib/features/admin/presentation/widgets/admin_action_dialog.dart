@@ -93,7 +93,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
     final l10n = AdminLocalizations.of(context);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: AppBorders.lg),
+      shape: const RoundedRectangleBorder(borderRadius: AppBorders.lg),
       child: Container(
         width: 400,
         padding: AppSpacing.paddingXL,
@@ -224,7 +224,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                   hintText: widget.action == 'complete' 
                       ? l10n.resolutionNotePlaceholder
                       : l10n.rejectionReasonPlaceholder,
-                  border: OutlineInputBorder(borderRadius: AppBorders.md),
+                  border: const OutlineInputBorder(borderRadius: AppBorders.md),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: AppBorders.md,
                     borderSide: BorderSide(color: _actionColor),
@@ -247,7 +247,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                 maxLines: 2,
                 decoration: InputDecoration(
                   hintText: l10n.acknowledgmentNotePlaceholder,
-                  border: OutlineInputBorder(borderRadius: AppBorders.md),
+                  border: const OutlineInputBorder(borderRadius: AppBorders.md),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: AppBorders.md,
                     borderSide: BorderSide(color: _actionColor),
@@ -266,7 +266,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                     onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
                     style: TextButton.styleFrom(
                       padding: AppSpacing.buttonPaddingSymmetric,
-                      shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                      shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
                     ),
                     child: Text(
                       l10n.cancel,
@@ -284,7 +284,7 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
                       backgroundColor: _actionColor,
                       foregroundColor: Colors.white,
                       padding: AppSpacing.buttonPaddingSymmetric,
-                      shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                      shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
                     ),
                     child: _isSubmitting
                         ? const SizedBox(
@@ -379,20 +379,28 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
       }
 
       if (response.success) {
-        Helpers.showSuccess(
-          context, 
-          _getSuccessMessage(l10n),
-        );
-        widget.onActionCompleted();
+        if (mounted) {
+          Helpers.showSuccess(
+            context, 
+            _getSuccessMessage(l10n),
+          );
+          widget.onActionCompleted();
+        }
       } else {
-        Helpers.showError(context, response.message ?? 'Failed to update report');
+        if (mounted) {
+          Helpers.showError(context, response.message);
+        }
       }
     } catch (e) {
-      Helpers.showError(context, 'Error updating report: $e');
+      if (mounted) {
+        Helpers.showError(context, 'Error updating report: $e');
+      }
     } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 

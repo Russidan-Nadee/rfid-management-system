@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_event.dart';
 import 'auth_monitor_service.dart';
 import 'global_error_handler.dart';
 
@@ -42,14 +39,16 @@ class AuthTestHelper {
     
     final authMonitor = AuthMonitorService();
     authMonitor.checkAuthenticationNow().then((result) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result 
-            ? 'Authentication check passed' 
-            : 'Authentication check failed'),
-          backgroundColor: result ? Colors.green : Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result 
+              ? 'Authentication check passed' 
+              : 'Authentication check failed'),
+            backgroundColor: result ? Colors.green : Colors.red,
+          ),
+        );
+      }
     });
   }
 

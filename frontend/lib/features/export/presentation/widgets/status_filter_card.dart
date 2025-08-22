@@ -86,7 +86,7 @@ class StatusFilterCard extends StatelessWidget {
                 ],
               ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               title,
               style: AppTextStyles.button.copyWith(
@@ -97,7 +97,7 @@ class StatusFilterCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ),
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Flexible(
               child: Text(
                 subtitle,

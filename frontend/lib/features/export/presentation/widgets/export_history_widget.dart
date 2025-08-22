@@ -179,7 +179,7 @@ class ExportHistoryWidget extends StatelessWidget {
         itemCount: exports.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: ExportItemCard(
               export: exports[index],
               isLargeScreen: true,
@@ -251,7 +251,7 @@ class ExportHistoryWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkSurfaceVariant
-                    : theme.colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                    : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: AppBorders.circular,
               ),
               child: Icon(
@@ -507,11 +507,11 @@ class ExportHistoryWidget extends StatelessWidget {
                       Theme.of(context).brightness == Brightness.dark
                       ? AppColors.onPrimary
                       : AppColors.onPrimary,
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
                     vertical: AppSpacing.lg,
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: AppBorders.lg),
+                  shape: const RoundedRectangleBorder(borderRadius: AppBorders.lg),
                   elevation: isLargeScreen ? 4 : 2,
                 ),
               ),

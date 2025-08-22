@@ -118,19 +118,19 @@ Failure mapExceptionToFailure(dynamic exception) {
   if (exception is NetworkException) {
     return NetworkFailure(exception.message, code: exception.code);
   } else if (exception is ConnectionTimeoutException) {
-    return TimeoutFailure();
+    return const TimeoutFailure();
   } else if (exception is NoInternetException) {
-    return NoInternetFailure();
+    return const NoInternetFailure();
   } else if (exception is UnauthorizedException) {
-    return UnauthorizedFailure();
+    return const UnauthorizedFailure();
   } else if (exception is ForbiddenException) {
-    return ForbiddenFailure();
+    return const ForbiddenFailure();
   } else if (exception is NotFoundException) {
     return NotFoundFailure(exception.message);
   } else if (exception is ValidationException) {
     return ValidationFailure(exception.errors);
   } else if (exception is ServerException) {
-    return InternalServerFailure();
+    return const InternalServerFailure();
   } else if (exception is CacheException) {
     return CacheFailure(exception.message, code: exception.code);
   } else if (exception is AuthException) {

@@ -87,7 +87,7 @@ class _SearchPageState extends State<SearchPage> {
       child: Scaffold(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.5)
-            : theme.colorScheme.background,
+            : theme.colorScheme.surface,
         appBar: AppBar(
           title: Text(
             l10n.pageTitle,
@@ -157,7 +157,7 @@ class _SearchPageState extends State<SearchPage> {
                               ),
                               AppSpacing.horizontalSpaceSM,
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.sm,
                                   vertical: AppSpacing.xs,
                                 ),
@@ -186,7 +186,7 @@ class _SearchPageState extends State<SearchPage> {
                               if (state.fromCache) ...[
                                 AppSpacing.horizontalSpaceSM,
                                 Container(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: AppSpacing.sm,
                                     vertical: AppSpacing.xs,
                                   ),
@@ -236,7 +236,7 @@ class _SearchPageState extends State<SearchPage> {
                             itemBuilder: (context, index) {
                               final result = state.results[index];
                               return Padding(
-                                padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                                 child: SearchResultCard(
                                   result: result,
                                   getEntityColor: _getEntityColor,

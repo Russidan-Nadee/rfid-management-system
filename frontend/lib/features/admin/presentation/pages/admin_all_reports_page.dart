@@ -89,7 +89,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         });
       } else {
         setState(() {
-          _errorMessage = response.message ?? 'Failed to load reports';
+          _errorMessage = response.message;
           _isLoading = false;
         });
       }
@@ -150,7 +150,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
 
   Widget _buildFilterBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: double.infinity, // Full width
       margin: const EdgeInsets.all(16),
@@ -160,7 +160,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
                 : AppColors.primary.withValues(alpha: 0.08),
             blurRadius: 8,
@@ -168,7 +168,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           ),
         ],
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.1),
+          color: isDark
+              ? AppColors.darkBorder
+              : AppColors.primary.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -192,9 +194,12 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
               ),
               const Spacer(),
               // Active filter indicator
-              if (_hasActiveFilters()) 
+              if (_hasActiveFilters())
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -224,7 +229,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
                       Text(
                         _isFilterExpanded ? 'Hide' : 'Show',
                         style: AppTextStyles.caption.copyWith(
-                          color: isDark ? AppColors.darkText : AppColors.primary,
+                          color: isDark
+                              ? AppColors.darkText
+                              : AppColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -234,7 +241,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
                         duration: const Duration(milliseconds: 200),
                         child: Icon(
                           Icons.expand_more,
-                          color: isDark ? AppColors.darkText : AppColors.primary,
+                          color: isDark
+                              ? AppColors.darkText
+                              : AppColors.primary,
                           size: 18,
                         ),
                       ),
@@ -254,24 +263,24 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth;
-              final isWideScreen = availableWidth > 1400;
-              final isMediumScreen = availableWidth > 900;
-              
-              if (isWideScreen) {
-                // Extra large screens: All filters in one row with full width
-                return _buildFullWidthLayout();
-              } else if (isMediumScreen) {
-                // Medium screens: 3 filters per row
-                return _buildMediumScreenLayout();
-              } else {
-                // Small screens: 2 filters per row
-                return _buildSmallScreenLayout();
-              }
-            },
-          ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final availableWidth = constraints.maxWidth;
+                      final isWideScreen = availableWidth > 1400;
+                      final isMediumScreen = availableWidth > 900;
+
+                      if (isWideScreen) {
+                        // Extra large screens: All filters in one row with full width
+                        return _buildFullWidthLayout();
+                      } else if (isMediumScreen) {
+                        // Medium screens: 3 filters per row
+                        return _buildMediumScreenLayout();
+                      } else {
+                        // Small screens: 2 filters per row
+                        return _buildSmallScreenLayout();
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -346,105 +355,12 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           ),
         ),
         const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
-          child: _buildPlantDropdown(),
-        ),
+        Expanded(flex: 2, child: _buildPlantDropdown()),
         const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
-          child: _buildLocationDropdown(),
-        ),
+        Expanded(flex: 2, child: _buildLocationDropdown()),
         const SizedBox(width: 16),
-        Expanded(
-          flex: 1,
-          child: _buildClearFiltersButton(),
-        ),
+        Expanded(flex: 1, child: _buildClearFiltersButton()),
       ],
-    );
-  }
-
-  // Large screens: All filters in one row
-  Widget _buildSingleRowLayout() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildFilterDropdown(
-            hint: 'Status',
-            value: _selectedStatus,
-            items: [
-              'pending',
-              'acknowledged',
-              'in_progress',
-              'resolved',
-              'cancelled',
-            ],
-            includeAllOption: true,
-            width: 180,
-            onChanged: (value) {
-              setState(() {
-                _selectedStatus = value;
-              });
-              _loadAllReports();
-            },
-          ),
-          AppSpacing.horizontalSpaceMD,
-          _buildFilterDropdown(
-            hint: 'Priority',
-            value: _selectedPriority,
-            items: ['low', 'normal', 'high', 'critical'],
-            includeAllOption: true,
-            width: 150,
-            onChanged: (value) {
-              setState(() {
-                _selectedPriority = value;
-              });
-              _loadAllReports();
-            },
-          ),
-          AppSpacing.horizontalSpaceMD,
-          _buildFilterDropdown(
-            hint: 'Problem Type',
-            value: _selectedProblemType,
-            items: [
-              'asset_damage',
-              'asset_missing',
-              'location_issue',
-              'data_error',
-              'urgent_issue',
-              'other',
-            ],
-            includeAllOption: true,
-            width: 180,
-            onChanged: (value) {
-              setState(() {
-                _selectedProblemType = value;
-              });
-              _loadAllReports();
-            },
-          ),
-          AppSpacing.horizontalSpaceMD,
-          _buildPlantDropdown(width: 200),
-          AppSpacing.horizontalSpaceMD,
-          _buildLocationDropdown(width: 200),
-          AppSpacing.horizontalSpaceMD,
-          ElevatedButton.icon(
-            onPressed: _clearFilters,
-            icon: const Icon(Icons.clear_all, size: 18),
-            label: const Text('Clear Filters'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 2,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -518,20 +434,11 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         // Second row: Plant, Location, Clear Button
         Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: _buildPlantDropdown(),
-            ),
+            Expanded(flex: 2, child: _buildPlantDropdown()),
             const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: _buildLocationDropdown(),
-            ),
+            Expanded(flex: 2, child: _buildLocationDropdown()),
             const SizedBox(width: 16),
-            Expanded(
-              flex: 1,
-              child: _buildClearFiltersButton(),
-            ),
+            Expanded(flex: 1, child: _buildClearFiltersButton()),
           ],
         ),
       ],
@@ -617,10 +524,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           children: [
             Expanded(child: _buildLocationDropdown()),
             const SizedBox(width: 16),
-            Expanded(
-              flex: 1,
-              child: _buildClearFiltersButton(),
-            ),
+            Expanded(flex: 1, child: _buildClearFiltersButton()),
           ],
         ),
       ],
@@ -636,9 +540,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
     double? width,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     List<DropdownMenuItem<String>> dropdownItems = [];
-    
+
     // Add "All" option if requested
     if (includeAllOption) {
       dropdownItems.add(
@@ -647,7 +551,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           child: Text(
             'All ${hint}s',
             style: AppTextStyles.body1.copyWith(
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
               fontStyle: FontStyle.italic,
             ),
             overflow: TextOverflow.ellipsis,
@@ -655,7 +561,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         ),
       );
     }
-    
+
     // Add the regular items
     dropdownItems.addAll(
       items.map((String itemValue) {
@@ -680,12 +586,14 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.3),
+          color: isDark
+              ? AppColors.darkBorder
+              : AppColors.primary.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
                 : AppColors.primary.withValues(alpha: 0.1),
             blurRadius: 4,
@@ -697,7 +605,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         hint: Text(
           hint,
           style: AppTextStyles.body1.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
           ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -741,25 +651,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
     }
   }
 
-  Widget _buildFilterTextField({
-    required String hint,
-    required ValueChanged<String> onSubmitted,
-  }) {
-    return SizedBox(
-      width: 150,
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: hint,
-          border: OutlineInputBorder(),
-        ),
-        onSubmitted: onSubmitted,
-      ),
-    );
-  }
-
   Widget _buildPlantDropdown({double? width}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     if (!_masterDataLoaded || _plants.isEmpty) {
       final loading = Container(
         width: width,
@@ -769,7 +663,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.3),
+            color: isDark
+                ? AppColors.darkBorder
+                : AppColors.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -792,12 +688,14 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.3),
+          color: isDark
+              ? AppColors.darkBorder
+              : AppColors.primary.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
                 : AppColors.primary.withValues(alpha: 0.1),
             blurRadius: 4,
@@ -809,7 +707,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         hint: Text(
           'Plant',
           style: AppTextStyles.body1.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
           ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -830,7 +730,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
             child: Text(
               'All Plants',
               style: AppTextStyles.body1.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
               overflow: TextOverflow.ellipsis,
@@ -842,7 +744,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
             final displayText = description != null && description.isNotEmpty
                 ? '$plantCode - $description'
                 : plantCode;
-            
+
             return DropdownMenuItem<String>(
               value: plantCode,
               child: Text(
@@ -873,7 +775,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
 
   Widget _buildLocationDropdown({double? width}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     if (!_masterDataLoaded || _locations.isEmpty) {
       final loading = Container(
         width: width,
@@ -883,7 +785,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
           color: isDark ? AppColors.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.3),
+            color: isDark
+                ? AppColors.darkBorder
+                : AppColors.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -914,12 +818,14 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         color: isDark ? AppColors.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.primary.withValues(alpha: 0.3),
+          color: isDark
+              ? AppColors.darkBorder
+              : AppColors.primary.withValues(alpha: 0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
                 : AppColors.primary.withValues(alpha: 0.1),
             blurRadius: 4,
@@ -931,7 +837,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         hint: Text(
           'Location',
           style: AppTextStyles.body1.copyWith(
-            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.darkTextSecondary
+                : AppColors.textSecondary,
           ),
           overflow: TextOverflow.ellipsis,
         ),
@@ -952,7 +860,9 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
             child: Text(
               'All Locations',
               style: AppTextStyles.body1.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
               overflow: TextOverflow.ellipsis,
@@ -964,7 +874,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
             final displayText = description != null && description.isNotEmpty
                 ? '$locationCode - $description'
                 : locationCode;
-            
+
             return DropdownMenuItem<String>(
               value: locationCode,
               child: Text(
@@ -991,7 +901,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
 
   Widget _buildClearFiltersButton() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       height: 48, // Match dropdown height
       decoration: BoxDecoration(
@@ -999,7 +909,7 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withValues(alpha: 0.2)
                 : AppColors.primary.withValues(alpha: 0.2),
             blurRadius: 4,
@@ -1028,10 +938,10 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
 
   bool _hasActiveFilters() {
     return _selectedStatus != null ||
-           _selectedPriority != null ||
-           _selectedProblemType != null ||
-           _selectedPlantCode != null ||
-           _selectedLocationCode != null;
+        _selectedPriority != null ||
+        _selectedProblemType != null ||
+        _selectedPlantCode != null ||
+        _selectedLocationCode != null;
   }
 
   int _getActiveFilterCount() {
@@ -1042,86 +952,6 @@ class _AdminAllReportsPageState extends State<AdminAllReportsPage> {
     if (_selectedPlantCode != null) count++;
     if (_selectedLocationCode != null) count++;
     return count;
-  }
-
-  Future<void> _testApiConnection() async {
-    print('🧪 Testing Frontend API Connection...');
-
-    try {
-      final notificationService = getIt<NotificationService>();
-
-      // Get current user role
-      final authState = context.read<AuthBloc>().state;
-      final isAdmin =
-          authState is AuthAuthenticated &&
-          (authState.user.isAdmin || authState.user.isManager);
-
-      print('🔍 Current user is admin/manager: $isAdmin');
-
-      if (isAdmin) {
-        // Test 1: Check counts endpoint (admin only)
-        print('📊 Testing notification counts...');
-        final countsResponse = await notificationService
-            .getNotificationCounts();
-        print('Counts Response - Success: ${countsResponse.success}');
-        print('Counts Response - Message: ${countsResponse.message}');
-        print('Counts Response - Data: ${countsResponse.data}');
-
-        // Test 2: Check all reports endpoint (admin only)
-        print('📋 Testing all-reports endpoint...');
-        final notificationsResponse = await notificationService.getAllReports(
-          limit: 10,
-          sortBy: 'created_at',
-          sortOrder: 'desc',
-        );
-        print(
-          'All Reports Response - Success: ${notificationsResponse.success}',
-        );
-        print(
-          'All Reports Response - Message: ${notificationsResponse.message}',
-        );
-        if (notificationsResponse.data != null) {
-          print(
-            'All Reports Response - Data Keys: ${notificationsResponse.data!.keys}',
-          );
-          if (notificationsResponse.data!['notifications'] != null) {
-            final notifications =
-                notificationsResponse.data!['notifications'] as List;
-            print('Found ${notifications.length} notifications from all users');
-          }
-        }
-      } else {
-        // Test: Check my reports endpoint (regular user)
-        print('📋 Testing my-reports endpoint...');
-        final myReportsResponse = await notificationService.getMyReports();
-        print('My Reports Response - Success: ${myReportsResponse.success}');
-        print('My Reports Response - Message: ${myReportsResponse.message}');
-        if (myReportsResponse.data != null) {
-          final myReports = myReportsResponse.data as List;
-          print('Found ${myReports.length} personal reports');
-        }
-      }
-
-      // Show results in UI
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('API Test Complete (Admin Mode) - Check console'),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
-    } catch (e) {
-      print('❌ Frontend API test failed: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('API Test Failed: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 
   Widget _buildBody() {

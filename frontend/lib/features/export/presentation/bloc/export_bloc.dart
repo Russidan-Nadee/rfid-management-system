@@ -204,7 +204,7 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
             exportType: 'assets',
             status: 'C',
             createdAt: DateTime.now(),
-            expiresAt: DateTime.now().add(Duration(hours: 24)),
+            expiresAt: DateTime.now().add(const Duration(hours: 24)),
           ),
         );
 
@@ -328,11 +328,11 @@ class ExportBloc extends Bloc<ExportEvent, ExportState> {
     final now = DateTime.now();
     final mockPeriods = [
       {'label': 'Today', 'value': 'today', 'start_date': now.toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
-      {'label': 'Last 7 days', 'value': 'last_7_days', 'start_date': now.subtract(Duration(days: 6)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
-      {'label': 'Last 30 days', 'value': 'last_30_days', 'start_date': now.subtract(Duration(days: 29)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
-      {'label': 'Last 90 days', 'value': 'last_90_days', 'start_date': now.subtract(Duration(days: 89)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
-      {'label': 'Last 180 days', 'value': 'last_180_days', 'start_date': now.subtract(Duration(days: 179)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
-      {'label': 'Last 365 days', 'value': 'last_365_days', 'start_date': now.subtract(Duration(days: 364)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 7 days', 'value': 'last_7_days', 'start_date': now.subtract(const Duration(days: 6)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 30 days', 'value': 'last_30_days', 'start_date': now.subtract(const Duration(days: 29)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 90 days', 'value': 'last_90_days', 'start_date': now.subtract(const Duration(days: 89)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 180 days', 'value': 'last_180_days', 'start_date': now.subtract(const Duration(days: 179)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
+      {'label': 'Last 365 days', 'value': 'last_365_days', 'start_date': now.subtract(const Duration(days: 364)).toIso8601String().split('T')[0], 'end_date': now.toIso8601String().split('T')[0]},
       {'label': 'Custom date range', 'value': 'custom'},
     ];
 

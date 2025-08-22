@@ -132,8 +132,6 @@ class AppTheme {
     onSecondary: Colors.white,
     error: AppColors.error,
     onError: Colors.white,
-    background: AppColors.background,
-    onBackground: AppColors.onBackground,
     surface: AppColors.surface,
     onSurface: AppColors.onBackground,
     outline: AppColors.cardBorder,
@@ -148,8 +146,6 @@ class AppTheme {
     onSecondary: Colors.white,
     error: AppColors.error,
     onError: Colors.white,
-    background: AppColors.darkBackground, // Blue-tinted Gray
-    onBackground: AppColors.darkText, // Light blue-tinted text
     surface: AppColors.darkSurface, // Medium Blue-Gray
     onSurface: AppColors.darkText, // Light blue-tinted text
     outline: AppColors.darkBorder, // Blue-Gray
@@ -189,7 +185,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.onPrimary,
           padding: AppSpacing.buttonPaddingAll,
-          shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+          shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
           textStyle: AppTextStyles.button,
           elevation: 2,
         ),
@@ -200,7 +196,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: AppSpacing.buttonPaddingAll,
-          shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+          shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
           side: const BorderSide(color: AppColors.primary),
           textStyle: AppTextStyles.button,
         ),
@@ -210,19 +206,19 @@ class AppTheme {
     style: TextButton.styleFrom(
       foregroundColor: AppColors.primary,
       padding: AppSpacing.buttonPaddingAll,
-      shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+      shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
       textStyle: AppTextStyles.button,
     ),
   );
 
   // Card Theme - Light เก็บเดิม
-  static CardThemeData get cardTheme => CardThemeData(
+  static CardThemeData get cardTheme => const CardThemeData(
     color: AppColors.surface,
     elevation: 2,
     shadowColor: Colors.black12,
     shape: RoundedRectangleBorder(
       borderRadius: AppBorders.large,
-      side: const BorderSide(color: AppColors.cardBorder),
+      side: BorderSide(color: AppColors.cardBorder),
     ),
     margin: EdgeInsets.zero,
   );
@@ -246,25 +242,25 @@ class AppTheme {
     filled: true,
     fillColor: AppColors.surface,
     contentPadding: AppSpacing.inputPaddingAll,
-    border: OutlineInputBorder(
+    border: const OutlineInputBorder(
       borderRadius: AppBorders.medium,
-      borderSide: const BorderSide(color: AppColors.cardBorder),
+      borderSide: BorderSide(color: AppColors.cardBorder),
     ),
-    enabledBorder: OutlineInputBorder(
+    enabledBorder: const OutlineInputBorder(
       borderRadius: AppBorders.medium,
-      borderSide: const BorderSide(color: AppColors.cardBorder),
+      borderSide: BorderSide(color: AppColors.cardBorder),
     ),
-    focusedBorder: OutlineInputBorder(
+    focusedBorder: const OutlineInputBorder(
       borderRadius: AppBorders.medium,
-      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      borderSide: BorderSide(color: AppColors.primary, width: 2),
     ),
-    errorBorder: OutlineInputBorder(
+    errorBorder: const OutlineInputBorder(
       borderRadius: AppBorders.medium,
-      borderSide: const BorderSide(color: AppColors.error),
+      borderSide: BorderSide(color: AppColors.error),
     ),
-    focusedErrorBorder: OutlineInputBorder(
+    focusedErrorBorder: const OutlineInputBorder(
       borderRadius: AppBorders.medium,
-      borderSide: const BorderSide(color: AppColors.error, width: 2),
+      borderSide: BorderSide(color: AppColors.error, width: 2),
     ),
     labelStyle: AppTextStyles.body2,
     hintStyle: AppTextStyles.hintText,
@@ -277,25 +273,25 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.darkSurfaceVariant, // Light Blue-Gray
         contentPadding: AppSpacing.inputPaddingAll,
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderRadius: AppBorders.medium,
           borderSide: BorderSide(color: AppColors.darkBorder),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderRadius: AppBorders.medium,
           borderSide: BorderSide(color: AppColors.darkBorder),
         ),
-        focusedBorder: OutlineInputBorder(
+        focusedBorder: const OutlineInputBorder(
           borderRadius: AppBorders.medium,
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderRadius: AppBorders.medium,
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderRadius: AppBorders.medium,
-          borderSide: const BorderSide(color: AppColors.error, width: 2),
+          borderSide: BorderSide(color: AppColors.error, width: 2),
         ),
         labelStyle: AppTextStyles.body2.copyWith(
           color: AppColors.darkTextSecondary,
@@ -308,10 +304,10 @@ class AppTheme {
   static DropdownMenuThemeData get dropdownMenuTheme => DropdownMenuThemeData(
     inputDecorationTheme: inputDecorationTheme,
     menuStyle: MenuStyle(
-      backgroundColor: MaterialStateProperty.all(AppColors.surface),
-      elevation: MaterialStateProperty.all(4),
-      shape: MaterialStateProperty.all(
-        RoundedRectangleBorder(borderRadius: AppBorders.medium),
+      backgroundColor: WidgetStateProperty.all(AppColors.surface),
+      elevation: WidgetStateProperty.all(4),
+      shape: WidgetStateProperty.all(
+        const RoundedRectangleBorder(borderRadius: AppBorders.medium),
       ),
     ),
   );
@@ -321,16 +317,16 @@ class AppTheme {
       DropdownMenuThemeData(
         inputDecorationTheme: darkInputDecorationTheme,
         menuStyle: MenuStyle(
-          backgroundColor: MaterialStateProperty.all(AppColors.darkSurface),
-          elevation: MaterialStateProperty.all(4),
-          shape: MaterialStateProperty.all(
-            RoundedRectangleBorder(borderRadius: AppBorders.medium),
+          backgroundColor: WidgetStateProperty.all(AppColors.darkSurface),
+          elevation: WidgetStateProperty.all(4),
+          shape: WidgetStateProperty.all(
+            const RoundedRectangleBorder(borderRadius: AppBorders.medium),
           ),
         ),
       );
 
   // Dialog Themes - Light เก็บเดิม
-  static DialogThemeData get dialogTheme => DialogThemeData(
+  static DialogThemeData get dialogTheme => const DialogThemeData(
     backgroundColor: AppColors.surface,
     elevation: 8,
     shape: RoundedRectangleBorder(borderRadius: AppBorders.large),
@@ -342,7 +338,7 @@ class AppTheme {
   static DialogThemeData get darkDialogTheme => DialogThemeData(
     backgroundColor: AppColors.darkSurface,
     elevation: 8,
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.large),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.large),
     titleTextStyle: AppTextStyles.headline6.copyWith(color: AppColors.darkText),
     contentTextStyle: AppTextStyles.body1.copyWith(color: AppColors.darkText),
   );
@@ -373,7 +369,7 @@ class AppTheme {
     padding: AppSpacing.paddingSmall,
     labelStyle: AppTextStyles.caption,
     secondaryLabelStyle: AppTextStyles.caption,
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.circular),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.circular),
     side: const BorderSide(color: AppColors.cardBorder),
   );
 
@@ -387,12 +383,12 @@ class AppTheme {
     secondaryLabelStyle: AppTextStyles.caption.copyWith(
       color: AppColors.darkText,
     ),
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.circular),
-    side: BorderSide(color: AppColors.darkBorder),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.circular),
+    side: const BorderSide(color: AppColors.darkBorder),
   );
 
   // Tab Bar Theme - Light เก็บเดิม
-  static TabBarThemeData get tabBarTheme => TabBarThemeData(
+  static TabBarThemeData get tabBarTheme => const TabBarThemeData(
     labelColor: AppColors.primary,
     unselectedLabelColor: AppColors.textSecondary,
     labelStyle: AppTextStyles.button,
@@ -403,7 +399,7 @@ class AppTheme {
   );
 
   // Dark Tab Bar - Lighter blue-gray palette
-  static TabBarThemeData get darkTabBarTheme => TabBarThemeData(
+  static TabBarThemeData get darkTabBarTheme => const TabBarThemeData(
     labelColor: AppColors.primary,
     unselectedLabelColor: AppColors.darkTextSecondary,
     labelStyle: AppTextStyles.button,
@@ -419,12 +415,12 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         elevation: 8,
         height: AppSpacing.bottomNavHeight,
-        labelTextStyle: MaterialStateProperty.all(AppTextStyles.caption),
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return IconThemeData(color: AppColors.primary);
+        labelTextStyle: WidgetStateProperty.all(AppTextStyles.caption),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primary);
           }
-          return IconThemeData(color: AppColors.textSecondary);
+          return const IconThemeData(color: AppColors.textSecondary);
         }),
       );
 
@@ -434,19 +430,19 @@ class AppTheme {
         backgroundColor: AppColors.darkNavigation, // Keep navy for navigation
         elevation: 8,
         height: AppSpacing.bottomNavHeight,
-        labelTextStyle: MaterialStateProperty.all(
+        labelTextStyle: WidgetStateProperty.all(
           AppTextStyles.caption.copyWith(color: AppColors.darkText),
         ),
-        iconTheme: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return IconThemeData(color: AppColors.primary);
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.primary);
           }
-          return IconThemeData(color: AppColors.darkTextSecondary);
+          return const IconThemeData(color: AppColors.darkTextSecondary);
         }),
       );
 
   static BottomNavigationBarThemeData get bottomNavigationBarTheme =>
-      BottomNavigationBarThemeData(
+      const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         elevation: 8,
         selectedItemColor: AppColors.primary,
@@ -474,7 +470,7 @@ class AppTheme {
 
   // Progress Indicator Theme
   static ProgressIndicatorThemeData get progressIndicatorTheme =>
-      ProgressIndicatorThemeData(
+      const ProgressIndicatorThemeData(
         color: AppColors.primary,
         linearTrackColor: AppColors.backgroundSecondary,
         circularTrackColor: AppColors.backgroundSecondary,
@@ -482,7 +478,7 @@ class AppTheme {
 
   // Divider Theme - Light เก็บเดิม
   static DividerThemeData get dividerTheme =>
-      DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
+      const DividerThemeData(color: AppColors.divider, thickness: 1, space: 1);
 
   // Dark Divider - Lighter blue-gray palette
   static DividerThemeData get darkDividerTheme => DividerThemeData(
@@ -493,17 +489,17 @@ class AppTheme {
 
   // Icon Themes - Light เก็บเดิม
   static IconThemeData get lightIconTheme =>
-      IconThemeData(color: AppColors.onBackground, size: 24);
+      const IconThemeData(color: AppColors.onBackground, size: 24);
 
   // Dark Icon - Lighter blue-gray palette
   static IconThemeData get darkIconTheme =>
-      IconThemeData(color: AppColors.darkText, size: 24);
+      const IconThemeData(color: AppColors.darkText, size: 24);
 
   static IconThemeData get primaryIconTheme =>
-      IconThemeData(color: AppColors.primary, size: 24);
+      const IconThemeData(color: AppColors.primary, size: 24);
 
   // List Tile Theme - Light เก็บเดิม
-  static ListTileThemeData get listTileTheme => ListTileThemeData(
+  static ListTileThemeData get listTileTheme => const ListTileThemeData(
     contentPadding: AppSpacing.paddingMedium,
     shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
     titleTextStyle: AppTextStyles.body1,
@@ -514,7 +510,7 @@ class AppTheme {
   // Dark List Tile - Lighter blue-gray palette
   static ListTileThemeData get darkListTileTheme => ListTileThemeData(
     contentPadding: AppSpacing.paddingMedium,
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
     titleTextStyle: AppTextStyles.body1.copyWith(color: AppColors.darkText),
     subtitleTextStyle: AppTextStyles.body2.copyWith(
       color: AppColors.darkTextSecondary,
@@ -524,14 +520,14 @@ class AppTheme {
 
   // Switch Theme - Light
   static SwitchThemeData get switchTheme => SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary;
       }
       return AppColors.textSecondary;
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary.withValues(alpha: 0.3);
       }
       return AppColors.backgroundSecondary;
@@ -540,14 +536,14 @@ class AppTheme {
 
   // Dark Switch Theme
   static SwitchThemeData get darkSwitchTheme => SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary;
       }
       return AppColors.darkTextSecondary;
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary.withValues(alpha: 0.3);
       }
       return AppColors.darkSurfaceVariant;
@@ -556,33 +552,33 @@ class AppTheme {
 
   // Checkbox Theme - Light
   static CheckboxThemeData get checkboxTheme => CheckboxThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary;
       }
       return Colors.transparent;
     }),
-    checkColor: MaterialStateProperty.all(AppColors.onPrimary),
+    checkColor: WidgetStateProperty.all(AppColors.onPrimary),
     side: const BorderSide(color: AppColors.cardBorder, width: 2),
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.small),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.small),
   );
 
   // Dark Checkbox Theme
   static CheckboxThemeData get darkCheckboxTheme => CheckboxThemeData(
-    fillColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    fillColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return AppColors.primary;
       }
       return Colors.transparent;
     }),
-    checkColor: MaterialStateProperty.all(AppColors.onPrimary),
-    side: BorderSide(color: AppColors.darkBorder, width: 2),
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.small),
+    checkColor: WidgetStateProperty.all(AppColors.onPrimary),
+    side: const BorderSide(color: AppColors.darkBorder, width: 2),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.small),
   );
 
   // Tooltip Theme - Light เก็บเดิม
   static TooltipThemeData get tooltipTheme => TooltipThemeData(
-    decoration: BoxDecoration(
+    decoration: const BoxDecoration(
       color: Colors.black87,
       borderRadius: AppBorders.small,
     ),
@@ -605,7 +601,7 @@ class AppTheme {
   static SnackBarThemeData get snackBarTheme => SnackBarThemeData(
     backgroundColor: Colors.black87,
     contentTextStyle: AppTextStyles.body2.copyWith(color: Colors.white),
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
     behavior: SnackBarBehavior.floating,
     actionTextColor: AppColors.primary,
   );
@@ -614,13 +610,13 @@ class AppTheme {
   static SnackBarThemeData get darkSnackBarTheme => SnackBarThemeData(
     backgroundColor: AppColors.darkSurfaceVariant,
     contentTextStyle: AppTextStyles.body2.copyWith(color: AppColors.darkText),
-    shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+    shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
     behavior: SnackBarBehavior.floating,
     actionTextColor: AppColors.primary,
   );
 
   // Banner Theme - Light
-  static MaterialBannerThemeData get bannerTheme => MaterialBannerThemeData(
+  static MaterialBannerThemeData get bannerTheme => const MaterialBannerThemeData(
     backgroundColor: AppColors.backgroundSecondary,
     contentTextStyle: AppTextStyles.body2,
     padding: AppSpacing.paddingMedium,

@@ -94,7 +94,7 @@ class ScanReadyWidget extends StatelessWidget {
                   print('🔍 ScanReadyWidget: Start Scanning button pressed');
                   context.read<ScanBloc>().add(const StartScan());
                 },
-                icon: Icon(Icons.play_arrow, color: AppColors.onPrimary),
+                icon: const Icon(Icons.play_arrow, color: AppColors.onPrimary),
                 label: Text(
                   l10n.startScanning,
                   style: AppTextStyles.button.copyWith(
@@ -110,7 +110,7 @@ class ScanReadyWidget extends StatelessWidget {
                     vertical: 16,
                     horizontal: 32,
                   ),
-                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                  shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
                   elevation: 3,
                 ),
               ),

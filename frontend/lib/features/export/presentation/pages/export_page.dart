@@ -49,7 +49,7 @@ class _ExportPageState extends State<ExportPage>
       child: Scaffold(
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.5)
-            : theme.colorScheme.background,
+            : theme.colorScheme.surface,
         appBar: _buildAppBar(context, theme, isDark, isLargeScreen, l10n),
         body: _buildBody(context, isLargeScreen),
       ),
@@ -271,7 +271,7 @@ class _ExportPageState extends State<ExportPage>
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.xs,
       ),
@@ -309,11 +309,11 @@ class _ExportPageState extends State<ExportPage>
           ),
         ),
         onTap: onTap,
-        contentPadding: EdgeInsets.symmetric(
+        contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.sm,
         ),
-        shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+        shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
       ),
     );
   }

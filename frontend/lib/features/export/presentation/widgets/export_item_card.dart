@@ -47,7 +47,7 @@ class ExportItemCard extends StatelessWidget {
     final l10n = ExportLocalizations.of(context);
 
     return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.lg),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: _buildCardDecoration(theme, isDark, true),
       child: Padding(
         padding: EdgeInsets.all(
@@ -162,7 +162,7 @@ class ExportItemCard extends StatelessWidget {
     final l10n = ExportLocalizations.of(context);
 
     return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.lg),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: _buildCardDecoration(theme, isDark, false),
       child: ListTile(
         contentPadding: AppSpacing.paddingLG,
@@ -174,7 +174,7 @@ class ExportItemCard extends StatelessWidget {
           ),
         ),
         subtitle: Padding(
-          padding: EdgeInsets.only(top: AppSpacing.xs),
+          padding: const EdgeInsets.only(top: AppSpacing.xs),
           child: _buildCompactDetails(context, isDark),
         ),
         trailing: _buildActionButton(context, isDark, false),
@@ -226,7 +226,7 @@ class ExportItemCard extends StatelessWidget {
 
   Widget _buildStatusBadge(BuildContext context, bool isDark) {
     return Container(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xs,
       ),

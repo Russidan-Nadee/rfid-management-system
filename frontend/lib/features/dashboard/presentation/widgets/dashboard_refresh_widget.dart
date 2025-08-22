@@ -98,7 +98,7 @@ class _RefreshButton extends StatelessWidget {
       child: Padding(
         padding: AppSpacing.paddingSmall,
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
@@ -329,7 +329,7 @@ class _RefreshMenuButton extends StatelessWidget {
           child: Row(
             children: [
               const Icon(Icons.timer, size: 16),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(l10n.autoRefresh),
             ],
           ),
@@ -471,7 +471,7 @@ class _AutoRefreshDialogState extends State<_AutoRefreshDialog> {
               decoration: AppDecorations.warning,
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: AppColors.warning),
+                  const Icon(Icons.info_outline, size: 16, color: AppColors.warning),
                   AppSpacing.horizontalSpaceSmall,
                   Expanded(
                     child: Text(
@@ -556,7 +556,7 @@ class DashboardFloatingRefresh extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(

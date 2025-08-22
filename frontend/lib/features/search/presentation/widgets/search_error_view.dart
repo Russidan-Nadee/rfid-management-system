@@ -43,7 +43,7 @@ class SearchErrorView extends StatelessWidget {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.darkTextSecondary
-                    : theme.colorScheme.onBackground.withValues(alpha: 0.7),
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

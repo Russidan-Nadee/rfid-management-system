@@ -49,7 +49,9 @@ class AdminImageGalleryWidget extends StatelessWidget {
             itemCount: images.length,
             itemBuilder: (context, index) {
               return Padding(
-                padding: EdgeInsets.only(right: index < images.length - 1 ? 12 : 0),
+                padding: EdgeInsets.only(
+                  right: index < images.length - 1 ? 12 : 0,
+                ),
                 child: _buildImageCard(context, theme, l10n, images[index]),
               );
             },
@@ -65,8 +67,8 @@ class AdminImageGalleryWidget extends StatelessWidget {
     AdminLocalizations l10n,
     AdminAssetImageEntity image,
   ) {
-    final imageUrl = '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
-    final thumbnailUrl = '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}?size=thumb';
+    final thumbnailUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}?size=thumb';
 
     return SizedBox(
       width: 160,
@@ -105,20 +107,25 @@ class AdminImageGalleryWidget extends StatelessWidget {
                           Icons.image_not_supported,
                           color: theme.brightness == Brightness.dark
                               ? AppColors.darkTextSecondary
-                              : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                              : theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                           size: 40,
                         ),
                       ),
                     ),
                   ),
-                  
+
                   // Primary badge
                   if (image.isPrimary)
                     Positioned(
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.colorScheme.primary,
                           borderRadius: BorderRadius.circular(8),
@@ -133,7 +140,7 @@ class AdminImageGalleryWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                  
+
                   // Delete button
                   if (onDeleteImage != null)
                     Positioned(
@@ -157,7 +164,11 @@ class AdminImageGalleryWidget extends StatelessWidget {
                                 ),
                               )
                             : IconButton(
-                                onPressed: () => _showDeleteConfirmDialog(context, image, l10n),
+                                onPressed: () => _showDeleteConfirmDialog(
+                                  context,
+                                  image,
+                                  l10n,
+                                ),
                                 icon: const Icon(
                                   Icons.delete,
                                   color: Colors.white,
@@ -174,7 +185,7 @@ class AdminImageGalleryWidget extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Image info
             Container(
               padding: const EdgeInsets.all(8),
@@ -311,7 +322,8 @@ class AdminImageGalleryWidget extends StatelessWidget {
     AdminAssetImageEntity image,
     AdminLocalizations l10n,
   ) {
-    final fullImageUrl = '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
+    final fullImageUrl =
+        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
 
     showDialog(
       context: context,
@@ -344,12 +356,18 @@ class AdminImageGalleryWidget extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.image, color: Theme.of(context).colorScheme.primary),
+                          Icon(
+                            Icons.image,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               image.displayName,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -372,14 +390,16 @@ class AdminImageGalleryWidget extends StatelessWidget {
                         fit: BoxFit.contain,
                         placeholder: (context, url) => Container(
                           height: 200,
-                          child: Center(child: CircularProgressIndicator()),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
                         ),
                         errorWidget: (context, url, error) => Container(
                           height: 200,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.image_not_supported, size: 64),
+                              const Icon(Icons.image_not_supported, size: 64),
                               const SizedBox(height: 8),
                               Text(l10n.errorLoadingAssets),
                             ],
@@ -394,8 +414,12 @@ class AdminImageGalleryWidget extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _buildInfoItem(Icons.straighten, image.dimensions),
-                          _buildInfoItem(Icons.file_present, image.formattedFileSize),
-                          if (image.isPrimary) _buildInfoItem(Icons.star, l10n.primaryImage),
+                          _buildInfoItem(
+                            Icons.file_present,
+                            image.formattedFileSize,
+                          ),
+                          if (image.isPrimary)
+                            _buildInfoItem(Icons.star, l10n.primaryImage),
                         ],
                       ),
                     ),

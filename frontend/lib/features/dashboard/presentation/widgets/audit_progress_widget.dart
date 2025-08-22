@@ -381,7 +381,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.lightbulb_outline,
                 size: 16,
                 color: AppColors.vibrantOrange,
@@ -432,7 +432,7 @@ class _AuditProgressWidgetState extends State<AuditProgressWidget> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

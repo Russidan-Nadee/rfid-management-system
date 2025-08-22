@@ -54,7 +54,7 @@ class FileFormatCard extends StatelessWidget {
               color: isSelected ? Colors.white : color,
               size: iconSize,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               title,
               style: AppTextStyles.button.copyWith(
@@ -63,7 +63,7 @@ class FileFormatCard extends StatelessWidget {
                 color: isSelected ? Colors.white : theme.colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               subtitle,
               style: AppTextStyles.caption.copyWith(

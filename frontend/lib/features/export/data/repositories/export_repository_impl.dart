@@ -220,17 +220,17 @@ class ExportRepositoryImpl implements ExportRepository {
       case ExportErrorType.network:
         return NetworkFailure(e.message);
       case ExportErrorType.timeout:
-        return TimeoutFailure();
+        return const TimeoutFailure();
       case ExportErrorType.authentication:
-        return UnauthorizedFailure();
+        return const UnauthorizedFailure();
       case ExportErrorType.permission:
-        return ForbiddenFailure();
+        return const ForbiddenFailure();
       case ExportErrorType.validation:
         return ValidationFailure([e.message]);
       case ExportErrorType.notFound:
         return NotFoundFailure(e.message);
       case ExportErrorType.server:
-        return InternalServerFailure();
+        return const InternalServerFailure();
       case ExportErrorType.download:
         return ServerFailure('Download failed: ${e.message}');
       case ExportErrorType.fileSystem:
@@ -311,17 +311,17 @@ extension EitherExtension<L, R> on Either<L, R> {
       case ExportErrorType.network:
         return NetworkFailure(e.message);
       case ExportErrorType.timeout:
-        return TimeoutFailure();
+        return const TimeoutFailure();
       case ExportErrorType.authentication:
-        return UnauthorizedFailure();
+        return const UnauthorizedFailure();
       case ExportErrorType.permission:
-        return ForbiddenFailure();
+        return const ForbiddenFailure();
       case ExportErrorType.validation:
         return ValidationFailure([e.message]);
       case ExportErrorType.notFound:
         return NotFoundFailure(e.message);
       case ExportErrorType.server:
-        return InternalServerFailure();
+        return const InternalServerFailure();
       case ExportErrorType.download:
         return ServerFailure('Download failed: ${e.message}');
       case ExportErrorType.fileSystem:

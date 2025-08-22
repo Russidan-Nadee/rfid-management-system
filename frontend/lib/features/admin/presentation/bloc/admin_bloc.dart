@@ -109,7 +109,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       emit(AssetDeleting(currentAssets, event.assetNo));
       
       try {
-        final result = await deleteAssetUsecase(event.assetNo);
+        await deleteAssetUsecase(event.assetNo);
         final updatedAssets = currentAssets.map((asset) {
           if (asset.assetNo == event.assetNo) {
             // Update the asset status to Inactive instead of removing

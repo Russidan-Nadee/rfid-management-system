@@ -20,7 +20,7 @@ class SearchInitialView extends StatelessWidget {
             size: 64,
             color: Theme.of(context).brightness == Brightness.dark
                 ? AppColors.darkTextSecondary
-                : theme.colorScheme.onBackground.withValues(alpha: 0.5),
+                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -28,7 +28,7 @@ class SearchInitialView extends StatelessWidget {
             style: theme.textTheme.titleLarge?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkText
-                  : theme.colorScheme.onBackground.withValues(alpha: 0.7),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
@@ -37,7 +37,7 @@ class SearchInitialView extends StatelessWidget {
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkTextSecondary
-                  : theme.colorScheme.onBackground.withValues(alpha: 0.6),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],

@@ -465,8 +465,8 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                           icon: const Icon(Icons.edit),
                           text: l10n.edit,
                         ),
-                        Tab(
-                          icon: const Icon(Icons.image),
+                        const Tab(
+                          icon: Icon(Icons.image),
                           text: 'Images',
                         ),
                       ],
@@ -519,9 +519,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // EDITABLE FIELDS SECTION
-            Text(
+            const Text(
               'Editable Fields',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
@@ -601,10 +601,10 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                 )
               : DropdownButtonFormField<AdminPlantEntity>(
                   value: _selectedPlant,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Plant',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.factory, color: Colors.green),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.factory, color: Colors.green),
                   ),
                   items: _plants.map((plant) {
                     return DropdownMenuItem<AdminPlantEntity>(
@@ -638,10 +638,10 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
                 )
               : DropdownButtonFormField<AdminLocationEntity>(
                   value: _selectedLocation,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Location',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.location_on, color: Colors.green),
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.location_on, color: Colors.green),
                   ),
                   items: _locations
                       .where((location) => 
@@ -731,9 +731,9 @@ class _AssetEditDialogState extends State<AssetEditDialog> {
             const SizedBox(height: 16),
             
             // READ-ONLY FIELDS SECTION
-            Text(
+            const Text(
               'Read-Only Information',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,

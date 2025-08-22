@@ -144,7 +144,7 @@ class LocationSelectionWidget extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.place, color: AppColors.primary, size: 24),
+                child: const Icon(Icons.place, color: AppColors.primary, size: 24),
               ),
 
               const SizedBox(width: 16),

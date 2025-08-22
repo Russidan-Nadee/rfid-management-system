@@ -81,7 +81,7 @@ class AdminPageView extends StatelessWidget {
           ),
           automaticallyImplyLeading: false,
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
             // Asset Management Tab
             AssetManagementTab(),
@@ -154,7 +154,7 @@ class _AssetManagementTabState extends State<AssetManagementTab> {
                       );
                     } else if (state is ImageDeleted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('Image deleted successfully'),
                           backgroundColor: Colors.green,
                         ),

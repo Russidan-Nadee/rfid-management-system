@@ -1,18 +1,17 @@
 // Path: frontend/lib/core/services/browser_api_web.dart
 
 // ignore_for_file: avoid_web_libraries_in_flutter
-// This file is the legitimate web implementation that needs dart:html
+// This file is the legitimate web implementation that uses package:web
 
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'browser_api_contract.dart';
 
-/// Web platform implementation of BrowserApi using dart:html
+/// Web platform implementation of BrowserApi using package:web
 class BrowserApiWeb implements BrowserApi {
   late final StreamController<void> _visibilityController;
   late final StreamController<void> _focusController;
-  late final StreamSubscription _visibilitySubscription;
-  late final StreamSubscription _focusSubscription;
   
   BrowserApiWeb() {
     _visibilityController = StreamController<void>.broadcast();
@@ -22,18 +21,22 @@ class BrowserApiWeb implements BrowserApi {
   
   void _setupEventListeners() {
     // Setup visibility change listener
-    _visibilitySubscription = html.document.onVisibilityChange.listen((_) {
-      _visibilityController.add(null);
-    });
+    web.document.addEventListener('visibilitychange', _handleVisibilityChange.toJS);
     
-    // Setup focus listener
-    _focusSubscription = html.window.onFocus.listen((_) {
-      _focusController.add(null);
-    });
+    // Setup focus listener  
+    web.window.addEventListener('focus', _handleFocus.toJS);
+  }
+  
+  void _handleVisibilityChange(web.Event event) {
+    _visibilityController.add(null);
+  }
+  
+  void _handleFocus(web.Event event) {
+    _focusController.add(null);
   }
   
   @override
-  bool get isDocumentHidden => html.document.hidden ?? false;
+  bool get isDocumentHidden => web.document.hidden;
   
   @override
   Stream<void> get onVisibilityChange => _visibilityController.stream;
@@ -42,12 +45,12 @@ class BrowserApiWeb implements BrowserApi {
   Stream<void> get onWindowFocus => _focusController.stream;
   
   @override
-  String get currentUrl => html.window.location.href;
+  String get currentUrl => web.window.location.href;
   
   @override
   Map<String, String> get queryParameters {
-    final search = html.window.location.search;
-    if (search == null || search.isEmpty || search == '?') return {};
+    final search = web.window.location.search;
+    if (search.isEmpty || search == '?') return {};
     
     final params = <String, String>{};
     final pairs = search.substring(1).split('&');
@@ -64,23 +67,23 @@ class BrowserApiWeb implements BrowserApi {
   
   @override
   void setTitle(String title) {
-    html.document.title = title;
+    web.document.title = title;
   }
   
   @override
   void reload() {
-    html.window.location.reload();
+    web.window.location.reload();
   }
   
   @override
   void redirect(String url) {
-    html.window.location.href = url;
+    web.window.location.href = url;
   }
   
   @override
   String? getLocalStorage(String key) {
     try {
-      return html.window.localStorage[key];
+      return web.window.localStorage.getItem(key);
     } catch (e) {
       return null;
     }
@@ -89,7 +92,7 @@ class BrowserApiWeb implements BrowserApi {
   @override
   void setLocalStorage(String key, String value) {
     try {
-      html.window.localStorage[key] = value;
+      web.window.localStorage.setItem(key, value);
     } catch (e) {
       // localStorage might be disabled
     }
@@ -98,7 +101,7 @@ class BrowserApiWeb implements BrowserApi {
   @override
   void removeLocalStorage(String key) {
     try {
-      html.window.localStorage.remove(key);
+      web.window.localStorage.removeItem(key);
     } catch (e) {
       // localStorage might be disabled
     }
@@ -115,8 +118,11 @@ class BrowserApiWeb implements BrowserApi {
   
   @override
   void dispose() {
-    _visibilitySubscription.cancel();
-    _focusSubscription.cancel();
+    // Remove event listeners
+    web.document.removeEventListener('visibilitychange', _handleVisibilityChange.toJS);
+    web.window.removeEventListener('focus', _handleFocus.toJS);
+    
+    // Close stream controllers
     _visibilityController.close();
     _focusController.close();
   }

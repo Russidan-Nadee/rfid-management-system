@@ -207,7 +207,7 @@ class _SearchResultDetailDialogState extends State<SearchResultDetailDialog> {
       decoration: BoxDecoration(
         color: theme.brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.3)
-            : theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+            : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: theme.brightness == Brightness.dark
@@ -386,7 +386,7 @@ class _SearchResultDetailDialogState extends State<SearchResultDetailDialog> {
             decoration: BoxDecoration(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkSurface.withValues(alpha: 0.3)
-                  : theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                  : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: Theme.of(context).brightness == Brightness.dark
@@ -830,11 +830,11 @@ class _SearchResultDetailDialogState extends State<SearchResultDetailDialog> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.photo_library, color: Colors.white, size: 10),
+                      const Icon(Icons.photo_library, color: Colors.white, size: 10),
                       const SizedBox(width: 2),
                       Text(
                         '${_images.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 8,
                           fontWeight: FontWeight.bold,
@@ -926,7 +926,7 @@ class _FullImageDialog extends StatelessWidget {
                         ),
                         IconButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                         ),
                       ],
                     ),
@@ -949,7 +949,7 @@ class _FullImageDialog extends StatelessWidget {
                       ),
                       errorWidget: (context, url, error) => Container(
                         height: 200,
-                        child: Column(
+                        child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.image_not_supported, size: 64),

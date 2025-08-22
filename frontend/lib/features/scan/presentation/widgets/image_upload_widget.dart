@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../core/utils/helpers.dart';
-import '../../../../app/theme/app_colors.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../bloc/image_upload_bloc.dart';
 
@@ -97,8 +96,6 @@ class ImageUploadWidget extends StatelessWidget {
   }
 
   void _showImageSourceDialog(BuildContext context) {
-    final l10n = ScanLocalizations.of(context);
-
     // ✅ เก็บ BLoC reference ก่อนเปิด BottomSheet
     final imageUploadBloc = context.read<ImageUploadBloc>();
 
@@ -110,16 +107,16 @@ class ImageUploadWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.camera_alt),
-              title: Text('Take Photo'),
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
               onTap: () {
                 Navigator.pop(context);
                 _pickImageWithBloc(imageUploadBloc, ImageSource.camera);
               },
             ),
             ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('Choose from Gallery'),
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
                 _pickImageWithBloc(imageUploadBloc, ImageSource.gallery);

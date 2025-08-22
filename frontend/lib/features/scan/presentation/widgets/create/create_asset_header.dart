@@ -5,13 +5,13 @@ import '../../../../../../l10n/features/scan/scan_localizations.dart';
 
 class CreateAssetHeader extends StatelessWidget {
   final String epcCode;
-  
+
   const CreateAssetHeader({super.key, required this.epcCode});
 
   @override
   Widget build(BuildContext context) {
     final l10n = ScanLocalizations.of(context);
-    
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
@@ -31,11 +31,11 @@ class CreateAssetHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.add_circle, color: AppColors.onPrimary, size: 48),
+          const Icon(Icons.add_circle, color: AppColors.onPrimary, size: 48),
           const SizedBox(height: 12),
           Text(
             l10n.creatingUnknownAsset,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.onPrimary,
@@ -50,7 +50,7 @@ class CreateAssetHeader extends StatelessWidget {
             ),
             child: Text(
               epcCode,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.onPrimary,
                 fontWeight: FontWeight.w500,
                 fontSize: 16,

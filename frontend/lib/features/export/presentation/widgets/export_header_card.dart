@@ -93,12 +93,12 @@ class ExportHeaderCard extends StatelessWidget {
       children: [
         // Icon section
         Container(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: AppDecorations.custom(
             color: AppColors.primary,
             borderRadius: AppBorders.lg,
           ),
-          child: Icon(Icons.settings, color: AppColors.onPrimary, size: 32),
+          child: const Icon(Icons.settings, color: AppColors.onPrimary, size: 32),
         ),
 
         AppSpacing.horizontalSpaceXL,
@@ -153,7 +153,7 @@ class ExportHeaderCard extends StatelessWidget {
             color: AppColors.primary,
             borderRadius: AppBorders.sm,
           ),
-          child: Icon(Icons.settings, color: AppColors.onPrimary, size: 20),
+          child: const Icon(Icons.settings, color: AppColors.onPrimary, size: 20),
         ),
         AppSpacing.horizontalSpaceLG,
         Expanded(

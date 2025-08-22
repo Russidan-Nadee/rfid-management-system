@@ -265,7 +265,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       // Check if any critical data failed to load
       if (results[0].isLeft) {
         emit(
-          DashboardError(
+          const DashboardError(
             message: 'Failed to load dashboard statistics',
             errorCode: 'STATS_LOAD_ERROR',
           ),
@@ -300,7 +300,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         ),
       );
 
-    } catch (e, stackTrace) {
+    } catch (e) {
       emit(
         DashboardError(
           message: 'Unexpected error loading dashboard: $e',

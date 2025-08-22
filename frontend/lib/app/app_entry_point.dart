@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/foundation.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_state.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
@@ -22,7 +21,8 @@ class AppEntryPoint extends StatefulWidget {
   State<AppEntryPoint> createState() => _AppEntryPointState();
 }
 
-class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserver {
+class _AppEntryPointState extends State<AppEntryPoint>
+    with WidgetsBindingObserver {
   final CookieSessionService _sessionService = CookieSessionService();
   final BrowserApi _browserApi = BrowserApiService.instance;
   final SessionTimerService _sessionTimer = SessionTimerService();
@@ -54,7 +54,7 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
       _isAppInForeground = true;
       _checkSessionOnResume();
     });
-    
+
     // Listen for visibility change (tab becomes visible/hidden) - works on all platforms
     _visibilitySubscription = _browserApi.onVisibilityChange.listen((event) {
       if (!_browserApi.isDocumentHidden) {
@@ -75,22 +75,28 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
 
   void _checkSessionExpiry() async {
     if (!mounted) return;
-    
+
     final currentState = context.read<AuthBloc>().state;
     if (currentState is! AuthAuthenticated) {
       print('⏰ Periodic check: User not authenticated, skipping');
       return;
     }
 
-    print('⏰ Periodic session check at ${DateTime.now()} (App in foreground: $_isAppInForeground)');
+    print(
+      '⏰ Periodic session check at ${DateTime.now()} (App in foreground: $_isAppInForeground)',
+    );
     await _sessionService.hasValidSession();
     final isExpired = _sessionService.isSessionExpired();
     final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
-    print('⏰ Session expired: $isExpired, Time until expiry: ${timeUntilExpiry?.inSeconds} seconds');
-    
+    print(
+      '⏰ Session expired: $isExpired, Time until expiry: ${timeUntilExpiry?.inSeconds} seconds',
+    );
+
     if (isExpired && mounted) {
       // Check if user was recently active before expiring
-      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 15));
+      final isActive = _sessionTimer.wasRecentlyActive(
+        const Duration(minutes: 15),
+      );
       if (isActive) {
         print('🔄 Session expired but user was active - attempting refresh');
         final authBloc = context.read<AuthBloc>();
@@ -100,17 +106,27 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const LogoutRequested());
       }
-    } else if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 10 && mounted) {
+    } else if (timeUntilExpiry != null &&
+        timeUntilExpiry.inMinutes <= 10 &&
+        mounted) {
       // Only proactively refresh if app is in foreground AND user was recently active
-      final isActive = _sessionTimer.wasRecentlyActive(const Duration(minutes: 15));
+      final isActive = _sessionTimer.wasRecentlyActive(
+        const Duration(minutes: 15),
+      );
       if (isActive && _isAppInForeground) {
-        print('🔄 Session near expiry, user active, and app in foreground - proactive refresh');
+        print(
+          '🔄 Session near expiry, user active, and app in foreground - proactive refresh',
+        );
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const RefreshTokenRequested());
       } else if (!_isAppInForeground) {
-        print('⏸️ Session near expiry but app in background - skipping proactive refresh');
+        print(
+          '⏸️ Session near expiry but app in background - skipping proactive refresh',
+        );
       } else {
-        print('💤 Session near expiry but user not recently active - skipping proactive refresh');
+        print(
+          '💤 Session near expiry but user not recently active - skipping proactive refresh',
+        );
       }
     }
   }
@@ -118,11 +134,11 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     // Handle Windows/Desktop app lifecycle properly
     if (_browserApi is BrowserApiIO) {
-      final browserApiIO = _browserApi as BrowserApiIO;
-      
+      final browserApiIO = _browserApi;
+
       switch (state) {
         case AppLifecycleState.resumed:
           print('🪟 Windows: App resumed - marking as active');
@@ -148,7 +164,8 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
       if (state == AppLifecycleState.resumed) {
         _isAppInForeground = true;
         _checkSessionOnResume();
-      } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      } else if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive) {
         _isAppInForeground = false;
       }
     }
@@ -157,19 +174,19 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
   void _checkSessionOnResume() async {
     // Check if widget is still mounted before accessing context
     if (!mounted) return;
-    
+
     // Only check if user is currently authenticated
     final currentState = context.read<AuthBloc>().state;
-    
+
     if (currentState is! AuthAuthenticated) {
       return;
     }
 
     // Load session data from storage and check if expired
     await _sessionService.hasValidSession();
-    
+
     final isExpired = _sessionService.isSessionExpired();
-    
+
     if (isExpired && mounted) {
       // User returned to app - always attempt refresh on resume
       print('🔄 Session expired on resume - attempting refresh');
@@ -178,7 +195,9 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
     } else {
       // Session valid but check if close to expiry - preemptively refresh
       final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
-      if (timeUntilExpiry != null && timeUntilExpiry.inMinutes <= 10 && mounted) {
+      if (timeUntilExpiry != null &&
+          timeUntilExpiry.inMinutes <= 10 &&
+          mounted) {
         print('🔄 Session near expiry on resume - proactive refresh');
         final authBloc = context.read<AuthBloc>();
         authBloc.add(const RefreshTokenRequested());
@@ -188,15 +207,14 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-
     // ===== DEVELOPMENT MODE: ข้าม Auth ตรงไป Layout =====
-    if (kDebugMode) {
-      const bool skipAuth = false; // เปลี่ยนเป็น false เมื่อต้องการ auth กลับ
-
-      if (skipAuth) {
-        return const SessionManager(child: RootLayout());
-      }
-    }
+    // Note: Set skipAuth to true if you want to bypass authentication during development
+    // if (kDebugMode) {
+    //   const bool skipAuth = false;
+    //   if (skipAuth) {
+    //     return const SessionManager(child: RootLayout());
+    //   }
+    // }
 
     // ===== PRODUCTION MODE: ใช้ Auth ปกติ =====
     return BlocConsumer<AuthBloc, AuthState>(
@@ -204,7 +222,6 @@ class _AppEntryPointState extends State<AppEntryPoint> with WidgetsBindingObserv
         // Handle auth state changes
       },
       builder: (context, state) {
-        
         if (state is AuthLoading || state is AuthInitial) {
           return const SplashScreen();
         } else if (state is AuthAuthenticated) {

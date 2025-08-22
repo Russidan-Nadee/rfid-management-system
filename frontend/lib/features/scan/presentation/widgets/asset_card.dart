@@ -90,7 +90,7 @@ class AssetCard extends StatelessWidget {
         bottom: AppSpacing.sm,
       ),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: AppBorders.medium),
+      shape: const RoundedRectangleBorder(borderRadius: AppBorders.medium),
       color: theme.colorScheme.surface,
       child: InkWell(
         onTap: () => _navigateToDetail(context),
@@ -125,7 +125,7 @@ class AssetCard extends StatelessWidget {
     return Container(
       width: 48.0,
       height: 48.0,
-      decoration: BoxDecoration(borderRadius: AppBorders.medium),
+      decoration: const BoxDecoration(borderRadius: AppBorders.medium),
       child: item.isUnknown
           ? _buildDefaultStatusIcon(theme, l10n) // Unknown items ไม่มีรูป
           : FutureBuilder<AssetImageEntity?>(
@@ -206,7 +206,7 @@ class AssetCard extends StatelessWidget {
     return Container(
       width: cardSize,
       height: cardSize,
-      decoration: BoxDecoration(borderRadius: AppBorders.medium),
+      decoration: const BoxDecoration(borderRadius: AppBorders.medium),
       child: Center(
         child: CachedNetworkImage(
           // ✅ ลบ ClipRRect ออก - ไม่มีขอบโค้งสำหรับรูป

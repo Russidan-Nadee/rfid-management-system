@@ -122,7 +122,7 @@ class AssetCreationBloc extends Bloc<AssetCreationEvent, AssetCreationState> {
       emit(
         MasterDataLoaded(
           plants: plants,
-          locations: [],
+          locations: const [],
           units: units,
           departments: departments,
           categories: categories,

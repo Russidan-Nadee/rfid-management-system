@@ -55,7 +55,7 @@ class SearchHistoryEntity extends Equatable {
       id: _generateId(),
       query: query,
       searchType: 'instant',
-      entities: ['assets'],
+      entities: const ['assets'],
       resultsCount: 0,
       timestamp: DateTime.now(),
       userId: userId,

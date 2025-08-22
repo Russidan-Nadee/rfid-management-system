@@ -445,7 +445,7 @@ class _ScanListViewState extends State<ScanListView> {
             height: _isLocationFilterExpanded ? null : 0,
             child: _isLocationFilterExpanded
                 ? Padding(
-                    padding: EdgeInsets.fromLTRB(
+                    padding: const EdgeInsets.fromLTRB(
                       AppSpacing.lg,
                       0,
                       AppSpacing.lg,
@@ -719,7 +719,7 @@ class _ScanListViewState extends State<ScanListView> {
             height: _isStatusFilterExpanded ? null : 0,
             child: _isStatusFilterExpanded
                 ? Padding(
-                    padding: EdgeInsets.fromLTRB(
+                    padding: const EdgeInsets.fromLTRB(
                       AppSpacing.lg,
                       0,
                       AppSpacing.lg,
@@ -896,7 +896,7 @@ class _ScanListViewState extends State<ScanListView> {
             style: theme.textTheme.titleMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkText
-                  : theme.colorScheme.onBackground.withValues(
+                  : theme.colorScheme.onSurface.withValues(
                       alpha: FilterTheme.textSecondaryOpacity,
                     ),
             ),
@@ -909,7 +909,7 @@ class _ScanListViewState extends State<ScanListView> {
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkTextSecondary
-                  : theme.colorScheme.onBackground.withValues(
+                  : theme.colorScheme.onSurface.withValues(
                       alpha: FilterTheme.textTertiaryOpacity,
                     ),
             ),
@@ -948,7 +948,7 @@ class _ScanListViewState extends State<ScanListView> {
             style: theme.textTheme.titleMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkText
-                  : theme.colorScheme.onBackground.withValues(
+                  : theme.colorScheme.onSurface.withValues(
                       alpha: FilterTheme.textSecondaryOpacity,
                     ),
             ),
@@ -959,7 +959,7 @@ class _ScanListViewState extends State<ScanListView> {
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).brightness == Brightness.dark
                   ? AppColors.darkTextSecondary
-                  : theme.colorScheme.onBackground.withValues(
+                  : theme.colorScheme.onSurface.withValues(
                       alpha: FilterTheme.textTertiaryOpacity,
                     ),
             ),

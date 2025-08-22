@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'api_service.dart';
 import '../constants/api_constants.dart';
@@ -16,7 +14,6 @@ class AuthMonitorService with WidgetsBindingObserver {
   final ApiService _apiService = ApiService();
   static void Function()? _onSessionExpired;
   DateTime? _lastActiveTime;
-  bool _isAppActive = true;
 
   // Check authentication every 5 minutes for production
   static const Duration _checkInterval = Duration(minutes: 5);
@@ -103,7 +100,6 @@ class AuthMonitorService with WidgetsBindingObserver {
     switch (state) {
       case AppLifecycleState.resumed:
         print('🔄 App resumed - checking authentication immediately');
-        _isAppActive = true;
         
         // Check auth on app resume if inactive for more than 5 minutes
         if (_lastActiveTime != null) {
@@ -123,13 +119,11 @@ class AuthMonitorService with WidgetsBindingObserver {
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
         print('⏸️ App paused/inactive - marking last active time');
-        _isAppActive = false;
         _lastActiveTime = DateTime.now();
         break;
         
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
-        _isAppActive = false;
         break;
     }
   }

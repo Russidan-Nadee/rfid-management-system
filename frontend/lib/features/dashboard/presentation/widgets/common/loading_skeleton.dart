@@ -206,7 +206,7 @@ class SkeletonDashboardCard extends StatelessWidget {
               ],
               AppSpacing.verticalSpaceMedium,
             ],
-            Expanded(
+            const Expanded(
               child: SkeletonBox(
                 width: double.infinity,
                 height: double.infinity,
@@ -227,16 +227,16 @@ class SkeletonStatCard extends StatelessWidget {
     return Container(
       padding: AppSpacing.cardPaddingAll,
       decoration: AppDecorations.summaryCard,
-      child: SkeletonLoader(
+      child: const SkeletonLoader(
         isLoading: true,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SkeletonAvatar(size: 24, isCircular: false),
+            SkeletonAvatar(size: 24, isCircular: false),
             AppSpacing.verticalSpaceMedium,
-            const SkeletonText(width: 80, height: 28),
+            SkeletonText(width: 80, height: 28),
             AppSpacing.verticalSpaceSmall,
-            const SkeletonText(width: 60, height: 14),
+            SkeletonText(width: 60, height: 14),
           ],
         ),
       ),
@@ -263,12 +263,12 @@ class SkeletonChart extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(
                 3,
-                (index) => Row(
+                (index) => const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SkeletonAvatar(size: 12),
+                    SkeletonAvatar(size: 12),
                     AppSpacing.horizontalSpaceXS,
-                    const SkeletonText(width: 40, height: 12),
+                    SkeletonText(width: 40, height: 12),
                   ],
                 ),
               ),
@@ -314,14 +314,14 @@ class SkeletonList extends StatelessWidget {
                   const SkeletonAvatar(),
                   AppSpacing.horizontalSpaceMedium,
                 ],
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SkeletonText(height: 16),
+                      SkeletonText(height: 16),
                       AppSpacing.verticalSpaceXS,
-                      const SkeletonText(width: 100, height: 12),
+                      SkeletonText(width: 100, height: 12),
                     ],
                   ),
                 ),
@@ -381,13 +381,13 @@ class LoadingState extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (type) {
       case LoadingType.dashboard:
-        return Column(
+        return const Column(
           children: [
-            const SkeletonGrid(itemCount: 2),
+            SkeletonGrid(itemCount: 2),
             AppSpacing.verticalSpaceLarge,
-            const SkeletonDashboardCard(height: 300),
+            SkeletonDashboardCard(height: 300),
             AppSpacing.verticalSpaceLarge,
-            const SkeletonDashboardCard(height: 250),
+            SkeletonDashboardCard(height: 250),
           ],
         );
       case LoadingType.chart:

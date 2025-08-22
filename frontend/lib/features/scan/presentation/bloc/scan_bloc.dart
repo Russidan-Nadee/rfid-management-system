@@ -1,7 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/bloc/scan_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/scanned_item_entity.dart';
-import '../../domain/entities/asset_image_entity.dart';
 import '../../domain/repositories/scan_repository.dart';
 import '../../domain/usecases/get_asset_details_usecase.dart';
 import '../../domain/usecases/update_asset_status_usecase.dart';
@@ -329,7 +328,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     if (state is ScanSuccess) {
       scanSuccess = state as ScanSuccess;
     } else if (_lastScanSuccess != null) {
-      scanSuccess = _lastScanSuccess!;
+      scanSuccess = _lastScanSuccess;
     }
     
     if (scanSuccess != null) {
@@ -356,7 +355,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     if (state is ScanSuccess) {
       scanSuccess = state as ScanSuccess;
     } else if (_lastScanSuccess != null) {
-      scanSuccess = _lastScanSuccess!;
+      scanSuccess = _lastScanSuccess;
     }
     
     if (scanSuccess != null) {

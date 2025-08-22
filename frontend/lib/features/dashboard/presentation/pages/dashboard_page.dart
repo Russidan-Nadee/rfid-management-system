@@ -84,7 +84,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
     return Scaffold(
       backgroundColor: isDark
           ? AppColors.darkSurface.withValues(alpha: 0.5)
-          : theme.colorScheme.background,
+          : theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.pageTitle,
@@ -548,7 +548,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                     : AppColors.errorLight,
                 borderRadius: AppBorders.circular,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.error_outline,
                 size: 64,
                 color: AppColors.error,
@@ -602,7 +602,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                   padding: AppSpacing.buttonPaddingSymmetric,
-                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                  shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
                 ),
               ),
             ),
@@ -673,7 +673,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: theme.colorScheme.onPrimary,
                   padding: AppSpacing.buttonPaddingSymmetric,
-                  shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                  shape: const RoundedRectangleBorder(borderRadius: AppBorders.md),
                 ),
               ),
             ),

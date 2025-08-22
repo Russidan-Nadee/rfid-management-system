@@ -72,6 +72,9 @@ dependencies:
   pdf: ^3.10.7
   printing: ^5.11.1
   excel: ^3.0.0
+  
+  # Web platform support (replaces dart:html)
+  web: ^1.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -80,10 +83,10 @@ dependencies:
   test: ^1.25.15
 
 
+  http_parser: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: "^0.14.4"
 
 flutter_launcher_icons:
   ios: true

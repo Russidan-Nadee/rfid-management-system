@@ -18,7 +18,7 @@ class GetDashboardStatsUseCase {
   ) async {
     // Validate period parameter
     if (!_isValidPeriod(params.period)) {
-      return Left(
+      return const Left(
         ValidationFailure(['Invalid period. Must be today, 7d, or 30d']),
       );
     }

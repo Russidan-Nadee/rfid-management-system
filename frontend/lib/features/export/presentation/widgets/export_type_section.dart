@@ -142,7 +142,7 @@ class ExportTypeSection extends StatelessWidget {
 
           // Status badge
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,
               vertical: AppSpacing.xs,
             ),
@@ -164,7 +164,7 @@ class ExportTypeSection extends StatelessWidget {
     if (isDark) {
       // Dark theme: ใช้ gradient ที่อ่อนลง
       return BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [AppColors.primary, AppColors.primaryDark],

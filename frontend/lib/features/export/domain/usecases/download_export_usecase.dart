@@ -45,7 +45,7 @@ class DownloadExportUseCase {
       totalRecords: model.totalRecords,
       fileSize: model.fileSize,
       createdAt: model.createdAt ?? DateTime.now(),
-      expiresAt: model.expiresAt ?? DateTime.now().add(Duration(hours: 24)),
+      expiresAt: model.expiresAt ?? DateTime.now().add(const Duration(hours: 24)),
       errorMessage: model.errorMessage,
       downloadUrl: model.downloadUrl,
     );

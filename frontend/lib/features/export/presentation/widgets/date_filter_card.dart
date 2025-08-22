@@ -74,7 +74,7 @@ class DateFilterCard extends StatelessWidget {
                   ),
               ],
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               title,
               style: AppTextStyles.button.copyWith(
@@ -85,7 +85,7 @@ class DateFilterCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
             ),
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Expanded(
               child: child,
             ),

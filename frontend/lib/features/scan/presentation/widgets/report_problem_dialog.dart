@@ -315,7 +315,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
                     ),
                   ),
                   child: _isSubmitting
-                      ? Row(
+                      ? const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             SizedBox(
@@ -326,8 +326,8 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            const Text('Submitting...'),
+                            SizedBox(width: 8),
+                            Text('Submitting...'),
                           ],
                         )
                       : const Text('Submit Report'),

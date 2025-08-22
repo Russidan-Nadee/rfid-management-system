@@ -93,13 +93,14 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             }
 
             if (state is ScanSuccess) {
-              
               ScannedItemEntity? foundItem;
               try {
                 final matchingItems = state.scannedItems.where(
                   (scanItem) => scanItem.assetNo == widget.item.assetNo,
                 );
-                foundItem = matchingItems.isNotEmpty ? matchingItems.first : widget.item;
+                foundItem = matchingItems.isNotEmpty
+                    ? matchingItems.first
+                    : widget.item;
               } catch (e) {
                 foundItem = widget.item;
               }
@@ -109,28 +110,24 @@ class _AssetDetailViewState extends State<AssetDetailView> {
 
               if (originalStatus == 'A' && updatedStatus == 'C') {
                 Helpers.showSuccess(context, l10n.assetMarkedSuccess);
-                
+
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     Navigator.of(context).pop(foundItem);
                   }
                 });
-              }
-              else if (originalStatus != updatedStatus) {
+              } else if (originalStatus != updatedStatus) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) {
                     Navigator.of(context).pop(foundItem);
                   }
                 });
-              } else {
-              }
+              } else {}
             }
             // ✅ แก้ไข: Handle AssetStatusUpdateError ที่ชัดเจน
             else if (state is AssetStatusUpdateError) {
               Helpers.showError(context, state.message);
-            }
-            else if (state is AssetStatusUpdated) {
-
+            } else if (state is AssetStatusUpdated) {
               // เช็คว่าเป็น asset ที่เรากำลังดูอยู่หรือไม่
               if (state.updatedAsset.assetNo == widget.item.assetNo) {
                 final originalStatus = widget.item.status.toUpperCase().trim();
@@ -167,7 +164,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
               });
             } else if (state is AssetImagesLoading &&
                 state.assetNo == widget.item.assetNo) {
-                setState(() {
+              setState(() {
                 _isLoadingImages = true;
               });
             } else if (state is AssetImagesError &&
@@ -200,7 +197,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             onPressed: () {
               Navigator.of(context).pop();
             },
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
           ),
           actions: [
             // Report Problem button - only show for known assets
@@ -219,7 +216,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
         ),
         backgroundColor: Theme.of(context).brightness == Brightness.dark
             ? AppColors.darkSurface.withValues(alpha: 0.1)
-            : theme.colorScheme.background,
+            : theme.colorScheme.surface,
         body: LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth > 800;
@@ -441,11 +438,9 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             current is AssetStatusUpdateError;
       },
       builder: (context, state) {
-
         final isLoading =
             state is AssetStatusUpdating &&
             state.assetNo == widget.item.assetNo;
-
 
         return SizedBox(
           width: double.infinity,
@@ -487,11 +482,13 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   void _showReportProblemDialog(BuildContext context) {
     print('🔍 AssetDetail: Report Problem button clicked');
     print('🔍 AssetDetail: Asset No: ${widget.item.assetNo}');
-    print('🔍 AssetDetail: Asset Description: ${widget.item.description ?? widget.item.displayName}');
+    print(
+      '🔍 AssetDetail: Asset Description: ${widget.item.description ?? widget.item.displayName}',
+    );
     print('🔍 AssetDetail: Asset Status: ${widget.item.status}');
     print('🔍 AssetDetail: Is Unknown: ${widget.item.isUnknown}');
     print('🔍 AssetDetail: Opening Report Problem Dialog...');
-    
+
     showDialog(
       context: context,
       builder: (context) => ReportProblemDialog(

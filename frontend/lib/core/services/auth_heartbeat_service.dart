@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'auth_monitor_service.dart';
 
 /// Aggressive heartbeat service to ensure no expired token gaps

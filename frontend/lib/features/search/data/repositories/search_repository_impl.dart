@@ -408,25 +408,25 @@ class SearchRepositoryImpl implements SearchRepository {
       return UserSearchBehaviorEntity(
         userId: userId,
         totalSearches: 0,
-        favoriteQueries: [],
-        preferredEntities: [],
+        favoriteQueries: const [],
+        preferredEntities: const [],
         avgSessionDuration: 0.0,
         sessionsCount: 0,
         firstSearch: DateTime.now(),
         lastSearch: DateTime.now(),
-        searchPatterns: {},
+        searchPatterns: const {},
       );
     } catch (e) {
       return UserSearchBehaviorEntity(
         userId: userId,
         totalSearches: 0,
-        favoriteQueries: [],
-        preferredEntities: [],
+        favoriteQueries: const [],
+        preferredEntities: const [],
         avgSessionDuration: 0.0,
         sessionsCount: 0,
         firstSearch: DateTime.now(),
         lastSearch: DateTime.now(),
-        searchPatterns: {},
+        searchPatterns: const {},
       );
     }
   }

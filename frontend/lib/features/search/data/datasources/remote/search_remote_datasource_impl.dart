@@ -315,7 +315,7 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
           SearchResponseModel(
             success: false,
             message: 'Failed to search $entity',
-            results: {},
+            results: const {},
             timestamp: DateTime.now(),
           ),
         );

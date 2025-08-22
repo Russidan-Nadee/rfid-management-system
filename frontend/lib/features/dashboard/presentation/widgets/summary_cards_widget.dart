@@ -53,15 +53,15 @@ class SummaryCardsWidget extends StatelessWidget {
     if (screenWidth > AppConstants.desktopBreakpoint) {
       crossAxisCount = 4;
       childAspectRatio = 1.4;
-      gridPadding = EdgeInsets.symmetric(horizontal: 50);
+      gridPadding = const EdgeInsets.symmetric(horizontal: 50);
     } else if (screenWidth > AppConstants.tabletBreakpoint) {
       crossAxisCount = 2;
       childAspectRatio = 1.5;
-      gridPadding = EdgeInsets.symmetric(horizontal: 50);
+      gridPadding = const EdgeInsets.symmetric(horizontal: 50);
     } else {
       crossAxisCount = 2;
       childAspectRatio = 1.1;
-      gridPadding = EdgeInsets.symmetric(horizontal: 16);
+      gridPadding = const EdgeInsets.symmetric(horizontal: 16);
     }
 
     return Padding(

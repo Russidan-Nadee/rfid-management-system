@@ -51,7 +51,7 @@ class SettingsPageView extends StatelessWidget {
           ? AppColors.darkSurface.withValues(
               alpha: 0.5,
             ) // #526D82 - เข้มกว่า SurfaceVariant
-          : theme.colorScheme.background,
+          : theme.colorScheme.surface,
       body: BlocListener<SettingsBloc, SettingsState>(
         listener: (context, state) {
           if (state is SettingsUpdated) {
@@ -195,7 +195,7 @@ class SettingsPageView extends StatelessWidget {
                       ),
                     ),
 
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildFlexibleCard(
                 context,
                 theme,

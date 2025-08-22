@@ -50,7 +50,7 @@ class StatusFilterSection extends StatelessWidget {
   ) {
     return Row(
       children: [
-        Icon(Icons.filter_list, color: AppColors.primary, size: 20),
+        const Icon(Icons.filter_list, color: AppColors.primary, size: 20),
         AppSpacing.horizontalSpaceSM,
         Flexible(
           child: Text(
@@ -65,7 +65,7 @@ class StatusFilterSection extends StatelessWidget {
         if (selectedStatuses.isNotEmpty) ...[
           AppSpacing.horizontalSpaceSM,
           Container(
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,
               vertical: AppSpacing.xs,
             ),
@@ -204,16 +204,16 @@ class StatusFilterSection extends StatelessWidget {
         Row(
           children: [
             Expanded(child: _buildStatusCard(allCards[0], l10n)),
-            SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(child: _buildStatusCard(allCards[1], l10n)),
           ],
         ),
-        SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.lg),
         // Second row: Checked + Inactive
         Row(
           children: [
             Expanded(child: _buildStatusCard(allCards[2], l10n)),
-            SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(child: _buildStatusCard(allCards[3], l10n)),
           ],
         ),

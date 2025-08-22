@@ -237,10 +237,6 @@ class AssetListWidget extends StatelessWidget {
     BoxConstraints constraints,
   ) {
     final l10n = AdminLocalizations.of(context);
-    // Account for container margins and borders
-    final containerMargin = 16.0; // 8px on each side
-    final borderWidth = 2.0; // 1px border on each side
-    final availableWidth = constraints.maxWidth - containerMargin - borderWidth;
 
     // Define column flex weights for proportional sizing
     const columnFlexes = {
@@ -253,7 +249,6 @@ class AssetListWidget extends StatelessWidget {
       'actions': 2, // Action buttons
     };
 
-    final totalFlex = columnFlexes.values.reduce((a, b) => a + b);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),

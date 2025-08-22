@@ -138,7 +138,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
         children: [
           Text(
             l10n.createAssetPageTitle,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 25,
               fontWeight: FontWeight.bold,
               color: AppColors.primary,
@@ -161,7 +161,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
               color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: CircularProgressIndicator(
+            child: const CircularProgressIndicator(
               color: AppColors.primary,
               strokeWidth: 3,
             ),
@@ -169,7 +169,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           const SizedBox(height: 24),
           Text(
             l10n.loadingFormData,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
@@ -192,7 +192,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
               color: AppColors.success.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: CircularProgressIndicator(
+            child: const CircularProgressIndicator(
               color: AppColors.success,
               strokeWidth: 3,
             ),
@@ -200,7 +200,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           const SizedBox(height: 24),
           Text(
             l10n.creatingAsset,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
@@ -209,7 +209,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           const SizedBox(height: 8),
           Text(
             l10n.pleaseWaitCreating,
-            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+            style: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ],
       ),
@@ -244,7 +244,7 @@ class _CreateAssetViewState extends State<CreateAssetView> {
             const SizedBox(height: 24),
             Text(
               l10n.loadingFailed,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.onBackground,
@@ -253,7 +253,10 @@ class _CreateAssetViewState extends State<CreateAssetView> {
             const SizedBox(height: 12),
             Text(
               message,
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -391,6 +394,10 @@ class _CreateAssetViewState extends State<CreateAssetView> {
 
   void _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
+      // Store context-dependent values before async operation
+      final bloc = context.read<AssetCreationBloc>();
+      final l10n = ScanLocalizations.of(context);
+      
       try {
         final userId = await getIt.get<GetCurrentUserUseCase>().execute();
 
@@ -414,10 +421,13 @@ class _CreateAssetViewState extends State<CreateAssetView> {
           createdBy: userId,
         );
 
-        context.read<AssetCreationBloc>().add(CreateAssetSubmitted(request));
+        if (mounted) {
+          bloc.add(CreateAssetSubmitted(request));
+        }
       } catch (e) {
-        final l10n = ScanLocalizations.of(context);
-        Helpers.showError(context, l10n.failedToGetCurrentUser);
+        if (mounted) {
+          Helpers.showError(this.context, l10n.failedToGetCurrentUser);
+        }
       }
     }
   }

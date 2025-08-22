@@ -35,7 +35,7 @@ class MyReportsPageView extends StatelessWidget {
     return Scaffold(
       backgroundColor: isDark
           ? AppColors.darkSurface.withValues(alpha: 0.5)
-          : theme.colorScheme.background,
+          : theme.colorScheme.surface,
       appBar: AppBar(
         title: Text(
           l10n.myReportsTitle,
@@ -148,7 +148,11 @@ class MyReportsPageView extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorView(BuildContext context, ReportsLocalizations l10n, String message) {
+  Widget _buildErrorView(
+    BuildContext context,
+    ReportsLocalizations l10n,
+    String message,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
@@ -212,7 +216,7 @@ class MyReportsPageView extends StatelessWidget {
               onPressed: () {
                 context.read<ReportsBloc>().add(const LoadMyReports());
               },
-              icon: Icon(Icons.refresh, color: AppColors.onPrimary),
+              icon: const Icon(Icons.refresh, color: AppColors.onPrimary),
               label: Text(
                 l10n.tryAgain,
                 style: AppTextStyles.button.copyWith(
@@ -223,7 +227,9 @@ class MyReportsPageView extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.onPrimary,
                 padding: AppSpacing.buttonPaddingSymmetric,
-                shape: RoundedRectangleBorder(borderRadius: AppBorders.md),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppBorders.md,
+                ),
               ),
             ),
           ],
@@ -239,9 +245,7 @@ class MyReportsPageView extends StatelessWidget {
       },
       child: Padding(
         padding: AppSpacing.screenPaddingAll,
-        child: _UniformCardGrid(
-          reports: reports,
-        ),
+        child: _UniformCardGrid(reports: reports),
       ),
     );
   }
@@ -251,9 +255,7 @@ class MyReportsPageView extends StatelessWidget {
 class _UniformCardGrid extends StatelessWidget {
   final List<dynamic> reports;
 
-  const _UniformCardGrid({
-    required this.reports,
-  });
+  const _UniformCardGrid({required this.reports});
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +263,7 @@ class _UniformCardGrid extends StatelessWidget {
       builder: (context, constraints) {
         // Responsive column count based on screen width
         int crossAxisCount;
-        
+
         if (constraints.maxWidth >= 1200) {
           crossAxisCount = 4; // Extra large screens: 4 columns
         } else if (constraints.maxWidth >= 900) {
@@ -279,11 +281,11 @@ class _UniformCardGrid extends StatelessWidget {
 
   Widget _buildAutoAdjustingGrid({required int crossAxisCount}) {
     final rows = <Widget>[];
-    
+
     // Group reports into rows
     for (int i = 0; i < reports.length; i += crossAxisCount) {
       final rowReports = <dynamic>[];
-      
+
       // Collect reports for this row
       for (int j = 0; j < crossAxisCount; j++) {
         final index = i + j;
@@ -291,47 +293,49 @@ class _UniformCardGrid extends StatelessWidget {
           rowReports.add(reports[index]);
         }
       }
-      
+
       // Create row with IntrinsicHeight to auto-adjust height
       rows.add(
         Container(
-          margin: EdgeInsets.only(bottom: i + crossAxisCount < reports.length ? 16 : 0),
+          margin: EdgeInsets.only(
+            bottom: i + crossAxisCount < reports.length ? 16 : 0,
+          ),
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: rowReports.asMap().entries.map((entry) {
-                final j = entry.key;
-                final report = entry.value;
-                
-                return Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(
-                      right: j < rowReports.length - 1 ? 16 : 0,
-                    ),
-                    child: UserReportCardWidget(
-                      report: report,
-                    ),
-                  ),
-                );
-              }).toList() +
-              // Add empty spaces for incomplete rows
-              List.generate(crossAxisCount - rowReports.length, (index) {
-                return Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(
-                      right: (rowReports.length + index) < crossAxisCount - 1 ? 16 : 0,
-                    ),
-                  ),
-                );
-              }),
+              children:
+                  rowReports.asMap().entries.map((entry) {
+                    final j = entry.key;
+                    final report = entry.value;
+
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right: j < rowReports.length - 1 ? 16 : 0,
+                        ),
+                        child: UserReportCardWidget(report: report),
+                      ),
+                    );
+                  }).toList() +
+                  // Add empty spaces for incomplete rows
+                  List.generate(crossAxisCount - rowReports.length, (index) {
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                          right:
+                              (rowReports.length + index) < crossAxisCount - 1
+                              ? 16
+                              : 0,
+                        ),
+                      ),
+                    );
+                  }),
             ),
           ),
         ),
       );
     }
-    
-    return SingleChildScrollView(
-      child: Column(children: rows),
-    );
+
+    return SingleChildScrollView(child: Column(children: rows));
   }
 }

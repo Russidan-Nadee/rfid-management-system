@@ -18,7 +18,7 @@ class GetAssetDistributionUseCase {
   ) async {
     // Validate plant code if provided
     if (params.plantCode != null && !_isValidPlantCode(params.plantCode!)) {
-      return Left(ValidationFailure(['Invalid plant code format']));
+      return const Left(ValidationFailure(['Invalid plant code format']));
     }
 
     return await repository.getAssetDistribution(

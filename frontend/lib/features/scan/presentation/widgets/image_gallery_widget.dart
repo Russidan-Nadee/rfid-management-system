@@ -43,8 +43,6 @@ class ImageGalleryWidget extends StatelessWidget {
     ThemeData theme,
     AssetImageEntity image,
   ) {
-    final imageUrl =
-        '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}';
     final thumbnailUrl =
         '${ApiConstants.baseUrl}${ApiConstants.serveImage(image.id)}?size=thumb';
 
@@ -164,11 +162,15 @@ class ImageGalleryWidget extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.photo_library, color: Colors.white, size: 12),
+                      const Icon(
+                        Icons.photo_library,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${images.length}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,

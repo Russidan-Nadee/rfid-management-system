@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';
@@ -97,7 +96,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
 
       if (!exportJob.canDownload) {
         if (exportJob.isPending) {
-          throw ExportException(
+          throw const ExportException(
             'Export is still processing. Please wait and try again.',
             ExportErrorType.validation,
           );
@@ -107,12 +106,12 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
             ExportErrorType.validation,
           );
         } else if (exportJob.isExpired) {
-          throw ExportException(
+          throw const ExportException(
             'Export file has expired',
             ExportErrorType.validation,
           );
         } else {
-          throw ExportException(
+          throw const ExportException(
             'Export file is not available for download',
             ExportErrorType.validation,
           );
@@ -244,7 +243,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
       String? token = await apiService.getAuthToken();
       
       if (sessionId == null && token == null) {
-        throw ExportException(
+        throw const ExportException(
           'Authentication required for download',
           ExportErrorType.authentication,
         );
@@ -280,7 +279,7 @@ class ExportRemoteDataSourceImpl implements ExportRemoteDataSource {
     } catch (e) {
       // Fallback: Open in new tab/window
       print('⚠️ Direct download failed, opening in new tab');
-      throw ExportException(
+      throw const ExportException(
         'Please manually download from the opened tab',
         ExportErrorType.download,
       );

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 import '../models/api_response.dart';
@@ -40,7 +39,6 @@ class ApiService {
     try {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       final message = body['message'] ?? 'Unknown error occurred';
-      final code = body['code'];
 
       switch (response.statusCode) {
         case 400:

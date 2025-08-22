@@ -23,7 +23,7 @@ class RfidDataSource {
   Future<List<String>> generateAssetNumbers() async {
     try {
       // จำลองการ scan ใช้เวลา 3 วินาที
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
 
       // Return mock EPC codes
       return List.from(_mockEpcCodes);
@@ -33,6 +33,6 @@ class RfidDataSource {
   }
 
   Future<void> simulateScanDelay() async {
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
   }
 }

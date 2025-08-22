@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'storage_service.dart';
-import '../../app/app_constants.dart';
 
 class CookieSessionService {
   static final CookieSessionService _instance = CookieSessionService._internal();

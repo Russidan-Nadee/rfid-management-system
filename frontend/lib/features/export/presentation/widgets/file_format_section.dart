@@ -50,7 +50,7 @@ class FileFormatSection extends StatelessWidget {
   ) {
     return Row(
       children: [
-        Icon(Icons.file_copy, color: AppColors.primary, size: 20),
+        const Icon(Icons.file_copy, color: AppColors.primary, size: 20),
         AppSpacing.horizontalSpaceSM,
         Text(
           l10n.exportFormat, // แปลว่า "File Format" หรือข้อความที่กำหนดใน localization
