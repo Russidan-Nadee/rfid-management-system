@@ -33,7 +33,9 @@
       "Bash(npm install:*)",
       "Bash(true)",
       "Bash(npm test)",
-      "Bash(PORT=3001 node src/server.js)"
+      "Bash(PORT=3001 node src/server.js)",
+      "WebFetch(domain:fonts.google.com)",
+      "Bash(unzip:*)"
     ],
     "deny": [],
     "additionalDirectories": [

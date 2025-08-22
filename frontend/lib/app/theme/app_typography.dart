@@ -3,12 +3,33 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
+  // Font family configuration for local fonts
+  static const String _englishFont = 'Inter';
+  static const String _thaiFont = 'Kanit';
+  static const String _japaneseFont = 'Noto Sans JP';
+  static const List<String> _fontFamilyFallback = [
+    _englishFont,
+    _thaiFont,
+    _japaneseFont,
+    'Roboto',
+  ];
+  
+  // Adjusted fallback for Japanese with medium weight
+  static const List<String> _japaneseFontFallback = [
+    _japaneseFont,
+    _englishFont,
+    _thaiFont,
+    'Roboto',
+  ];
+
+
   // Modern Typography Scale - Better hierarchy
   static const TextStyle display1 = TextStyle(
     fontSize: 48,
     fontWeight: FontWeight.w800,
     letterSpacing: -1.0,
     height: 1.1,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle display2 = TextStyle(
@@ -16,6 +37,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     letterSpacing: -0.8,
     height: 1.15,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle display3 = TextStyle(
@@ -23,21 +45,24 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     letterSpacing: -0.6,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Headlines - Enhanced contrast
   static const TextStyle headline1 = TextStyle(
     fontSize: 32,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle headline2 = TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.w600,
-    letterSpacing: -0.25,
+    letterSpacing: -0.5,
     height: 1.25,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle headline3 = TextStyle(
@@ -45,6 +70,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.3,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle headline4 = TextStyle(
@@ -52,6 +78,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.35,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle headline5 = TextStyle(
@@ -59,6 +86,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.15,
     height: 1.4,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle headline6 = TextStyle(
@@ -66,6 +94,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.15,
     height: 1.4,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Subtitles - Better readability
@@ -74,6 +103,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.15,
     height: 1.5,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle subtitle2 = TextStyle(
@@ -81,21 +111,24 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.25,
     height: 1.4,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Body text - Optimized for readability
   static const TextStyle body1 = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,
-    letterSpacing: 0.15,
+    letterSpacing: -0.1,
     height: 1.6,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle body2 = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    letterSpacing: 0.25,
+    letterSpacing: 0.0,
     height: 1.5,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle body3 = TextStyle(
@@ -103,6 +136,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w400,
     letterSpacing: 0.4,
     height: 1.4,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Labels and captions
@@ -111,6 +145,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w400,
     letterSpacing: 0.4,
     height: 1.3,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle overline = TextStyle(
@@ -118,6 +153,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 1.5,
     height: 1.6,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle label = TextStyle(
@@ -125,14 +161,16 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.8,
     height: 1.4,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Button styles - Enhanced
   static const TextStyle button = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.8,
+    letterSpacing: 0.2,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle buttonLarge = TextStyle(
@@ -140,6 +178,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.5,
     height: 1.25,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle buttonSmall = TextStyle(
@@ -147,6 +186,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     letterSpacing: 1.0,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Dashboard specific styles - Enhanced hierarchy
@@ -156,14 +196,16 @@ class AppTextStyles {
     letterSpacing: -0.2,
     height: 1.2,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle cardTitle = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.1,
+    letterSpacing: -0.2,
     height: 1.3,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle cardSubtitle = TextStyle(
@@ -172,6 +214,7 @@ class AppTextStyles {
     letterSpacing: 0.25,
     height: 1.4,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Statistics and numbers - Better emphasis
@@ -181,6 +224,7 @@ class AppTextStyles {
     letterSpacing: -0.8,
     height: 1.1,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle statValueLarge = TextStyle(
@@ -189,6 +233,7 @@ class AppTextStyles {
     letterSpacing: -1.0,
     height: 1.0,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle statLabel = TextStyle(
@@ -197,6 +242,7 @@ class AppTextStyles {
     letterSpacing: 0.4,
     height: 1.3,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle statChange = TextStyle(
@@ -204,6 +250,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Chart and data visualization
@@ -213,6 +260,7 @@ class AppTextStyles {
     letterSpacing: 0.4,
     height: 1.2,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle chartValue = TextStyle(
@@ -221,6 +269,7 @@ class AppTextStyles {
     letterSpacing: 0.2,
     height: 1.2,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Filter and navigation
@@ -230,6 +279,7 @@ class AppTextStyles {
     letterSpacing: 0.3,
     height: 1.2,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle filterLabelSelected = TextStyle(
@@ -238,6 +288,7 @@ class AppTextStyles {
     letterSpacing: 0.3,
     height: 1.2,
     color: AppColors.primary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle navigationLabel = TextStyle(
@@ -246,23 +297,26 @@ class AppTextStyles {
     letterSpacing: 0.4,
     height: 1.2,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Form and input styles
   static const TextStyle inputLabel = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    letterSpacing: 0.25,
+    letterSpacing: 0.0,
     height: 1.4,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle inputText = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,
-    letterSpacing: 0.15,
+    letterSpacing: -0.05,
     height: 1.5,
     color: AppColors.textPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle inputHint = TextStyle(
@@ -271,6 +325,7 @@ class AppTextStyles {
     letterSpacing: 0.15,
     height: 1.5,
     color: AppColors.textTertiary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle inputError = TextStyle(
@@ -279,6 +334,7 @@ class AppTextStyles {
     letterSpacing: 0.4,
     height: 1.3,
     color: AppColors.error,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle inputHelper = TextStyle(
@@ -287,6 +343,7 @@ class AppTextStyles {
     letterSpacing: 0.4,
     height: 1.3,
     color: AppColors.textSecondary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Semantic styles with enhanced colors
@@ -334,6 +391,7 @@ class AppTextStyles {
     letterSpacing: 0.5,
     height: 1.2,
     color: AppColors.onPrimary,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   static const TextStyle chip = TextStyle(
@@ -341,6 +399,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.3,
     height: 1.2,
+    fontFamilyFallback: _fontFamilyFallback,
   );
 
   // Responsive text helper
@@ -384,6 +443,27 @@ class AppTextStyles {
   // Color helpers
   static TextStyle colored(TextStyle style, Color color) =>
       style.copyWith(color: color);
+
+  // Japanese text optimization - use medium weight and adjusted spacing
+  static TextStyle forJapanese(TextStyle style) => style.copyWith(
+    fontWeight: FontWeight.w500, // Medium weight for better visibility
+    letterSpacing: (style.letterSpacing ?? 0) + 0.2, // Slightly more spacing
+    fontFamilyFallback: _japaneseFontFallback,
+  );
+
+  // Multi-language text helpers
+  static TextStyle forLanguage(TextStyle style, String languageCode) {
+    switch (languageCode) {
+      case 'ja':
+        return forJapanese(style);
+      case 'th':
+        return style.copyWith(
+          letterSpacing: (style.letterSpacing ?? 0) - 0.1, // Tighter for Thai
+        );
+      default:
+        return style; // English uses default
+    }
+  }
 
   // Theme data for Material Design
   static TextTheme get lightTextTheme => TextTheme(
