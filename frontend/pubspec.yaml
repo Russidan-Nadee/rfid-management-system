@@ -87,9 +87,26 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_native_splash: ^2.4.1
 
 flutter_launcher_icons:
+  android: true
   ios: true
+  web:
+    generate: true
+    image_path: "assets/images/icon-app.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"
+  windows:
+    generate: true
+    image_path: "assets/images/icon-app.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/images/icon-app.png"
+  linux:
+    generate: true
+    image_path: "assets/images/icon-app.png"
   image_path: "assets/images/icon-app.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -142,3 +159,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Splash screen configuration
+flutter_native_splash:
+  color: "#ffffff"
+  image: assets/images/icon-app.png
