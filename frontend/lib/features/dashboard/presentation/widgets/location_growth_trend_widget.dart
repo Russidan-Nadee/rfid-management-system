@@ -19,6 +19,8 @@ class LocationGrowthTrendWidget extends StatefulWidget {
   final String? selectedLocationCode;
   final List<Map<String, String>> availableLocations;
   final Function(String?) onLocationChanged;
+  final GrowthChartType? chartType;
+  final Function(GrowthChartType)? onChartTypeChanged;
 
   const LocationGrowthTrendWidget({
     super.key,
@@ -27,6 +29,8 @@ class LocationGrowthTrendWidget extends StatefulWidget {
     this.selectedLocationCode,
     this.availableLocations = const [],
     required this.onLocationChanged,
+    this.chartType,
+    this.onChartTypeChanged,
   });
 
   @override
@@ -35,7 +39,7 @@ class LocationGrowthTrendWidget extends StatefulWidget {
 }
 
 class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
-  GrowthChartType _selectedChartType = GrowthChartType.bar;
+  GrowthChartType get _selectedChartType => widget.chartType ?? GrowthChartType.bar;
 
   @override
   void initState() {
@@ -136,10 +140,8 @@ class _LocationGrowthTrendWidgetState extends State<LocationGrowthTrendWidget> {
             ),
           ],
           onChanged: (GrowthChartType? newType) {
-            if (newType != null) {
-              setState(() {
-                _selectedChartType = newType;
-              });
+            if (newType != null && widget.onChartTypeChanged != null) {
+              widget.onChartTypeChanged!(newType);
             }
           },
         ),

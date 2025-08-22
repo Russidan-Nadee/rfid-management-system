@@ -41,6 +41,8 @@ class _DashboardPageContent extends StatefulWidget {
 
 class _DashboardPageContentState extends State<_DashboardPageContent>
     with WidgetsBindingObserver {
+  DepartmentChartType _departmentChartType = DepartmentChartType.bar;
+  GrowthChartType _locationChartType = GrowthChartType.bar;
   @override
   void initState() {
     super.initState();
@@ -401,14 +403,20 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
     if (loadedState.departmentGrowthTrend != null) {
       return GrowthTrendChartWidget(
-        key: ValueKey('dept_growth_${DateTime.now().millisecondsSinceEpoch}'),
+        key: ValueKey('dept_growth_${loadedState.departmentGrowthDeptFilter}'),
         growthTrend: loadedState.departmentGrowthTrend!,
         selectedDeptCode: loadedState.departmentGrowthDeptFilter,
         availableDepartments: _getAllDepartments(loadedState),
+        chartType: _departmentChartType,
         onDeptChanged: (deptCode) {
           context.read<DashboardBloc>().add(
             LoadDepartmentGrowthTrends(deptCode: deptCode),
           );
+        },
+        onChartTypeChanged: (chartType) {
+          setState(() {
+            _departmentChartType = chartType;
+          });
         },
         isLoading:
             currentState is DashboardPartialLoading &&
@@ -427,14 +435,20 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
 
     if (loadedState.locationGrowthTrend != null) {
       return LocationGrowthTrendWidget(
-        key: ValueKey('location_${DateTime.now().millisecondsSinceEpoch}'),
+        key: ValueKey('location_${loadedState.locationGrowthLocationFilter}'),
         growthTrend: loadedState.locationGrowthTrend!,
         selectedLocationCode: loadedState.locationGrowthLocationFilter,
         availableLocations: _getAllLocations(loadedState),
+        chartType: _locationChartType,
         onLocationChanged: (locationCode) {
           context.read<DashboardBloc>().add(
             LoadLocationGrowthTrends(locationCode: locationCode),
           );
+        },
+        onChartTypeChanged: (chartType) {
+          setState(() {
+            _locationChartType = chartType;
+          });
         },
         isLoading:
             currentState is DashboardPartialLoading &&
