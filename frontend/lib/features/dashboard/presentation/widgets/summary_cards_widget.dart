@@ -79,8 +79,8 @@ class SummaryCardsWidget extends StatelessWidget {
             l10n: l10n,
             icon: LucideIcons.boxes,
             iconColor: isDark
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.primary,
+                ? AppColors.chartBlue
+                : AppColors.primary,
             title: l10n.allAssets,
             value: Helpers.formatNumber(stats.overview.totalAssets.value),
             trend: stats.overview.totalAssets.trend,
@@ -90,8 +90,8 @@ class SummaryCardsWidget extends StatelessWidget {
             l10n: l10n,
             icon: LucideIcons.packagePlus,
             iconColor: isDark
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.primary,
+                ? AppColors.chartBlue
+                : AppColors.primary,
             title: l10n.newAssets,
             value: Helpers.formatNumber(stats.overview.createdAssets.value),
             trend: stats.overview.createdAssets.trend,
@@ -294,16 +294,16 @@ class LegacySummaryCardsWidget extends StatelessWidget {
                 l10n: l10n,
                 icon: LucideIcons.boxes,
                 iconColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 labelColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 label: l10n.allAssets,
                 value: Helpers.formatNumber(stats.overview.totalAssets.value),
                 valueColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 trend: stats.overview.totalAssets.trend,
                 theme: theme,
               ),
@@ -312,16 +312,16 @@ class LegacySummaryCardsWidget extends StatelessWidget {
                 l10n: l10n,
                 icon: LucideIcons.packagePlus,
                 iconColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 labelColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 label: l10n.newAssets,
                 value: Helpers.formatNumber(stats.overview.createdAssets.value),
                 valueColor: isDark
-                    ? theme.colorScheme.onSurface
-                    : theme.colorScheme.primary,
+                    ? AppColors.chartBlue
+                    : AppColors.primary,
                 trend: stats.overview.createdAssets.trend,
                 theme: theme,
               ),
@@ -518,8 +518,8 @@ class EnhancedSummaryCardsWidget extends StatelessWidget {
           subtitle: showSubtitles ? l10n.totalAssets : null,
           onTap: onAllAssetsTab,
           color: isDark
-              ? theme.colorScheme.onSurface
-              : theme.colorScheme.primary,
+              ? AppColors.chartBlue
+              : AppColors.primary,
         ),
         _buildEnhancedStatCard(
           context: context,
@@ -530,7 +530,9 @@ class EnhancedSummaryCardsWidget extends StatelessWidget {
           trend: showTrends ? stats.overview.createdAssets.trend : null,
           subtitle: showSubtitles ? l10n.assets : null,
           onTap: onNewAssetsTab,
-          color: AppColors.success,
+          color: isDark
+              ? AppColors.chartBlue
+              : AppColors.primary,
         ),
       ],
     );

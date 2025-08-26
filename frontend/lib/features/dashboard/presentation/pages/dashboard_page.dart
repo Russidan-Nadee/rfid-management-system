@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/app/app_constants.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';
@@ -13,6 +12,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../widgets/summary_cards_widget.dart';
+import '../widgets/summary_section_widget.dart';
 import '../widgets/asset_distribution_chart_widget.dart';
 import '../widgets/department_growth_trend_widget.dart';
 import '../widgets/location_growth_trend_widget.dart';
@@ -226,7 +226,10 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Left Column (Summary Cards)
-              Expanded(flex: 1, child: _buildSummaryColumn(loadedState)),
+              Expanded(
+                flex: 1, 
+                child: SummarySectionWidget(stats: loadedState.stats),
+              ),
               AppSpacing.horizontalSpaceMedium,
 
               // Middle Column (Audit Progress)
@@ -304,45 +307,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
     );
   }
 
-  Widget _buildSummaryColumn(DashboardLoaded loadedState) {
-    final theme = Theme.of(context);
-    final l10n = DashboardLocalizations.of(context);
-
-    return Column(
-      children: [
-        // All Assets Card
-        if (loadedState.stats != null)
-          Expanded(
-            child: StatCard(
-              title: l10n.allAssets,
-              value: Helpers.formatNumber(
-                loadedState.stats!.overview.totalAssets.value,
-              ),
-              icon: Icons.inventory,
-              iconColor: theme.colorScheme.primary,
-              valueColor: theme.colorScheme.primary,
-              trend: loadedState.stats!.overview.totalAssets.trend,
-            ),
-          ),
-        AppSpacing.verticalSpaceMedium,
-
-        // New Assets Card
-        if (loadedState.stats != null)
-          Expanded(
-            child: StatCard(
-              title: l10n.newAssets,
-              value: Helpers.formatNumber(
-                loadedState.stats!.overview.createdAssets.value,
-              ),
-              icon: Icons.add_circle,
-              iconColor: _getSuccessColor(theme),
-              valueColor: _getSuccessColor(theme),
-              trend: loadedState.stats!.overview.createdAssets.trend,
-            ),
-          ),
-      ],
-    );
-  }
 
   Widget _buildAuditProgressSection(
     DashboardLoaded loadedState,
@@ -476,9 +440,6 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
   }
 
   // Theme helper methods
-  Color _getSuccessColor(ThemeData theme) {
-    return AppColors.success;
-  }
 
   Color _getSecondaryTextColor(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
@@ -791,8 +752,8 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Container(
               width: 8,
               height: 8,
-              decoration: BoxDecoration(
-                color: _getSuccessColor(theme),
+              decoration: const BoxDecoration(
+                color: AppColors.success,
                 shape: BoxShape.circle,
               ),
             ),
@@ -800,7 +761,7 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
             Text(
               l10n.fresh,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: _getSuccessColor(theme),
+                color: AppColors.success,
                 fontWeight: FontWeight.w500,
               ),
             ),
