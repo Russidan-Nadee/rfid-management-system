@@ -1,6 +1,6 @@
 {
-    "name": "frontend",
-    "short_name": "frontend",
+    "name": "TP RFID",
+    "short_name": "TP RFID",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",

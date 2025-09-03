@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/summary_cards_widget.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/common/loading_skeleton.dart';
+import 'package:tp_rfid/features/dashboard/presentation/widgets/common/dashboard_card.dart';
+import 'package:tp_rfid/features/dashboard/presentation/widgets/common/loading_skeleton.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';

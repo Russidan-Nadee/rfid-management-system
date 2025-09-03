@@ -1,5 +1,5 @@
 // Path: frontend/lib/features/dashboard/data/datasources/dashboard_remote_datasource.dart
-import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
+import 'package:tp_rfid/features/dashboard/data/models/location_analytics_model.dart';
 
 import '../../../../core/services/api_service.dart';
 import '../../../../core/constants/api_constants.dart';

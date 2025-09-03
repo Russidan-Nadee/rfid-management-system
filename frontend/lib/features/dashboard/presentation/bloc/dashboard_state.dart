@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/bloc/dashboard_state.dart
 import 'package:equatable/equatable.dart';
-import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset_distribution.dart';
 import '../../domain/entities/growth_trend.dart';

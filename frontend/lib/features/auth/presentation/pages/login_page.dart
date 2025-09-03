@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/auth/presentation/pages/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/app/theme/app_colors.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../layouts/root_layout.dart';
 import '../bloc/auth_bloc.dart';
@@ -82,7 +82,7 @@ class LoginPage extends StatelessWidget {
 
         // App Title
         const Text(
-          'Asset Management',
+          'TP RFID',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -94,7 +94,7 @@ class LoginPage extends StatelessWidget {
 
         // Subtitle
         Text(
-          'Sign in to manage your assets',
+          'Sign in to manage RFID assets',
           style: TextStyle(fontSize: 16, color: Colors.grey[600]),
         ),
       ],

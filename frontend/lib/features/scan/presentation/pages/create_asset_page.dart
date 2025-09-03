@@ -1,12 +1,12 @@
 // Path: frontend/lib/features/scan/presentation/pages/create_asset_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/auth/domain/usecases/get_current_user_usecase.dart';
-import 'package:frontend/features/scan/presentation/widgets/create/basic_info_section.dart';
-import 'package:frontend/features/scan/presentation/widgets/create/category_brand_info_section.dart';
-import 'package:frontend/features/scan/presentation/widgets/create/create_asset_header.dart';
-import 'package:frontend/features/scan/presentation/widgets/create/location_info_section.dart';
-import 'package:frontend/features/scan/presentation/widgets/create/quantity_info_section.dart';
+import 'package:tp_rfid/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:tp_rfid/features/scan/presentation/widgets/create/basic_info_section.dart';
+import 'package:tp_rfid/features/scan/presentation/widgets/create/category_brand_info_section.dart';
+import 'package:tp_rfid/features/scan/presentation/widgets/create/create_asset_header.dart';
+import 'package:tp_rfid/features/scan/presentation/widgets/create/location_info_section.dart';
+import 'package:tp_rfid/features/scan/presentation/widgets/create/quantity_info_section.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../core/utils/validators.dart';
 import '../../../../app/theme/app_colors.dart';

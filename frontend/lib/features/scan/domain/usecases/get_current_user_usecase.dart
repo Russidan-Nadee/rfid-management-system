@@ -1,5 +1,5 @@
 // Path: lib/features/auth/domain/usecases/get_current_user_usecase.dart
-import 'package:frontend/features/auth/domain/repositories/auth_repository.dart';
+import 'package:tp_rfid/features/auth/domain/repositories/auth_repository.dart';
 
 class GetCurrentUserUseCase {
   final AuthRepository repository;

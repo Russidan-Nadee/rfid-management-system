@@ -1,5 +1,5 @@
 // Path: frontend/lib/core/errors/failures.dart
-import 'package:frontend/core/errors/exceptions.dart';
+import 'package:tp_rfid/core/errors/exceptions.dart';
 
 abstract class Failure {
   final String message;

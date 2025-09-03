@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/export/presentation/widgets/export_history_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/app/theme/app_decorations.dart';
+import 'package:tp_rfid/app/theme/app_decorations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';

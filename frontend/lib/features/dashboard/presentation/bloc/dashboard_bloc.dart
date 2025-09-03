@@ -1,13 +1,13 @@
 // Path: frontend/lib/features/dashboard/presentation/bloc/dashboard_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/core/errors/failures.dart';
-import 'package:frontend/core/utils/either.dart';
-import 'package:frontend/features/dashboard/domain/entities/asset_distribution.dart';
-import 'package:frontend/features/dashboard/domain/entities/audit_progress.dart';
-import 'package:frontend/features/dashboard/domain/entities/dashboard_stats.dart';
-import 'package:frontend/features/dashboard/domain/entities/growth_trend.dart';
-import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
-import 'package:frontend/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
+import 'package:tp_rfid/core/errors/failures.dart';
+import 'package:tp_rfid/core/utils/either.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/asset_distribution.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/audit_progress.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/dashboard_stats.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/growth_trend.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.dart';
+import 'package:tp_rfid/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_asset_distribution_usecase.dart';
 import '../../domain/usecases/get_growth_trends_usecase.dart';

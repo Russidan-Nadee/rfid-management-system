@@ -35,7 +35,8 @@
       "Bash(npm test)",
       "Bash(PORT=3001 node src/server.js)",
       "WebFetch(domain:fonts.google.com)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "additionalDirectories": [

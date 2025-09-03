@@ -1,10 +1,10 @@
 // Path: frontend/lib/features/scan/presentation/widgets/scan_list_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/app/theme/app_colors.dart';
-import 'package:frontend/app/theme/app_spacing.dart';
-import 'package:frontend/app/theme/app_decorations.dart';
-import 'package:frontend/app/theme/app_typography.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
+import 'package:tp_rfid/app/theme/app_spacing.dart';
+import 'package:tp_rfid/app/theme/app_decorations.dart';
+import 'package:tp_rfid/app/theme/app_typography.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 import '../bloc/scan_bloc.dart';

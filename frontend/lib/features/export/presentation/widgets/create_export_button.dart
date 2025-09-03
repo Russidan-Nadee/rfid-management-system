@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/export/presentation/widgets/create_export_button.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/l10n/features/export/export_localizations.dart';
+import 'package:tp_rfid/l10n/features/export/export_localizations.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_decorations.dart';

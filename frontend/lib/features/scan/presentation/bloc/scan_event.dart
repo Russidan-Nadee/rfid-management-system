@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/bloc/scan_event.dart
 import 'package:equatable/equatable.dart';
-import 'package:frontend/features/scan/domain/entities/scanned_item_entity.dart';
+import 'package:tp_rfid/features/scan/domain/entities/scanned_item_entity.dart';
 
 abstract class ScanEvent extends Equatable {
   const ScanEvent();

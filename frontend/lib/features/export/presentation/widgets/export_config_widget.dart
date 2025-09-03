@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/export/presentation/widgets/export_config_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/export/presentation/bloc/export_bloc.dart';
-import 'package:frontend/features/export/presentation/bloc/export_state.dart';
-import 'package:frontend/features/export/presentation/bloc/export_event.dart';
+import 'package:tp_rfid/features/export/presentation/bloc/export_bloc.dart';
+import 'package:tp_rfid/features/export/presentation/bloc/export_state.dart';
+import 'package:tp_rfid/features/export/presentation/bloc/export_event.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/app_constants.dart';

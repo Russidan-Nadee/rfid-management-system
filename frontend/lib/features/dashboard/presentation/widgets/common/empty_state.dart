@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/common/empty_state.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/app/theme/app_colors.dart';
-import 'package:frontend/app/theme/app_decorations.dart';
-import 'package:frontend/app/theme/app_spacing.dart';
-import 'package:frontend/app/theme/app_typography.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
+import 'package:tp_rfid/app/theme/app_decorations.dart';
+import 'package:tp_rfid/app/theme/app_spacing.dart';
+import 'package:tp_rfid/app/theme/app_typography.dart';
 import '../../../../../l10n/features/dashboard/dashboard_localizations.dart';
 
 class EmptyState extends StatelessWidget {

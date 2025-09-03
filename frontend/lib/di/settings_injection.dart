@@ -1,10 +1,10 @@
 // Path: frontend/lib/di/settings_injection.dart
-import 'package:frontend/features/setting/data/datasources/settings_local_datasource.dart';
-import 'package:frontend/features/setting/data/repositories/settings_repository_impl.dart';
-import 'package:frontend/features/setting/domain/repositories/settings_repository.dart';
-import 'package:frontend/features/setting/domain/usecases/get_settings_usecase.dart';
-import 'package:frontend/features/setting/domain/usecases/update_settings_usecase.dart';
-import 'package:frontend/features/setting/presentation/bloc/settings_bloc.dart';
+import 'package:tp_rfid/features/setting/data/datasources/settings_local_datasource.dart';
+import 'package:tp_rfid/features/setting/data/repositories/settings_repository_impl.dart';
+import 'package:tp_rfid/features/setting/domain/repositories/settings_repository.dart';
+import 'package:tp_rfid/features/setting/domain/usecases/get_settings_usecase.dart';
+import 'package:tp_rfid/features/setting/domain/usecases/update_settings_usecase.dart';
+import 'package:tp_rfid/features/setting/presentation/bloc/settings_bloc.dart';
 import 'injection.dart';
 
 /// Configure Settings feature dependencies

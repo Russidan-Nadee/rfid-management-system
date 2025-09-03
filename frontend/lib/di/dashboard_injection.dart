@@ -1,5 +1,5 @@
 // Path: frontend/lib/di/dashboard_injection.dart
-import 'package:frontend/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
+import 'package:tp_rfid/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
 
 import '../features/dashboard/data/datasources/dashboard_remote_datasource.dart';
 import '../features/dashboard/data/datasources/dashboard_cache_datasource.dart';

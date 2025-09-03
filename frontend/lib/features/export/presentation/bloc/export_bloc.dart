@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/features/export/domain/entities/export_job_entity.dart';
+import 'package:tp_rfid/features/export/domain/entities/export_job_entity.dart';
 
 import '../../domain/usecases/create_export_job_usecase.dart';
 import '../../domain/usecases/get_export_status_usecase.dart';

@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/dashboard/presentation/widgets/summary_section_widget.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/features/dashboard/presentation/widgets/common/dashboard_card.dart';
+import 'package:tp_rfid/features/dashboard/presentation/widgets/common/dashboard_card.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/utils/helpers.dart';

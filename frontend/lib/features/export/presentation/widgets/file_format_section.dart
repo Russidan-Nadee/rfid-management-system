@@ -4,7 +4,7 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/app_constants.dart';
 import 'file_format_card.dart';
-import 'package:frontend/l10n/features/export/export_localizations.dart';
+import 'package:tp_rfid/l10n/features/export/export_localizations.dart';
 
 class FileFormatSection extends StatelessWidget {
   final String selectedFormat;

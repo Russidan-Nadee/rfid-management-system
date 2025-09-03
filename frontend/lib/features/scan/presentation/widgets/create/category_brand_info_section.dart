@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/widgets/create/category_brand_info_section.dart
 import 'package:flutter/material.dart';
-import 'package:frontend/features/scan/domain/entities/master_data_entity.dart';
+import 'package:tp_rfid/features/scan/domain/entities/master_data_entity.dart';
 import '../../../../../../app/theme/app_colors.dart';
 import '../../../../../../l10n/features/scan/scan_localizations.dart';
 

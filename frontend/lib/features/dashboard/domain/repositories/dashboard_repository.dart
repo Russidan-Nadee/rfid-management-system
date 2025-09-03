@@ -1,4 +1,4 @@
-import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/either.dart';

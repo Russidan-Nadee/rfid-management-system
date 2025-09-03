@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/dashboard/data/repositories/dashboard_repository_impl.dart
-import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
-import 'package:frontend/features/dashboard/domain/entities/location_analytics.dart';
+import 'package:tp_rfid/features/dashboard/data/models/location_analytics_model.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/exceptions.dart';

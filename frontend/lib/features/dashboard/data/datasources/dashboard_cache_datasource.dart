@@ -1,5 +1,5 @@
 // Path: frontend/lib/features/dashboard/data/datasources/dashboard_cache_datasource.dart
-import 'package:frontend/features/dashboard/data/models/location_analytics_model.dart';
+import 'package:tp_rfid/features/dashboard/data/models/location_analytics_model.dart';
 
 import '../../../../core/services/storage_service.dart';
 import '../../../../core/errors/exceptions.dart';

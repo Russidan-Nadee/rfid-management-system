@@ -1,9 +1,9 @@
 // Path: frontend/lib/features/setting/presentation/pages/settings_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/app/theme/app_colors.dart';
-import 'package:frontend/features/setting/presentation/widgets/language_selector_widget.dart';
-import 'package:frontend/features/setting/presentation/widgets/theme_selector_widget.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
+import 'package:tp_rfid/features/setting/presentation/widgets/language_selector_widget.dart';
+import 'package:tp_rfid/features/setting/presentation/widgets/theme_selector_widget.dart';
 import '../../../../core/utils/helpers.dart';
 import '../../../../l10n/features/settings/settings_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';

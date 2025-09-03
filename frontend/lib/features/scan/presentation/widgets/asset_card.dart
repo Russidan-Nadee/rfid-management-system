@@ -2,11 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:frontend/app/theme/app_colors.dart';
-import 'package:frontend/app/theme/app_spacing.dart';
-import 'package:frontend/app/theme/app_decorations.dart';
-import 'package:frontend/features/scan/presentation/bloc/scan_bloc.dart';
-import 'package:frontend/features/scan/presentation/bloc/scan_event.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
+import 'package:tp_rfid/app/theme/app_spacing.dart';
+import 'package:tp_rfid/app/theme/app_decorations.dart';
+import 'package:tp_rfid/features/scan/presentation/bloc/scan_bloc.dart';
+import 'package:tp_rfid/features/scan/presentation/bloc/scan_event.dart';
 import '../../../../l10n/features/scan/scan_localizations.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/api_service.dart';

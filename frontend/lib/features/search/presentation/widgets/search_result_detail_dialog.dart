@@ -1,7 +1,7 @@
 // Path: frontend/lib/features/search/presentation/widgets/search_result_detail_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frontend/app/theme/app_colors.dart';
+import 'package:tp_rfid/app/theme/app_colors.dart';
 import '../../../../l10n/features/search/search_localizations.dart';
 import '../../domain/entities/search_result_entity.dart';
 import '../../../scan/domain/entities/asset_image_entity.dart';

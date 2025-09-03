@@ -1,6 +1,6 @@
 // Path: frontend/lib/features/scan/presentation/bloc/scan_state.dart
 import 'package:equatable/equatable.dart';
-import 'package:frontend/features/scan/domain/entities/asset_image_entity.dart';
+import 'package:tp_rfid/features/scan/domain/entities/asset_image_entity.dart';
 import '../../domain/entities/scanned_item_entity.dart';
 
 abstract class ScanState extends Equatable {

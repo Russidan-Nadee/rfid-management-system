@@ -1,5 +1,5 @@
 // Path: frontend/lib/di/scan_injection.dart
-import 'package:frontend/features/scan/data/datasources/mock_rfid_datasource.dart';
+import 'package:tp_rfid/features/scan/data/datasources/mock_rfid_datasource.dart';
 import '../features/scan/data/repositories/scan_repository_impl.dart';
 import '../features/scan/domain/repositories/scan_repository.dart';
 import '../features/scan/domain/usecases/get_asset_details_usecase.dart';

@@ -1,6 +1,6 @@
 // Path: frontend/lib/di/injection.dart
-import 'package:frontend/di/dashboard_injection.dart';
-import 'package:frontend/di/search_injection.dart';
+import 'package:tp_rfid/di/dashboard_injection.dart';
+import 'package:tp_rfid/di/search_injection.dart';
 import 'package:get_it/get_it.dart';
 import '../core/services/api_service.dart';
 import '../core/services/storage_service.dart';

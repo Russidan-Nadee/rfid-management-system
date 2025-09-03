@@ -1,5 +1,5 @@
 // Path: frontend/lib/features/search/data/repositories/search_cache_strategy.dart
-import 'package:frontend/features/search/data/models/search_suggestion_model.dart';
+import 'package:tp_rfid/features/search/data/models/search_suggestion_model.dart';
 
 import '../contracts/search_datasource_contracts.dart';
 import '../models/search_response_model.dart';
