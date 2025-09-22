@@ -30,6 +30,7 @@ class _AppEntryPointState extends State<AppEntryPoint>
   StreamSubscription<void>? _focusSubscription;
   StreamSubscription<void>? _visibilitySubscription;
   bool _isAppInForeground = true; // Track app state
+  AuthBloc? _authBloc;
 
   @override
   void initState() {
@@ -37,6 +38,12 @@ class _AppEntryPointState extends State<AppEntryPoint>
     WidgetsBinding.instance.addObserver(this);
     _startPeriodicExpiryCheck();
     _setupWebEventListeners();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _authBloc = context.read<AuthBloc>();
   }
 
   @override
@@ -74,9 +81,9 @@ class _AppEntryPointState extends State<AppEntryPoint>
   }
 
   void _checkSessionExpiry() async {
-    if (!mounted) return;
+    if (!mounted || _authBloc == null) return;
 
-    final currentState = context.read<AuthBloc>().state;
+    final currentState = _authBloc!.state;
     if (currentState is! AuthAuthenticated) {
       print('⏰ Periodic check: User not authenticated, skipping');
       return;
@@ -92,23 +99,22 @@ class _AppEntryPointState extends State<AppEntryPoint>
       '⏰ Session expired: $isExpired, Time until expiry: ${timeUntilExpiry?.inSeconds} seconds',
     );
 
-    if (isExpired && mounted) {
+    if (isExpired && mounted && _authBloc != null) {
       // Check if user was recently active before expiring
       final isActive = _sessionTimer.wasRecentlyActive(
         const Duration(minutes: 15),
       );
       if (isActive) {
         print('🔄 Session expired but user was active - attempting refresh');
-        final authBloc = context.read<AuthBloc>();
-        authBloc.add(const RefreshTokenRequested());
+        _authBloc!.add(const RefreshTokenRequested());
       } else {
         print('🔄 Session expired and user inactive - forcing logout');
-        final authBloc = context.read<AuthBloc>();
-        authBloc.add(const LogoutRequested());
+        _authBloc!.add(const LogoutRequested());
       }
     } else if (timeUntilExpiry != null &&
         timeUntilExpiry.inMinutes <= 10 &&
-        mounted) {
+        mounted &&
+        _authBloc != null) {
       // Only proactively refresh if app is in foreground AND user was recently active
       final isActive = _sessionTimer.wasRecentlyActive(
         const Duration(minutes: 15),
@@ -117,8 +123,7 @@ class _AppEntryPointState extends State<AppEntryPoint>
         print(
           '🔄 Session near expiry, user active, and app in foreground - proactive refresh',
         );
-        final authBloc = context.read<AuthBloc>();
-        authBloc.add(const RefreshTokenRequested());
+        _authBloc!.add(const RefreshTokenRequested());
       } else if (!_isAppInForeground) {
         print(
           '⏸️ Session near expiry but app in background - skipping proactive refresh',
@@ -173,10 +178,10 @@ class _AppEntryPointState extends State<AppEntryPoint>
 
   void _checkSessionOnResume() async {
     // Check if widget is still mounted before accessing context
-    if (!mounted) return;
+    if (!mounted || _authBloc == null) return;
 
     // Only check if user is currently authenticated
-    final currentState = context.read<AuthBloc>().state;
+    final currentState = _authBloc!.state;
 
     if (currentState is! AuthAuthenticated) {
       return;
@@ -187,20 +192,19 @@ class _AppEntryPointState extends State<AppEntryPoint>
 
     final isExpired = _sessionService.isSessionExpired();
 
-    if (isExpired && mounted) {
+    if (isExpired && mounted && _authBloc != null) {
       // User returned to app - always attempt refresh on resume
       print('🔄 Session expired on resume - attempting refresh');
-      final authBloc = context.read<AuthBloc>();
-      authBloc.add(const RefreshTokenRequested());
+      _authBloc!.add(const RefreshTokenRequested());
     } else {
       // Session valid but check if close to expiry - preemptively refresh
       final timeUntilExpiry = _sessionService.getTimeUntilExpiry();
       if (timeUntilExpiry != null &&
           timeUntilExpiry.inMinutes <= 10 &&
-          mounted) {
+          mounted &&
+          _authBloc != null) {
         print('🔄 Session near expiry on resume - proactive refresh');
-        final authBloc = context.read<AuthBloc>();
-        authBloc.add(const RefreshTokenRequested());
+        _authBloc!.add(const RefreshTokenRequested());
       }
     }
   }

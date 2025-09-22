@@ -1,8 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../models/asset_admin_model.dart';
 import '../models/admin_asset_image_model.dart';
 import '../../../../core/services/api_service.dart';
@@ -36,22 +33,6 @@ abstract class AdminRemoteDatasource {
 
 class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
   final ApiService _apiService = ApiService();
-  
-  // Admin token fallback for web platform
-  static const String _adminToken = '9f3951f2-597e-49bf-8681-2e4fd2465614';
-  
-  Future<String> _getAuthToken() async {
-    String? token = await _apiService.getAuthToken();
-    
-    if (token == null || token.isEmpty) {
-      token = _adminToken;
-      print('🔑 Using admin fallback token');
-    } else {
-      print('🔑 Using stored token');
-    }
-    
-    return token;
-  }
 
   @override
   Future<List<AssetAdminModel>> getAllAssets() async {
@@ -189,150 +170,37 @@ class AdminRemoteDatasourceImpl implements AdminRemoteDatasource {
       print('🔍 Admin: Starting upload for asset: $assetNo');
       print('🔍 Admin: Platform: ${kIsWeb ? 'Web' : 'Mobile'}');
       print('🔍 Admin: File path: ${imageFile.path}');
-      
-      if (kIsWeb) {
-        print('🔍 Admin: Calling web upload method...');
-        // Web-specific implementation using base64 encoding
-        return await _uploadImageWeb(assetNo, imageFile);
-      } else {
-        print('🔍 Admin: Calling mobile upload method...');
-        // Mobile implementation with multipart
-        return await _uploadImageMobile(assetNo, imageFile);
-      }
-    } catch (e) {
-      print('💥 Admin: Error in uploadImage: $e');
-      print('💥 Admin: Error type: ${e.runtimeType}');
-      rethrow;
-    }
-  }
-  
-  Future<bool> _uploadImageWeb(String assetNo, File imageFile) async {
-    try {
-      print('🔍 Admin Web: Starting web upload...');
-      
+
+      // Use ApiService's uploadImageBytes method instead of manual HTTP requests
       final bytes = await imageFile.readAsBytes();
-      
+
       // Extract filename from path - for blob URLs, use timestamp-based name
       String filename = imageFile.path.split('/').last;
       if (imageFile.path.startsWith('blob:')) {
         // For blob URLs, use a default filename with timestamp
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         filename = 'web_upload_$timestamp.jpg';
-        print('🔍 Admin Web: Using generated filename for blob URL');
+        print('🔍 Admin: Using generated filename for blob URL');
       }
-      
-      print('🔍 Admin Web: File size: ${bytes.length} bytes');
-      print('🔍 Admin Web: Filename: $filename');
 
-      final uri = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.uploadAssetImages(assetNo)}',
+      print('🔍 Admin: File size: ${bytes.length} bytes');
+      print('🔍 Admin: Filename: $filename');
+
+      final response = await _apiService.uploadImageBytes(
+        ApiConstants.uploadAssetImages(assetNo),
+        bytes,
+        filename,
+        'image',
       );
 
-      final token = await _getAuthToken();
+      print('🔍 Admin: Upload response: ${response.success}');
+      print('🔍 Admin: Upload message: ${response.message}');
 
-      // Create custom multipart body for web
-      final boundary = _generateBoundary();
-      final multipartBody = _createMultipartBody(boundary, bytes, filename, 'image');
-      
-      final response = await http.post(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'multipart/form-data; boundary=$boundary',
-        },
-        body: multipartBody,
-      );
-
-      print('🔍 Admin Web: Response status: ${response.statusCode}');
-      print('🔍 Admin Web: Response body: ${response.body}');
-
-      return response.statusCode == 201;
+      return response.success;
     } catch (e) {
-      print('💥 Admin Web: Upload error: $e');
-      throw Exception('Failed to upload image (web): $e');
-    }
-  }
-  
-  Future<bool> _uploadImageMobile(String assetNo, File imageFile) async {
-    try {
-      print('🔍 Admin Mobile: Starting mobile upload...');
-      
-      final bytes = await imageFile.readAsBytes();
-      final filename = imageFile.path.split(RegExp(r'[/\\]')).last;
-      
-      print('🔍 Admin Mobile: File size: ${bytes.length} bytes');
-      print('🔍 Admin Mobile: Filename: $filename');
-
-      final uri = Uri.parse(
-        '${ApiConstants.baseUrl}${ApiConstants.uploadAssetImages(assetNo)}',
-      );
-
-      final token = await _getAuthToken();
-
-      // Create custom multipart body for mobile
-      final boundary = _generateBoundary();
-      final multipartBody = _createMultipartBody(boundary, bytes, filename, 'image');
-      
-      final response = await http.post(
-        uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'multipart/form-data; boundary=$boundary',
-        },
-        body: multipartBody,
-      );
-
-      print('🔍 Admin Mobile: Response status: ${response.statusCode}');
-      print('🔍 Admin Mobile: Response body: ${response.body}');
-
-      return response.statusCode == 201;
-    } catch (e) {
-      print('💥 Admin Mobile: Upload error: $e');
-      throw Exception('Failed to upload image (mobile): $e');
-    }
-  }
-  
-  String _generateBoundary() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = Random();
-    return List.generate(16, (index) => chars[random.nextInt(chars.length)]).join();
-  }
-  
-  List<int> _createMultipartBody(String boundary, List<int> fileBytes, String filename, String fieldName) {
-    final contentType = _getContentType(filename);
-    
-    var body = <int>[];
-    
-    // Add field with proper multipart formatting
-    body.addAll(utf8.encode('--$boundary\r\n'));
-    body.addAll(utf8.encode('Content-Disposition: form-data; name="$fieldName"; filename="$filename"\r\n'));
-    body.addAll(utf8.encode('Content-Type: $contentType\r\n'));
-    body.addAll(utf8.encode('\r\n')); // Empty line before content
-    body.addAll(fileBytes);
-    body.addAll(utf8.encode('\r\n'));
-    body.addAll(utf8.encode('--$boundary--\r\n'));
-    
-    print('🔍 Admin: Multipart body size: ${body.length} bytes');
-    print('🔍 Admin: Boundary: $boundary');
-    print('🔍 Admin: Field name: $fieldName');
-    print('🔍 Admin: Filename: $filename');
-    print('🔍 Admin: Content-Type: $contentType');
-    
-    return body;
-  }
-  
-  String _getContentType(String filename) {
-    final extension = filename.toLowerCase().split('.').last;
-    switch (extension) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      default:
-        return 'image/jpeg';
+      print('💥 Admin: Error in uploadImage: $e');
+      print('💥 Admin: Error type: ${e.runtimeType}');
+      rethrow;
     }
   }
 

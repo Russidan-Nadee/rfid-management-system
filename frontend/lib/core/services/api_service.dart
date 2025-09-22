@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../constants/api_constants.dart';
 import '../models/api_response.dart';
 import '../errors/exceptions.dart';
@@ -417,7 +418,7 @@ class ApiService {
     }
   }
 
-  // Upload image using bytes to avoid MediaType namespace issues
+  // Upload image using bytes with proper MediaType
   Future<ApiResponse<Map<String, dynamic>>> uploadImageBytes(
     String endpoint,
     List<int> bytes,
@@ -427,31 +428,50 @@ class ApiService {
     try {
       final uri = Uri.parse('${ApiConstants.baseUrl}$endpoint');
       final request = http.MultipartRequest('POST', uri);
-      
+
       // Add headers
       final headers = await _getHeaders(requiresAuth: true);
       request.headers.addAll(headers);
-      
+
       // Convert headers to string map for multipart
       final stringHeaders = <String, String>{};
       headers.forEach((key, value) {
         stringHeaders[key] = value.toString();
       });
       request.headers.addAll(stringHeaders);
-      
-      // Create multipart file from bytes without MediaType
+
+      // Detect content type based on filename extension
+      MediaType contentType;
+      final extension = filename.split('.').last.toLowerCase();
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          contentType = MediaType('image', 'jpeg');
+          break;
+        case 'png':
+          contentType = MediaType('image', 'png');
+          break;
+        case 'webp':
+          contentType = MediaType('image', 'webp');
+          break;
+        default:
+          contentType = MediaType('image', 'jpeg'); // default fallback
+      }
+
+      // Create multipart file from bytes with proper MediaType
       final multipartFile = http.MultipartFile.fromBytes(
         fieldName,
         bytes,
         filename: filename,
+        contentType: contentType,
       );
-      
+
       request.files.add(multipartFile);
-      
+
       // Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       if (response.statusCode == 201) {
         return ApiResponse<Map<String, dynamic>>(
           success: true,
