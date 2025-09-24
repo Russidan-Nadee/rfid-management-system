@@ -9,7 +9,10 @@ import '../bloc/reports_bloc.dart';
 import '../bloc/reports_event.dart';
 import '../bloc/reports_state.dart';
 import '../../../../l10n/features/reports/reports_localizations.dart';
-import '../widgets/user_report_card_widget.dart';
+import '../types/view_mode.dart';
+import '../widgets/view_mode_toggle.dart';
+import '../widgets/reports_card_view.dart';
+import '../widgets/reports_table_view.dart';
 
 class MyReportsPage extends StatelessWidget {
   const MyReportsPage({super.key});
@@ -23,8 +26,15 @@ class MyReportsPage extends StatelessWidget {
   }
 }
 
-class MyReportsPageView extends StatelessWidget {
+class MyReportsPageView extends StatefulWidget {
   const MyReportsPageView({super.key});
+
+  @override
+  State<MyReportsPageView> createState() => _MyReportsPageViewState();
+}
+
+class _MyReportsPageViewState extends State<MyReportsPageView> {
+  ViewMode _viewMode = ViewMode.card;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +60,15 @@ class MyReportsPageView extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 1,
         actions: [
+          ViewModeToggle(
+            currentMode: _viewMode,
+            onModeChanged: (ViewMode mode) {
+              setState(() {
+                _viewMode = mode;
+              });
+            },
+          ),
+          const SizedBox(width: 8),
           IconButton(
             onPressed: () {
               context.read<ReportsBloc>().add(const RefreshMyReports());
@@ -243,99 +262,13 @@ class MyReportsPageView extends StatelessWidget {
       onRefresh: () async {
         context.read<ReportsBloc>().add(const RefreshMyReports());
       },
-      child: Padding(
-        padding: AppSpacing.screenPaddingAll,
-        child: _UniformCardGrid(reports: reports),
-      ),
+      child: _viewMode.isCard
+        ? ReportsCardView(reports: reports)
+        : SingleChildScrollView(
+            padding: AppSpacing.screenPaddingAll,
+            child: ReportsTableView(reports: reports),
+          ),
     );
   }
 }
 
-// Auto-adjusting grid where each row height adjusts to its tallest card
-class _UniformCardGrid extends StatelessWidget {
-  final List<dynamic> reports;
-
-  const _UniformCardGrid({required this.reports});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Responsive column count based on screen width
-        int crossAxisCount;
-
-        if (constraints.maxWidth >= 1200) {
-          crossAxisCount = 4; // Extra large screens: 4 columns
-        } else if (constraints.maxWidth >= 900) {
-          crossAxisCount = 3; // Large screens: 3 columns
-        } else if (constraints.maxWidth >= 600) {
-          crossAxisCount = 2; // Medium screens: 2 columns
-        } else {
-          crossAxisCount = 1; // Small screens: 1 column
-        }
-
-        return _buildAutoAdjustingGrid(crossAxisCount: crossAxisCount);
-      },
-    );
-  }
-
-  Widget _buildAutoAdjustingGrid({required int crossAxisCount}) {
-    final rows = <Widget>[];
-
-    // Group reports into rows
-    for (int i = 0; i < reports.length; i += crossAxisCount) {
-      final rowReports = <dynamic>[];
-
-      // Collect reports for this row
-      for (int j = 0; j < crossAxisCount; j++) {
-        final index = i + j;
-        if (index < reports.length) {
-          rowReports.add(reports[index]);
-        }
-      }
-
-      // Create row with IntrinsicHeight to auto-adjust height
-      rows.add(
-        Container(
-          margin: EdgeInsets.only(
-            bottom: i + crossAxisCount < reports.length ? 16 : 0,
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children:
-                  rowReports.asMap().entries.map((entry) {
-                    final j = entry.key;
-                    final report = entry.value;
-
-                    return Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          right: j < rowReports.length - 1 ? 16 : 0,
-                        ),
-                        child: UserReportCardWidget(report: report),
-                      ),
-                    );
-                  }).toList() +
-                  // Add empty spaces for incomplete rows
-                  List.generate(crossAxisCount - rowReports.length, (index) {
-                    return Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(
-                          right:
-                              (rowReports.length + index) < crossAxisCount - 1
-                              ? 16
-                              : 0,
-                        ),
-                      ),
-                    );
-                  }),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SingleChildScrollView(child: Column(children: rows));
-  }
-}
