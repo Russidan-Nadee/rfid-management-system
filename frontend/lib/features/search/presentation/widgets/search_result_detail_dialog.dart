@@ -66,27 +66,40 @@ class _SearchResultDetailDialogState extends State<SearchResultDetailDialog> {
     return Dialog(
       backgroundColor: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.8,
-        padding: const EdgeInsets.all(0),
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(context, theme, l10n),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final isMobile = screenWidth < 600;
 
-            // Content: Combined Grid Layout (Image + Sections)
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: _buildCombinedGridLayout(context, theme, l10n),
-              ),
+          return Container(
+            width: isMobile ? screenWidth * 0.95 : screenWidth * 0.9,
+            height: isMobile ? screenHeight * 0.9 : screenHeight * 0.8,
+            constraints: BoxConstraints(
+              maxWidth: isMobile ? double.infinity : 800,
+              maxHeight: isMobile ? double.infinity : 600,
+              minHeight: 400,
             ),
+            padding: const EdgeInsets.all(0),
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(context, theme, l10n),
 
-            // Footer Buttons
-            _buildFooter(context, theme, l10n),
-          ],
-        ),
+                // Content: Combined Grid Layout (Image + Sections)
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
+                    child: _buildCombinedGridLayout(context, theme, l10n),
+                  ),
+                ),
+
+                // Footer Buttons
+                _buildFooter(context, theme, l10n),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -286,17 +299,16 @@ class _SearchResultDetailDialogState extends State<SearchResultDetailDialog> {
           ),
           
           // Gallery Content
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              child: _isLoadingImages
-                  ? Center(
-                      child: CircularProgressIndicator(
-                        color: theme.colorScheme.primary,
-                      ),
-                    )
-                  : _buildProportionalImageWidget(assetNo, theme),
-            ),
+          Container(
+            height: 200, // Fixed height instead of Expanded
+            padding: const EdgeInsets.all(12),
+            child: _isLoadingImages
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
+                    ),
+                  )
+                : _buildProportionalImageWidget(assetNo, theme),
           ),
         ],
       ),

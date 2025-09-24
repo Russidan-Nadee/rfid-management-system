@@ -36,7 +36,8 @@
       "Bash(PORT=3001 node src/server.js)",
       "WebFetch(domain:fonts.google.com)",
       "Bash(unzip:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "additionalDirectories": [
