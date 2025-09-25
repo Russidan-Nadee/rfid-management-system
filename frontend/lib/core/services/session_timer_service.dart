@@ -16,21 +16,22 @@ class SessionTimerService {
   Timer? _sessionTimer;
   Timer? _warningTimer;
   Timer? _proactiveRefreshTimer;
-  
+
   final ValueNotifier<bool> sessionExpired = ValueNotifier<bool>(false);
   final ValueNotifier<bool> showWarning = ValueNotifier<bool>(false);
   final ValueNotifier<int> remainingTime = ValueNotifier<int>(0);
 
   static const int warningTimeMs = 2 * 60 * 1000; // 2 minutes before expiry
-  
+
   // Track user activity
   DateTime _lastActivityTime = DateTime.now();
   DateTime? _lastRefreshAttempt;
-  
+
   // Platform detection
   bool get isWindows => !kIsWeb && Platform.isWindows;
-  bool get isDesktop => !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
-  
+  bool get isDesktop =>
+      !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
+
   // Check if user was recently active within the given duration
   bool wasRecentlyActive(Duration threshold) {
     final now = DateTime.now();
@@ -40,11 +41,11 @@ class SessionTimerService {
 
   void startSessionTimer() {
     stopSessionTimer();
-    
+
     _sessionTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       await _checkSession();
     });
-    
+
     // Start proactive refresh timer for all platforms
     _startProactiveRefreshTimer();
   }
@@ -64,17 +65,17 @@ class SessionTimerService {
       // Use backend session expiry time instead of local timestamp
       final isExpired = _cookieService.isSessionExpired();
       final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
-      
+
       if (timeUntilExpiry != null) {
         remainingTime.value = timeUntilExpiry.inMilliseconds;
       } else {
         remainingTime.value = 0;
       }
-      
+
       if (isExpired) {
         // Try to refresh token before expiring session
         final refreshSuccessful = await _attemptTokenRefresh();
-        
+
         if (refreshSuccessful) {
           // Session refresh updates the cookie service expiry time automatically
           final newTimeUntilExpiry = _cookieService.getTimeUntilExpiry();
@@ -90,7 +91,9 @@ class SessionTimerService {
           await _storage.clearAuthData();
           await _cookieService.clearSession();
         }
-      } else if (timeUntilExpiry != null && timeUntilExpiry.inMilliseconds <= warningTimeMs && !showWarning.value) {
+      } else if (timeUntilExpiry != null &&
+          timeUntilExpiry.inMilliseconds <= warningTimeMs &&
+          !showWarning.value) {
         showWarning.value = true;
         _startWarningTimer();
       }
@@ -103,48 +106,49 @@ class SessionTimerService {
 
   void _startProactiveRefreshTimer() {
     // For all platforms, check every 5 minutes if session needs proactive refresh
-    _proactiveRefreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) async {
+    _proactiveRefreshTimer = Timer.periodic(const Duration(minutes: 5), (
+      timer,
+    ) async {
       try {
         await _checkProactiveRefresh();
       } catch (e) {
         if (kDebugMode) {
-          final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
           // Proactive refresh timer error
         }
       }
     });
-    
+
     if (kDebugMode) {
-      final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
       // Started proactive refresh timer
     }
   }
-  
+
   Future<void> _checkProactiveRefresh() async {
     try {
       final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
-      
+
       if (timeUntilExpiry == null) return;
-      
+
       // Refresh if session expires in less than 10 minutes and user was recently active
-      if (timeUntilExpiry.inMinutes <= 10 && wasRecentlyActive(const Duration(minutes: 15))) {
-        
+      if (timeUntilExpiry.inMinutes <= 10 &&
+          wasRecentlyActive(const Duration(minutes: 15))) {
         // Don't refresh too frequently - at least 5 minutes between attempts
         if (_lastRefreshAttempt != null) {
-          final timeSinceLastRefresh = DateTime.now().difference(_lastRefreshAttempt!);
+          final timeSinceLastRefresh = DateTime.now().difference(
+            _lastRefreshAttempt!,
+          );
           if (timeSinceLastRefresh.inMinutes < 5) {
             return;
           }
         }
-        
-        final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
+
         if (kDebugMode) {
           // Proactive refresh - session expires soon
         }
-        
+
         _lastRefreshAttempt = DateTime.now();
         final refreshSuccess = await _attemptTokenRefresh();
-        
+
         if (refreshSuccess) {
           if (kDebugMode) {
             // Proactive refresh successful
@@ -157,7 +161,6 @@ class SessionTimerService {
       }
     } catch (e) {
       if (kDebugMode) {
-        final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
         // Proactive refresh check error
       }
     }
@@ -178,10 +181,10 @@ class SessionTimerService {
   void _startWarningTimer() {
     _warningTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
-      
+
       if (timeUntilExpiry != null) {
         remainingTime.value = timeUntilExpiry.inMilliseconds;
-        
+
         if (timeUntilExpiry.inMilliseconds <= 0) {
           timer.cancel();
           sessionExpired.value = true;
@@ -202,45 +205,45 @@ class SessionTimerService {
   // Call this method on ANY user activity (navigation, taps, scrolling, etc.)
   Future<void> recordActivity() async {
     _lastActivityTime = DateTime.now();
-    
+
     // Update local timestamp for compatibility
     await _storage.updateSessionTimestamp();
-    
+
     // Clear any warning state since user is active
     showWarning.value = false;
     _warningTimer?.cancel();
     _warningTimer = null;
-    
+
     // Update remaining time based on backend session expiry
     final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
     if (timeUntilExpiry != null) {
       remainingTime.value = timeUntilExpiry.inMilliseconds;
-      
+
       // Platform-specific logging
-      final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
       // User activity recorded
       // Session activity tracked
       // Activity timestamp recorded
-      
+
       // On all platforms, consider proactive refresh when user is very active and session near expiry
       if (timeUntilExpiry.inMinutes <= 10) {
         // Don't refresh too frequently
-        if (_lastRefreshAttempt == null || 
+        if (_lastRefreshAttempt == null ||
             DateTime.now().difference(_lastRefreshAttempt!).inMinutes >= 5) {
-          
           // Session near expiry, considering proactive refresh
           _lastRefreshAttempt = DateTime.now();
-          
+
           // Attempt refresh in background - catch errors to prevent crashes
-          _attemptTokenRefresh().then((success) {
-            if (success && kDebugMode) {
-              // Background refresh successful
-            }
-          }).catchError((error) {
-            if (kDebugMode) {
-              // Background refresh error
-            }
-          });
+          _attemptTokenRefresh()
+              .then((success) {
+                if (success && kDebugMode) {
+                  // Background refresh successful
+                }
+              })
+              .catchError((error) {
+                if (kDebugMode) {
+                  // Background refresh error
+                }
+              });
         }
       }
     } else {
@@ -257,7 +260,7 @@ class SessionTimerService {
     showWarning.value = false;
     _lastActivityTime = DateTime.now();
     await _storage.updateSessionTimestamp();
-    
+
     // Update remaining time based on backend session expiry
     final timeUntilExpiry = _cookieService.getTimeUntilExpiry();
     if (timeUntilExpiry != null) {

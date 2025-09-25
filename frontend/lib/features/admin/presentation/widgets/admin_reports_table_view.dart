@@ -308,13 +308,14 @@ class AdminReportsTableView extends StatelessWidget {
   Widget _buildCombinedActions(BuildContext context, dynamic report) {
     final status = report['status'];
     final actions = _getAvailableActions(status);
-    final hasAsset = report['asset_no'] != null && report['asset_no'].toString().isNotEmpty;
+    final hasAsset =
+        report['asset_no'] != null && report['asset_no'].toString().isNotEmpty;
     final canEdit = status != 'cancelled' && status != 'resolved';
 
     if (actions.isEmpty) {
       return (hasAsset && canEdit)
-        ? _buildEditShortcut(context, report)
-        : Text('-', style: TextStyle(color: Colors.grey));
+          ? _buildEditShortcut(context, report)
+          : const Text('-', style: TextStyle(color: Colors.grey));
     }
 
     // Create 2x2 grid layout with tall edit icon
@@ -330,8 +331,8 @@ class AdminReportsTableView extends StatelessWidget {
                 _buildActionButton(context, report, actions[0]),
                 const SizedBox(height: 2),
                 actions.length > 1
-                  ? _buildActionButton(context, report, actions[1])
-                  : const SizedBox(height: 24), // Empty space
+                    ? _buildActionButton(context, report, actions[1])
+                    : const SizedBox(height: 24), // Empty space
               ],
             ),
           ),
@@ -343,7 +344,7 @@ class AdminReportsTableView extends StatelessWidget {
             Container(
               width: 50,
               height: 50,
-              child: Center(
+              child: const Center(
                 child: Text('-', style: TextStyle(color: Colors.grey)),
               ),
             ),
@@ -363,11 +364,7 @@ class AdminReportsTableView extends StatelessWidget {
       child: InkWell(
         onTap: () => _showReportDialog(context, report),
         borderRadius: BorderRadius.circular(4),
-        child: const Icon(
-          Icons.edit_outlined,
-          color: Colors.white,
-          size: 14,
-        ),
+        child: const Icon(Icons.edit_outlined, color: Colors.white, size: 14),
       ),
     );
   }
@@ -384,17 +381,17 @@ class AdminReportsTableView extends StatelessWidget {
         onTap: () => _showReportDialog(context, report),
         borderRadius: BorderRadius.circular(4),
         child: const Center(
-          child: Icon(
-            Icons.edit_outlined,
-            color: Colors.white,
-            size: 20,
-          ),
+          child: Icon(Icons.edit_outlined, color: Colors.white, size: 20),
         ),
       ),
     );
   }
 
-  Widget _buildActionButton(BuildContext context, dynamic report, String action) {
+  Widget _buildActionButton(
+    BuildContext context,
+    dynamic report,
+    String action,
+  ) {
     final actionInfo = _getActionInfo(action);
     return SizedBox(
       width: 60,
@@ -413,16 +410,11 @@ class AdminReportsTableView extends StatelessWidget {
           padding: EdgeInsets.zero,
           minimumSize: const Size(60, 24),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(3),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
         ),
         child: Text(
           _getActionShortLabel(action),
-          style: const TextStyle(
-            fontSize: 9,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -470,7 +462,9 @@ class AdminReportsTableView extends StatelessWidget {
               try {
                 // Actually call the backend API to update the asset
                 final adminDatasource = AdminRemoteDatasourceImpl();
-                final repository = AdminRepositoryImpl(remoteDataSource: adminDatasource);
+                final repository = AdminRepositoryImpl(
+                  remoteDataSource: adminDatasource,
+                );
 
                 await repository.updateAsset(updateRequest);
 
@@ -493,58 +487,6 @@ class AdminReportsTableView extends StatelessWidget {
         );
       }
     }
-  }
-
-  Widget _buildActionMenu(BuildContext context, dynamic report) {
-    final status = report['status'];
-    final actions = _getAvailableActions(status);
-
-    if (actions.isEmpty) {
-      return Text(
-        '-',
-        style: AppTextStyles.caption.copyWith(color: Colors.grey),
-      );
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: actions.map((action) {
-        final actionInfo = _getActionInfo(action);
-        return Container(
-          margin: const EdgeInsets.only(bottom: 2),
-          child: SizedBox(
-            width: 80,
-            height: 24,
-            child: ElevatedButton(
-              onPressed: () {
-                if (action == 'acknowledge') {
-                  _handleDirectAcknowledge(context, report);
-                } else {
-                  _showActionDialog(context, report, action);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: actionInfo['color'] as Color,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(80, 24),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              child: Text(
-                _getActionShortLabel(action),
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
   }
 
   String _getActionShortLabel(String action) {
