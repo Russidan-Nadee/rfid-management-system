@@ -34,7 +34,7 @@ class MyReportsPageView extends StatefulWidget {
 }
 
 class _MyReportsPageViewState extends State<MyReportsPageView> {
-  ViewMode _viewMode = ViewMode.card;
+  ViewMode _viewMode = ViewMode.table;
 
   @override
   Widget build(BuildContext context) {

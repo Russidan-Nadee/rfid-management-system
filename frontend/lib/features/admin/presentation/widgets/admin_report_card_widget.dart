@@ -4,10 +4,11 @@ import '../../../../app/theme/app_spacing.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../app/theme/app_decorations.dart';
 import '../../../../core/utils/helpers.dart';
-import '../../../../di/injection.dart';
-import '../../../../core/services/notification_service.dart';
 import '../../../../l10n/features/reports/reports_localizations.dart';
-import 'admin_action_dialog.dart';
+import 'report_status_badge.dart';
+import 'report_priority_badge.dart';
+import 'report_problem_type_icon.dart';
+import 'admin_report_actions.dart';
 
 class AdminReportCardWidget extends StatelessWidget {
   final dynamic report;
@@ -38,41 +39,15 @@ class AdminReportCardWidget extends StatelessWidget {
             Row(
               children: [
                 // Status Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(report['status']),
-                    borderRadius: AppBorders.sm,
-                  ),
-                  child: Text(
-                    _getStatusText(reportsL10n, report['status']),
-                    style: AppTextStyles.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                ReportStatusBadge(
+                  status: report['status'],
+                  reportsL10n: reportsL10n,
                 ),
                 const Spacer(),
                 // Priority Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getPriorityColor(report['priority']),
-                    borderRadius: AppBorders.sm,
-                  ),
-                  child: Text(
-                    _getPriorityText(reportsL10n, report['priority']),
-                    style: AppTextStyles.caption.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                ReportPriorityBadge(
+                  priority: report['priority'],
+                  reportsL10n: reportsL10n,
                 ),
               ],
             ),
@@ -115,7 +90,7 @@ class AdminReportCardWidget extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      _getProblemTypeIcon(report['problem_type']),
+                      ReportProblemTypeHelper.getProblemTypeIcon(report['problem_type']),
                       color: isDark
                           ? AppColors.darkTextSecondary
                           : AppColors.textSecondary,
@@ -123,7 +98,7 @@ class AdminReportCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _getProblemTypeText(reportsL10n, report['problem_type']),
+                      ReportProblemTypeHelper.getProblemTypeText(reportsL10n, report['problem_type']),
                       style: AppTextStyles.body2.copyWith(
                         color: isDark
                             ? AppColors.darkTextSecondary
@@ -395,270 +370,18 @@ class AdminReportCardWidget extends StatelessWidget {
               ),
             ],
 
-            // Admin Action Buttons (only show for pending/acknowledged reports)
-            if (_shouldShowAdminActions(report['status'])) ...[
-              AppSpacing.verticalSpaceSM,
-              _buildAdminActions(context, report),
-            ],
+            // Admin Action Buttons
+            AppSpacing.verticalSpaceSM,
+            AdminReportActions(
+              report: report,
+              onReportUpdated: onReportUpdated,
+            ),
           ],
         ),
       ),
     );
   }
 
-  bool _shouldShowAdminActions(String status) {
-    // Show admin buttons for pending, acknowledged, and in_progress statuses
-    return ['pending', 'acknowledged', 'in_progress'].contains(status);
-  }
-
-  Widget _buildAdminActions(BuildContext context, dynamic report) {
-    final status = report['status'];
-
-    return Row(
-      children: [
-        if (status == 'pending') ...[
-          // Acknowledge button for pending reports
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _handleDirectAcknowledge(context, report),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppBorders.sm,
-                ),
-              ),
-              child: Text(
-                ReportsLocalizations.of(context).acknowledge,
-                style: AppTextStyles.caption.copyWith(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Reject button
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () =>
-                  _showAdminActionDialog(context, report, 'reject'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppBorders.sm,
-                ),
-              ),
-              child: Text(
-                ReportsLocalizations.of(context).reject,
-                style: AppTextStyles.caption.copyWith(color: Colors.white),
-              ),
-            ),
-          ),
-        ] else if (status == 'acknowledged' || status == 'in_progress') ...[
-          // Complete button for acknowledged/in_progress reports
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () =>
-                  _showAdminActionDialog(context, report, 'complete'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppBorders.sm,
-                ),
-              ),
-              child: Text(
-                ReportsLocalizations.of(context).complete,
-                style: AppTextStyles.caption.copyWith(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Reject button (still available)
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () =>
-                  _showAdminActionDialog(context, report, 'reject'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppBorders.sm,
-                ),
-              ),
-              child: Text(
-                ReportsLocalizations.of(context).reject,
-                style: AppTextStyles.caption.copyWith(color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  void _showAdminActionDialog(
-    BuildContext context,
-    dynamic report,
-    String action,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => AdminActionDialog(
-        report: report,
-        action: action,
-        onActionCompleted: () {
-          // Refresh the reports list
-          Navigator.of(context).pop();
-          if (onReportUpdated != null) {
-            onReportUpdated!();
-          }
-        },
-      ),
-    );
-  }
-
-  Future<void> _handleDirectAcknowledge(
-    BuildContext context,
-    dynamic report,
-  ) async {
-    try {
-      final notificationService = getIt<NotificationService>();
-
-      final response = await notificationService.updateNotificationStatus(
-        report['notification_id'],
-        status: 'in_progress',
-      );
-
-      if (response.success) {
-        if (context.mounted) {
-          Helpers.showSuccess(
-            context,
-            'Report acknowledged and moved to in-progress',
-          );
-        }
-        if (onReportUpdated != null) {
-          onReportUpdated!();
-        }
-      } else {
-        if (context.mounted) {
-          Helpers.showError(context, response.message);
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Helpers.showError(context, 'Error acknowledging report: $e');
-      }
-    }
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange;
-      case 'acknowledged':
-        return Colors.blue;
-      case 'in_progress':
-        return Colors.purple;
-      case 'resolved':
-        return Colors.green;
-      case 'cancelled':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusText(ReportsLocalizations reportsL10n, String status) {
-    switch (status) {
-      case 'pending':
-        return reportsL10n.pending;
-      case 'acknowledged':
-        return reportsL10n.acknowledgedStatus;
-      case 'in_progress':
-        return reportsL10n.inProgress;
-      case 'resolved':
-        return reportsL10n.resolvedStatus;
-      case 'cancelled':
-        return reportsL10n.cancelled;
-      default:
-        return status.replaceAll('_', ' ').toUpperCase();
-    }
-  }
-
-  Color _getPriorityColor(String priority) {
-    switch (priority) {
-      case 'low':
-        return Colors.green;
-      case 'normal':
-        return Colors.blue;
-      case 'high':
-        return Colors.orange;
-      case 'critical':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getPriorityText(ReportsLocalizations reportsL10n, String priority) {
-    switch (priority) {
-      case 'low':
-        return reportsL10n.low;
-      case 'normal':
-        return reportsL10n.normal;
-      case 'high':
-        return reportsL10n.high;
-      case 'critical':
-        return reportsL10n.critical;
-      default:
-        return priority.toUpperCase();
-    }
-  }
-
-  IconData _getProblemTypeIcon(String problemType) {
-    switch (problemType) {
-      case 'asset_damage':
-        return Icons.broken_image_outlined;
-      case 'asset_missing':
-        return Icons.search_off_outlined;
-      case 'location_issue':
-        return Icons.location_off_outlined;
-      case 'data_error':
-        return Icons.error_outline;
-      case 'urgent_issue':
-        return Icons.priority_high_outlined;
-      case 'other':
-        return Icons.help_outline;
-      default:
-        return Icons.report_problem_outlined;
-    }
-  }
-
-  String _getProblemTypeText(
-    ReportsLocalizations reportsL10n,
-    String problemType,
-  ) {
-    switch (problemType) {
-      case 'asset_damage':
-        return reportsL10n.assetDamage;
-      case 'asset_missing':
-        return reportsL10n.missingAsset;
-      case 'location_issue':
-        return reportsL10n.locationIssue;
-      case 'data_error':
-        return reportsL10n.dataError;
-      case 'urgent_issue':
-        return reportsL10n.urgentIssue;
-      case 'other':
-        return reportsL10n.other;
-      default:
-        return problemType.replaceAll('_', ' ').toUpperCase();
-    }
-  }
 
   String _formatDate(dynamic dateTime, ReportsLocalizations reportsL10n) {
     if (dateTime == null) return reportsL10n.notAvailable;
