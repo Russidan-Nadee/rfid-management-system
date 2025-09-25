@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../data/datasources/admin_remote_datasource.dart';
-import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_colors.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../../di/injection.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
@@ -238,8 +236,7 @@ class _RoleManagementViewState extends State<RoleManagementView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    Theme.of(context);
 
     return Scaffold(
       body: LayoutBuilder(
@@ -259,7 +256,10 @@ class _RoleManagementViewState extends State<RoleManagementView> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         const Icon(Icons.people, size: 20),
@@ -417,5 +417,4 @@ class _RoleManagementViewState extends State<RoleManagementView> {
 
     return availableRoles;
   }
-
 }

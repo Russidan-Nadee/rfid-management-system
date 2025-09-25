@@ -109,14 +109,14 @@ class SessionTimerService {
       } catch (e) {
         if (kDebugMode) {
           final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
-          print('🔄 $platform: Proactive refresh timer error: $e');
+          // Proactive refresh timer error
         }
       }
     });
     
     if (kDebugMode) {
       final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
-      print('🔄 $platform: Started proactive refresh timer');
+      // Started proactive refresh timer
     }
   }
   
@@ -139,7 +139,7 @@ class SessionTimerService {
         
         final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
         if (kDebugMode) {
-          print('🔄 $platform: Proactive refresh - session expires in ${timeUntilExpiry.inMinutes} minutes, user was recently active');
+          // Proactive refresh - session expires soon
         }
         
         _lastRefreshAttempt = DateTime.now();
@@ -147,18 +147,18 @@ class SessionTimerService {
         
         if (refreshSuccess) {
           if (kDebugMode) {
-            print('🔄 $platform: Proactive refresh successful');
+            // Proactive refresh successful
           }
         } else {
           if (kDebugMode) {
-            print('🔄 $platform: Proactive refresh failed');
+            // Proactive refresh failed
           }
         }
       }
     } catch (e) {
       if (kDebugMode) {
         final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
-        print('🔄 $platform: Proactive refresh check error: $e');
+        // Proactive refresh check error
       }
     }
   }
@@ -218,9 +218,9 @@ class SessionTimerService {
       
       // Platform-specific logging
       final platform = kIsWeb ? "Web" : (isWindows ? "Windows" : "Mobile");
-      print('🔄 $platform SESSION ACTIVITY: User activity recorded');
-      print('🕐 $platform SESSION ACTIVITY: Time until expiry: ${timeUntilExpiry.inSeconds}s');
-      print('🕐 $platform SESSION ACTIVITY: Activity recorded at: ${_lastActivityTime.toIso8601String()}');
+      // User activity recorded
+      // Session activity tracked
+      // Activity timestamp recorded
       
       // On all platforms, consider proactive refresh when user is very active and session near expiry
       if (timeUntilExpiry.inMinutes <= 10) {
@@ -228,17 +228,17 @@ class SessionTimerService {
         if (_lastRefreshAttempt == null || 
             DateTime.now().difference(_lastRefreshAttempt!).inMinutes >= 5) {
           
-          print('🔄 $platform SESSION ACTIVITY: Session near expiry, considering proactive refresh');
+          // Session near expiry, considering proactive refresh
           _lastRefreshAttempt = DateTime.now();
           
           // Attempt refresh in background - catch errors to prevent crashes
           _attemptTokenRefresh().then((success) {
             if (success && kDebugMode) {
-              print('🔄 $platform SESSION ACTIVITY: Background refresh successful');
+              // Background refresh successful
             }
           }).catchError((error) {
             if (kDebugMode) {
-              print('🔄 $platform SESSION ACTIVITY: Background refresh error: $error');
+              // Background refresh error
             }
           });
         }

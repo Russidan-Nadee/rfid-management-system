@@ -6,7 +6,7 @@ import '../../../../l10n/features/admin/admin_localizations.dart';
 class AssetListWidget extends StatelessWidget {
   final List<AssetAdminEntity> assets;
   final Function(String) onDelete;
-  final Function(UpdateAssetRequest) onUpdate;
+  final Future<void> Function(UpdateAssetRequest) onUpdate;
 
   const AssetListWidget({
     super.key,

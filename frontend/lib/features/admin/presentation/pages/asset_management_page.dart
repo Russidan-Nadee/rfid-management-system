@@ -15,7 +15,6 @@ import '../widgets/asset_search_widget.dart';
 import '../widgets/asset_list_widget.dart';
 import '../../../../l10n/features/admin/admin_localizations.dart';
 import '../../../../app/theme/app_spacing.dart';
-import '../../../../app/theme/app_colors.dart';
 
 class AssetManagementPage extends StatelessWidget {
   const AssetManagementPage({super.key});
@@ -53,8 +52,7 @@ class _AssetManagementViewState extends State<AssetManagementView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AdminLocalizations.of(context);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    Theme.of(context);
 
     return Scaffold(
       body: LayoutBuilder(
@@ -80,7 +78,9 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                               label: l10n.dismiss,
                               textColor: Colors.white,
                               onPressed: () {
-                                context.read<AdminBloc>().add(const ClearError());
+                                context.read<AdminBloc>().add(
+                                  const ClearError(),
+                                );
                               },
                             ),
                           ),
@@ -147,7 +147,10 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 child: Row(
                                   children: [
                                     const Icon(Icons.inventory, size: 20),
@@ -179,7 +182,10 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                                       });
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
                                       child: Row(
                                         children: [
                                           const Icon(Icons.search, size: 20),
@@ -194,8 +200,13 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                                           const Spacer(),
                                           AnimatedRotation(
                                             turns: _isSearchExpanded ? 0.5 : 0,
-                                            duration: const Duration(milliseconds: 200),
-                                            child: const Icon(Icons.expand_more, size: 20),
+                                            duration: const Duration(
+                                              milliseconds: 200,
+                                            ),
+                                            child: const Icon(
+                                              Icons.expand_more,
+                                              size: 20,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -205,11 +216,21 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                                   AnimatedCrossFade(
                                     firstChild: const SizedBox.shrink(),
                                     secondChild: Padding(
-                                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        0,
+                                        16,
+                                        16,
+                                      ),
                                       child: AssetSearchWidget(
                                         constraints: constraints,
                                         onSearch:
-                                            ({searchTerm, status, plantCode, locationCode}) {
+                                            ({
+                                              searchTerm,
+                                              status,
+                                              plantCode,
+                                              locationCode,
+                                            }) {
                                               context.read<AdminBloc>().add(
                                                 SearchAssets(
                                                   searchTerm: searchTerm,
@@ -236,7 +257,7 @@ class _AssetManagementViewState extends State<AssetManagementView> {
                                   padding: AppSpacing.paddingLG,
                                   child: AssetListWidget(
                                     assets: assets,
-                                    onUpdate: (request) {
+                                    onUpdate: (request) async {
                                       context.read<AdminBloc>().add(
                                         UpdateAsset(request),
                                       );

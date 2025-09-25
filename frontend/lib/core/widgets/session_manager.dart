@@ -36,7 +36,7 @@ class _SessionManagerState extends State<SessionManager>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print('🔄 SessionManager: App resumed - checking auth status');
+      // App resumed - checking auth status
       // Force an immediate auth check when app resumes
       _authMonitor.checkAuthenticationNow();
     }

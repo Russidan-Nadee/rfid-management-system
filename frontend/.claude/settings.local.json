@@ -5,7 +5,10 @@
       "Bash(flutter run:*)",
       "Bash(flutter config:*)",
       "Bash(flutter create:*)",
-      "Bash(rd:*)"
+      "Bash(rd:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter:*)",
+      "Bash(dart analyze:*)"
     ],
     "deny": [],
     "ask": []

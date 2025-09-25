@@ -380,8 +380,9 @@ class _AdminActionDialogState extends State<AdminActionDialog> {
 
       if (response.success) {
         if (mounted) {
+          Navigator.of(context).pop();
           Helpers.showSuccess(
-            context, 
+            context,
             _getSuccessMessage(l10n),
           );
           widget.onActionCompleted();

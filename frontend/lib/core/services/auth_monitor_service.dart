@@ -49,21 +49,21 @@ class AuthMonitorService with WidgetsBindingObserver {
   Future<void> _checkAuthenticationStatus() async {
     // Skip check if monitoring is stopped
     if (_authCheckTimer == null) {
-      print('ℹ️ AuthMonitor: Monitoring stopped - skipping auth check');
+      // Monitoring stopped - skipping auth check
       return;
     }
     
     try {
-      print('🔍 AuthMonitor: Checking authentication status...');
+      // Checking authentication status
       await _apiService.get(ApiConstants.authCheck, requiresAuth: true);
-      print('✅ AuthMonitor: Authentication check passed');
+      // Authentication check passed
       // If successful, session is still valid
     } catch (e) {
-      print('❌ AuthMonitor: Authentication check failed: ${e.runtimeType}');
+      // Authentication check failed: ${e.runtimeType}
       
       // Skip handling if monitoring is stopped (user already logged out)
       if (_authCheckTimer == null) {
-        print('ℹ️ AuthMonitor: Monitoring stopped - skipping error handling');
+        // Monitoring stopped - skipping error handling
         return;
       }
       
@@ -74,19 +74,19 @@ class AuthMonitorService with WidgetsBindingObserver {
         print('🚨 Session expired detected during monitoring - forcing logout');
         _triggerSessionExpired();
       } else {
-        print('⚠️ AuthMonitor: Non-auth error (${e.runtimeType}) - will retry on next check');
+        // Non-auth error (${e.runtimeType}) - will retry on next check
         // For network errors, etc., don't trigger logout but log for debugging
       }
     }
   }
 
   void _triggerSessionExpired() {
-    print('🔥 AuthMonitor: _triggerSessionExpired called');
+    // Triggering session expired callback
     if (_onSessionExpired != null) {
-      print('✅ AuthMonitor: Calling session expired callback');
+      // Calling session expired callback
       _onSessionExpired!();
     } else {
-      print('❌ AuthMonitor: No session expired callback set!');
+      // No session expired callback set
     }
   }
 
