@@ -39,7 +39,11 @@
       "Bash(find:*)",
       "mcp__ide__getDiagnostics",
       "Bash(move admin_all_reports_page.dart all_reports_page.dart)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(mysql:*)",
+      "Bash(git add:*)",
+      "Bash(echo:*)",
+      "Bash(comm:*)"
     ],
     "deny": [],
     "additionalDirectories": [
