@@ -221,7 +221,6 @@ const rawRows = [
   ['NB63235', '4300000934-0', 'LENOVO', 'MP1Q0RZ8', 'Phosphate ESIE1'],
   ['NB63239', '4300000938-0', 'LENOVO', 'MP1Q0RZ8', 'Marketing Support'],
   ['NB63249', '4300000925-0', 'LENOVO', 'PF1CLBR2', 'Marketing Chem ESIE1'],
-  ['NB63236', '4300000938-0', 'LENOVO', 'MP1Q0RZ8', 'Marketing Support'],
   ['NB63240', '4300000939-0', 'LENOVO', 'MP1Q0L45', 'Chem/Liquid'],
   ['NB63243', '4300000942-0', 'LENOVO', '', ''],
   ['NB63244', '4300000943-0', 'LENOVO', 'MP1Q0YEA', ''],
@@ -262,14 +261,12 @@ const rawRows = [
   ['NB64287', '4300001002-0', 'Dell Inc.', '9MYXD63', 'Quality Assurance BP 12'],
   ['NB64277', '4300001000-0', 'Dell Inc.', '121YD63', 'Quality Assurance BP 12'],
   ['NB64273', '4300000996-0', 'Dell Inc.', '8NYXD63', 'Quality Assurance BP 8'],
-  ['NB64274', '4300000999-0', 'Dell Inc.', '411YD63', 'Quality Assurance BP 12'],
   ['NB64283', '4300000982-0', 'Dell Inc.', '801YD63', 'Delivery Center Chem - BP'],
   ['NB64280', '4300000981-0', 'Dell Inc.', '8LYXD63', 'Chemical Support'],
   ['NB64282', '4300000988-0', 'LENOVO', '', ''],
   ['NB64284', '4300000983-0', 'Dell Inc.', '1PYXD63', 'Chemical Support'],
   ['NB64286', '4300000985-0', 'Dell Inc.', '921YD63', 'Chemical Support'],
   ['NB64285', '4300000984-0', 'Dell Inc.', 'BNYXD63', 'Chemical Support'],
-  ['NB64293', '4300000992-0', 'Dell Inc.', 'B21YD63', 'Safety, Environment, Waste Water-ESIE1'],
   ['NB64291', '4300000991-0', 'Dell Inc.', 'B11YD63', ''],
   ['NB64294', '4300000994-0', 'Dell Inc.', '321YD63', 'Marketing Chem ESIE1'],
   ['NB64288', '4300000989-0', 'Dell Inc.', '4PYXD63', 'Information Technology ESIE1'],
@@ -317,7 +314,7 @@ const rawRows = [
   ['NB64319', '4300001028-0', 'LENOVO', 'PF2JQ7ZH', 'Marketing Chem BP'],
   ['NB64330', '4300001039-0', 'LENOVO', 'PF2JQMKX', 'Management-Share All'],
   ['NB64339', '4300001050-0', 'LENOVO', 'PF2SW2F0', 'Marketing Chem ESIE1'],
-  ['NB64338', '4300001049-0', 'LENOVO', 'PF2SVNDP', 'Marketing Chem ESIE1'],
+  ['NB64338', '4300001049-0', 'LENOVO', 'PNB64293F2SVNDP', 'Marketing Chem ESIE1'],
   ['NB64343', '4300001054-0', 'LENOVO', 'PF2KC9JM', 'Information Technology BP'],
   ['NB64342', '4300001055-0', 'LENOVO', 'PF2SVGSN', 'Marketing H&S ESIE1'],
   ['NB64370', '4300001082-0', 'LENOVO', 'PF2Z3LLC', 'Maintenance ESIE1'],
@@ -651,10 +648,33 @@ async function seedAssets() {
   console.log('💻 Seeding asset_master...');
   await prisma.$connect();
 
+  // หา EPC สูงสุดในฐานข้อมูล
+  const lastAsset = await prisma.asset_master.findFirst({
+    where: { epc_code: { not: null } },
+    orderBy: { epc_code: 'desc' },
+    select: { epc_code: true }
+  });
+
+  let epcCounter = 0;
+  if (lastAsset?.epc_code) {
+    // แปลง EPC ปัจจุบันเป็นตัวเลข และเริ่มจากตัวถัดไป
+    const currentEpcNum = BigInt('0x' + lastAsset.epc_code) - BigInt('0x' + START_EPC_HEX);
+    epcCounter = Number(currentEpcNum) + 1;
+    console.log(`🏷️  Starting EPC from: ${epcCounter} (after ${lastAsset.epc_code})`);
+  }
+
   let created = 0, skipped = 0;
 
   for (let i = 0; i < rawRows.length; i++) {
     const [asset_no, inventory_no, brand_name, serial_no, dept_name] = rawRows[i];
+
+    // ตรวจสอบว่า asset นี้มีอยู่แล้วหรือไม่
+    const exists = await prisma.asset_master.findUnique({ where: { asset_no } });
+    if (exists) {
+      console.log(`⏭️  Skip ${asset_no} (exists)`);
+      skipped++;
+      continue;
+    }
 
     const brand_code = normBrand(brand_name);
     const dept_code = toDeptCode(dept_name);
@@ -669,7 +689,7 @@ async function seedAssets() {
     const created_at = extractYearFromAssetNo(asset_no);
     const last_update = created_at;
 
-    const epc_code = incHex(START_EPC_HEX, i); // +1 ต่อแถว
+    const epc_code = incHex(START_EPC_HEX, epcCounter++); // ใช้ counter แยก
 
     const finalSerial = cleanSerial(serial_no);
 
@@ -692,13 +712,6 @@ async function seedAssets() {
       created_at,
       last_update,
     };
-
-    const exists = await prisma.asset_master.findUnique({ where: { asset_no } });
-    if (exists) {
-      console.log(`⏭️  Skip ${asset_no} (exists)`);
-      skipped++;
-      continue;
-    }
 
     try {
       await prisma.asset_master.create({ data });
