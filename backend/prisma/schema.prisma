@@ -10,33 +10,33 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model asset_master {
-  asset_no       String               @id @db.VarChar(20)
-  epc_code       String?              @unique @db.VarChar(50)
-  description    String?              @db.VarChar(255)
-  plant_code     String?              @db.VarChar(10)
-  location_code  String?              @db.VarChar(10)
-  dept_code      String?              @db.VarChar(10)
-  serial_no      String?              @db.VarChar(50)
-  inventory_no   String?              @unique(map: "inventory_no") @db.VarChar(50)
-  quantity       Decimal?             @db.Decimal(10, 2)
-  unit_code      String?              @db.VarChar(10)
-  category_code  String?              @db.VarChar(10)
-  brand_code     String?              @db.VarChar(10)
-  status            asset_master_status? @default(C)
-  cost_center_code  String?              @db.VarChar(10)
-  created_by        String?              @db.VarChar(20)
-  created_at        DateTime?            @db.DateTime(0)
-  last_update       DateTime?            @updatedAt @db.DateTime(0)
-  deactivated_at    DateTime?            @db.DateTime(0)
+  asset_no         String               @id @db.VarChar(20)
+  epc_code         String?              @unique @db.VarChar(50)
+  description      String?              @db.VarChar(255)
+  plant_code       String?              @db.VarChar(10)
+  location_code    String?              @db.VarChar(10)
+  dept_code        String?              @db.VarChar(10)
+  serial_no        String?              @db.VarChar(50)
+  inventory_no     String?              @unique(map: "inventory_no") @db.VarChar(50)
+  quantity         Decimal?             @db.Decimal(10, 2)
+  unit_code        String?              @db.VarChar(10)
+  category_code    String?              @db.VarChar(10)
+  brand_code       String?              @db.VarChar(10)
+  status           asset_master_status? @default(C)
+  cost_center_code String?              @db.VarChar(10)
+  created_by       String?              @db.VarChar(20)
+  created_at       DateTime?            @db.DateTime(0)
+  last_update      DateTime?            @updatedAt @db.DateTime(0)
+  deactivated_at   DateTime?            @db.DateTime(0)
 
   // Relations with Master Tables (ทั้งหมดเป็น optional)
-  mst_plant      mst_plant?      @relation(fields: [plant_code], references: [plant_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_1")
-  mst_location   mst_location?   @relation(fields: [location_code], references: [location_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_2")
-  mst_unit       mst_unit?       @relation(fields: [unit_code], references: [unit_code], onDelete: Restrict, onUpdate: Cascade, map: "asset_master_ibfk_3")
-  mst_user       mst_user?       @relation(fields: [created_by], references: [user_id], onDelete: Restrict, map: "fk_asset_master_created_by")
-  mst_department mst_department? @relation(fields: [dept_code], references: [dept_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_dept_code")
-  mst_category   mst_category?   @relation(fields: [category_code], references: [category_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_category_code")
-  mst_brand      mst_brand?      @relation(fields: [brand_code], references: [brand_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_brand_code")
+  mst_plant       mst_plant?       @relation(fields: [plant_code], references: [plant_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_1")
+  mst_location    mst_location?    @relation(fields: [location_code], references: [location_code], onDelete: SetNull, onUpdate: Cascade, map: "asset_master_ibfk_2")
+  mst_unit        mst_unit?        @relation(fields: [unit_code], references: [unit_code], onDelete: Restrict, onUpdate: Cascade, map: "asset_master_ibfk_3")
+  mst_user        mst_user?        @relation(fields: [created_by], references: [user_id], onDelete: Restrict, map: "fk_asset_master_created_by")
+  mst_department  mst_department?  @relation(fields: [dept_code], references: [dept_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_dept_code")
+  mst_category    mst_category?    @relation(fields: [category_code], references: [category_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_category_code")
+  mst_brand       mst_brand?       @relation(fields: [brand_code], references: [brand_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_brand_code")
   mst_cost_center mst_cost_center? @relation(fields: [cost_center_code], references: [cost_center_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_asset_master_cost_center")
 
   // Relations with Transaction Tables
@@ -44,6 +44,7 @@ model asset_master {
   asset_status_history asset_status_history[]
   asset_image          asset_image[]
   problem_notification problem_notification[]
+  computer_info        asset_computer_info?
 
   // Database Indexes
   @@index([unit_code], map: "fk_asset_master_unit_code")
@@ -182,12 +183,11 @@ model mst_category {
 }
 
 model mst_department {
-  dept_code                String                     @id @db.VarChar(10)
-  description              String?                    @db.VarChar(255)
-  plant_code               String?                    @db.VarChar(10)
-  mst_plant                mst_plant?                 @relation(fields: [plant_code], references: [plant_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_mst_department_plant_code")
-  asset_master             asset_master[]
-  dept_cost_center_mapping dept_cost_center_mapping?
+  dept_code    String         @id @db.VarChar(10)
+  description  String?        @db.VarChar(255)
+  plant_code   String?        @db.VarChar(10)
+  mst_plant    mst_plant?     @relation(fields: [plant_code], references: [plant_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_mst_department_plant_code")
+  asset_master asset_master[]
 
   @@index([plant_code], map: "idx_mst_department_plant_code")
 }
@@ -260,10 +260,6 @@ model mst_user {
   @@index([full_name], map: "idx_mst_user_full_name")
   @@index([role], map: "idx_mst_user_role")
   @@index([is_active], map: "idx_mst_user_active")
-}
-
-model sequelizemeta {
-  name String @id @unique(map: "name") @db.VarChar(255)
 }
 
 model user_login_log {
@@ -417,10 +413,9 @@ model mst_cost_center {
   updated_at       DateTime @updatedAt @db.DateTime(0)
 
   // Relations
-  mst_division                mst_division                @relation(fields: [division_code], references: [division_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_cost_center_division")
-  mst_plant                   mst_plant?                  @relation(fields: [plant_code], references: [plant_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_cost_center_plant")
-  asset_master                asset_master[]
-  dept_cost_center_mapping    dept_cost_center_mapping[]
+  mst_division mst_division  @relation(fields: [division_code], references: [division_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_cost_center_division")
+  mst_plant    mst_plant?    @relation(fields: [plant_code], references: [plant_code], onDelete: SetNull, onUpdate: Cascade, map: "fk_cost_center_plant")
+  asset_master asset_master[]
 
   @@index([cost_center_name], map: "idx_mst_cost_center_name")
   @@index([division_code], map: "idx_mst_cost_center_division")
@@ -429,15 +424,51 @@ model mst_cost_center {
   @@index([is_active], map: "idx_mst_cost_center_active")
 }
 
-model dept_cost_center_mapping {
-  dept_code            String   @id @db.VarChar(10)
-  default_cost_center  String   @db.VarChar(10)
-  created_at           DateTime @default(now()) @db.DateTime(0)
-  updated_at           DateTime @updatedAt @db.DateTime(0)
+model asset_computer_info {
+  asset_no String @id @db.VarChar(20)
+
+  // Computer info
+  operating_system String?  @db.VarChar(100)
+  domain           String?  @db.VarChar(100)
+  device_status    String?  @db.VarChar(100)
+  invest_plan      String?  @db.VarChar(100)
+  price_thb        Decimal? @db.Decimal(15, 2)
+
+  // User info (จาก E2E - นอกระบบ)
+  username       String? @db.VarChar(100) // ชื่อ login / computer account
+  employee_id    String? @db.VarChar(20) // รหัสพนักงาน
+  employee_name  String? @db.VarChar(255) // ชื่อจริง 
+  employee_level String? @db.VarChar(10) // Level
+
+  // Audit
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @updatedAt @db.DateTime(0)
 
   // Relations
-  mst_department  mst_department  @relation(fields: [dept_code], references: [dept_code], onDelete: Cascade, onUpdate: Cascade, map: "fk_dept_mapping_department")
-  mst_cost_center mst_cost_center @relation(fields: [default_cost_center], references: [cost_center_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_dept_mapping_cost_center")
+  asset_master  asset_master              @relation(fields: [asset_no], references: [asset_no], onDelete: Cascade, map: "fk_computer_info_asset")
+  activity_logs asset_computer_activity[]
 
-  @@index([default_cost_center], map: "idx_dept_cost_center_mapping_cost_center")
+  // Indexes
+  @@index([device_status], map: "idx_computer_device_status")
+  @@index([username], map: "idx_computer_username")
+  @@index([employee_id], map: "idx_computer_employee_id")
+  @@index([invest_plan], map: "idx_computer_invest_plan")
 }
+
+model asset_computer_activity {
+  id            Int       @id @default(autoincrement())
+  asset_no      String    @db.VarChar(20)
+  ip_address    String?   @db.VarChar(45)
+  power_on_date DateTime? @db.Date // วันที่ power on (เช่น 3-Sep-2025)
+  user_logon    String?   @db.VarChar(100) // username ที่ login
+  logged_at     DateTime  @default(now()) @db.DateTime(0) // เวลาที่บันทึก
+
+  // Relations
+  computer_info asset_computer_info @relation(fields: [asset_no], references: [asset_no], onDelete: Cascade, map: "fk_computer_activity_asset")
+
+  // Indexes
+  @@index([asset_no, logged_at], map: "idx_computer_activity_asset_time")
+  @@index([user_logon], map: "idx_computer_activity_user")
+  @@index([power_on_date], map: "idx_computer_activity_power_on")
+}
+
