@@ -22,6 +22,7 @@ const dashboardRoutes = require('./features/dashboard/dashboardRoutes');
 const imageRoutes = require('./features/image/image.routes');
 const adminRoutes = require('./features/admin/adminRoutes');
 const notificationRoutes = require('./features/notification/notificationRoutes');
+const costCenterRoutes = require('./features/cost-center/costCenter.routes');
 
 // Apply database connection check to all routes
 router.use(checkDatabaseConnection);
@@ -41,6 +42,7 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/export', exportRoutes);
 router.use('/admin', adminRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/', costCenterRoutes);
 router.use('/', imageRoutes);
 router.use(require('./features/scan/scanRoutes'));
 
