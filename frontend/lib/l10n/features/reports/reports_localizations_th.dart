@@ -4,24 +4,24 @@ import 'reports_localizations.dart';
 /// Thai localization for Reports feature
 class ReportsLocalizationsTh extends ReportsLocalizations {
   @override
-  String get allReportsTitle => 'รายงานทั้งหมด';
+  String get allReportsTitle => 'ปัญหาทั้งหมด';
 
   @override
-  String get allReportsAdminTitle => 'รายงานทั้งหมด (ผู้ดูแลระบบ)';
+  String get allReportsAdminTitle => 'ปัญหาทั้งหมด (ผู้ดูแลระบบ)';
 
   @override
-  String get myReportsTitle => 'รายงานของฉัน';
+  String get myReportsTitle => 'ปัญหาของฉัน';
   
   // Loading States
   @override
-  String get loadingAllReports => 'กำลังโหลดรายงานทั้งหมด...';
+  String get loadingAllReports => 'กำลังโหลดปัญหาทั้งหมด...';
 
   @override
-  String get loadingReports => 'กำลังโหลดรายงาน...';
+  String get loadingReports => 'กำลังโหลดปัญหา...';
   
   // Error States
   @override
-  String get errorLoadingReports => 'เกิดข้อผิดพลาดในการโหลดรายงาน';
+  String get errorLoadingReports => 'เกิดข้อผิดพลาดในการโหลดปัญหา';
 
   @override
   String get errorLoadingReportsMessage => 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
@@ -31,13 +31,13 @@ class ReportsLocalizationsTh extends ReportsLocalizations {
   
   // Empty States
   @override
-  String get noReportsFound => 'ไม่พบรายงาน';
+  String get noReportsFound => 'ไม่พบปัญหา';
 
   @override
-  String get noReportsFoundAdmin => 'ยังไม่มีรายงานในระบบ';
+  String get noReportsFoundAdmin => 'ยังไม่มีปัญหาในระบบ';
 
   @override
-  String get noReportsFoundUser => 'คุณยังไม่ได้ส่งรายงานใดๆ';
+  String get noReportsFoundUser => 'คุณยังไม่ได้รายงานปัญหาใดๆ';
   
   // Actions
   @override
@@ -69,16 +69,16 @@ class ReportsLocalizationsTh extends ReportsLocalizations {
   String get userMode => 'โหมดผู้ใช้';
 
   @override
-  String get reports => 'รายงาน';
+  String get reports => 'ปัญหา';
 
   @override
-  String get report => 'รายงาน';
+  String get report => 'ปัญหา';
 
   @override
-  String get allReports => 'รายงานทั้งหมด';
+  String get allReports => 'ปัญหาทั้งหมด';
 
   @override
-  String get myReports => 'รายงานของฉัน';
+  String get myReports => 'ปัญหาของฉัน';
   
   // Report Card Content
   @override
@@ -88,7 +88,7 @@ class ReportsLocalizationsTh extends ReportsLocalizations {
   String get noDescription => 'ไม่มีคำอธิบาย';
 
   @override
-  String get reportId => 'รหัส';
+  String get reportId => 'รหัสปัญหา';
 
   @override
   String get reported => 'วันที่รายงาน';
@@ -119,13 +119,13 @@ class ReportsLocalizationsTh extends ReportsLocalizations {
   String get complete => 'เสร็จสิ้น';
 
   @override
-  String get reportAcknowledgedSuccess => 'รายงานได้รับการรับทราบและย้ายไปที่กำลังดำเนินการ';
+  String get reportAcknowledgedSuccess => 'ปัญหาได้รับการรับทราบและย้ายไปที่กำลังดำเนินการ';
 
   @override
-  String get failedToAcknowledgeReport => 'ไม่สามารถรับทราบรายงานได้';
+  String get failedToAcknowledgeReport => 'ไม่สามารถรับทราบปัญหาได้';
 
   @override
-  String get errorAcknowledgingReport => 'เกิดข้อผิดพลาดในการรับทราบรายงาน';
+  String get errorAcknowledgingReport => 'เกิดข้อผิดพลาดในการรับทราบปัญหา';
   
   // Problem Types
   @override

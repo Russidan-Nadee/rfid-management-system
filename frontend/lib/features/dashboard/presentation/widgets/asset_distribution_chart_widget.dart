@@ -24,10 +24,12 @@ class AssetDistributionChartWidget extends StatefulWidget {
   });
 
   @override
-  State<AssetDistributionChartWidget> createState() => _AssetDistributionChartWidgetState();
+  State<AssetDistributionChartWidget> createState() =>
+      _AssetDistributionChartWidgetState();
 }
 
-class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWidget> {
+class _AssetDistributionChartWidgetState
+    extends State<AssetDistributionChartWidget> {
   ChartType _selectedChartType = ChartType.bar;
   List<PieChartData> _selectedDepartments = [];
   static const int maxDepartments = 10;
@@ -50,7 +52,9 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
   void _initializeSelectedDepartments() {
     setState(() {
       if (widget.distribution.pieChartData.isNotEmpty) {
-        _selectedDepartments = widget.distribution.pieChartData.take(maxDepartments).toList();
+        _selectedDepartments = widget.distribution.pieChartData
+            .take(maxDepartments)
+            .toList();
       } else {
         _selectedDepartments = [];
       }
@@ -74,7 +78,9 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
 
   List<PieChartData> get _availableDepartments {
     return widget.distribution.pieChartData
-        .where((d) => !_selectedDepartments.any((s) => s.deptCode == d.deptCode))
+        .where(
+          (d) => !_selectedDepartments.any((s) => s.deptCode == d.deptCode),
+        )
         .toList();
   }
 
@@ -88,7 +94,9 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
 
     return DashboardCard(
       title: l10n.assetDistribution,
-      trailing: widget.distribution.hasData ? _buildChartTypeSelector(context) : null,
+      trailing: widget.distribution.hasData
+          ? _buildChartTypeSelector(context)
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -116,18 +124,24 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
   Widget _buildChartTypeSelector(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = DashboardLocalizations.of(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+        ),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<ChartType>(
           value: _selectedChartType,
-          icon: Icon(Icons.keyboard_arrow_down, size: 16, color: theme.colorScheme.onSurface),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            size: 16,
+            color: theme.colorScheme.onSurface,
+          ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.w500,
@@ -138,7 +152,11 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.pie_chart, size: 16, color: theme.colorScheme.onSurface),
+                  Icon(
+                    Icons.pie_chart,
+                    size: 16,
+                    color: theme.colorScheme.onSurface,
+                  ),
                   const SizedBox(width: 8),
                   Text(l10n.pieChart),
                 ],
@@ -149,7 +167,11 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.bar_chart, size: 16, color: theme.colorScheme.onSurface),
+                  Icon(
+                    Icons.bar_chart,
+                    size: 16,
+                    color: theme.colorScheme.onSurface,
+                  ),
                   const SizedBox(width: 8),
                   Text(l10n.barChart),
                 ],
@@ -413,39 +435,13 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
             child: Icon(
               Icons.close,
               size: 14,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildLegendItem(
-    BuildContext context, {
-    required Color color,
-    required String label,
-    required String value,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        AppSpacing.horizontalSpaceXS,
-        Text(
-          '$label ($value)',
-          style: AppTextStyles.caption.copyWith(
-            color: isDark ? AppColors.darkText : AppColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 
@@ -570,14 +566,18 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
                   Icon(
                     Icons.settings,
                     size: 16,
-                    color: isDark ? AppColors.darkText : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.darkText
+                        : AppColors.textSecondary,
                   ),
                   AppSpacing.horizontalSpaceXS,
                   Text(
                     'Department Selection (${_selectedDepartments.length}/$maxDepartments)',
                     style: AppTextStyles.caption.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.darkText
+                          : AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -587,7 +587,10 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
                 icon: Icon(Icons.refresh, size: 16),
                 label: Text('Reset'),
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -601,14 +604,18 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
                 hint: Text(
                   'Add department...',
                   style: AppTextStyles.caption.copyWith(
-                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
                   ),
                 ),
                 isExpanded: true,
                 icon: Icon(
                   Icons.add_circle_outline,
                   size: 20,
-                  color: isDark ? AppColors.darkText : theme.colorScheme.primary,
+                  color: isDark
+                      ? AppColors.darkText
+                      : theme.colorScheme.primary,
                 ),
                 items: _availableDepartments.map((dept) {
                   return DropdownMenuItem<PieChartData>(
@@ -632,7 +639,9 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
             Text(
               'Maximum $maxDepartments departments reached. Remove one to add another.',
               style: AppTextStyles.overline.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
               ),
             ),
           ],
@@ -641,7 +650,9 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
             Text(
               'All departments are already selected.',
               style: AppTextStyles.overline.copyWith(
-                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
               ),
             ),
           ],

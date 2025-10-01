@@ -99,12 +99,12 @@ class _RootLayoutState extends State<RootLayout> {
       ),
     );
 
-    // Reports - All platforms
+    // Issues - All platforms
     destinations.add(
       NavigationDestination(
         icon: const Icon(Icons.assignment_outlined),
         selectedIcon: const Icon(Icons.assignment_rounded),
-        label: appLoc.reports,
+        label: appLoc.issues,
       ),
     );
 
@@ -177,12 +177,12 @@ class _RootLayoutState extends State<RootLayout> {
       ),
     );
 
-    // Reports - All platforms
+    // Issues - All platforms
     destinations.add(
       NavigationRailDestination(
         icon: const Icon(Icons.assignment_outlined),
         selectedIcon: const Icon(Icons.assignment_rounded),
-        label: Text(appLoc.reports),
+        label: Text(appLoc.issues),
       ),
     );
 

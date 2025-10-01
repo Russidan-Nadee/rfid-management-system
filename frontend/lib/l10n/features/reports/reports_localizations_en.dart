@@ -4,24 +4,24 @@ import 'reports_localizations.dart';
 /// English localization for Reports feature
 class ReportsLocalizationsEn extends ReportsLocalizations {
   @override
-  String get allReportsTitle => 'All Reports';
+  String get allReportsTitle => 'All Issues';
 
   @override
-  String get allReportsAdminTitle => 'All Reports (Admin)';
+  String get allReportsAdminTitle => 'All Issues (Admin)';
 
   @override
-  String get myReportsTitle => 'My Reports';
+  String get myReportsTitle => 'My Issues';
   
   // Loading States
   @override
-  String get loadingAllReports => 'Loading all reports...';
+  String get loadingAllReports => 'Loading all issues...';
 
   @override
-  String get loadingReports => 'Loading reports...';
+  String get loadingReports => 'Loading issues...';
   
   // Error States
   @override
-  String get errorLoadingReports => 'Error Loading Reports';
+  String get errorLoadingReports => 'Error Loading Issues';
 
   @override
   String get errorLoadingReportsMessage => 'An unknown error occurred';
@@ -31,13 +31,13 @@ class ReportsLocalizationsEn extends ReportsLocalizations {
   
   // Empty States
   @override
-  String get noReportsFound => 'No Reports Found';
+  String get noReportsFound => 'No Issues Found';
 
   @override
-  String get noReportsFoundAdmin => 'There are no reports in the system yet.';
+  String get noReportsFoundAdmin => 'There are no issues in the system yet.';
 
   @override
-  String get noReportsFoundUser => 'You haven\'t submitted any reports yet.';
+  String get noReportsFoundUser => 'You haven\'t submitted any issues yet.';
   
   // Actions
   @override
@@ -69,16 +69,16 @@ class ReportsLocalizationsEn extends ReportsLocalizations {
   String get userMode => 'User Mode';
 
   @override
-  String get reports => 'Reports';
+  String get reports => 'Issues';
 
   @override
-  String get report => 'Report';
+  String get report => 'Issue';
 
   @override
-  String get allReports => 'All Reports';
+  String get allReports => 'All Issues';
 
   @override
-  String get myReports => 'My Reports';
+  String get myReports => 'My Issues';
   
   // Report Card Content
   @override
@@ -88,7 +88,7 @@ class ReportsLocalizationsEn extends ReportsLocalizations {
   String get noDescription => 'No Description';
 
   @override
-  String get reportId => 'ID';
+  String get reportId => 'Issue ID';
 
   @override
   String get reported => 'Reported';
@@ -119,13 +119,13 @@ class ReportsLocalizationsEn extends ReportsLocalizations {
   String get complete => 'Complete';
 
   @override
-  String get reportAcknowledgedSuccess => 'Report acknowledged and moved to in-progress';
+  String get reportAcknowledgedSuccess => 'Issue acknowledged and moved to in-progress';
 
   @override
-  String get failedToAcknowledgeReport => 'Failed to acknowledge report';
+  String get failedToAcknowledgeReport => 'Failed to acknowledge issue';
 
   @override
-  String get errorAcknowledgingReport => 'Error acknowledging report';
+  String get errorAcknowledgingReport => 'Error acknowledging issue';
   
   // Problem Types
   @override

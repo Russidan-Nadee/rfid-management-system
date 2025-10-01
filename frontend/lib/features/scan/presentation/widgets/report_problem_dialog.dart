@@ -46,7 +46,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
   @override
   void initState() {
     super.initState();
-    print('🔍 Dialog: Report Problem Dialog opened');
+    print('🔍 Dialog: Report Issue Dialog opened');
     print('🔍 Dialog: Asset No: ${widget.assetNo}');
     print('🔍 Dialog: Asset Description: ${widget.assetDescription}');
     print('🔍 Dialog: Initial Problem Type: $_selectedProblemType');
@@ -57,7 +57,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
 
   @override
   void dispose() {
-    print('🔍 Dialog: Report Problem Dialog disposed');
+    print('🔍 Dialog: Report Issue Dialog disposed');
     _subjectController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -95,7 +95,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Report Problem',
+                        'Report Issue',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -330,7 +330,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
                             Text('Submitting...'),
                           ],
                         )
-                      : const Text('Submit Report'),
+                      : const Text('Submit Issue'),
                 ),
               ],
             ),
@@ -341,7 +341,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
   }
 
   void _submitReport() async {
-    print('🔍 Dialog: Submit Report button pressed');
+    print('🔍 Dialog: Submit Issue button pressed');
     print('🔍 Dialog: Starting form validation...');
     
     if (!_formKey.currentState!.validate()) {
@@ -386,9 +386,9 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
           print('✅ Dialog: Success - closing dialog and showing success message');
           Navigator.of(context).pop();
           final notificationId = response.data?['notification_id'];
-          final successMessage = notificationId != null 
-              ? 'Problem reported successfully (ID: $notificationId)'
-              : 'Problem reported successfully';
+          final successMessage = notificationId != null
+              ? 'Issue reported successfully (ID: $notificationId)'
+              : 'Issue reported successfully';
           Helpers.showSuccess(context, successMessage);
         } else {
           print('❌ Dialog: Failed - showing error message');
@@ -401,7 +401,7 @@ class _ReportProblemDialogState extends State<ReportProblemDialog> {
       print('💥 Dialog: Exception caught: $error');
       print('💥 Dialog: Exception type: ${error.runtimeType}');
       if (mounted) {
-        Helpers.showError(context, 'Failed to submit report: $error');
+        Helpers.showError(context, 'Failed to submit issue: $error');
       }
     } finally {
       print('🔍 Dialog: Cleanup - setting submitting state to false');

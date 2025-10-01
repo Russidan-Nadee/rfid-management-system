@@ -14,7 +14,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get search => '検索';
 
   @override
-  String get reports => 'レポート';
+  String get issues => '問題報告';
 
   @override
   String get export => 'エクスポート';

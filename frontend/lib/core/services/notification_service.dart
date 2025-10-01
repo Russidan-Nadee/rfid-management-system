@@ -7,7 +7,7 @@ class NotificationService {
 
   NotificationService(this._apiService);
 
-  /// Submit a problem report for an asset
+  /// Submit an issue report for an asset
   Future<ApiResponse<Map<String, dynamic>>> reportProblem({
     String? assetNo,
     required String problemType,
@@ -27,7 +27,7 @@ class NotificationService {
         body['asset_no'] = assetNo;
       }
 
-      print('🔍 Frontend: Submitting problem report...');
+      print('🔍 Frontend: Submitting issue report...');
       print('🔍 Frontend: Base URL: ${ApiConstants.baseUrl}');
       print('🔍 Frontend: Endpoint: ${ApiConstants.reportProblem}');
       print('🔍 Frontend: Full URL: ${ApiConstants.baseUrl}${ApiConstants.reportProblem}');
@@ -57,7 +57,7 @@ class NotificationService {
     } catch (error) {
       print('💥 Frontend: Exception: $error');
       return ErrorResponse<Map<String, dynamic>>(
-        message: 'Failed to submit problem report: $error',
+        message: 'Failed to submit issue report: $error',
       );
     }
   }

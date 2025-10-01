@@ -200,7 +200,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
             icon: const Icon(Icons.arrow_back),
           ),
           actions: [
-            // Report Problem button - only show for known assets
+            // Report Issue button - only show for known assets
             if (!widget.item.isUnknown)
               IconButton(
                 onPressed: () => _showReportProblemDialog(context),
@@ -210,7 +210,7 @@ class _AssetDetailViewState extends State<AssetDetailView> {
                       ? AppColors.darkText
                       : AppColors.primary,
                 ),
-                tooltip: 'Report Problem',
+                tooltip: 'Report Issue',
               ),
           ],
         ),
@@ -480,14 +480,14 @@ class _AssetDetailViewState extends State<AssetDetailView> {
   }
 
   void _showReportProblemDialog(BuildContext context) {
-    print('🔍 AssetDetail: Report Problem button clicked');
+    print('🔍 AssetDetail: Report Issue button clicked');
     print('🔍 AssetDetail: Asset No: ${widget.item.assetNo}');
     print(
       '🔍 AssetDetail: Asset Description: ${widget.item.description ?? widget.item.displayName}',
     );
     print('🔍 AssetDetail: Asset Status: ${widget.item.status}');
     print('🔍 AssetDetail: Is Unknown: ${widget.item.isUnknown}');
-    print('🔍 AssetDetail: Opening Report Problem Dialog...');
+    print('🔍 AssetDetail: Opening Report Issue Dialog...');
 
     showDialog(
       context: context,

@@ -25,7 +25,7 @@ abstract class AppLocalizations {
   String get scan;
   String get dashboard;
   String get search;
-  String get reports;
+  String get issues;
   String get export;
   String get admin;
   String get settings;

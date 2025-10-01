@@ -14,7 +14,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get search => 'ค้นหา';
 
   @override
-  String get reports => 'รายงาน';
+  String get issues => 'แจ้งปัญหา';
 
   @override
   String get export => 'ส่งออก';

@@ -4,24 +4,24 @@ import 'reports_localizations.dart';
 /// Japanese localization for Reports feature
 class ReportsLocalizationsJa extends ReportsLocalizations {
   @override
-  String get allReportsTitle => 'すべてのレポート';
+  String get allReportsTitle => 'すべての問題';
 
   @override
-  String get allReportsAdminTitle => 'すべてのレポート（管理者）';
+  String get allReportsAdminTitle => 'すべての問題（管理者）';
 
   @override
-  String get myReportsTitle => 'マイレポート';
+  String get myReportsTitle => 'マイ問題';
   
   // Loading States
   @override
-  String get loadingAllReports => 'すべてのレポートを読み込み中...';
+  String get loadingAllReports => 'すべての問題を読み込み中...';
 
   @override
-  String get loadingReports => 'レポートを読み込み中...';
+  String get loadingReports => '問題を読み込み中...';
   
   // Error States
   @override
-  String get errorLoadingReports => 'レポート読み込みエラー';
+  String get errorLoadingReports => '問題読み込みエラー';
 
   @override
   String get errorLoadingReportsMessage => '不明なエラーが発生しました';
@@ -31,13 +31,13 @@ class ReportsLocalizationsJa extends ReportsLocalizations {
   
   // Empty States
   @override
-  String get noReportsFound => 'レポートが見つかりません';
+  String get noReportsFound => '問題が見つかりません';
 
   @override
-  String get noReportsFoundAdmin => 'システムにはまだレポートがありません。';
+  String get noReportsFoundAdmin => 'システムにはまだ問題がありません。';
 
   @override
-  String get noReportsFoundUser => 'まだレポートを送信していません。';
+  String get noReportsFoundUser => 'まだ問題を送信していません。';
   
   // Actions
   @override
@@ -69,16 +69,16 @@ class ReportsLocalizationsJa extends ReportsLocalizations {
   String get userMode => 'ユーザーモード';
 
   @override
-  String get reports => 'レポート';
+  String get reports => '問題';
 
   @override
-  String get report => 'レポート';
+  String get report => '問題';
 
   @override
-  String get allReports => 'すべてのレポート';
+  String get allReports => 'すべての問題';
 
   @override
-  String get myReports => 'マイレポート';
+  String get myReports => 'マイ問題';
   
   // Report Card Content
   @override
@@ -88,7 +88,7 @@ class ReportsLocalizationsJa extends ReportsLocalizations {
   String get noDescription => '説明なし';
 
   @override
-  String get reportId => 'ID';
+  String get reportId => '問題ID';
 
   @override
   String get reported => '報告日時';
@@ -119,13 +119,13 @@ class ReportsLocalizationsJa extends ReportsLocalizations {
   String get complete => '完了';
 
   @override
-  String get reportAcknowledgedSuccess => 'レポートが承認され、進行中に移動しました';
+  String get reportAcknowledgedSuccess => '問題が承認され、進行中に移動しました';
 
   @override
-  String get failedToAcknowledgeReport => 'レポートの承認に失敗しました';
+  String get failedToAcknowledgeReport => '問題の承認に失敗しました';
 
   @override
-  String get errorAcknowledgingReport => 'レポート承認エラー';
+  String get errorAcknowledgingReport => '問題承認エラー';
   
   // Problem Types
   @override

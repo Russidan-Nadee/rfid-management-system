@@ -172,44 +172,44 @@ class AdminLocalizationsJa extends AdminLocalizations {
   
   // Reports Section
   @override
-  String get allReports => 'すべてのレポート';
+  String get allReports => 'すべての問題';
 
   @override
-  String get loadingAllReports => 'すべてのレポートを読み込み中...';
+  String get loadingAllReports => 'すべての問題を読み込み中...';
 
   @override
-  String get errorLoadingReports => 'レポート読み込みエラー';
+  String get errorLoadingReports => '問題読み込みエラー';
 
   @override
-  String get noReportsFound => 'レポートが見つかりません';
+  String get noReportsFound => '問題が見つかりません';
 
   @override
-  String get noReportsFoundMessage => 'システムにはまだレポートがありません。';
+  String get noReportsFoundMessage => 'システムにはまだ問題がありません。';
   
   // Report Actions Dialog
   @override
-  String get acknowledgeReportTitle => 'レポートを確認';
+  String get acknowledgeReportTitle => '問題を確認';
 
   @override
-  String get completeReportTitle => 'レポートを完了';
+  String get completeReportTitle => '問題を完了';
 
   @override
-  String get rejectReportTitle => 'レポートを拒否';
+  String get rejectReportTitle => '問題を拒否';
 
   @override
-  String get updateReportTitle => 'レポートを更新';
+  String get updateReportTitle => '問題を更新';
 
   @override
-  String get acknowledgeDescription => 'このレポートを確認し、進行中ステータスに移動します。';
+  String get acknowledgeDescription => 'この問題を確認し、進行中ステータスに移動します。';
 
   @override
-  String get completeDescription => 'このレポートを解決済みとしてマークします。解決詳細を入力してください。';
+  String get completeDescription => 'この問題を解決済みとしてマークします。解決詳細を入力してください。';
 
   @override
-  String get rejectDescription => 'このレポートを拒否し、キャンセル済みとしてマークします。理由を入力してください。';
+  String get rejectDescription => 'この問題を拒否し、キャンセル済みとしてマークします。理由を入力してください。';
 
   @override
-  String get updateDescription => 'このレポートを更新します。';
+  String get updateDescription => 'この問題を更新します。';
 
   @override
   String get resolutionNoteRequired => '解決メモ *';
@@ -224,7 +224,7 @@ class AdminLocalizationsJa extends AdminLocalizations {
   String get resolutionNotePlaceholder => '問題がどのように解決されたかを説明...';
 
   @override
-  String get rejectionReasonPlaceholder => 'このレポートが拒否される理由を説明...';
+  String get rejectionReasonPlaceholder => 'この問題が拒否される理由を説明...';
 
   @override
   String get acknowledgmentNotePlaceholder => 'この確認についてのメモを追加...';
@@ -236,22 +236,22 @@ class AdminLocalizationsJa extends AdminLocalizations {
   String get markCompleteButton => '完了とマーク';
 
   @override
-  String get rejectReportButton => 'レポートを拒否';
+  String get rejectReportButton => '問題を拒否';
 
   @override
   String get updateButton => '更新';
 
   @override
-  String get reportAcknowledgedMessage => 'レポートを確認し、進行中に移動しました';
+  String get reportAcknowledgedMessage => '問題を確認し、進行中に移動しました';
 
   @override
-  String get reportCompletedMessage => 'レポートを解決済みとしてマークしました';
+  String get reportCompletedMessage => '問題を解決済みとしてマークしました';
 
   @override
-  String get reportRejectedMessage => 'レポートを拒否しキャンセルしました';
+  String get reportRejectedMessage => '問題を拒否しキャンセルしました';
 
   @override
-  String get reportUpdatedMessage => 'レポートを更新しました';
+  String get reportUpdatedMessage => '問題を更新しました';
 
   @override
   String get noSubject => '件名なし';
@@ -263,7 +263,7 @@ class AdminLocalizationsJa extends AdminLocalizations {
   String get asset => '資産';
 
   @override
-  String get reportNumber => 'レポート #';
+  String get reportNumber => '問題 #';
 
   @override
   String get pleaseProvideResolution => '解決詳細を入力してください';

@@ -172,44 +172,44 @@ class AdminLocalizationsTh extends AdminLocalizations {
   
   // Reports Section
   @override
-  String get allReports => 'รายงานทั้งหมด';
+  String get allReports => 'ปัญหาทั้งหมด';
 
   @override
-  String get loadingAllReports => 'กำลังโหลดรายงานทั้งหมด...';
+  String get loadingAllReports => 'กำลังโหลดปัญหาทั้งหมด...';
 
   @override
-  String get errorLoadingReports => 'เกิดข้อผิดพลาดในการโหลดรายงาน';
+  String get errorLoadingReports => 'เกิดข้อผิดพลาดในการโหลดปัญหา';
 
   @override
-  String get noReportsFound => 'ไม่พบรายงาน';
+  String get noReportsFound => 'ไม่พบปัญหา';
 
   @override
-  String get noReportsFoundMessage => 'ยังไม่มีรายงานในระบบ';
+  String get noReportsFoundMessage => 'ยังไม่มีปัญหาในระบบ';
   
   // Report Actions Dialog
   @override
-  String get acknowledgeReportTitle => 'รับทราบรายงาน';
+  String get acknowledgeReportTitle => 'รับทราบปัญหา';
 
   @override
-  String get completeReportTitle => 'ปิดรายงาน';
+  String get completeReportTitle => 'ปิดปัญหา';
 
   @override
-  String get rejectReportTitle => 'ปฏิเสธรายงาน';
+  String get rejectReportTitle => 'ปฏิเสธปัญหา';
 
   @override
-  String get updateReportTitle => 'อัปเดตรายงาน';
+  String get updateReportTitle => 'อัปเดตปัญหา';
 
   @override
-  String get acknowledgeDescription => 'รับทราบรายงานนี้และเปลี่ยนสถานะเป็นกำลังดำเนินการ';
+  String get acknowledgeDescription => 'รับทราบปัญหานี้และเปลี่ยนสถานะเป็นกำลังดำเนินการ';
 
   @override
-  String get completeDescription => 'ทำเครื่องหมายรายงานนี้เป็นแก้ไขแล้ว กรุณาระบุรายละเอียดการแก้ไข';
+  String get completeDescription => 'ทำเครื่องหมายปัญหานี้เป็นแก้ไขแล้ว กรุณาระบุรายละเอียดการแก้ไข';
 
   @override
-  String get rejectDescription => 'ปฏิเสธรายงานนี้และทำเครื่องหมายเป็นยกเลิก กรุณาระบุเหตุผล';
+  String get rejectDescription => 'ปฏิเสธปัญหานี้และทำเครื่องหมายเป็นยกเลิก กรุณาระบุเหตุผล';
 
   @override
-  String get updateDescription => 'อัปเดตรายงานนี้';
+  String get updateDescription => 'อัปเดตปัญหานี้';
 
   @override
   String get resolutionNoteRequired => 'หมายเหตุการแก้ไข *';
@@ -224,7 +224,7 @@ class AdminLocalizationsTh extends AdminLocalizations {
   String get resolutionNotePlaceholder => 'อธิบายวิธีการแก้ไขปัญหา...';
 
   @override
-  String get rejectionReasonPlaceholder => 'อธิบายเหตุผลที่ปฏิเสธรายงานนี้...';
+  String get rejectionReasonPlaceholder => 'อธิบายเหตุผลที่ปฏิเสธปัญหานี้...';
 
   @override
   String get acknowledgmentNotePlaceholder => 'เพิ่มหมายเหตุเกี่ยวกับการรับทราบนี้...';
@@ -236,22 +236,22 @@ class AdminLocalizationsTh extends AdminLocalizations {
   String get markCompleteButton => 'ทำเครื่องหมายเสร็จสิ้น';
 
   @override
-  String get rejectReportButton => 'ปฏิเสธรายงาน';
+  String get rejectReportButton => 'ปฏิเสธปัญหา';
 
   @override
   String get updateButton => 'อัปเดต';
 
   @override
-  String get reportAcknowledgedMessage => 'รับทราบรายงานแล้วและเปลี่ยนเป็นกำลังดำเนินการ';
+  String get reportAcknowledgedMessage => 'รับทราบปัญหาแล้วและเปลี่ยนเป็นกำลังดำเนินการ';
 
   @override
-  String get reportCompletedMessage => 'ทำเครื่องหมายรายงานเป็นแก้ไขแล้ว';
+  String get reportCompletedMessage => 'ทำเครื่องหมายปัญหาเป็นแก้ไขแล้ว';
 
   @override
-  String get reportRejectedMessage => 'ปฏิเสธรายงานและยกเลิกแล้ว';
+  String get reportRejectedMessage => 'ปฏิเสธปัญหาและยกเลิกแล้ว';
 
   @override
-  String get reportUpdatedMessage => 'อัปเดตรายงานแล้ว';
+  String get reportUpdatedMessage => 'อัปเดตปัญหาแล้ว';
 
   @override
   String get noSubject => 'ไม่มีหัวข้อ';
@@ -263,7 +263,7 @@ class AdminLocalizationsTh extends AdminLocalizations {
   String get asset => 'สินทรัพย์';
 
   @override
-  String get reportNumber => 'รายงานหมายเลข';
+  String get reportNumber => 'ปัญหาหมายเลข';
 
   @override
   String get pleaseProvideResolution => 'กรุณาระบุรายละเอียดการแก้ไข';

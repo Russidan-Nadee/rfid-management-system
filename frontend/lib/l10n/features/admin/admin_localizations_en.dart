@@ -172,44 +172,44 @@ class AdminLocalizationsEn extends AdminLocalizations {
   
   // Reports Section
   @override
-  String get allReports => 'All Reports';
+  String get allReports => 'All Issues';
 
   @override
-  String get loadingAllReports => 'Loading all reports...';
+  String get loadingAllReports => 'Loading all issues...';
 
   @override
-  String get errorLoadingReports => 'Error Loading Reports';
+  String get errorLoadingReports => 'Error Loading Issues';
 
   @override
-  String get noReportsFound => 'No Reports Found';
+  String get noReportsFound => 'No Issues Found';
 
   @override
-  String get noReportsFoundMessage => 'There are no reports in the system yet.';
+  String get noReportsFoundMessage => 'There are no issues in the system yet.';
   
   // Report Actions Dialog
   @override
-  String get acknowledgeReportTitle => 'Acknowledge Report';
+  String get acknowledgeReportTitle => 'Acknowledge Issue';
 
   @override
-  String get completeReportTitle => 'Complete Report';
+  String get completeReportTitle => 'Complete Issue';
 
   @override
-  String get rejectReportTitle => 'Reject Report';
+  String get rejectReportTitle => 'Reject Issue';
 
   @override
-  String get updateReportTitle => 'Update Report';
+  String get updateReportTitle => 'Update Issue';
 
   @override
-  String get acknowledgeDescription => 'Acknowledge this report and move it to in-progress status.';
+  String get acknowledgeDescription => 'Acknowledge this issue and move it to in-progress status.';
 
   @override
-  String get completeDescription => 'Mark this report as resolved. Please provide resolution details.';
+  String get completeDescription => 'Mark this issue as resolved. Please provide resolution details.';
 
   @override
-  String get rejectDescription => 'Reject this report and mark it as cancelled. Please provide a reason.';
+  String get rejectDescription => 'Reject this issue and mark it as cancelled. Please provide a reason.';
 
   @override
-  String get updateDescription => 'Update this report.';
+  String get updateDescription => 'Update this issue.';
 
   @override
   String get resolutionNoteRequired => 'Resolution Note *';
@@ -224,7 +224,7 @@ class AdminLocalizationsEn extends AdminLocalizations {
   String get resolutionNotePlaceholder => 'Describe how the issue was resolved...';
 
   @override
-  String get rejectionReasonPlaceholder => 'Explain why this report is being rejected...';
+  String get rejectionReasonPlaceholder => 'Explain why this issue is being rejected...';
 
   @override
   String get acknowledgmentNotePlaceholder => 'Add any notes about this acknowledgment...';
@@ -236,22 +236,22 @@ class AdminLocalizationsEn extends AdminLocalizations {
   String get markCompleteButton => 'Mark Complete';
 
   @override
-  String get rejectReportButton => 'Reject Report';
+  String get rejectReportButton => 'Reject Issue';
 
   @override
   String get updateButton => 'Update';
 
   @override
-  String get reportAcknowledgedMessage => 'Report acknowledged and moved to in-progress';
+  String get reportAcknowledgedMessage => 'Issue acknowledged and moved to in-progress';
 
   @override
-  String get reportCompletedMessage => 'Report marked as resolved';
+  String get reportCompletedMessage => 'Issue marked as resolved';
 
   @override
-  String get reportRejectedMessage => 'Report rejected and cancelled';
+  String get reportRejectedMessage => 'Issue rejected and cancelled';
 
   @override
-  String get reportUpdatedMessage => 'Report updated';
+  String get reportUpdatedMessage => 'Issue updated';
 
   @override
   String get noSubject => 'No Subject';
@@ -263,7 +263,7 @@ class AdminLocalizationsEn extends AdminLocalizations {
   String get asset => 'Asset';
 
   @override
-  String get reportNumber => 'Report #';
+  String get reportNumber => 'Issue #';
 
   @override
   String get pleaseProvideResolution => 'Please provide resolution details';
