@@ -539,16 +539,17 @@ class DepartmentService {
 
    async getAuditProgress(deptCode = null) {
       try {
+         // Get department-based assets
          let query = `
-            SELECT 
+            SELECT
                d.dept_code,
                d.description as dept_description,
                COUNT(DISTINCT a.asset_no) as total_assets,
                COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) as audited_assets,
                COUNT(DISTINCT CASE WHEN a.status = 'A' THEN a.asset_no END) as pending_audit,
                ROUND(
-                  (COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) * 100.0 / 
-                   COUNT(DISTINCT a.asset_no)), 2
+                  (COUNT(DISTINCT CASE WHEN a.status = 'C' THEN a.asset_no END) * 100.0 /
+                   NULLIF(COUNT(DISTINCT a.asset_no), 0)), 2
                ) as completion_percentage
             FROM mst_department d
             LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
@@ -570,15 +571,45 @@ class DepartmentService {
          // Convert BigInt values to numbers
          const processedData = auditData.map(item => ({
             ...item,
-            total_assets: Number(item.total_assets),
-            audited_assets: Number(item.audited_assets),
-            pending_audit: Number(item.pending_audit),
-            completion_percentage: Number(item.completion_percentage)
+            total_assets: Number(item.total_assets || 0),
+            audited_assets: Number(item.audited_assets || 0),
+            pending_audit: Number(item.pending_audit || 0),
+            completion_percentage: Number(item.completion_percentage || 0)
          }));
 
-         // Calculate overall progress if multiple departments
+         // Get assets without department (NULL dept_code) - only if not filtering by specific dept
+         if (!deptCode) {
+            const noDeptData = await prisma.$queryRaw`
+               SELECT
+                  COUNT(DISTINCT asset_no) as total_assets,
+                  COUNT(DISTINCT CASE WHEN status = 'C' THEN asset_no END) as audited_assets,
+                  COUNT(DISTINCT CASE WHEN status = 'A' THEN asset_no END) as pending_audit
+               FROM asset_master
+               WHERE dept_code IS NULL AND status IN ('A', 'C')
+            `;
+
+            const noDeptAssets = noDeptData[0] || { total_assets: 0n, audited_assets: 0n, pending_audit: 0n };
+            const noDeptTotal = Number(noDeptAssets.total_assets || 0);
+            const noDeptAudited = Number(noDeptAssets.audited_assets || 0);
+            const noDeptPending = Number(noDeptAssets.pending_audit || 0);
+
+            // Add "No Department" entry if there are assets without dept_code
+            if (noDeptTotal > 0) {
+               processedData.push({
+                  dept_code: 'NO_DEPT',
+                  dept_description: 'No Department Assigned',
+                  total_assets: noDeptTotal,
+                  audited_assets: noDeptAudited,
+                  pending_audit: noDeptPending,
+                  completion_percentage: noDeptTotal > 0 ?
+                     Math.round((noDeptAudited / noDeptTotal) * 100) : 0
+               });
+            }
+         }
+
+         // Calculate overall progress
          let overallProgress = null;
-         if (!deptCode && processedData.length > 1) {
+         if (!deptCode) {
             const totalAssets = processedData.reduce((sum, dept) => sum + (dept.total_assets || 0), 0);
             const totalAudited = processedData.reduce((sum, dept) => sum + (dept.audited_assets || 0), 0);
 

@@ -31,6 +31,7 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
   ChartType _selectedChartType = ChartType.bar;
   List<PieChartData> _selectedDepartments = [];
   static const int maxDepartments = 10;
+  bool _isLegendExpanded = false;
 
   @override
   void initState() {
@@ -247,23 +248,27 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
                 final index = value.toInt();
                 if (index >= 0 && index < _selectedDepartments.length) {
                   final data = _selectedDepartments[index];
+                  final displayText = data.displayName.length > 5
+                      ? '${data.displayName.substring(0, 5)}...'
+                      : data.displayName;
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      data.displayName.length > 8
-                          ? '${data.displayName.substring(0, 8)}...'
-                          : data.displayName,
-                      style: AppTextStyles.caption.copyWith(
-                        fontSize: 10,
-                        color: Theme.of(context).colorScheme.onSurface,
+                    child: Transform.rotate(
+                      angle: -0.785398, // -45 degrees in radians
+                      child: Text(
+                        displayText,
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 9,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.right,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   );
                 }
                 return const SizedBox();
               },
-              reservedSize: 40,
+              reservedSize: 60,
             ),
           ),
           leftTitles: charts.AxisTitles(
@@ -321,19 +326,51 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
             ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
             : null,
       ),
-      child: Wrap(
-        spacing: AppSpacing.medium,
-        runSpacing: AppSpacing.small,
-        children: _selectedDepartments.map((data) {
-          final colorIndex = _selectedDepartments.indexOf(data);
-          return _buildLegendItemWithRemove(
-            context,
-            color: _getColorForIndex(colorIndex),
-            label: data.displayName,
-            value: data.value.toString(),
-            onRemove: () => _removeDepartment(data),
-          );
-        }).toList(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isLegendExpanded = !_isLegendExpanded;
+              });
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Selected Departments',
+                  style: AppTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                  ),
+                ),
+                Icon(
+                  _isLegendExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20,
+                  color: isDark ? AppColors.darkText : AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+          if (_isLegendExpanded) ...[
+            AppSpacing.verticalSpaceSmall,
+            Wrap(
+              spacing: AppSpacing.medium,
+              runSpacing: AppSpacing.small,
+              children: _selectedDepartments.map((data) {
+                final colorIndex = _selectedDepartments.indexOf(data);
+                return _buildLegendItemWithRemove(
+                  context,
+                  color: _getColorForIndex(colorIndex),
+                  label: data.displayName,
+                  value: data.value.toString(),
+                  onRemove: () => _removeDepartment(data),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
       ),
     );
   }
