@@ -5,6 +5,7 @@ const { seedCategories } = require('./seeds/seedCategories');
 const { seedBrands } = require('./seeds/seedBrands');
 const { seedUsers } = require('./seeds/seedUsers');
 const { seedAssets } = require('./seeds/seedAssets');
+const { seedCostCentersComplete } = require('./seeds/seedCostCenters');
 
 async function main() {
   console.log('🌱 Starting database seeding...');
@@ -12,6 +13,7 @@ async function main() {
   try {
     // Seed master data first (order is important due to foreign keys)
     await seedPlants();
+    await seedCostCentersComplete(); // Seed divisions and cost centers
     await seedDepartments();
     await seedUnits();
     await seedCategories();

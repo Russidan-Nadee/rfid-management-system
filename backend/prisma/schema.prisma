@@ -15,7 +15,7 @@ model asset_master {
   description      String?              @db.VarChar(255)
   plant_code       String?              @db.VarChar(10)
   location_code    String?              @db.VarChar(10)
-  dept_code        String?              @db.VarChar(10)
+  dept_code        String?              @db.VarChar(20)
   serial_no        String?              @db.VarChar(50)
   inventory_no     String?              @unique(map: "inventory_no") @db.VarChar(50)
   quantity         Decimal?             @db.Decimal(10, 2)
@@ -183,7 +183,7 @@ model mst_category {
 }
 
 model mst_department {
-  dept_code    String         @id @db.VarChar(10)
+  dept_code    String         @id @db.VarChar(20)
   description  String?        @db.VarChar(255)
   plant_code   String?        @db.VarChar(10)
   mst_plant    mst_plant?     @relation(fields: [plant_code], references: [plant_code], onDelete: Restrict, onUpdate: Cascade, map: "fk_mst_department_plant_code")
