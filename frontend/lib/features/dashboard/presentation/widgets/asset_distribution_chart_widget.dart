@@ -29,6 +29,53 @@ class AssetDistributionChartWidget extends StatefulWidget {
 
 class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWidget> {
   ChartType _selectedChartType = ChartType.bar;
+  List<PieChartData> _selectedDepartments = [];
+  static const int maxDepartments = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeSelectedDepartments();
+  }
+
+  @override
+  void didUpdateWidget(AssetDistributionChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.distribution != widget.distribution) {
+      _initializeSelectedDepartments();
+    }
+  }
+
+  void _initializeSelectedDepartments() {
+    setState(() {
+      if (widget.distribution.pieChartData.isNotEmpty) {
+        _selectedDepartments = widget.distribution.pieChartData.take(maxDepartments).toList();
+      } else {
+        _selectedDepartments = [];
+      }
+    });
+  }
+
+  void _removeDepartment(PieChartData dept) {
+    setState(() {
+      _selectedDepartments.removeWhere((d) => d.deptCode == dept.deptCode);
+    });
+  }
+
+  void _addDepartment(PieChartData dept) {
+    if (_selectedDepartments.length < maxDepartments &&
+        !_selectedDepartments.any((d) => d.deptCode == dept.deptCode)) {
+      setState(() {
+        _selectedDepartments.add(dept);
+      });
+    }
+  }
+
+  List<PieChartData> get _availableDepartments {
+    return widget.distribution.pieChartData
+        .where((d) => !_selectedDepartments.any((s) => s.deptCode == d.deptCode))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +104,8 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
           if (widget.distribution.hasData) ...[
             AppSpacing.verticalSpaceMedium,
             _buildLegend(context),
+            AppSpacing.verticalSpaceMedium,
+            _buildDepartmentSelector(context),
           ],
         ],
       ),
@@ -130,11 +179,11 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
   Widget _buildPieChart() {
     return charts.PieChart(
       charts.PieChartData(
-        sections: widget.distribution.pieChartData.map((data) {
+        sections: _selectedDepartments.map((data) {
           return charts.PieChartSectionData(
             value: data.value.toDouble(),
             title: data.formattedPercentage,
-            color: _getColorForIndex(widget.distribution.pieChartData.indexOf(data)),
+            color: _getColorForIndex(_selectedDepartments.indexOf(data)),
             radius: 60,
             titleStyle: AppTextStyles.caption.copyWith(
               fontWeight: FontWeight.bold,
@@ -156,7 +205,7 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
   }
 
   Widget _buildBarChart() {
-    final maxValue = widget.distribution.pieChartData
+    final maxValue = _selectedDepartments
         .map((data) => data.value)
         .fold(0, (prev, current) => current > prev ? current : prev)
         .toDouble();
@@ -172,7 +221,7 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
             tooltipPadding: const EdgeInsets.all(8),
             tooltipMargin: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final data = widget.distribution.pieChartData[group.x.toInt()];
+              final data = _selectedDepartments[group.x.toInt()];
               return charts.BarTooltipItem(
                 '${data.displayName}\n${data.value} (${data.formattedPercentage})',
                 const TextStyle(
@@ -196,12 +245,12 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index >= 0 && index < widget.distribution.pieChartData.length) {
-                  final data = widget.distribution.pieChartData[index];
+                if (index >= 0 && index < _selectedDepartments.length) {
+                  final data = _selectedDepartments[index];
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      data.displayName.length > 8 
+                      data.displayName.length > 8
                           ? '${data.displayName.substring(0, 8)}...'
                           : data.displayName,
                       style: AppTextStyles.caption.copyWith(
@@ -234,7 +283,7 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
           ),
         ),
         borderData: charts.FlBorderData(show: false),
-        barGroups: widget.distribution.pieChartData.asMap().entries.map((entry) {
+        barGroups: _selectedDepartments.asMap().entries.map((entry) {
           final index = entry.key;
           final data = entry.value;
           return charts.BarChartGroupData(
@@ -275,15 +324,62 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
       child: Wrap(
         spacing: AppSpacing.medium,
         runSpacing: AppSpacing.small,
-        children: widget.distribution.pieChartData.map((data) {
-          final colorIndex = widget.distribution.pieChartData.indexOf(data);
-          return _buildLegendItem(
+        children: _selectedDepartments.map((data) {
+          final colorIndex = _selectedDepartments.indexOf(data);
+          return _buildLegendItemWithRemove(
             context,
             color: _getColorForIndex(colorIndex),
             label: data.displayName,
             value: data.value.toString(),
+            onRemove: () => _removeDepartment(data),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLegendItemWithRemove(
+    BuildContext context, {
+    required Color color,
+    required String label,
+    required String value,
+    required VoidCallback onRemove,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          AppSpacing.horizontalSpaceXS,
+          Text(
+            '$label ($value)',
+            style: AppTextStyles.caption.copyWith(
+              color: isDark ? AppColors.darkText : AppColors.textSecondary,
+            ),
+          ),
+          AppSpacing.horizontalSpaceXS,
+          InkWell(
+            onTap: onRemove,
+            child: Icon(
+              Icons.close,
+              size: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -406,6 +502,114 @@ class _AssetDistributionChartWidgetState extends State<AssetDistributionChartWid
       width: 1,
       height: 30,
       color: isDark ? AppColors.darkBorder : AppColors.divider,
+    );
+  }
+
+  Widget _buildDepartmentSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final canAddMore = _selectedDepartments.length < maxDepartments;
+    final hasAvailable = _availableDepartments.isNotEmpty;
+
+    return Container(
+      padding: AppSpacing.paddingMedium,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSurfaceVariant
+            : AppColors.backgroundSecondary,
+        borderRadius: AppBorders.medium,
+        border: isDark
+            ? Border.all(color: AppColors.darkBorder.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.settings,
+                    size: 16,
+                    color: isDark ? AppColors.darkText : AppColors.textSecondary,
+                  ),
+                  AppSpacing.horizontalSpaceXS,
+                  Text(
+                    'Department Selection (${_selectedDepartments.length}/$maxDepartments)',
+                    style: AppTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.darkText : AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                onPressed: _initializeSelectedDepartments,
+                icon: Icon(Icons.refresh, size: 16),
+                label: Text('Reset'),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+          if (canAddMore && hasAvailable) ...[
+            AppSpacing.verticalSpaceSmall,
+            DropdownButtonHideUnderline(
+              child: DropdownButton<PieChartData>(
+                hint: Text(
+                  'Add department...',
+                  style: AppTextStyles.caption.copyWith(
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                  ),
+                ),
+                isExpanded: true,
+                icon: Icon(
+                  Icons.add_circle_outline,
+                  size: 20,
+                  color: isDark ? AppColors.darkText : theme.colorScheme.primary,
+                ),
+                items: _availableDepartments.map((dept) {
+                  return DropdownMenuItem<PieChartData>(
+                    value: dept,
+                    child: Text(
+                      '${dept.displayName} (${dept.value} assets)',
+                      style: AppTextStyles.caption,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (PieChartData? dept) {
+                  if (dept != null) {
+                    _addDepartment(dept);
+                  }
+                },
+              ),
+            ),
+          ],
+          if (!canAddMore) ...[
+            AppSpacing.verticalSpaceSmall,
+            Text(
+              'Maximum $maxDepartments departments reached. Remove one to add another.',
+              style: AppTextStyles.overline.copyWith(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              ),
+            ),
+          ],
+          if (!hasAvailable && canAddMore) ...[
+            AppSpacing.verticalSpaceSmall,
+            Text(
+              'All departments are already selected.',
+              style: AppTextStyles.overline.copyWith(
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

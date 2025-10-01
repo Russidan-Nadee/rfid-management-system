@@ -13,7 +13,7 @@ class AssetDistributionModel {
   factory AssetDistributionModel.fromJson(Map<String, dynamic> json) {
     return AssetDistributionModel(
       pieChartData:
-          (json['pie_chart_data'] as List<dynamic>?)
+          (json['all_departments'] as List<dynamic>?)
               ?.map(
                 (e) => PieChartDataModel.fromJson(e as Map<String, dynamic>),
               )

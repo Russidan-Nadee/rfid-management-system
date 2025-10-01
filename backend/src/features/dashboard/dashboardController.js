@@ -822,6 +822,8 @@ const dashboardController = {
    /**
    * Get assets distribution by department (Pie Chart data)
    * GET /api/v1/dashboard/assets-by-plant?plant_code=xxx&dept_code=xxx
+   *
+   * Returns ALL departments sorted by asset count for frontend to manage display
    */
    async getAssetsByDepartment(req, res) {
       try {
@@ -849,7 +851,7 @@ const dashboardController = {
                : '';
 
             departmentStats = await prisma.$queryRawUnsafe(`
-               SELECT 
+               SELECT
                   d.dept_code,
                   d.description as dept_description,
                   d.plant_code,
@@ -866,7 +868,7 @@ const dashboardController = {
          } else {
             // Get all departments
             departmentStats = await prisma.$queryRaw`
-               SELECT 
+               SELECT
                   d.dept_code,
                   d.description as dept_description,
                   d.plant_code,
@@ -885,7 +887,9 @@ const dashboardController = {
          const totalAssets = departmentStats.reduce((sum, dept) => sum + Number(dept.asset_count || 0), 0);
          const totalDepartments = departmentStats.length;
 
-         const pieChartData = departmentStats.map(dept => ({
+         // Return ALL departments sorted by asset count
+         // Frontend will handle which ones to display (max 10)
+         const allDepartments = departmentStats.map(dept => ({
             name: dept.dept_description || dept.dept_code,
             value: Number(dept.asset_count || 0),
             percentage: Number(dept.percentage || 0),
@@ -895,7 +899,7 @@ const dashboardController = {
          }));
 
          const responseData = {
-            pie_chart_data: pieChartData,
+            all_departments: allDepartments, // All departments for selection
             summary: {
                total_assets: totalAssets,
                total_departments: totalDepartments,
