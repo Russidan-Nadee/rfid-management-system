@@ -14,6 +14,7 @@ import '../bloc/dashboard_state.dart';
 import '../widgets/summary_cards_widget.dart';
 import '../widgets/summary_section_widget.dart';
 import '../widgets/asset_distribution_chart_widget.dart';
+import '../widgets/assets_by_plant_widget.dart';
 import '../widgets/department_growth_trend_widget.dart';
 import '../widgets/location_growth_trend_widget.dart';
 import '../widgets/audit_progress_widget.dart';
@@ -395,32 +396,15 @@ class _DashboardPageContentState extends State<_DashboardPageContent>
     DashboardLoaded loadedState,
     DashboardState currentState,
   ) {
-    final l10n = DashboardLocalizations.of(context);
-
-    if (loadedState.locationGrowthTrend != null) {
-      return LocationGrowthTrendWidget(
-        key: ValueKey('location_${loadedState.locationGrowthLocationFilter}'),
-        growthTrend: loadedState.locationGrowthTrend!,
-        selectedLocationCode: loadedState.locationGrowthLocationFilter,
-        availableLocations: _getAllLocations(loadedState),
-        chartType: _locationChartType,
-        onLocationChanged: (locationCode) {
-          context.read<DashboardBloc>().add(
-            LoadLocationGrowthTrends(locationCode: locationCode),
-          );
-        },
-        onChartTypeChanged: (chartType) {
-          setState(() {
-            _locationChartType = chartType;
-          });
-        },
-        isLoading:
-            currentState is DashboardPartialLoading &&
-            currentState.loadingType == 'location_trends',
+    if (loadedState.assetsByPlant != null) {
+      return AssetsByPlantWidget(
+        assetsByPlant: loadedState.assetsByPlant!,
+        isLoading: currentState is DashboardPartialLoading &&
+            currentState.loadingType == 'assets_by_plant',
       );
     }
 
-    return _buildEmptyCard(l10n.noLocationData);
+    return _buildEmptyCard('No plant data available');
   }
 
   Widget _buildEmptyCard(String message) {

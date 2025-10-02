@@ -4,11 +4,14 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/utils/either.dart';
 import '../entities/dashboard_stats.dart';
 import '../entities/asset_distribution.dart';
+import '../entities/assets_by_plant.dart';
 import '../entities/growth_trend.dart';
 import '../entities/audit_progress.dart';
 
 abstract class DashboardRepository {
   Future<Either<Failure, DashboardStats>> getDashboardStats(String period);
+
+  Future<Either<Failure, AssetsByPlant>> getAssetsByPlant();
 
   Future<Either<Failure, AssetDistribution>> getAssetDistribution(
     String? plantCode,

@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset_distribution.dart';
+import '../../domain/entities/assets_by_plant.dart';
 import '../../domain/entities/growth_trend.dart';
 import '../../domain/entities/audit_progress.dart';
 
@@ -32,6 +33,7 @@ class DashboardLoading extends DashboardState {
 class DashboardLoaded extends DashboardState {
   final DashboardStats? stats;
   final AssetDistribution? distribution;
+  final AssetsByPlant? assetsByPlant;
   final GrowthTrend? departmentGrowthTrend; // แยกสำหรับ Department
   final GrowthTrend? locationGrowthTrend; // แยกสำหรับ Location
   final AuditProgress? auditProgress;
@@ -49,6 +51,7 @@ class DashboardLoaded extends DashboardState {
   const DashboardLoaded({
     this.stats,
     this.distribution,
+    this.assetsByPlant,
     this.departmentGrowthTrend,
     this.locationGrowthTrend,
     this.auditProgress,
@@ -97,6 +100,7 @@ class DashboardLoaded extends DashboardState {
   DashboardLoaded copyWith({
     DashboardStats? stats,
     AssetDistribution? distribution,
+    AssetsByPlant? assetsByPlant,
     GrowthTrend? departmentGrowthTrend,
     GrowthTrend? locationGrowthTrend,
     AuditProgress? auditProgress,
@@ -105,7 +109,7 @@ class DashboardLoaded extends DashboardState {
     String? currentPlantFilter,
     String? departmentGrowthDeptFilter,
     String? locationGrowthLocationFilter,
-    String? auditProgressDeptFilter, // พารามิเตอร์นี้รับ null ได้
+    String? auditProgressDeptFilter,
     String? locationAnalyticsLocationFilter,
     bool? includeDetails,
     DateTime? lastUpdated,
@@ -113,6 +117,7 @@ class DashboardLoaded extends DashboardState {
     return DashboardLoaded(
       stats: stats ?? this.stats,
       distribution: distribution ?? this.distribution,
+      assetsByPlant: assetsByPlant ?? this.assetsByPlant,
       departmentGrowthTrend:
           departmentGrowthTrend ?? this.departmentGrowthTrend,
       locationGrowthTrend: locationGrowthTrend ?? this.locationGrowthTrend,
@@ -122,12 +127,7 @@ class DashboardLoaded extends DashboardState {
       currentPlantFilter: currentPlantFilter ?? this.currentPlantFilter,
       departmentGrowthDeptFilter: departmentGrowthDeptFilter,
       locationGrowthLocationFilter: locationGrowthLocationFilter,
-      // >>>>>>>>>> นี่คือบรรทัดที่แก้ไข! <<<<<<<<<<
-      // เราเปลี่ยนจากการใช้ '?? this.auditProgressDeptFilter'
-      // เป็นการส่งค่า 'auditProgressDeptFilter' ตรงๆ
-      // เพื่อให้สามารถตั้งค่าเป็น null ได้อย่างแท้จริง
       auditProgressDeptFilter: auditProgressDeptFilter,
-      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       locationAnalyticsLocationFilter:
           locationAnalyticsLocationFilter ??
           this.locationAnalyticsLocationFilter,
@@ -140,6 +140,7 @@ class DashboardLoaded extends DashboardState {
   List<Object?> get props => [
     stats,
     distribution,
+    assetsByPlant,
     departmentGrowthTrend,
     locationGrowthTrend,
     auditProgress,
@@ -148,7 +149,7 @@ class DashboardLoaded extends DashboardState {
     currentPlantFilter,
     departmentGrowthDeptFilter,
     locationGrowthLocationFilter,
-    auditProgressDeptFilter, // ตรงนี้สำคัญมาก! ต้องมีตัวแปรนี้
+    auditProgressDeptFilter,
     locationAnalyticsLocationFilter,
     includeDetails,
     lastUpdated,

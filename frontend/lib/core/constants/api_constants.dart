@@ -164,6 +164,7 @@ class ApiConstants {
   static const String dashboardStats = '$dashboardBase/stats';
   static const String dashboardOverview = '$dashboardBase/overview';
   static const String dashboardAssetsByPlant = '$dashboardBase/assets-by-plant';
+  static const String dashboardAssetsByDepartment = '$dashboardBase/assets-by-department';
   static const String dashboardGrowthTrends = '$dashboardBase/growth-trends';
   static const String dashboardLocationAnalytics =
       '$dashboardBase/location-analytics';

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tp_rfid/core/errors/failures.dart';
 import 'package:tp_rfid/core/utils/either.dart';
 import 'package:tp_rfid/features/dashboard/domain/entities/asset_distribution.dart';
+import 'package:tp_rfid/features/dashboard/domain/entities/assets_by_plant.dart';
 import 'package:tp_rfid/features/dashboard/domain/entities/audit_progress.dart';
 import 'package:tp_rfid/features/dashboard/domain/entities/dashboard_stats.dart';
 import 'package:tp_rfid/features/dashboard/domain/entities/growth_trend.dart';
@@ -10,6 +11,7 @@ import 'package:tp_rfid/features/dashboard/domain/entities/location_analytics.da
 import 'package:tp_rfid/features/dashboard/domain/usecases/get_location_analytics_usecase.dart';
 import '../../domain/usecases/get_dashboard_stats_usecase.dart';
 import '../../domain/usecases/get_asset_distribution_usecase.dart';
+import '../../domain/usecases/get_assets_by_plant_usecase.dart';
 import '../../domain/usecases/get_growth_trends_usecase.dart';
 import '../../domain/usecases/get_audit_progress_usecase.dart';
 import '../../domain/usecases/clear_dashboard_cache_usecase.dart';
@@ -19,6 +21,7 @@ import 'dashboard_state.dart';
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetDashboardStatsUseCase getDashboardStatsUseCase;
   final GetAssetDistributionUseCase getAssetDistributionUseCase;
+  final GetAssetsByPlantUsecase getAssetsByPlantUsecase;
   final GetGrowthTrendsUseCase getGrowthTrendsUseCase;
   final GetAuditProgressUseCase getAuditProgressUseCase;
   final GetLocationAnalyticsUseCase getLocationAnalyticsUseCase;
@@ -27,6 +30,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   DashboardBloc({
     required this.getDashboardStatsUseCase,
     required this.getAssetDistributionUseCase,
+    required this.getAssetsByPlantUsecase,
     required this.getGrowthTrendsUseCase,
     required this.getAuditProgressUseCase,
     required this.getLocationAnalyticsUseCase,
@@ -252,6 +256,9 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
             GetLocationAnalyticsParams.allLocations(),
           );
 
+      final Future<Either<Failure, AssetsByPlant>> assetsByPlantResult =
+          getAssetsByPlantUsecase();
+
       // Wait for all results
       final results = await Future.wait([
         statsResult,
@@ -260,6 +267,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         locationTrendsResult,
         auditResult,
         locationAnalyticsResult,
+        assetsByPlantResult,
       ]);
 
       // Check if any critical data failed to load
@@ -295,6 +303,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           locationAnalytics: results[5].fold(
             (l) => null,
             (r) => r as LocationAnalytics?,
+          ),
+          assetsByPlant: results[6].fold(
+            (l) => null,
+            (r) => r as AssetsByPlant?,
           ),
           lastUpdated: DateTime.now(),
         ),

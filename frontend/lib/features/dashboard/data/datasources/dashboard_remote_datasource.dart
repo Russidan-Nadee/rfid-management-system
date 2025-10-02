@@ -6,12 +6,14 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/dashboard_stats_model.dart';
 import '../models/asset_distribution_model.dart';
+import '../models/assets_by_plant_model.dart';
 import '../models/growth_trend_model.dart';
 import '../models/audit_progress_model.dart';
 
 abstract class DashboardRemoteDataSource {
   Future<List<Map<String, dynamic>>> getLocations({String? plantCode});
   Future<DashboardStatsModel> getDashboardStats(String period);
+  Future<AssetsByPlantModel> getAssetsByPlant();
   Future<AssetDistributionModel> getAssetDistribution(
     String? plantCode,
     String? deptCode,
@@ -99,6 +101,26 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   }
 
   @override
+  Future<AssetsByPlantModel> getAssetsByPlant() async {
+    try {
+      final response = await apiService.get<Map<String, dynamic>>(
+        ApiConstants.dashboardAssetsByPlant,
+      );
+
+      if (response.success && response.data != null) {
+        return AssetsByPlantModel.fromJson(response.data!);
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      if (e is AppException) {
+        rethrow;
+      }
+      throw NetworkException('Failed to get assets by plant: $e');
+    }
+  }
+
+  @override
   Future<AssetDistributionModel> getAssetDistribution(
     String? plantCode,
     String? deptCode,
@@ -115,7 +137,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       }
 
       final response = await apiService.get<Map<String, dynamic>>(
-        ApiConstants.dashboardAssetsByPlant,
+        ApiConstants.dashboardAssetsByDepartment,
         queryParams: queryParams.isNotEmpty ? queryParams : null,
       );
 

@@ -78,8 +78,14 @@ router.get('/quick-stats',
  * =================================
  */
 
-// GET /api/v1/dashboard/assets-by-plant?plant_code=xxx&dept_code=xxx
+// GET /api/v1/dashboard/assets-by-plant
 router.get('/assets-by-plant',
+   generalRateLimit,
+   dashboardController.getAssetsByPlant
+);
+
+// GET /api/v1/dashboard/assets-by-department?plant_code=xxx&dept_code=xxx
+router.get('/assets-by-department',
    generalRateLimit,
    assetsByDepartmentValidator,
    dashboardController.getAssetsByDepartment

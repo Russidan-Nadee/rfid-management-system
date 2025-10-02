@@ -820,8 +820,63 @@ const dashboardController = {
    },
 
    /**
+   * Get assets by plant (Bar Chart data)
+   * GET /api/v1/dashboard/assets-by-plant
+   *
+   * Returns all plants with their asset counts
+   */
+   async getAssetsByPlant(req, res) {
+      try {
+         // Get all plants with asset counts
+         const plantStats = await prisma.$queryRaw`
+            SELECT
+               p.plant_code,
+               p.description as plant_description,
+               COUNT(a.asset_no) as asset_count
+            FROM mst_plant p
+            LEFT JOIN asset_master a ON p.plant_code = a.plant_code AND a.status IN ('A', 'C')
+            GROUP BY p.plant_code, p.description
+            ORDER BY p.plant_code
+         `;
+
+         // Format data for frontend
+         const plants = plantStats.map(plant => ({
+            plant_code: plant.plant_code,
+            plant_name: plant.plant_description,
+            asset_count: Number(plant.asset_count || 0)
+         }));
+
+         // Calculate summary
+         const totalAssets = plants.reduce((sum, plant) => sum + plant.asset_count, 0);
+         const largestPlant = plants.reduce((max, plant) =>
+            plant.asset_count > (max?.asset_count || 0) ? plant : max,
+            null
+         );
+
+         const responseData = {
+            plants: plants,
+            summary: {
+               total_assets: totalAssets,
+               total_plants: plants.length,
+               largest_plant: largestPlant ? {
+                  plant_code: largestPlant.plant_code,
+                  plant_name: largestPlant.plant_name,
+                  asset_count: largestPlant.asset_count
+               } : null
+            }
+         };
+
+         return sendResponse(res, 200, true, 'Assets by plant retrieved successfully', responseData);
+
+      } catch (error) {
+         console.error('Get assets by plant error:', error);
+         return sendResponse(res, 500, false, error.message);
+      }
+   },
+
+   /**
    * Get assets distribution by department (Pie Chart data)
-   * GET /api/v1/dashboard/assets-by-plant?plant_code=xxx&dept_code=xxx
+   * GET /api/v1/dashboard/assets-by-department?plant_code=xxx&dept_code=xxx
    *
    * Returns ALL departments sorted by asset count for frontend to manage display
    */

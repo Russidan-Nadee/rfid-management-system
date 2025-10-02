@@ -7,6 +7,7 @@ import '../features/dashboard/data/repositories/dashboard_repository_impl.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
 import '../features/dashboard/domain/usecases/get_asset_distribution_usecase.dart';
+import '../features/dashboard/domain/usecases/get_assets_by_plant_usecase.dart';
 import '../features/dashboard/domain/usecases/get_growth_trends_usecase.dart';
 import '../features/dashboard/domain/usecases/get_audit_progress_usecase.dart';
 import '../features/dashboard/domain/usecases/clear_dashboard_cache_usecase.dart';
@@ -41,6 +42,10 @@ void configureDashboardDependencies() {
     () => GetAssetDistributionUseCase(getIt()),
   );
 
+  getIt.registerLazySingleton<GetAssetsByPlantUsecase>(
+    () => GetAssetsByPlantUsecase(getIt()),
+  );
+
   getIt.registerLazySingleton<GetGrowthTrendsUseCase>(
     () => GetGrowthTrendsUseCase(getIt()),
   );
@@ -62,6 +67,7 @@ void configureDashboardDependencies() {
     () => DashboardBloc(
       getDashboardStatsUseCase: getIt<GetDashboardStatsUseCase>(),
       getAssetDistributionUseCase: getIt<GetAssetDistributionUseCase>(),
+      getAssetsByPlantUsecase: getIt<GetAssetsByPlantUsecase>(),
       getGrowthTrendsUseCase: getIt<GetGrowthTrendsUseCase>(),
       getAuditProgressUseCase: getIt<GetAuditProgressUseCase>(),
       clearDashboardCacheUseCase: getIt<ClearDashboardCacheUseCase>(),

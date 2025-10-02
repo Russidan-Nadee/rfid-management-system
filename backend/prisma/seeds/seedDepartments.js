@@ -48,7 +48,7 @@ const departmentData = [
   { dept_code: 'PUR-BP', description: 'Purchasing BP', plant_code: 'TP-BP12' },
   { dept_code: 'PUR-ESIE1', description: 'Purchasing ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'QA-BP12', description: 'Quality Assurance BP 12', plant_code: 'TP-BP12' },
-  { dept_code: 'QA-BP8', description: 'Quality Assurance BP 8', plant_code: 'TP-BP12' },
+  { dept_code: 'QA-BP8', description: 'Quality Assurance BP 8', plant_code: 'TP-BP8' },
   { dept_code: 'QA-ESIE1', description: 'Quality Assurance ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'QC-BP', description: 'Quality Control BP', plant_code: 'TP-BP12' },
   { dept_code: 'QC-ESIE1', description: 'Quality Control ESIE1', plant_code: 'TP-ESIE1' },
@@ -63,9 +63,9 @@ const departmentData = [
 async function seedDepartments() {
   try {
     console.log('🏢 Seeding Departments...');
-    
+
     await prisma.$connect();
-    
+
     let created = 0;
     let skipped = 0;
 
@@ -74,7 +74,7 @@ async function seedDepartments() {
         const existing = await prisma.mst_department.findUnique({
           where: { dept_code: department.dept_code }
         });
-        
+
         if (!existing) {
           await prisma.mst_department.create({ data: department });
           console.log(`✅ Created department: ${department.dept_code} - ${department.description}`);
@@ -89,7 +89,7 @@ async function seedDepartments() {
     }
 
     console.log(`\n📊 Departments Summary: ${created} created, ${skipped} skipped`);
-    
+
   } catch (error) {
     console.error('💥 Department seeding failed:', error.message);
     process.exit(1);

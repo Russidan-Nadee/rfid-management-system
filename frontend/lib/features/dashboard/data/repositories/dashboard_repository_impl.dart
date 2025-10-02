@@ -7,6 +7,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/either.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset_distribution.dart';
+import '../../domain/entities/assets_by_plant.dart';
 import '../../domain/entities/growth_trend.dart';
 import '../../domain/entities/audit_progress.dart';
 import '../../domain/repositories/dashboard_repository.dart';
@@ -29,6 +30,20 @@ class DashboardRepositoryImpl implements DashboardRepository {
     try {
       final remoteStats = await remoteDataSource.getDashboardStats(period);
       return Right(_mapDashboardStatsModelToEntity(remoteStats));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AssetsByPlant>> getAssetsByPlant() async {
+    try {
+      final remoteData = await remoteDataSource.getAssetsByPlant();
+      return Right(remoteData.toEntity());
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on ServerException catch (e) {
