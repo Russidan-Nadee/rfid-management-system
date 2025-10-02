@@ -4,8 +4,10 @@ const { seedUnits } = require('./seeds/seedUnits');
 const { seedCategories } = require('./seeds/seedCategories');
 const { seedBrands } = require('./seeds/seedBrands');
 const { seedUsers } = require('./seeds/seedUsers');
-const { seedAssets } = require('./seeds/seedAssets');
+const seedAssets = require('./seeds/seedAssets');
 const { seedCostCentersComplete } = require('./seeds/seedCostCenters');
+const { seedComputerInfo } = require('./seeds/seedComputerInfo');
+const { seedProblemNotifications } = require('./seeds/seedProblemNotifications');
 
 async function main() {
   console.log('🌱 Starting database seeding...');
@@ -22,8 +24,14 @@ async function main() {
     // Seed users
     await seedUsers();
 
-    // Seed assets last (depends on all master data)
+    // Seed assets last (depends on all master data) - includes department/plant update
     await seedAssets();
+
+    // Seed computer info
+    await seedComputerInfo();
+
+    // Seed problem notifications
+    await seedProblemNotifications();
 
     console.log('✅ Database seeding completed successfully!');
 

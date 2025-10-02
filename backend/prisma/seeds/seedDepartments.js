@@ -3,12 +3,14 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const departmentData = [
-  { dept_code: 'ACC', description: 'Account', plant_code: null },
   { dept_code: 'AC-BP', description: 'Analysis Center BP', plant_code: 'TP-BP12' },
   { dept_code: 'AC-ESIE1', description: 'Analysis Center ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'AC-SP-BP', description: 'Analysis Center Special BP', plant_code: 'TP-BP12' },
   { dept_code: 'AC-SP-ESIE1', description: 'Analysis Center Special ESIE1', plant_code: 'TP-ESIE1' },
+  { dept_code: 'ACC', description: 'Account', plant_code: null },
   { dept_code: 'AUTO', description: 'Automation', plant_code: null },
+  { dept_code: 'CHEM-LIQ', description: 'Chem/Liquid', plant_code: null },
+  { dept_code: 'CHEM-PREP-X', description: 'Chem/Prepalene - X', plant_code: null },
   { dept_code: 'CHEM-SUP', description: 'Chemical Support', plant_code: null },
   { dept_code: 'DC-CHEM-BP', description: 'Delivery Center Chem - BP', plant_code: 'TP-BP12' },
   { dept_code: 'DC-HS-BP', description: 'Delivery Center H&S-BP', plant_code: 'TP-BP12' },
@@ -46,14 +48,14 @@ const departmentData = [
   { dept_code: 'PUR-BP', description: 'Purchasing BP', plant_code: 'TP-BP12' },
   { dept_code: 'PUR-ESIE1', description: 'Purchasing ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'QA-BP12', description: 'Quality Assurance BP 12', plant_code: 'TP-BP12' },
-  { dept_code: 'QA-BP8', description: 'Quality Assurance BP 8', plant_code: 'TP-BP8' },
+  { dept_code: 'QA-BP8', description: 'Quality Assurance BP 8', plant_code: 'TP-BP12' },
   { dept_code: 'QA-ESIE1', description: 'Quality Assurance ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'QC-BP', description: 'Quality Control BP', plant_code: 'TP-BP12' },
   { dept_code: 'QC-ESIE1', description: 'Quality Control ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'QC-GW', description: 'Quality Control GW', plant_code: 'TP-GW' },
   { dept_code: 'SE-BP-F', description: 'Safety&Environmental BP(F)', plant_code: 'TP-BP12' },
   { dept_code: 'SE-C', description: 'Safety & Environmental (C)', plant_code: null },
-  { dept_code: 'SE-GW-F', description: 'Safety&Environmental GW(F)', plant_code: 'TP-GW' },
+  { dept_code: 'SE-GW-F', description: 'Safety&Environmental GW (F)', plant_code: 'TP-GW' },
   { dept_code: 'SEWW-ESIE1', description: 'Safety, Environment, Waste Water-ESIE1', plant_code: 'TP-ESIE1' },
   { dept_code: 'TC-BP', description: 'Technical Control BP', plant_code: 'TP-BP12' }
 ];

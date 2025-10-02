@@ -43,7 +43,8 @@
       "Bash(mysql:*)",
       "Bash(git add:*)",
       "Bash(echo:*)",
-      "Bash(comm:*)"
+      "Bash(comm:*)",
+      "Bash(del backendcheck-depts.js)"
     ],
     "deny": [],
     "additionalDirectories": [

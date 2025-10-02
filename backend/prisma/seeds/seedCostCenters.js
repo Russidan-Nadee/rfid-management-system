@@ -444,6 +444,7 @@ const DEPT_NAME_TO_COST_CENTER = {
   'Analysis Center BP': '902100',
   'Analysis Center ESIE1': '902200',
   'Analysis Center Special BP': '902100',
+  'Analysis Center Special ESIE1': '902200',
   'Technical Control BP': '902100',
   'Delivery Center Chem - BP': '199100',
   'Marketing Chem BP': '199210',
@@ -511,6 +512,7 @@ const DEPT_CODE_TO_COST_CENTER = [
   { dept_code: 'AC-BP', default_cost_center: '902100' },
   { dept_code: 'AC-ESIE1', default_cost_center: '902200' },
   { dept_code: 'AC-SP-BP', default_cost_center: '902100' },
+  { dept_code: 'AC-SP-ESIE1', default_cost_center: '902200' },
   { dept_code: 'TC-BP', default_cost_center: '902100' },
 
   // CORPORATE PLANNING
@@ -596,13 +598,12 @@ async function seedCostCentersComplete() {
   try {
     await seedDivisions();
     await seedCostCenters();
-    await seedDeptCostCenterMapping();
+    // Removed seedDeptCostCenterMapping() - table does not exist in schema
 
     console.log('\n📊 Complete cost center and division seeding finished successfully!');
     console.log('📋 Summary:');
     console.log(`   🏢 Divisions: ${DIVISIONS.length}`);
     console.log(`   💰 Cost Centers: ${COST_CENTERS.length}`);
-    console.log(`   🔗 Department Mappings: ${DEPT_CODE_TO_COST_CENTER.length}`);
   } catch (error) {
     console.error('❌ Error during seeding:', error);
     throw error;
