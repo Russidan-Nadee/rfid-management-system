@@ -830,6 +830,7 @@ const dashboardController = {
          const { plant_code, dept_code } = req.query;
 
          let departmentStats;
+         let unassignedAssets;
 
          if (plant_code || dept_code) {
             // Use departmentService with filters
@@ -856,8 +857,7 @@ const dashboardController = {
                   d.description as dept_description,
                   d.plant_code,
                   p.description as plant_description,
-                  COUNT(a.asset_no) as asset_count,
-                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+                  COUNT(a.asset_no) as asset_count
                FROM mst_department d
                LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
                LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
@@ -865,6 +865,23 @@ const dashboardController = {
                GROUP BY d.dept_code, d.description, d.plant_code, p.description
                ORDER BY asset_count DESC
             `, ...params);
+
+            // Count unassigned assets (dept_code is null) with plant filter
+            if (plant_code) {
+               unassignedAssets = await prisma.$queryRawUnsafe(`
+                  SELECT COUNT(*) as asset_count
+                  FROM asset_master
+                  WHERE dept_code IS NULL
+                     AND status IN ('A', 'C')
+                     AND plant_code = ?
+               `, plant_code);
+            } else {
+               unassignedAssets = await prisma.$queryRaw`
+                  SELECT COUNT(*) as asset_count
+                  FROM asset_master
+                  WHERE dept_code IS NULL AND status IN ('A', 'C')
+               `;
+            }
          } else {
             // Get all departments
             departmentStats = await prisma.$queryRaw`
@@ -873,36 +890,47 @@ const dashboardController = {
                   d.description as dept_description,
                   d.plant_code,
                   p.description as plant_description,
-                  COUNT(a.asset_no) as asset_count,
-                  ROUND(COUNT(a.asset_no) * 100.0 / SUM(COUNT(a.asset_no)) OVER(), 2) as percentage
+                  COUNT(a.asset_no) as asset_count
                FROM mst_department d
                LEFT JOIN mst_plant p ON d.plant_code = p.plant_code
                LEFT JOIN asset_master a ON d.dept_code = a.dept_code AND a.status IN ('A', 'C')
                GROUP BY d.dept_code, d.description, d.plant_code, p.description
                ORDER BY asset_count DESC
             `;
+
+            // Count unassigned assets (dept_code is null)
+            unassignedAssets = await prisma.$queryRaw`
+               SELECT COUNT(*) as asset_count
+               FROM asset_master
+               WHERE dept_code IS NULL AND status IN ('A', 'C')
+            `;
          }
 
-         // Calculate summary
-         const totalAssets = departmentStats.reduce((sum, dept) => sum + Number(dept.asset_count || 0), 0);
-         const totalDepartments = departmentStats.length;
+         // Calculate totals
+         const unassignedCount = Number(unassignedAssets[0]?.asset_count || 0);
+         const assignedTotal = departmentStats.reduce((sum, dept) => sum + Number(dept.asset_count || 0), 0);
+         const grandTotal = assignedTotal + unassignedCount;
 
-         // Return ALL departments sorted by asset count
-         // Frontend will handle which ones to display (max 10)
+         // Calculate percentages (keep original logic for departments only)
          const allDepartments = departmentStats.map(dept => ({
             name: dept.dept_description || dept.dept_code,
             value: Number(dept.asset_count || 0),
-            percentage: Number(dept.percentage || 0),
+            percentage: assignedTotal > 0 ? Number(((Number(dept.asset_count || 0) / assignedTotal) * 100).toFixed(2)) : 0,
             dept_code: dept.dept_code,
             plant_code: dept.plant_code,
             plant_description: dept.plant_description
          }));
 
+         // Sort by asset count descending
+         allDepartments.sort((a, b) => b.value - a.value);
+
          const responseData = {
-            all_departments: allDepartments, // All departments for selection
+            all_departments: allDepartments,
             summary: {
-               total_assets: totalAssets,
-               total_departments: totalDepartments,
+               total_assets: grandTotal, // Total (assigned + unassigned)
+               assigned_assets: assignedTotal, // Assets with dept_code (not null)
+               unassigned_assets: unassignedCount, // Assets without dept_code (null)
+               total_departments: departmentStats.length,
                plant_filter: plant_code || 'all',
                dept_filter: dept_code || 'all'
             },

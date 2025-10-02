@@ -75,11 +75,15 @@ class PieChartDataModel {
 
 class DistributionSummaryModel {
   final int totalAssets;
+  final int assignedAssets;
+  final int unassignedAssets;
   final int totalDepartments;
   final String plantFilter;
 
   const DistributionSummaryModel({
     required this.totalAssets,
+    required this.assignedAssets,
+    required this.unassignedAssets,
     required this.totalDepartments,
     required this.plantFilter,
   });
@@ -87,6 +91,8 @@ class DistributionSummaryModel {
   factory DistributionSummaryModel.fromJson(Map<String, dynamic> json) {
     return DistributionSummaryModel(
       totalAssets: json['total_assets'] ?? 0,
+      assignedAssets: json['assigned_assets'] ?? 0,
+      unassignedAssets: json['unassigned_assets'] ?? 0,
       totalDepartments: json['total_departments'] ?? 0,
       plantFilter: json['plant_filter'] ?? 'all',
     );
@@ -95,6 +101,8 @@ class DistributionSummaryModel {
   Map<String, dynamic> toJson() {
     return {
       'total_assets': totalAssets,
+      'assigned_assets': assignedAssets,
+      'unassigned_assets': unassignedAssets,
       'total_departments': totalDepartments,
       'plant_filter': plantFilter,
     };

@@ -267,6 +267,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
           .toList(),
       summary: DistributionSummary(
         totalAssets: model.summary.totalAssets,
+        assignedAssets: model.summary.assignedAssets,
+        unassignedAssets: model.summary.unassignedAssets,
         totalDepartments: model.summary.totalDepartments,
         plantFilter: model.summary.plantFilter,
       ),

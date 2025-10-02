@@ -66,11 +66,15 @@ class PieChartData extends Equatable {
 
 class DistributionSummary extends Equatable {
   final int totalAssets;
+  final int assignedAssets;
+  final int unassignedAssets;
   final int totalDepartments;
   final String plantFilter;
 
   const DistributionSummary({
     required this.totalAssets,
+    required this.assignedAssets,
+    required this.unassignedAssets,
     required this.totalDepartments,
     required this.plantFilter,
   });
@@ -80,7 +84,7 @@ class DistributionSummary extends Equatable {
       totalDepartments > 0 ? totalAssets / totalDepartments : 0;
 
   @override
-  List<Object> get props => [totalAssets, totalDepartments, plantFilter];
+  List<Object> get props => [totalAssets, assignedAssets, unassignedAssets, totalDepartments, plantFilter];
 }
 
 class FilterInfo extends Equatable {

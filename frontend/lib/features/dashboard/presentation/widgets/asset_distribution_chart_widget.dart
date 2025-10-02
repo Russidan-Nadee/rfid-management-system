@@ -466,9 +466,16 @@ class _AssetDistributionChartWidgetState
         children: [
           _buildSummaryItem(
             context,
-            label: l10n.totalAssets,
-            value: widget.distribution.summary.totalAssets.toString(),
+            label: 'Assigned',
+            value: widget.distribution.summary.assignedAssets.toString(),
             icon: Icons.inventory,
+          ),
+          _buildDivider(context),
+          _buildSummaryItem(
+            context,
+            label: 'Unassigned',
+            value: widget.distribution.summary.unassignedAssets.toString(),
+            icon: Icons.inventory_outlined,
           ),
           _buildDivider(context),
           _buildSummaryItem(
