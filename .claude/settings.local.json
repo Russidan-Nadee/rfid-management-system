@@ -44,7 +44,11 @@
       "Bash(git add:*)",
       "Bash(echo:*)",
       "Bash(comm:*)",
-      "Bash(del backendcheck-depts.js)"
+      "Bash(del backendcheck-depts.js)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: enhance database seeding with comprehensive asset and notification data\n\n- Add EPC auto-generation (E28011606000020000000001...)\n- Add created_at date conversion from asset_no (Buddhist year → AD year)\n- Add category mapping (Laptop → LAP, PC → PC)\n- Add unit logic (Laptop → EA, PC → SET)\n- Add random status generation (A or C)\n- Add 30 problem notifications with all statuses\n- Add 55 departments from department_raw.xlsx\n- Add complete cost center mappings\n- Update schema: add is_active, created_at, updated_at to master tables\n- Remove seedLocations.js\n- Integrate department/plant update into seedAssets\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "additionalDirectories": [

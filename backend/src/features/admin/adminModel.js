@@ -53,6 +53,7 @@ class AdminModel {
             mst_user: true,
             mst_category: true,
             mst_brand: true,
+            mst_department: true,
             asset_scan_log: {
                take: 1,
                orderBy: { scanned_at: 'desc' },
@@ -68,6 +69,14 @@ class AdminModel {
          where: { asset_no: assetNo }
       });
 
+      // Conditional: Get computer_info if category is LAP or PC
+      let computerInfo = null;
+      if (asset.category_code === 'LAP' || asset.category_code === 'PC') {
+         computerInfo = await this.prisma.asset_computer_info.findUnique({
+            where: { asset_no: assetNo }
+         });
+      }
+
       // Format response with additional fields
       return {
          ...asset,
@@ -80,7 +89,8 @@ class AdminModel {
          brand_name: asset.mst_brand?.brand_name,
          last_scan_at: asset.asset_scan_log[0]?.scanned_at,
          last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
-         total_scans: scanCount
+         total_scans: scanCount,
+         computer_info: computerInfo
       };
    }
 
@@ -143,7 +153,20 @@ class AdminModel {
       });
       
       console.log('Database query returned:', assets.length, 'assets');
-      
+
+      // Get computer_info for LAP/PC assets
+      const assetNos = assets.map(a => a.asset_no);
+      const computerInfos = await this.prisma.asset_computer_info.findMany({
+         where: {
+            asset_no: { in: assetNos }
+         }
+      });
+
+      // Create map for quick lookup
+      const computerInfoMap = new Map(
+         computerInfos.map(info => [info.asset_no, info])
+      );
+
       // Format each asset with additional fields
       const formattedAssets = assets.map(asset => ({
          ...asset,
@@ -156,9 +179,12 @@ class AdminModel {
          brand_name: asset.mst_brand?.brand_name,
          last_scan_at: asset.asset_scan_log[0]?.scanned_at,
          last_scanned_by: asset.asset_scan_log[0]?.mst_user?.full_name,
-         total_scans: 0 // Will be calculated if needed
+         total_scans: 0, // Will be calculated if needed
+         computer_info: (asset.category_code === 'LAP' || asset.category_code === 'PC')
+            ? computerInfoMap.get(asset.asset_no) || null
+            : null
       }));
-      
+
       return formattedAssets;
    }
 

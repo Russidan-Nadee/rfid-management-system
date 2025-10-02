@@ -160,6 +160,19 @@ class SearchModel {
             })
          ]);
 
+         // Get computer_info for LAP/PC assets
+         const assetNos = results.map(a => a.asset_no);
+         const computerInfos = await prisma.asset_computer_info.findMany({
+            where: {
+               asset_no: { in: assetNos }
+            }
+         });
+
+         // Create map for quick lookup
+         const computerInfoMap = new Map(
+            computerInfos.map(info => [info.asset_no, info])
+         );
+
          const totalPages = Math.ceil(total / actualLimit);
 
          return {
@@ -186,6 +199,11 @@ class SearchModel {
                unit_name: asset.mst_unit?.name || null,
                created_by_name: asset.mst_user?.full_name || null,
                created_by_role: asset.mst_user?.role || null,
+
+               // Computer info (only if LAP or PC)
+               computer_info: (asset.category_code === 'LAP' || asset.category_code === 'PC')
+                  ? computerInfoMap.get(asset.asset_no) || null
+                  : null,
 
                // Entity type for compatibility
                entity_type: 'asset'
@@ -291,6 +309,19 @@ class SearchModel {
             ]
          });
 
+         // Get computer_info for LAP/PC assets
+         const assetNos = results.map(a => a.asset_no);
+         const computerInfos = await prisma.asset_computer_info.findMany({
+            where: {
+               asset_no: { in: assetNos }
+            }
+         });
+
+         // Create map for quick lookup
+         const computerInfoMap = new Map(
+            computerInfos.map(info => [info.asset_no, info])
+         );
+
          // Enhanced mapping - flatten relations และเพิ่ม fields ที่ต้องการ
          return results.map(asset => ({
             // Basic asset fields
@@ -315,6 +346,11 @@ class SearchModel {
             unit_name: asset.mst_unit?.name || null,
             created_by_name: asset.mst_user?.full_name || null,
             created_by_role: asset.mst_user?.role || null,
+
+            // Computer info (only if LAP or PC)
+            computer_info: (asset.category_code === 'LAP' || asset.category_code === 'PC')
+               ? computerInfoMap.get(asset.asset_no) || null
+               : null,
 
             // Entity type for compatibility
             entity_type: 'asset'

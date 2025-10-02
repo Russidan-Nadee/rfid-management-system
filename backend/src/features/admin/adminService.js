@@ -169,7 +169,10 @@ class AdminService {
          last_scan_at: asset.last_scan_at,
          last_scanned_by: asset.last_scanned_by,
          total_scans: asset.total_scans || 0,
-         
+
+         // Computer info (for LAP/PC only, null if not exists)
+         computer_info: asset.computer_info || null,
+
          // Status helpers
          is_active: asset.status === 'A',
          status_text: asset.status === 'A' ? 'Awaiting' : asset.status === 'C' ? 'Checked' : 'Inactive'
